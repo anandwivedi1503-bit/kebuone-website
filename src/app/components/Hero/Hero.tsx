@@ -73,7 +73,7 @@ sm:mt-5
 md:mt-6
 lg:mt-8
 ">
-  All In One App.
+  Welcome to Kebu One!
 </p>
 
 <p className="
