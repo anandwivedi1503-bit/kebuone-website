@@ -13,7 +13,8 @@ import {
 export default function RiderFormV2() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
- 
+  const [registeredRiderId, setRegisteredRiderId] = useState("");
+ const [submitting, setSubmitting] = useState(false);
   const [fullName, setFullName] = useState("");
 const [phone, setPhone] = useState("");
 const [email, setEmail] = useState("");
@@ -34,7 +35,7 @@ const [confirmationResult, setConfirmationResult] =
   useState<ConfirmationResult | null>(null);
 
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
-
+const otpMessageTimeout = useRef<NodeJS.Timeout | null>(null);
 
 const [aadhaar, setAadhaar] = useState("");
 const [license, setLicense] = useState("");
@@ -91,7 +92,8 @@ const getFirebaseOtpErrorMessage = (error: unknown) => {
       ? String((error as { code?: string }).code)
       : "";
 
-  if (code === "auth/unauthorized-domain") {
+  if (code === "auth/unauthorized-domain") {  
+ 
     return "This domain is not allowed in Firebase. Add your hosting domain in Firebase Authentication settings.";
   }
 
@@ -127,6 +129,20 @@ const resetRecaptcha = () => {
 };
 
 const getOtpPhone = () => cleanDigits(phone).slice(0, 10);
+const showOtpMessage = (
+  message: string,
+  duration = 3000
+) => {
+  setOtpMessage(message);
+
+  if (otpMessageTimeout.current) {
+    clearTimeout(otpMessageTimeout.current);
+  }
+
+  otpMessageTimeout.current = setTimeout(() => {
+    setOtpMessage("");
+  }, duration);
+};
 
 
 const validateSelectedFile = (
@@ -186,7 +202,7 @@ const convertToBase64 = (file: File) => {
 
 const uploadFile = async (file: File) => {
   const base64 = await convertToBase64(file);
-
+  showOtpMessage("Uploading document...");
   const response = await fetch("/api/upload", {
     method: "POST",
     headers: {
@@ -204,10 +220,14 @@ const uploadFile = async (file: File) => {
     throw new Error(data.error || "File upload failed");
   }
 
+  showOtpMessage("Upload completed.");
+
   return data.url;
 };
 const submitForm = async () => {
   try {
+    setSubmitting(true);
+setError("");
     if (!firebaseIdToken) {
   setError("Please verify OTP again before uploading documents.");
   return;
@@ -264,15 +284,21 @@ firebaseIdToken,
     const data = await response.json();
 
     if (data.success) {
+
+  setRegisteredRiderId(data.data.riderId);
+
   setSubmitted(true);
+
 } else {
   setError(data.errors?.join(" ") || data.message || "Registration failed");
 }
 
   } catch (error) {
-    console.error(error);
-    alert("Upload Failed");
-  }
+  console.error(error);
+  setError("Registration failed. Please try again.");
+} finally {
+  setSubmitting(false);
+}
 };
 
 useEffect(() => {
@@ -284,6 +310,14 @@ useEffect(() => {
 
   return () => window.clearInterval(timer);
 }, [otpCooldown]);
+
+useEffect(() => {
+  return () => {
+    if (otpMessageTimeout.current) {
+      clearTimeout(otpMessageTimeout.current);
+    }
+  };
+}, []);
 
 const sendOtp = async () => {
   try {
@@ -313,6 +347,8 @@ const sendOtp = async () => {
     }
 
     setPhone(validPhone);
+    setOtp("");
+setOtpVerified(false);
     setOtpLoading(true);
     setConfirmationResult(null);
     setOtpVerified(false);
@@ -324,7 +360,7 @@ const sendOtp = async () => {
       {
         size: "invisible",
         callback: () => {
-          setOtpMessage("reCAPTCHA verified. Sending OTP...");
+          setOtpMessage("Security verified. Sending OTP...");
         },
         "expired-callback": () => {
           setError("reCAPTCHA expired. Please send OTP again.");
@@ -346,7 +382,7 @@ const sendOtp = async () => {
     setOtp("");
     setOtpCooldown(OTP_COOLDOWN_SECONDS);
     setOtpSendCount((count) => count + 1);
-    setOtpMessage("OTP sent successfully");
+    showOtpMessage("OTP sent successfully.");
   } catch (error) {
     console.error(error);
     setError(getFirebaseOtpErrorMessage(error));
@@ -386,8 +422,9 @@ const verifyOtp = async () => {
     setFirebaseUid(user.uid);
     setFirebaseIdToken(idToken);
     setOtpVerified(true);
+    setOtpCooldown(0);
     setOtpVerifyAttempts(0);
-    setOtpMessage("OTP verified successfully");
+    showOtpMessage("Phone number verified successfully.");
   } catch (error) {
     console.error(error);
 
@@ -402,7 +439,11 @@ const verifyOtp = async () => {
       return;
     }
 
-    setError("Invalid OTP. Please try again.");
+    setError(
+  `Invalid OTP. ${
+    MAX_OTP_VERIFY_ATTEMPTS - nextAttempts
+  } attempt(s) remaining.`
+);
     setOtpMessage("");
   }
 };
@@ -530,9 +571,9 @@ const isContinueDisabled = step === 2 && !otpVerified;
         border border-pink-100
         ">
 
-          <div className="text-7xl mb-6">
-            🎉
-          </div>
+          <div className="text-8xl mb-6 animate-bounce">
+✅
+</div>
 
           <h2 className="text-5xl font-black text-[#0A1134] mb-4">
             Registration Submitted
@@ -550,7 +591,7 @@ const isContinueDisabled = step === 2 && !otpVerified;
               </p>
 
               <h3 className="font-bold text-[#FF165E]">
-                KEBU-RDR-2025-0001
+                {registeredRiderId || "Generating Rider ID..."}
               </h3>
             </div>
 
@@ -577,7 +618,11 @@ const isContinueDisabled = step === 2 && !otpVerified;
           </div>
 
           <p className="text-[#555] mb-8">
-            Our verification team will review your Aadhaar details and activate your account shortly.
+            Your documents have been securely submitted.
+
+Our verification team will review your profile.
+
+Once approved, you'll receive confirmation and can immediately book your bike.
           </p>
 
           <div className="flex flex-col md:flex-row gap-4 justify-center">
@@ -595,7 +640,7 @@ const isContinueDisabled = step === 2 && !otpVerified;
     font-bold
     "
   >
-    Continue To Book Bike →
+    Book Your First Bike →
   </button>
 
   <button
@@ -634,7 +679,7 @@ const isContinueDisabled = step === 2 && !otpVerified;
 
           {/* LEFT VIDEO */}
 
-          <div className="relative">
+          <div className="relative hidden lg:block">
 
             <div className="overflow-hidden rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,0.18)]">
 
@@ -770,6 +815,10 @@ overflow-hidden
                     Personal Information
                   </h3>
 
+                  <p className="text-gray-500 mt-2 mb-8">
+Step 1 of 4
+</p>
+
                   <p className="text-sm text-gray-500 mb-6">
   Fields marked <span className="text-red-500">*</span> are required
 </p>
@@ -850,11 +899,16 @@ duration-300
       OTP Verification
     </h3>
 
+    <p className="text-gray-500 mt-2 mb-8">
+Step 2 of 4
+</p>
+
     <div className="space-y-4">
       <div id="recaptcha-container"></div>
 
       <input
         type="text"
+        disabled={otpVerified}
         placeholder="Enter 6 Digit OTP"
         value={otp}
         onChange={(e) => {
@@ -869,6 +923,9 @@ duration-300
         rounded-2xl
         border
         border-gray-200
+        disabled:bg-green-50
+        disabled:text-green-700
+        disabled:cursor-not-allowed
         "
       />
 
@@ -895,23 +952,45 @@ duration-300
   : "Send OTP"}
       </button>
 
-      {otpSent && (
-        <button
-          type="button"
-          onClick={verifyOtp}
-          className="
-          w-full
-          h-14
-          rounded-2xl
-          bg-green-600
-          text-white
-          font-bold
-          shadow-lg
-          "
-        >
-          Verify OTP
-        </button>
-      )}
+      {otpVerified ? (
+  <div
+    className="
+    w-full
+    h-14
+    rounded-2xl
+    bg-green-50
+    border
+    border-green-300
+    flex
+    items-center
+    justify-center
+    font-bold
+    text-green-700
+    "
+  >
+    ✓ Phone Number Verified
+  </div>
+) : (
+  otpSent && (
+    <button
+      type="button"
+      onClick={verifyOtp}
+      disabled={otpLoading}
+      className="
+      w-full
+      h-14
+      rounded-2xl
+      bg-green-600
+      text-white
+      font-bold
+      shadow-lg
+      disabled:opacity-50
+      "
+    >
+      Verify OTP
+    </button>
+  )
+)}
 
       {otpMessage && (
   <div className="
@@ -950,6 +1029,10 @@ duration-300
                   <h3 className="text-2xl font-bold text-[#0A1134] mb-6">
                     KYC Details
                   </h3>
+
+                  <p className="text-gray-500 mt-2 mb-8">
+                    Step 3 of 4
+                  </p>
 
                   <div className="space-y-4">
 
@@ -1033,6 +1116,10 @@ duration-300
                     Upload Documents
                   </h3>
 
+                  <p className="text-gray-500 mt-2 mb-8">
+Step 4 of 4
+</p>
+
                   <div className="grid md:grid-cols-3 gap-6">
 
   <label
@@ -1061,18 +1148,30 @@ hover:shadow-xl
     <h4 className="font-bold text-[#0A1134] mb-2">
       Aadhaar Card
     </h4>
+    <p className="text-xs text-red-500 mb-2 font-medium">
+Required
+</p>
 
     <p className="text-[#444] text-sm mb-3">
       Drag & Drop or Click To Upload
     </p>
+    <p className="text-xs text-gray-400 mt-2">
+Maximum Size: 5 MB
+</p>
 
     <p className="text-xs text-[#666]">
       PDF • JPG • PNG
     </p>
    {aadhaarFile && (
-  <p className="mt-3 text-green-600 text-sm font-semibold">
-    ✅ {aadhaarFile.name}
-  </p>
+  <>
+    <p className="mt-3 text-green-600 text-sm font-semibold">
+      ✅ {aadhaarFile.name}
+    </p>
+
+    <p className="text-xs text-gray-500">
+      {(aadhaarFile.size / 1024 / 1024).toFixed(2)} MB
+    </p>
+  </>
 )}
 
     <input
@@ -1125,15 +1224,24 @@ hover:shadow-xl
     <p className="text-gray-500 text-sm mb-3">
       Drag & Drop or Click To Upload
     </p>
+    <p className="text-xs text-gray-400 mt-2">
+Maximum Size: 5 MB
+</p>
 
     <p className="text-xs text-gray-400">
       PDF • JPG • PNG
     </p>
 
     {licenseFile && (
-  <p className="mt-3 text-green-600 text-sm font-semibold">
-    ✅ {licenseFile.name}
-  </p>
+  <>
+    <p className="mt-3 text-green-600 text-sm font-semibold">
+      ✅ {licenseFile.name}
+    </p>
+
+    <p className="text-xs text-gray-500">
+      {(licenseFile.size / 1024 / 1024).toFixed(2)} MB
+    </p>
+  </>
 )}
 
     <input
@@ -1180,7 +1288,7 @@ hover:shadow-xl
 </h4>
 
 <p className="text-xs text-red-500 mb-2 font-medium">
-  Required
+  Required Document
 </p>
 
   <p className="text-gray-500 text-sm mb-3">
@@ -1191,11 +1299,21 @@ hover:shadow-xl
     JPG • PNG
   </p>
 
-  {profilePhoto && (
+  <p className="text-xs text-gray-400 mt-2">
+    Maximum Size: 5 MB
+  </p>
+
+ {profilePhoto && (
+  <>
     <p className="mt-3 text-green-600 text-sm font-semibold">
       ✅ {profilePhoto.name}
     </p>
-  )}
+
+    <p className="text-xs text-gray-500">
+      {(profilePhoto.size / 1024 / 1024).toFixed(2)} MB
+    </p>
+  </>
+)}
 
   <input
   type="file"
@@ -1272,10 +1390,15 @@ shadow-lg
 ${isContinueDisabled ? "bg-gray-300 cursor-not-allowed shadow-none" : "bg-gradient-to-r from-[#FF165E] to-[#FF5A8B]"}
 `}
 >
-  Continue -&gt;
+  {step === 1
+  ? "Continue to Verification →"
+  : step === 2
+  ? "Continue to KYC →"
+  : "Continue to Documents →"} -&gt;
 </button>
                 ) : (
                   <button
+                  disabled={submitting}
   onClick={() => {
 
     if(validateStep()){
@@ -1293,9 +1416,11 @@ to-[#FF5A8B]
 text-white
 font-bold
 shadow-lg
+disabled:opacity-50
+disabled:cursor-not-allowed
 "
 >
-  Submit Registration
+  {submitting ? "Creating Rider Account..." : "Submit Registration"}
 </button>
                 )}
 
