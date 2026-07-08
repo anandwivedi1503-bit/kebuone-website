@@ -85,18 +85,53 @@ if (existingRider) {
   );
 }
 
+const lastRider = await Rider.findOne().sort({ createdAt: -1 });
+
+let nextNumber = 1;
+
+if (lastRider?.riderId) {
+  const match = lastRider.riderId.match(/RDR-(\d+)/);
+
+  if (match) {
+    nextNumber = Number(match[1]) + 1;
+  }
+}
+
+const riderId = `RDR-${String(nextNumber).padStart(6, "0")}`;
+
     const rider = await Rider.create({
-      ...body,
-      fullName,
-      phone,
-      email,
-      aadhaarNumber,
-      drivingLicense,
-      phoneVerified: true,
-      firebaseUid: decodedToken.uid,
-      verifiedPhoneNumber: decodedToken.phone_number,
-      firebaseIdToken: undefined,
-    });
+  ...body,
+
+  riderId,
+
+  fullName,
+  phone,
+  email,
+
+  aadhaarNumber,
+  drivingLicense,
+
+  phoneVerified: true,
+  firebaseUid: decodedToken.uid,
+  verifiedPhoneNumber: decodedToken.phone_number,
+
+  approvalStatus: "Under Review",
+  kycStatus: "Pending",
+
+  activeRide: false,
+
+  walletBalance: 0,
+  securityDeposit: 0,
+
+  status: "Active",
+  blacklisted: false,
+
+  notificationsEnabled: true,
+
+  lastOtpVerifiedAt: new Date(),
+
+  firebaseIdToken: undefined,
+});
 
     return NextResponse.json({
       success: true,
