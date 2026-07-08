@@ -161,7 +161,7 @@ if (rider.activeRide) {
       },
       {
         vehicleStatus: "Booked",
-        assignedRider: bookingId,
+        assignedRider: rider.riderId,
         lockStatus: "Locked",
       },
       { new: true, runValidators: true }
