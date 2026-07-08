@@ -1,3 +1,4 @@
+import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
 import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
@@ -77,6 +78,69 @@ const hubAliases = Array.from(
     const errors: string[] = [];
 
     if (!idRegex.test(bookingId)) errors.push("Valid booking ID is required.");
+    const rider = await Rider.findOne({
+  phone: userPhone,
+});
+
+if (!rider) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Rider is not registered. Please complete registration first."],
+    },
+    { status: 404 }
+  );
+}
+
+if (!rider.phoneVerified) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Phone number is not verified."],
+    },
+    { status: 403 }
+  );
+}
+
+if (rider.approvalStatus !== "Approved") {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Your account is still under review. Please wait for admin approval."],
+    },
+    { status: 403 }
+  );
+}
+
+if (rider.kycStatus !== "Approved") {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Your KYC has not been approved yet."],
+    },
+    { status: 403 }
+  );
+}
+
+if (rider.blacklisted) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Your account has been blocked. Please contact support."],
+    },
+    { status: 403 }
+  );
+}
+
+if (rider.activeRide) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["You already have an active ride."],
+    },
+    { status: 409 }
+  );
+}
     if (!nameRegex.test(userName)) errors.push("Valid rider name is required.");
     if (!phoneRegex.test(userPhone)) errors.push("Valid Indian mobile number is required.");
     if (!idRegex.test(vehicleId)) errors.push("Valid vehicle ID is required.");
@@ -137,6 +201,9 @@ const hubAliases = Array.from(
 
     const booking = await Booking.create({
       bookingId,
+      riderId: rider.riderId,
+userId: rider._id,
+userEmail: rider.email,
       bookingDate: new Date(),
       userName,
       userPhone,
@@ -163,6 +230,11 @@ const hubAliases = Array.from(
       referenceBy,
       remarks: `Pickup city: ${clean(body.city)}`,
     });
+
+    await Rider.findByIdAndUpdate(rider._id, {
+  activeRide: true,
+  currentBookingId: booking.bookingId,
+});
 
     return NextResponse.json({
       success: true,

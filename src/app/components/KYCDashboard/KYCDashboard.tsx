@@ -54,7 +54,7 @@ headers:{
 
 body:JSON.stringify({
 
-kycStatus:"Verified",
+kycStatus:"Approved",
 
 approvalStatus:"Approved",
 
