@@ -62,6 +62,16 @@ export async function POST(req: Request) {
     const receivedAmount = Number(booking.receivedAmount || 0);
     const remainingAmount = Number((payableAmount - receivedAmount).toFixed(2));
 
+    if (remainingAmount <= 0) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "This booking has already been fully paid.",
+    },
+    { status: 400 }
+  );
+}
+
     const amount = requestedAmount || remainingAmount;
 
     if (!amount || amount < 1 || amount > remainingAmount) {

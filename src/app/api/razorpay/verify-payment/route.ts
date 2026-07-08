@@ -1,3 +1,4 @@
+import Rider from "@/models/Rider";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
@@ -161,10 +162,24 @@ if (String(order.notes?.bookingMongoId || "") !== bookingMongoId) {
         paymentMode: "Razorpay",
         paymentStatus,
         paymentDate: new Date(),
-        remarks: `Razorpay paid INR ${paidAmount}. Order: ${razorpayOrderId}, Payment: ${razorpayPaymentId}`,
+        razorpayOrderId,
+razorpayPaymentId,
+        remarks: `${booking.remarks || ""}
+
+Razorpay paid INR ${paidAmount}
+Order: ${razorpayOrderId}
+Payment: ${razorpayPaymentId}`,
       },
       { new: true }
     );
+    await Rider.findOneAndUpdate(
+  { riderId: booking.riderId },
+  {
+    $inc: {
+      totalEarnings: paidAmount,
+    },
+  }
+);
 
     return NextResponse.json({
       success: true,

@@ -15,9 +15,24 @@ const BookingSchema = new mongoose.Schema(
     },
 
     // Customer Details
-    userId: String,
-    userName: String,
-    userPhone: String,
+riderId: {
+  type: String,
+  default: "",
+},
+
+userId: {
+  type: mongoose.Schema.Types.ObjectId,
+  ref: "Rider",
+},
+
+userName: String,
+
+userPhone: String,
+
+userEmail: {
+  type: String,
+  default: "",
+},
 
     // Vehicle Details
     vehicleId: String,
@@ -67,9 +82,22 @@ const BookingSchema = new mongoose.Schema(
 
     rentalEndDate: Date,
 
+    actualRideStart: Date,
+
+actualRideEnd: Date,
+
+expectedReturnDate: Date,
+
     // Hub Details
     startHub: String,
     endHub: String,
+   pickupLatitude: Number,
+
+pickupLongitude: Number,
+
+dropLatitude: Number,
+
+dropLongitude: Number,
 
     // Financial Details
     securityDeposit: {
@@ -97,6 +125,16 @@ const BookingSchema = new mongoose.Schema(
       default: 0,
     },
 
+   refundAmount: {
+  type: Number,
+  default: 0,
+},
+
+securityDepositRefunded: {
+  type: Boolean,
+  default: false,
+}, 
+
     // Payment
     paymentMode: {
   type: String,
@@ -104,6 +142,16 @@ const BookingSchema = new mongoose.Schema(
   default: "Razorpay",
 },
     paymentDate: Date,
+
+    razorpayOrderId: {
+  type: String,
+  default: "",
+},
+
+razorpayPaymentId: {
+  type: String,
+  default: "",
+},
 
     paymentStatus: {
       type: String,
@@ -113,16 +161,18 @@ const BookingSchema = new mongoose.Schema(
 
     // Ride Status
     rideStatus: {
-      type: String,
-      enum: [
-        "Booked",
-        "Reserved",
-        "In Ride",
-        "Completed",
-        "Cancelled",
-      ],
-      default: "Booked",
-    },
+  type: String,
+  enum: [
+    "Booked",
+    "Reserved",
+    "Payment Pending",
+    "Ready For Pickup",
+    "In Ride",
+    "Completed",
+    "Cancelled",
+  ],
+  default: "Booked",
+},
 
     // Reference
     referenceBy: {
@@ -134,6 +184,30 @@ const BookingSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    cancelledBy: {
+  type: String,
+  default: "",
+},
+
+cancellationReason: {
+  type: String,
+  default: "",
+},
+
+invoiceGenerated: {
+  type: Boolean,
+  default: false,
+},
+
+invoiceNumber: {
+  type: String,
+  default: "",
+},
+
+otpVerifiedAt: Date,
+
+paymentVerifiedAt: Date,
   },
   {
     timestamps: true,
