@@ -18,6 +18,27 @@ const TransactionSchema = new mongoose.Schema(
 
     paymentMethod: String,
 
+    razorpayOrderId: {
+  type: String,
+  default: "",
+},
+
+razorpayPaymentId: {
+  type: String,
+  default: "",
+},
+
+invoiceNumber: {
+  type: String,
+  default: "",
+},
+
+refundStatus: {
+  type: String,
+  enum: ["None", "Pending", "Completed"],
+  default: "None",
+},
+
     transactionType: {
       type: String,
       default: "Ride Payment",

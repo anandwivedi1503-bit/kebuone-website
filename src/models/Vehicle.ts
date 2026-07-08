@@ -126,6 +126,26 @@ remarks: {
     pollutionExpiry: {
       type: Date,
     },
+
+    currentLatitude: {
+  type: Number,
+  default: 0,
+},
+
+currentLongitude: {
+  type: Number,
+  default: 0,
+},
+
+lastPingTime: {
+  type: Date,
+  default: Date.now,
+},
+
+isActive: {
+  type: Boolean,
+  default: true,
+},
   },
   {
     timestamps: true,
