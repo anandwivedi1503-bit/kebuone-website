@@ -119,6 +119,16 @@ remarks: {
       default: "",
     },
 
+    currentBookingId: {
+  type: String,
+  default: "",
+},
+
+currentRiderId: {
+  type: String,
+  default: "",
+},
+
     insuranceExpiry: {
       type: Date,
     },

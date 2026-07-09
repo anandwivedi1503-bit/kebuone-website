@@ -10,13 +10,7 @@ const phoneRegex = /^[6-9]\d{9}$/;
 const idRegex = /^[A-Za-z0-9_-]{3,60}$/;
 
 const rentalModes = ["Daily", "Weekly", "Monthly"];
-const batteryTypes = ["Chargeable", "Swappable"];
-const registrationTypes = ["RTO", "Non-RTO"];
-const paymentModes = ["Cash", "UPI", "Card", "Bank Transfer", "Razorpay"];
-const paymentStatuses = ["Pending", "Partial", "Paid"];
-const rideStatuses = ["Booked", "Reserved", "In Ride", "Completed", "Cancelled"];
-
-function clean(value: unknown) {
+ function clean(value: unknown) {
   return String(value || "").trim();
 }
 
@@ -76,6 +70,17 @@ const hubAliases = Array.from(
     const referenceBy = clean(body.referenceBy).slice(0, 80);
 
     const errors: string[] = [];
+    const existingBooking = await Booking.findOne({ bookingId });
+
+if (existingBooking) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Booking ID already exists."],
+    },
+    { status: 409 }
+  );
+}
 
     if (!idRegex.test(bookingId)) errors.push("Valid booking ID is required.");
     const rider = await Rider.findOne({
@@ -158,6 +163,7 @@ if (rider.activeRide) {
         vehicleId,
         currentHub: { $in: hubAliases },
         vehicleStatus: "Available",
+        lockStatus: "Unlocked",
       },
       {
         vehicleStatus: "Booked",
@@ -173,6 +179,16 @@ if (rider.activeRide) {
         { status: 409 }
       );
     }
+
+    if (!vehicle.isActive) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["This vehicle has been deactivated by the administrator."],
+    },
+    { status: 403 }
+  );
+}
 
     lockedVehicleId = String(vehicle._id);
 
@@ -190,7 +206,7 @@ if (rider.activeRide) {
       await Vehicle.findByIdAndUpdate(lockedVehicleId, {
         vehicleStatus: "Available",
         assignedRider: "",
-        lockStatus: "Locked",
+        lockStatus: "Unlocked",
       });
 
       return NextResponse.json(
@@ -205,12 +221,16 @@ if (rider.activeRide) {
 userId: rider._id,
 userEmail: rider.email,
       bookingDate: new Date(),
+      bookingTime:new Date(),
       userName,
       userPhone,
       vehicleId: vehicle.vehicleId,
       vehicleNumber: vehicle.registrationNumber,
       chassisNumber: vehicle.chassisNumber,
       vehicleType: vehicle.vehicleType || "Electric Scooter",
+      vehicleModel: vehicle.vehicleModel,
+batteryPercentage: vehicle.batteryPercentage,
+currentHub: vehicle.currentHub,
       batteryType: vehicle.batteryType || "Chargeable",
       registrationType: vehicle.registrationType || "RTO",
       rentalMode,
@@ -219,7 +239,9 @@ userEmail: rider.email,
       monthlyRate: Number(vehicle.monthlyRate || 0),
       rentalStartDate: new Date(),
       startHub: pickupHubName || startHub || vehicle.currentHub,
+     pickupCity: clean(body.city),
       securityDeposit,
+      paymentDue: payableAmount,
       advancePaid: 0,
       totalAmount: rentalAmount,
       receivedAmount: 0,
@@ -228,24 +250,31 @@ userEmail: rider.email,
       paymentStatus: "Pending",
       rideStatus: "Booked",
       referenceBy,
-      remarks: `Pickup city: ${clean(body.city)}`,
+      
     });
 
     await Rider.findByIdAndUpdate(rider._id, {
   activeRide: true,
   currentBookingId: booking.bookingId,
 });
+await Vehicle.findByIdAndUpdate(vehicle._id, {
+  currentBookingId: booking.bookingId,
+  currentRiderId: rider.riderId,
+});
 
     return NextResponse.json({
-      success: true,
-      data: booking,
-    });
+  success: true,
+  message: "Booking created successfully.",
+  bookingId: booking.bookingId,
+  pendingAmount: booking.pendingAmount,
+  data: booking,
+});
   } catch (error) {
     if (lockedVehicleId) {
       await Vehicle.findByIdAndUpdate(lockedVehicleId, {
         vehicleStatus: "Available",
         assignedRider: "",
-        lockStatus: "Locked",
+        lockStatus: "Unlocked",
       }).catch(() => {});
     }
 

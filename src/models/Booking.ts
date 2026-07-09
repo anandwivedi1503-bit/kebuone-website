@@ -14,6 +14,11 @@ const BookingSchema = new mongoose.Schema(
       default: Date.now,
     },
 
+    bookingTime: {
+  type: Date,
+  default: Date.now,
+},
+
     // Customer Details
 riderId: {
   type: String,
@@ -44,11 +49,21 @@ userEmail: {
       default: "Electric Scooter",
     },
 
+    vehicleModel: {
+  type: String,
+  default: "",
+},
+
     batteryType: {
       type: String,
       enum: ["Chargeable", "Swappable"],
       default: "Chargeable",
     },
+
+    batteryPercentage: {
+  type: Number,
+  default: 100,
+},
 
     registrationType: {
       type: String,
@@ -90,6 +105,8 @@ expectedReturnDate: Date,
 
     // Hub Details
     startHub: String,
+    currentHub: String,
+pickupCity: String,
     endHub: String,
    pickupLatitude: Number,
 
@@ -124,6 +141,11 @@ dropLongitude: Number,
       type: Number,
       default: 0,
     },
+
+    paymentDue: {
+  type: Number,
+  default: 0,
+},
 
    refundAmount: {
   type: Number,

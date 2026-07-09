@@ -122,6 +122,7 @@ export default function BikeBooking() {
   const [pendingAmount, setPendingAmount] = useState(0);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -327,7 +328,7 @@ referenceBy,
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
       setPaymentAmount(String(bookingData.data.pendingAmount || payableAmount));
       setBookingDone(true);
-      setMessage("Bike reserved successfully. Complete payment to confirm your ride.");
+      setMessage("🎉 Your scooter has been reserved successfully. Complete the secure payment below to confirm your booking.");
       await loadData();
     } catch {
       setError("Booking failed. Please try again.");
@@ -339,9 +340,11 @@ referenceBy,
   const payWithRazorpay = async () => {
     setError("");
     setPaymentMessage("");
+    setPaymentLoading(true);
 
     if (!bookingMongoId) {
-      setError("Reserve bike first.");
+      setError("Reserve Scooter first.");
+      setPaymentLoading(false);
       return;
     }
 
@@ -349,6 +352,7 @@ referenceBy,
 
     if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
       setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
+      setPaymentLoading(false);
       return;
     }
 
@@ -356,6 +360,7 @@ referenceBy,
 
     if (!loaded || !window.Razorpay) {
       setError("Razorpay failed to load. Check internet connection.");
+      setPaymentLoading(false);
       return;
     }
 
@@ -377,6 +382,7 @@ referenceBy,
     if (!orderData.success) {
       setPaymentMessage("");
       setError(orderData.message || "Unable to create Razorpay order.");
+      setPaymentLoading(false);
       return;
     }
 
@@ -419,6 +425,7 @@ referenceBy,
         if (!verifyData.success) {
           setPaymentMessage("");
           setError(verifyData.message || "Payment verification failed.");
+          setPaymentLoading(false);
           return;
         }
 
@@ -426,25 +433,38 @@ referenceBy,
         setPendingAmount(Number(verifyData.pendingAmount || 0));
 
         if (Number(verifyData.pendingAmount || 0) > 0) {
-          setPaymentMessage(`Partial payment received. Pending: ${formatINR(Number(verifyData.pendingAmount))}`);
-          setPaymentAmount(String(verifyData.pendingAmount));
-        } else {
-          setPaymentSuccess(true);
-          setPaymentMessage("Payment successful. Booking confirmed.");
-        }
+  setPaymentMessage(
+    `Partial payment received. Pending: ${formatINR(Number(verifyData.pendingAmount))}`
+  );
+
+  setPaymentAmount(String(verifyData.pendingAmount));
+
+  setPaymentLoading(false);
+} else {
+  setPaymentSuccess(true);
+
+  setPaymentMessage("Payment successful. Booking confirmed.");
+
+  setPaymentLoading(false);
+}
       },
       modal: {
-        ondismiss: () => {
-          setPaymentMessage("Payment cancelled. You can try again.");
-        },
-      },
+  ondismiss: () => {
+    setPaymentLoading(false);
+    setPaymentMessage("Payment cancelled. You can try again.");
+  },
+},
     });
 
     razorpay.open();
   };
 
   return (
-    <section className="bg-[#F7F8FB] py-10 md:py-16">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[#FFF5F8] via-white to-[#F4F7FF] py-12 md:py-20">
+
+<div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-pink-200/30 blur-3xl" />
+
+<div className="absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-blue-200/20 blur-3xl" />
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-8">
           <span className="inline-flex items-center gap-2 rounded-full bg-pink-50 px-4 py-2 text-sm font-bold text-[#FF165E]">
@@ -452,13 +472,18 @@ referenceBy,
             Bike Booking
           </span>
 
-          <h1 className="mt-5 text-4xl font-black text-[#0A1134] md:text-6xl">
-            Reserve Your Ride
-          </h1>
+          <h1 className="mt-6 text-5xl font-black tracking-tight text-[#0A1134] md:text-7xl">
+    Ride Smarter
+</h1>
 
-          <p className="mt-4 max-w-2xl text-gray-600">
-            Select details step by step, reserve a bike, then complete secure Razorpay payment.
-          </p>
+<h2 className="mt-2 text-3xl font-black text-[#FF165E] md:text-5xl">
+    Reserve Your Electric Scooter
+</h2>
+
+<p className="mt-6 max-w-3xl text-lg leading-8 text-gray-600">
+    Choose your pickup hub, select an available scooter, reserve it instantly,
+    and complete a secure payment through Razorpay.
+</p>
         </div>
 
         {error && (
@@ -473,11 +498,11 @@ referenceBy,
           </div>
         )}
 
-        <div className="mb-6 grid grid-cols-4 gap-2 text-center text-xs font-black text-[#0A1134] md:text-sm">
+        <div className="mb-10 grid grid-cols-4 gap-3 rounded-3xl bg-white p-4 shadow-lg">
           {["Details", "Bike", "Reserve", "Payment"].map((label, index) => (
             <div
               key={label}
-              className={`rounded-2xl border p-3 ${
+              className={`rounded-2xl border py-4 transition-all duration-300 ${
                 step >= index + 1
                   ? "border-[#FF165E] bg-pink-50 text-[#FF165E]"
                   : "border-gray-200 bg-white"
@@ -491,7 +516,16 @@ referenceBy,
         <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
           <form
             onSubmit={createBooking}
-            className="rounded-3xl bg-white p-5 shadow-[0_24px_80px_rgba(10,17,52,0.08)] md:p-8"
+            className="
+rounded-[32px]
+bg-white/95
+backdrop-blur-xl
+border
+border-white
+p-6
+md:p-10
+shadow-[0_30px_100px_rgba(10,17,52,0.10)]
+"
           >
             {step === 1 && (
               <div className="grid gap-5 md:grid-cols-2">
@@ -566,7 +600,7 @@ referenceBy,
                     onClick={goToBikeStep}
                     className="h-14 w-full rounded-2xl bg-[#FF165E] font-black text-white"
                   >
-                    Continue
+                   Continue →
                   </button>
                 </div>
               </div>
@@ -592,11 +626,11 @@ referenceBy,
                 </div>
 
                    {loading ? (
-  <Empty text="Loading bikes..." />
+  <Empty text="Loading available scooters..." />
 ) : !hub ? (
-  <Empty text="Select a pickup hub first." />
+  <Empty text="Choose your pickup hub to view available scooters." />
 ) : filteredBikes.length === 0 ? (
-  <Empty text="No available bikes found for this hub. In Vehicle Management, keep vehicleStatus as Available and currentHub equal to this hub name or hub code." />
+  <Empty text="No available scooters found for this hub. In Vehicle Management, keep vehicleStatus as Available and currentHub equal to this hub name or hub code." />
 ) : (              
                   <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {filteredBikes.map((bike) => {
@@ -613,19 +647,47 @@ referenceBy,
                           key={bike._id}
                           type="button"
                           onClick={() => setSelectedBike(bike.vehicleId)}
-                          className={`rounded-3xl border-2 bg-white p-5 text-left transition ${
-                            isSelected ? "border-[#FF165E] shadow-lg" : "border-gray-100 hover:border-pink-200"
+                          className={`group rounded-[30px] border-2 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
+                            isSelected ? "border-[#FF165E] shadow-2xl scale-[1.02]" : "border-gray-100 hover:border-pink-200"
                           }`}
                         >
                           <div className="flex justify-between gap-3">
-                            <h4 className="text-lg font-black text-[#0A1134]">{bike.vehicleId}</h4>
+                            <h4 className="text-2xl font-black text-[#0A1134]">{bike.vehicleId}</h4>
                             {isSelected && <CheckCircle2 className="text-[#FF165E]" />}
                           </div>
                           <p className="mt-1 text-sm text-gray-500">{bike.vehicleModel || "Electric Scooter"}</p>
+                          <p className="mt-1 text-sm font-medium text-gray-500">
+    {bike.registrationNumber}
+</p>
                           <div className="mt-4 space-y-2 text-sm text-gray-600">
-                            <p>Battery: <b>{amount(bike.batteryPercentage)}%</b></p>
-                            <p>Type: <b>{bike.batteryType || "Chargeable"}</b></p>
-                            <p>{rentalMode}: <b>{formatINR(price)}</b></p>
+                            <div className="flex items-center justify-between">
+    <span>Battery</span>
+
+    <span className="rounded-full bg-green-100 px-3 py-1 text-green-700 font-bold">
+        {amount(bike.batteryPercentage)}%
+    </span>
+</div>
+                            <div className="flex items-center justify-between">
+    <span>Battery</span>
+
+    <span className="font-bold text-[#0A1134]">
+        {bike.batteryType || "Chargeable"}
+    </span>
+</div>
+                            <div className="mt-4 rounded-2xl bg-pink-50 p-3">
+
+    <p className="text-xs uppercase tracking-wide text-gray-500">
+        {rentalMode} Rent
+    </p>
+
+    <p className="mt-1 text-2xl font-black text-[#FF165E]">
+        {formatINR(price)}
+    </p>
+
+</div>
+<p className="mt-4 text-sm text-gray-500">
+  📍 {bike.currentHub}
+</p>
                           </div>
                         </button>
                       );
@@ -639,8 +701,8 @@ referenceBy,
 
             {step === 3 && (
               <div>
-                <h2 className="text-2xl font-black text-[#0A1134]">Reserve Bike</h2>
-                <p className="mt-2 text-gray-600">Review your booking and reserve the bike before payment.</p>
+                <h2 className="text-2xl font-black text-[#0A1134]">Reserve Scooter</h2>
+                <p className="mt-2 text-gray-600">Review your booking and reserve the scooter before payment.</p>
 
                 <div className="mt-6 rounded-3xl bg-pink-50 p-5 text-sm font-semibold text-[#0A1134]">
                   Total payable: {formatINR(payableAmount)} including {formatINR(securityDeposit)} deposit.
@@ -661,7 +723,7 @@ referenceBy,
                     className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FF165E] font-black text-white disabled:opacity-60"
                   >
                     <ShieldCheck size={18} />
-                    {saving ? "Reserving..." : bookingDone ? "Reserved" : "Reserve Bike"}
+                    {saving ? "Reserving..." : bookingDone ? "Reserved" : "Reserve Scooter"}
                   </button>
                 </div>
 
@@ -679,17 +741,31 @@ referenceBy,
 
             {step === 4 && (
               <div>
-                <h2 className="text-2xl font-black text-[#0A1134]">Payment</h2>
+                <h2 className="text-3xl font-black text-[#0A1134]">
+  Complete Secure Payment
+</h2>
 
-                <input
-                  type="number"
-                  value={paymentAmount}
-                  disabled={!bookingDone || paymentSuccess}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  className="mt-5 h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
-                  placeholder="Pay now amount"
-                />
+<p className="mt-2 text-gray-500">
+  Your scooter is reserved. Complete payment securely through Razorpay to confirm your booking.
+</p>
 
+<div className="mt-6 rounded-3xl border border-pink-100 bg-pink-50 p-5">
+
+<p className="text-sm font-semibold text-gray-500">
+Amount to Pay
+</p>
+
+<input
+  type="number"
+  value={paymentAmount}
+  disabled={!bookingDone || paymentSuccess}
+  onChange={(e) => setPaymentAmount(e.target.value)}
+  className="mt-3 h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
+  placeholder="Pay now amount"
+/>
+
+</div>
+                 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <AmountBox label="Paid" value={formatINR(paidAmount)} tone="green" />
                   <AmountBox label="Pending" value={formatINR(amountDue)} tone="amber" />
@@ -697,27 +773,75 @@ referenceBy,
 
                 <button
                   type="button"
-                  disabled={!bookingDone || paymentSuccess || amountDue <= 0}
+                  disabled={
+   !bookingDone ||
+   paymentSuccess ||
+   amountDue <= 0 ||
+   paymentLoading
+}
                   onClick={payWithRazorpay}
                   className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#0A1134] font-black text-white disabled:opacity-60"
                 >
                   <CreditCard size={18} />
-                  Pay Securely
+
+{paymentLoading
+ ? "Processing..."
+ : "Pay Securely with Razorpay"}
                 </button>
 
                 {paymentMessage && (
-                  <div className="mt-4 rounded-2xl bg-pink-50 p-4 text-sm font-semibold text-[#0A1134]">
-                    {paymentMessage}
-                  </div>
-                )}
+
+<div className="mt-5 rounded-3xl border border-blue-200 bg-blue-50 p-5">
+
+<p className="font-bold text-blue-700">
+Payment Status
+</p>
+
+<p className="mt-2 text-sm text-gray-700">
+{paymentMessage}
+</p>
+
+</div>
+
+)}
+
+{paymentSuccess && (
+
+<div className="mt-6 rounded-3xl border border-green-200 bg-green-50 p-6">
+
+<h3 className="text-2xl font-black text-green-700">
+🎉 Booking Confirmed
+</h3>
+
+<p className="mt-2 text-gray-700">
+Your payment has been received successfully.
+Your scooter booking is confirmed.
+</p>
+
+</div>
+
+)}
               </div>
             )}
           </form>
 
           <aside className="space-y-6">
-            <div className="rounded-3xl bg-white p-5 shadow-[0_24px_80px_rgba(10,17,52,0.08)] md:p-6">
+            <div className="
+rounded-[32px]
+bg-white
+border
+border-gray-100
+p-6
+shadow-[0_25px_90px_rgba(10,17,52,0.08)]
+">
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-xl font-black text-[#0A1134]">Summary</h2>
+                <h2 className="text-2xl font-black text-[#0A1134]">
+    Booking Summary
+</h2>
+
+<p className="mt-1 text-sm text-gray-500">
+    Review your reservation before completing payment.
+</p>
                 <ReceiptText className="text-[#FF165E]" />
               </div>
 
@@ -727,16 +851,46 @@ referenceBy,
                 <Summary label="City" value={city || "-"} />
                 <Summary label="Hub" value={hub || "-"} />
                 <Summary label="Bike" value={selectedBike || "-"} />
+                <Summary
+  label="Model"
+  value={currentBike?.vehicleModel || "-"}
+/>
+<Summary
+  label="Registration"
+  value={currentBike?.registrationNumber || "-"}
+/>
+<Summary
+  label="Battery"
+  value={`${amount(currentBike?.batteryPercentage)}%`}
+/>
                 <Summary label="Rental" value={formatINR(rentalAmount)} />
                 <Summary label="Deposit" value={formatINR(securityDeposit)} />
-                <Summary label="Total" value={formatINR(payableAmount)} strong />
+                <Summary label="Grand Total" value={formatINR(payableAmount)} strong />
+                <Summary
+  label="Payment"
+  value={
+    paymentSuccess
+      ? "Paid"
+      : bookingDone
+      ? "Pending"
+      : "-"
+  }
+/>
               </div>
 
               {bookingId && (
-                <div className="mt-5 rounded-2xl bg-green-50 p-4 text-sm font-bold text-green-700">
-                  Booking ID: {bookingId}
-                </div>
-              )}
+  <div className="mt-6 rounded-3xl border border-green-200 bg-green-50 p-5">
+
+    <p className="text-xs uppercase tracking-wide text-green-600">
+      Booking Reference
+    </p>
+
+    <p className="mt-2 text-lg font-black text-green-700">
+      {bookingId}
+    </p>
+
+  </div>
+)}
             </div>
 
             {selectedHubData && (
@@ -746,9 +900,20 @@ referenceBy,
                   <div>
                     <h3 className="font-black text-[#0A1134]">{selectedHubData.hubName}</h3>
                     <p className="mt-1 text-sm text-gray-600">{selectedHubData.hubLocation}</p>
-                    <p className="mt-2 text-sm font-semibold text-gray-700">
-                      Latitude: {selectedHubData.latitude || "-"} | Longitude: {selectedHubData.longitude || "-"}
-                    </p>
+                    <p className="mt-3 text-sm text-gray-600">
+  📍 {selectedHubData.hubLocation}
+</p>
+
+{selectedHubData.latitude && selectedHubData.longitude && (
+  <a
+    href={`https://www.google.com/maps?q=${selectedHubData.latitude},${selectedHubData.longitude}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-4 inline-flex rounded-xl bg-[#0A1134] px-4 py-2 text-sm font-bold text-white"
+  >
+    Open in Google Maps
+  </a>
+)}
                   </div>
                 </div>
               </div>
@@ -841,7 +1006,7 @@ function Summary({
   strong?: boolean;
 }) {
   return (
-    <div className="flex justify-between gap-4 border-b border-gray-100 pb-2">
+    <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-3">
       <span className="text-gray-500">{label}</span>
       <span className={strong ? "font-black text-[#0A1134]" : "font-bold text-[#0A1134]"}>
         {value}
