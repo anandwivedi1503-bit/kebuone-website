@@ -85,24 +85,30 @@ const handleDownloadApp = () => {
       : "bg-gradient-to-r from-[#D6006E] via-[#FF165E] to-[#FF5556]"
   }`}
 >
-  <div className="max-w-7xl mx-auto h-20 px-5 lg:px-8 flex items-center justify-between">
+  <div className="max-w-[1500px] mx-auto h-16 px-8 xl:px-12 flex items-center justify-between gap-8">
 
     {/* Logo */}
 
-    <Link href="/" className="flex items-center">
+   <Link
+  href="/"
+  className="flex items-center flex-shrink-0 mr-4"
+>
       <Image
   src="/kebu_1-removebg-preview.png"
   alt="Kebu One"
-  width={180}
-  height={60}
+  width={80}
+  height={28}
   priority
-  style={{ width: "auto", height: "40px" }}
+  className="h-7 w-auto object-contain"
+  style={{
+    objectPosition: "left center"
+  }}
 />
     </Link>
 
     {/* Desktop Menu */}
 
-    <div className="hidden lg:flex items-center gap-10">
+    <div className="hidden lg:flex flex-1 justify-center items-center gap-12">
 
       <Link
         href="/"
@@ -153,7 +159,7 @@ const handleDownloadApp = () => {
 
     {/* Right Buttons */}
 
-    <div className="hidden lg:flex items-center gap-4">
+    <div className="hidden lg:flex flex-shrink-0 items-center gap-4">
 
       <Link href="/partners">
 
@@ -161,7 +167,7 @@ const handleDownloadApp = () => {
 className={`px-5 py-3 rounded-xl font-semibold transition border ${
 isScrolled
 ? "border-[#FF165E] text-[#FF165E] hover:bg-[#FF165E] hover:text-white"
-: "border-white text-white hover:bg-white hover:text-[#FF165E]"
+: "border-white text-white hover:bg-[#C80064] hover:border-[#C80064]"
 }`}
 >
 
@@ -238,9 +244,12 @@ className="fixed top-0 left-0 h-screen w-[82%] max-w-[340px] bg-[#0A1134]/95 bac
 <Image
   src="/kebu_1-removebg-preview.png"
   alt="logo"
-  width={180}
-  height={60}
-  style={{ width: "auto", height: "40px" }}
+  width={80}
+  height={28}
+  className="h-7 w-auto object-contain"
+  style={{
+    objectPosition: "left center"
+  }}
 />
 
 <button

@@ -2,10 +2,12 @@
 
 type StatusBadgeProps = {
   status: "active" | "warning" | "danger" | "inactive";
+  label?: string;
 };
 
 export default function StatusBadge({
   status,
+  label,
 }: StatusBadgeProps) {
 
   const styles = {
@@ -60,7 +62,7 @@ export default function StatusBadge({
         `}
       />
 
-      {styles[status].label}
+      {label || styles[status].label}
     </span>
   );
 }

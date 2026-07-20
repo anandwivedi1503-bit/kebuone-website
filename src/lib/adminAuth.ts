@@ -2,7 +2,8 @@ import crypto from "crypto";
 import { cookies } from "next/headers";
 
 export const SESSION_COOKIE_NAME = "kebu_admin_session";
-export const SESSION_MAX_AGE_SECONDS = 60 * 60 * 8;
+export const SESSION_MAX_AGE_SECONDS =
+  Number(process.env.ADMIN_SESSION_MAX_AGE || 60 * 60 * 8);
 
 function getSessionSecret() {
   const secret = process.env.ADMIN_SESSION_SECRET;

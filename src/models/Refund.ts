@@ -2,23 +2,80 @@ import mongoose from "mongoose";
 
 const RefundSchema = new mongoose.Schema(
   {
-    refundId: String,
+    refundId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
+    },
 
-    ticketId: String,
+    bookingId: {
+      type: String,
+      default: "",
+      index: true,
+    },
 
-    amount: Number,
+    ticketId: {
+      type: String,
+      default: "",
+      index: true,
+    },
 
-    gatewayTxnId: String,
+    
+    riderId: {
+      type: String,
+      default: "",
+    },
+
+    amount: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    gatewayTxnId: {
+      type: String,
+      default: "",
+    },
+
+    razorpayRefundId: {
+      type: String,
+      default: "",
+    },
 
     refundStatus: {
       type: String,
+      enum: [
+        "PROCESSING",
+        "PENDING",
+        "APPROVED",
+        "REJECTED",
+        "REFUNDED",
+        "FAILED",
+      ],
       default: "PROCESSING",
     },
+
+    remarks: {
+      type: String,
+      default: "",
+    },
+
+    processedBy: {
+      type: String,
+      default: "",
+    },
+
+    processedAt: Date,
   },
   {
     timestamps: true,
   }
 );
 
+RefundSchema.index({ createdAt: -1 });
+RefundSchema.index({ refundStatus: 1 });
+RefundSchema.index({ bookingId: 1 });
+
 export default mongoose.models.Refund ||
-  mongoose.model("Refund", RefundSchema);
+mongoose.model("Refund", RefundSchema);

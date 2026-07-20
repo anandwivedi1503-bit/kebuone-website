@@ -107,6 +107,7 @@ remarks: {
       enum: [
         "Available",
         "Booked",
+        "Ready For Pickup",
         "In Ride",
         "Maintenance",
         "Low Battery",
@@ -127,6 +128,19 @@ remarks: {
 currentRiderId: {
   type: String,
   default: "",
+},
+
+pickupOTPVerified: {
+  type: Boolean,
+  default: false,
+},
+
+rideStartedAt: {
+  type: Date,
+},
+
+rideEndedAt: {
+  type: Date,
 },
 
     insuranceExpiry: {
@@ -161,6 +175,16 @@ isActive: {
     timestamps: true,
   }
 );
+
+VehicleSchema.index({ vehicleStatus: 1 });
+
+VehicleSchema.index({ currentHub: 1 });
+
+VehicleSchema.index({ batteryPercentage: 1 });
+
+VehicleSchema.index({ currentBookingId: 1 });
+
+VehicleSchema.index({ currentRiderId: 1 });
 
 export default mongoose.models.Vehicle ||
   mongoose.model("Vehicle", VehicleSchema);

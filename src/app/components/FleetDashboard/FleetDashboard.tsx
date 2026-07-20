@@ -58,17 +58,14 @@ vehicle.batteryPercentage < 20
 const filteredVehicles = vehicles.filter(
 (vehicle) => {
 
+const query = searchTerm.toLowerCase();
+
 const matchesSearch =
-
-vehicle.vehicleId
-.toLowerCase()
-.includes(searchTerm.toLowerCase())
-
-||
-
-vehicle.currentHub
-.toLowerCase()
-.includes(searchTerm.toLowerCase());
+vehicle.vehicleId?.toLowerCase().includes(query) ||
+vehicle.registrationNumber?.toLowerCase().includes(query) ||
+vehicle.vehicleModel?.toLowerCase().includes(query) ||
+vehicle.chassisNumber?.toLowerCase().includes(query) ||
+vehicle.currentHub?.toLowerCase().includes(query);
 
 const matchesStatus =
 
@@ -89,6 +86,17 @@ const confirmDelete = confirm(
 );
 
 if (!confirmDelete) return;
+
+const vehicle = vehicles.find((v) => v._id === id);
+
+if (
+  vehicle &&
+  (vehicle.vehicleStatus === "In Ride" ||
+    vehicle.vehicleStatus === "Booked")
+) {
+  alert("This vehicle cannot be deleted because it is currently active.");
+  return;
+}
 
 const res = await fetch(`/api/vehicles/${id}`,{
 method:"DELETE",
@@ -372,7 +380,7 @@ subtitle="Live data coming from MongoDB"
 
 <div className="px-8 py-6 bg-gradient-to-r from-[#D6006E] via-[#FF165E] to-[#FF5556]">
 
-<h2 className="text-3xl font-black text-white">
+<h2 className="text-2xl sm:text-3xl font-black text-white">
 Edit Vehicle
 </h2>
 
@@ -382,7 +390,7 @@ Update vehicle information
 
 </div>
 
-<div className="p-8 space-y-6">
+<div className="p-5 sm:p-8 space-y-6">
 
 <div>
 
@@ -436,7 +444,10 @@ value={editingVehicle.batteryPercentage}
 onChange={(e)=>
 setEditingVehicle({
 ...editingVehicle,
-batteryPercentage:Number(e.target.value),
+batteryPercentage: Math.max(
+  0,
+  Math.min(100, Number(e.target.value))
+),
 })
 }
 className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
@@ -461,13 +472,10 @@ vehicleStatus:e.target.value,
 className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
 >
 
-<option>Available</option>
-
-<option>In Ride</option>
-
-<option>Maintenance</option>
-
-<option>Low Battery</option>
+ <option>Available</option>
+ <option>In Ride</option>
+ <option>Maintenance</option>
+ <option>Low Battery</option>
 
 </select>
 
@@ -477,6 +485,15 @@ className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-non
 
   <ActionButton
 onClick={async()=>{
+  if (!editingVehicle.vehicleId?.trim()) {
+  alert("Vehicle ID is required.");
+  return;
+}
+
+if (!editingVehicle.vehicleModel?.trim()) {
+  alert("Vehicle Model is required.");
+  return;
+}
 
 await fetch(
 `/api/vehicles/${editingVehicle._id}`,
@@ -489,7 +506,12 @@ body:JSON.stringify(editingVehicle),
 }
 );
 
-window.location.reload();
+setEditingVehicle(null);
+
+const refreshed = await fetch("/api/vehicles");
+const refreshedData = await refreshed.json();
+
+setVehicles(refreshedData.data || []);
 
 }}
 >

@@ -100,10 +100,18 @@ export default function KPICard({
       </p>
 
       <h2
-        className={`mt-3 text-5xl font-black ${colors[color].text}`}
-      >
-        {value}
-      </h2>
+  className={`
+    mt-3
+    text-3xl
+    sm:text-4xl
+    xl:text-5xl
+    font-black
+    break-words
+    ${colors[color].text}
+  `}
+>
+  {value}
+</h2>
 
       {subtitle && (
 

@@ -17,13 +17,53 @@ export async function PATCH(
 
     const body = await req.json();
 
-    const partner = await Partner.findByIdAndUpdate(
-      id,
-      body,
-      {
-        new: true,
-      }
-    );
+    const updateData: Record<string, unknown> = {};
+
+if (body.applicationStatus !== undefined) {
+  updateData.applicationStatus = body.applicationStatus;
+}
+
+if (body.applicationStage !== undefined) {
+  updateData.applicationStage = body.applicationStage;
+}
+
+if (body.assignedManager !== undefined) {
+  updateData.assignedManager = body.assignedManager;
+}
+
+if (body.priority !== undefined) {
+  updateData.priority = body.priority;
+}
+
+if (body.followUpDate !== undefined) {
+  updateData.followUpDate = body.followUpDate;
+}
+
+if (body.meetingDate !== undefined) {
+  updateData.meetingDate = body.meetingDate;
+}
+
+if (body.meetingNotes !== undefined) {
+  updateData.meetingNotes = body.meetingNotes;
+}
+
+if (body.adminRemarks !== undefined) {
+  updateData.adminRemarks = body.adminRemarks;
+}
+if (body.documentStatus !== undefined) {
+  updateData.documentStatus = body.documentStatus;
+}
+
+updateData.reviewedDate = new Date();
+
+const partner = await Partner.findByIdAndUpdate(
+  id,
+  updateData,
+  {
+    new: true,
+    runValidators: true,
+  }
+);
 
     return NextResponse.json({
       success: true,

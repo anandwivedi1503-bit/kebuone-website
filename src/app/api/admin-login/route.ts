@@ -20,6 +20,13 @@ function safeCompare(left: string, right: string) {
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
+  const forwardedFor =
+  req.headers.get("x-forwarded-for") ||
+  req.headers.get("x-real-ip") ||
+  "Unknown";
+
+const userAgent =
+  req.headers.get("user-agent") || "Unknown";
   const password = String(body.password || "");
   const adminPassword = process.env.ADMIN_DASHBOARD_PASSWORD;
 
@@ -31,6 +38,9 @@ export async function POST(req: Request) {
   }
 
   if (!safeCompare(password, adminPassword)) {
+    console.warn(
+  `[ADMIN LOGIN FAILED] IP=${forwardedFor} Browser=${userAgent}`
+);
     return NextResponse.json(
       { success: false, message: "Invalid credentials." },
       { status: 401 }

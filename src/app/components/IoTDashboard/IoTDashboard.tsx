@@ -105,9 +105,9 @@ useEffect(() => {
     setMapStatus("");
 
     const center = {
-      lat: Number(validLocations[0].currentLat),
-      lng: Number(validLocations[0].currentLng),
-    };
+  lat: parseFloat(String(validLocations[0].currentLat)),
+  lng: parseFloat(String(validLocations[0].currentLng)),
+};
 
     if (!googleMapRef.current) {
       googleMapRef.current = new window.google.maps.Map(mapRef.current, {
@@ -136,9 +136,9 @@ useEffect(() => {
 
     validLocations.forEach((iot) => {
       const position = {
-        lat: Number(iot.currentLat),
-        lng: Number(iot.currentLng),
-      };
+  lat: parseFloat(String(iot.currentLat)),
+  lng: parseFloat(String(iot.currentLng)),
+};
 
       const marker = new window.google.maps.Marker({
         position,
@@ -347,7 +347,10 @@ transition
 <div
 className="h-full rounded-full bg-gradient-to-r from-[#D6006E] via-[#FF165E] to-[#FF5556]"
 style={{
-width:`${iot.batteryPercentage}%`,
+  width: `${Math.min(
+    100,
+    Math.max(0, Number(iot.batteryPercentage || 0))
+  )}%`,
 }}
 />
 
@@ -399,7 +402,7 @@ width:`${iot.batteryPercentage}%`,
 </td>
 
 <td className="px-6 py-5 text-center">
-{new Date(iot.createdAt).toLocaleString()}
+{new Date(iot.updatedAt || iot.createdAt).toLocaleString()}
 </td>
 
 </tr>
@@ -486,7 +489,9 @@ transition
 
 <td className="px-6 py-5 text-center">
 
-<StatusBadge status="inactive" />
+<span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+  {iot.alertType}
+</span>
 
 </td>
 
@@ -499,7 +504,7 @@ transition
 </td>
 
 <td className="px-6 py-5 text-center">
-{new Date(iot.createdAt).toLocaleString()}
+{new Date(iot.updatedAt || iot.createdAt).toLocaleString()}
 </td>
 
 </tr>
@@ -573,101 +578,93 @@ subtitle="Recent events from connected IoT devices"
 >
   <div className="divide-y divide-pink-100">
 
-<div className="flex items-center gap-5 px-8 py-6 hover:bg-pink-50/40 transition">
+{iotData.slice(0,10).map((iot)=>{
 
-<div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center text-2xl">
-📡
+const battery=Number(iot.batteryPercentage||0);
+
+let icon="📡";
+let bg="bg-green-100";
+let title="";
+let description="";
+
+if(iot.alertType){
+
+icon="🚨";
+bg="bg-red-100";
+title=`${iot.vehicleId} ${iot.alertType}`;
+description="Geofence or security alert detected.";
+
+}
+
+else if(battery<=20){
+
+icon="🔋";
+bg="bg-yellow-100";
+title=`${iot.vehicleId} Low Battery`;
+description=`Battery level is ${battery}%.`;
+
+}
+
+else if(
+String(iot.lockStatus).toUpperCase()==="UNLOCKED"
+){
+
+icon="🔓";
+bg="bg-blue-100";
+title=`${iot.vehicleId} Vehicle Unlocked`;
+description="Vehicle lock status changed.";
+
+}
+
+else{
+
+title=`${iot.vehicleId} GPS Ping`;
+description="Vehicle reported successfully.";
+
+}
+
+return(
+
+<div
+key={iot._id}
+className="flex items-center gap-5 px-8 py-6 hover:bg-pink-50/40 transition"
+>
+
+<div
+className={`w-14 h-14 rounded-2xl ${bg} flex items-center justify-center text-2xl`}
+>
+
+{icon}
+
 </div>
 
 <div className="flex-1">
 
 <h4 className="font-bold text-[#0A1134]">
-KEBU-001 Ping Received
+
+{title}
+
 </h4>
 
 <p className="text-gray-500 mt-1">
-Vehicle reported successfully from GPS device.
+
+{description}
+
 </p>
 
 </div>
 
 <span className="text-sm text-gray-400">
-Just Now
+
+{new Date(iot.updatedAt || iot.createdAt).toLocaleString()}
+
 </span>
 
 </div>
 
-<div className="flex items-center gap-5 px-8 py-6 hover:bg-pink-50/40 transition">
+);
 
-<div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center text-2xl">
-🔋
-</div>
-
-<div className="flex-1">
-
-<h4 className="font-bold text-[#0A1134]">
-KEBU-021 Battery Dropped Below 20%
-</h4>
-
-<p className="text-gray-500 mt-1">
-Low battery alert generated automatically.
-</p>
-
-</div>
-
-<span className="text-sm text-gray-400">
-2 mins ago
-</span>
-
-</div>
-
-<div className="flex items-center gap-5 px-8 py-6 hover:bg-pink-50/40 transition">
-
-<div className="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center text-2xl">
-🔓
-</div>
-
-<div className="flex-1">
-
-<h4 className="font-bold text-[#0A1134]">
-KEBU-014 Vehicle Unlocked
-</h4>
-
-<p className="text-gray-500 mt-1">
-Smart lock status changed to unlocked.
-</p>
-
-</div>
-
-<span className="text-sm text-gray-400">
-5 mins ago
-</span>
-
-</div>
-
-<div className="flex items-center gap-5 px-8 py-6 hover:bg-pink-50/40 transition">
-
-<div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center text-2xl">
-🚨
-</div>
-
-<div className="flex-1">
-
-<h4 className="font-bold text-[#0A1134]">
-KEBU-045 Tamper Alert Triggered
-</h4>
-
-<p className="text-gray-500 mt-1">
-Potential unauthorized access detected.
-</p>
-
-</div>
-
-<span className="text-sm text-gray-400">
-10 mins ago
-</span>
-
-</div>
+})}
 
 </div>
 

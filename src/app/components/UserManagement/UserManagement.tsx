@@ -15,20 +15,21 @@ export default function UserManagement(){
 const [riders,setRiders]=useState<any[]>([]);
 const [search,setSearch]=useState("");
 const [statusFilter,setStatusFilter]=useState("All");
+const [loading, setLoading] = useState(true);
 
-useEffect(()=>{
-
-fetch("/api/riders")
-
-.then((res)=>res.json())
-
-.then((data)=>{
-
-setRiders(data.data||[]);
-
-});
-
-},[]);
+useEffect(() => {
+  fetch("/api/riders")
+    .then((res) => res.json())
+    .then((data) => {
+      setRiders(data.data || []);
+    })
+    .catch((err) => {
+      console.error(err);
+    })
+    .finally(() => {
+      setLoading(false);
+    });
+}, []);
 
 const totalRiders=riders.length;
 
@@ -59,14 +60,37 @@ const matchesStatus=
 statusFilter==="All"||
 
 rider.approvalStatus===statusFilter;
-
-return matchesSearch&&matchesStatus;
+return matchesSearch && matchesStatus;
 
 });
 
-const activateRider=async(id:string)=>{
+const activateRider = async (id: string) => {
 
-await fetch(`/api/riders/${id}`,{
+  await fetch(`/api/riders/${id}`, {
+
+    method: "PATCH",
+
+    headers: {
+      "Content-Type": "application/json",
+    },
+
+    body: JSON.stringify({
+      approvalStatus: "Approved",
+      kycStatus: "Approved",
+     activeRide: false,
+    }),
+
+  });
+
+  const refreshed = await fetch("/api/riders");
+const refreshedData = await refreshed.json();
+setRiders(refreshedData.data || []);
+
+};
+
+const suspendRider=async(rider: any) => {
+
+await fetch(`/api/riders/${rider._id}`,{
 
 method:"PATCH",
 
@@ -74,43 +98,31 @@ headers:{
 "Content-Type":"application/json",
 },
 
-body:JSON.stringify({
-
-activeRide:true,
-
-approvalStatus:"Approved",
-
+body: JSON.stringify({
+  status: "Suspended",
+  kycStatus: rider.kycStatus,
+  approvalStatus: rider.approvalStatus,
+  activeRide: false,
 }),
 
 });
 
-location.reload();
+const refreshed = await fetch("/api/riders");
+const refreshedData = await refreshed.json();
+setRiders(refreshedData.data || []);
 
 };
 
-const suspendRider=async(id:string)=>{
-
-await fetch(`/api/riders/${id}`,{
-
-method:"PATCH",
-
-headers:{
-"Content-Type":"application/json",
-},
-
-body:JSON.stringify({
-
-activeRide:false,
-
-approvalStatus:"Suspended",
-
-}),
-
-});
-
-location.reload();
-
-};
+if (loading) {
+  return (
+    <PageContainer>
+      <DashboardHeader
+        title="User Management"
+        subtitle="Loading riders..."
+      />
+    </PageContainer>
+  );
+}
 
 return(
 
@@ -175,13 +187,13 @@ type="text"
 placeholder="Search rider..."
 value={search}
 onChange={(e)=>setSearch(e.target.value)}
-className="flex-1 rounded-2xl border border-pink-100 bg-white px-5 py-4 focus:outline-none focus:ring-2 focus:ring-pink-200"
+className="flex-1 h-14 rounded-2xl border border-pink-100 bg-white px-5 py-4 focus:outline-none focus:ring-2 focus:ring-pink-200"
 />
 
 <select
 value={statusFilter}
 onChange={(e)=>setStatusFilter(e.target.value)}
-className="rounded-2xl border border-pink-100 bg-white px-5 py-4"
+className=" h-14 rounded-2xl border border-pink-100 bg-white px-5 focus:outline-none focus:ring-2 focus:ring-pink-200"
 >
 
 <option value="All">All</option>
@@ -204,7 +216,7 @@ subtitle="Live User Records"
 
   <div className="overflow-x-auto rounded-3xl">
 
-<table className="min-w-full">
+<table className="min-w-[1100px] w-full">
 
 <thead>
 
@@ -252,6 +264,17 @@ Suspend
 
 <tbody>
 
+  {filteredRiders.length === 0 && (
+  <tr>
+    <td
+      colSpan={9}
+      className="text-center py-12 text-gray-500"
+    >
+      No riders found.
+    </td>
+  </tr>
+)}
+
 {filteredRiders.map((rider)=>(
 
 <tr
@@ -278,7 +301,7 @@ transition
 
 <td className="px-6 py-5 text-center">
 
-{rider.kycStatus==="Verified"&&(
+{rider.kycStatus==="Approved"&&(
 <StatusBadge status="active"/>
 )}
 
@@ -332,7 +355,8 @@ INACTIVE
 
 <td className="px-6 py-5 text-center">
 
-{rider.approvalStatus==="Approved"&&!rider.activeRide?(
+{rider.status === "Suspended" ||
+ rider.approvalStatus === "Rejected" ? (
 <button
 onClick={()=>activateRider(rider._id)}
 className="
@@ -358,9 +382,9 @@ Activate
 
 <td className="px-6 py-5 text-center">
 
-{rider.approvalStatus==="Approved"&&rider.activeRide?(
+{rider.status === "Active" ? (
 <button
-onClick={()=>suspendRider(rider._id)}
+onClick={()=>suspendRider(rider)}
 className="
 px-4
 py-2

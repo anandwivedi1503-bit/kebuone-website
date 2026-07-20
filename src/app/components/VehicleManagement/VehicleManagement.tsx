@@ -12,8 +12,9 @@ import ActionButton from "../DashboardUI/ActionButton";
 
 export default function VehicleManagement() {
 
-const [formData, setFormData] = useState({
+    const [saving, setSaving] = useState(false);
 
+const [formData, setFormData] = useState({
 vehicleId: "",
 
 registrationNumber: "",
@@ -65,8 +66,28 @@ remarks: "",
 const handleSubmit = async (e:any)=>{
 
 e.preventDefault();
+if (!formData.vehicleId.trim()) {
+  alert("Vehicle ID is required.");
+  return;
+}
 
+if (!formData.registrationNumber.trim()) {
+  alert("Registration Number is required.");
+  return;
+}
+
+if (!formData.vehicleModel.trim()) {
+  alert("Vehicle Model is required.");
+  return;
+}
+
+if (!formData.currentHub.trim()) {
+  alert("Current Hub is required.");
+  return;
+}
+   setSaving(true);
 const res = await fetch("/api/vehicles",{
+    
 
 method:"POST",
 
@@ -80,7 +101,11 @@ body:JSON.stringify(formData),
 
 const data = await res.json();
 
-if(data.success){
+if (!data.success) {
+  setSaving(false);
+  alert(data.errors?.join("\n") || "Unable to add vehicle.");
+  return;
+}
 
 alert("Vehicle Added Successfully");
 
@@ -132,11 +157,10 @@ pollutionExpiry:"",
 
 remarks:"",
 
-});
+ });
+ setSaving(false);
 
-}
-
-};
+ };
 
 return(
 
@@ -664,7 +688,10 @@ value={formData.batteryPercentage}
 onChange={(e)=>
 setFormData({
 ...formData,
-batteryPercentage:Number(e.target.value),
+batteryPercentage: Math.max(
+0,
+Math.min(100, Number(e.target.value))
+),
 })
 }
 className="
@@ -780,21 +807,13 @@ rounded-2xl
 border
 border-pink-100
 bg-white
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
-focus:border-[#FF165E]
-"
->
+ px-5
+ "
+ >
 
-<option>Available</option>
-
-<option>In Ride</option>
-
-<option>Maintenance</option>
-
-<option>Low Battery</option>
+ <option>Available</option>
+ <option>Maintenance</option>
+ <option>Low Battery</option>
 
 </select>
 
@@ -845,7 +864,10 @@ value={formData.odometer}
 onChange={(e)=>
 setFormData({
 ...formData,
-odometer:Number(e.target.value),
+odometer: Math.max(
+0,
+Number(e.target.value)
+),
 })
 }
 className="
@@ -1038,10 +1060,11 @@ resize-none
 
 <div className="lg:col-span-2 pt-6">
 
-<ActionButton>
-
-Add Vehicle
-
+<ActionButton
+type="submit"
+disabled={saving}
+>
+{saving ? "Adding Vehicle..." : "Add Vehicle"}
 </ActionButton>
 
 </div>

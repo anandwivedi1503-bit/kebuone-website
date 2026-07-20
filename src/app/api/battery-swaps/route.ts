@@ -2,6 +2,7 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import BatterySwap from "@/models/BatterySwap";
+import Battery from "@/models/Battery";
 
 export async function GET() {
   try {
@@ -34,6 +35,34 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
+    const existingSwap = await BatterySwap.findOne({
+  swapId: body.swapId,
+});
+
+if (existingSwap) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Swap ID already exists.",
+    },
+    { status: 409 }
+  );
+}
+
+const batteryAlreadyInstalled = await Battery.findOne({
+  batteryId: body.batteryInId,
+  status: "IN-VEHICLE",
+});
+
+if (batteryAlreadyInstalled) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Selected battery is already installed in another vehicle.",
+    },
+    { status: 400 }
+  );
+}
 
     const swap = await BatterySwap.create(body);
 

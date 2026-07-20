@@ -27,6 +27,8 @@ const RiderSchema = new mongoose.Schema(
       type: String,
       lowercase: true,
       trim: true,
+      unique:true,
+      sparse:true,
       default: "",
     },
 
@@ -59,6 +61,8 @@ const RiderSchema = new mongoose.Schema(
 
     drivingLicense: {
       type: String,
+      unique:true,
+      sparse:true,
       default: "",
     },
 
@@ -140,6 +144,27 @@ const RiderSchema = new mongoose.Schema(
       default: 0,
     },
 
+    bookingEnabled: {
+  type: Boolean,
+  default: false,
+},
+
+totalBookings: {
+  type: Number,
+  default: 0,
+},
+
+completedBookings: {
+  type: Number,
+  default: 0,
+},
+
+cancelledBookings: {
+  type: Number,
+  default: 0,
+},
+
+
     // Booking & Ride
     activeRide: {
       type: Boolean,
@@ -155,6 +180,14 @@ const RiderSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    currentRideStartedAt: {
+  type: Date,
+},
+
+lastRideCompletedAt: {
+  type: Date,
+},
 
     // Rider Status
     status: {
@@ -176,6 +209,13 @@ const RiderSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+
+    blockedAt: Date,
+
+blockedBy: {
+  type: String,
+  default: "",
+},
 
     // Emergency Contact
     emergencyContactName: {
@@ -243,6 +283,31 @@ const RiderSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+RiderSchema.index({
+  phone: 1,
+});
+
+RiderSchema.index({
+  riderId: 1,
+});
+
+RiderSchema.index({
+  approvalStatus: 1,
+});
+
+RiderSchema.index({
+  kycStatus: 1,
+});
+
+RiderSchema.index({
+  activeRide: 1,
+});
+RiderSchema.index({
+  bookingEnabled: 1,
+  approvalStatus: 1,
+  activeRide: 1,
+});
 
 export default mongoose.models.Rider ||
   mongoose.model("Rider", RiderSchema);

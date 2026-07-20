@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 export default function Hero() {
   return (
     <section
@@ -28,26 +30,14 @@ export default function Hero() {
 
  <div className="relative z-20 min-h-screen flex items-center py-20 lg:py-24">
   <div className="max-w-7xl mx-auto w-full px-6 sm:px-8 lg:px-16">
-    <div className="
-max-w-3xl w-full animate-fadeIn
-">
+    <div className="max-w-3xl w-full animate-fadeIn">
     
 
     <span className="inline-flex items-center px-5 py-2 rounded-full bg-white/15 backdrop-blur-xl border border-white/30 text-white text-sm font-medium mb-8 shadow-xl">
       India's First Operations-First Urban Service Ecosystem
     </span>
 
-    <h1 className="
-text-[44px]
-sm:text-[58px]
-md:text-[72px]
-lg:text-[88px]
-xl:text-[96px]
-font-black
-leading-[1.05]
-tracking-[-0.05em]
-text-white
-">
+    <h1 className="text-[44px] sm:text-[58px] md:text-[72px] lg:text-[88px] xl:text-[96px] font-black leading-[1.05] tracking-[-0.05em] text-white">
   Bike On Rent
 
   <span className="block text-white">
@@ -59,32 +49,11 @@ text-white
   </span>
 </h1>
 
-<p className="
-block
-text-white/70
-text-xl
-sm:text-2xl
-md:text-3xl
-lg:text-4xl
-font-medium
-leading-snug
-mt-4
-sm:mt-5
-md:mt-6
-lg:mt-8
-">
+<p className="block text-white/70 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium leading-snug mt-4 sm:mt-5 md:mt-6 lg:mt-8">
   Welcome to Kebu One!
 </p>
 
-<p className="
-text-base
-sm:text-lg
-md:text-xl
-text-white/80
-max-w-xl lg:max-w-2xl
-mt-5
-leading-relaxed
-">
+<p className="text-base sm:text-lg md:text-xl text-white/80 max-w-xl lg:max-w-2xl mt-5 leading-relaxed">
 India's first operations-first super app connecting bike rentals, househelp, cabs and deliveries through one intelligent platform.
 </p>
 
@@ -99,15 +68,7 @@ India's first operations-first super app connecting bike rentals, househelp, cab
 
 </div>
 
-    <div className="
-flex
-flex-col
-md:flex-row
-gap-5
-mt-12
-w-full
-sm:w-auto
-">
+    <div className="flex flex-col md:flex-row gap-5 mt-12 w-full sm:w-auto">
 
   {/* Download App */}
   <button
@@ -116,40 +77,26 @@ sm:w-auto
         "🚀 Kebu One App is currently under development and will be launching soon. Stay tuned for updates."
       )
     }
-    className="
-    w-full md:w-auto
-    bg-gradient-to-r
-    from-[#FF165E]
-    to-[#FF5A8B]
-    text-white
-    px-10
-    py-5
-    rounded-2xl
-    font-semibold
-    shadow-[0_20px_60px_rgba(255,22,94,0.35)]
-    hover:scale-105
-    transition-all
-    duration-300
-    "
+    className="w-full md:w-auto bg-gradient-to-r from-[#FF165E] to-[#FF5A8B] text-white px-10 py-5 rounded-2xl font-semibold shadow-[0_20px_60px_rgba(255,22,94,0.35)] hover:scale-105 transition-all duration-300"
   >
     Download App
   </button>
 
   {/* Book Now */}
-  <a
-    href="/register"
-    className=" w-full md:w-auto bg-[#EEB440] text-[#0A1134] px-10 py-5 rounded-2xl font-bold shadow-xl hover:scale-105 transition-all duration-300 inline-block"
-  >
-    Book Now
-  </a>
+  <Link
+  href="/register"
+  className="w-full md:w-auto bg-[#EEB440] text-[#0A1134] px-10 py-5 rounded-2xl font-bold shadow-xl hover:scale-105 transition-all duration-300 inline-block"
+>
+  Book Now
+</Link>
 
   {/* Become Partner */}
-  <a
-    href="/partners"
-    className="w-full md:w-auto bg-white/15 backdrop-blur-xl border border-white/30 text-white px-8 py-5 rounded-2xl font-semibold hover:bg-white/20 transition-all duration-300 inline-block"
-  >
-    Become Partner
-  </a>
+  <Link
+  href="/partners"
+  className="w-full md:w-auto bg-white/15 backdrop-blur-xl border border-white/30 text-white px-8 py-5 rounded-2xl font-semibold hover:bg-white/20 transition-all duration-300 inline-block"
+>
+  Become Partner
+</Link>
 
 </div>
 
@@ -192,12 +139,12 @@ sm:w-auto
         Rent electric bikes by minute, hour or day.
       </p>
 
-      <a
+      <Link
 href="/register"
 className="mt-6 inline-flex items-center gap-2 text-[#EEB440] font-semibold hover:gap-4 transition-all duration-300"
 >
 Explore Service →
-</a>
+</Link>
     </div>
 
   </div>

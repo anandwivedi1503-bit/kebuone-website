@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Dispatch, SetStateAction } from "react";
-import type { LucideIcon } from "lucide-react";
+ import { useEffect, useState } from "react";
+ import type { LucideIcon } from "lucide-react";
 import {
   AlertTriangle,
   BarChart3,
@@ -36,7 +35,7 @@ import {
   WifiOff,
 } from "lucide-react";
 
-type NotificationItem = { id: number; title: string; time: string };
+type NotificationItem = { id: string; title: string; time: string };
 type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; tone: string };
 type Tone = { icon: string; value: string; note: string; border: string };
 
@@ -48,11 +47,7 @@ const formatActivityTime = (value: any) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-const loadList = (url: string, setter: Dispatch<SetStateAction<any[]>>) => {
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => setter(data.data || []));
-};
+
 
 type AdminDashboardProps = {
   setActiveDashboard?: (dashboard: string) => void;
@@ -76,13 +71,15 @@ export default function AdminDashboard({
   const [transactions, setTransactions] = useState<any[]>([]);
   const [iotData, setIotData] = useState<any[]>([]);
   const [refunds, setRefunds] = useState<any[]>([]);
+  const [batteries, setBatteries] = useState<any[]>([]);
+const [batterySwaps, setBatterySwaps] = useState<any[]>([]);
+const [partners, setPartners] = useState<any[]>([]);
+const [wallets, setWallets] = useState<any[]>([]);
 
-  const [notifications] = useState<NotificationItem[]>([
-    { id: 1, title: "Battery swap completed", time: "2 min ago" },
-    { id: 2, title: "New rider registered", time: "5 min ago" },
-    { id: 3, title: "Refund request received", time: "12 min ago" },
-    { id: 4, title: "Vehicle went offline", time: "22 min ago" },
-  ]);
+const [loading, setLoading] = useState(true);
+const [lastUpdated, setLastUpdated] = useState("");
+
+  
 
    const [greeting, setGreeting] = useState("Welcome");
   const [formattedDate, setFormattedDate] = useState("");
@@ -122,18 +119,66 @@ export default function AdminDashboard({
     return () => window.removeEventListener("click", closeMenus);
   }, []);
 
-  useEffect(() => {
-    loadList("/api/riders", setRiders);
-    loadList("/api/vehicles", setVehicles);
-    loadList("/api/hubs", setHubs);
-    loadList("/api/bookings", setBookings);
-    loadList("/api/tickets", setTickets);
-    loadList("/api/transactions", setTransactions);
-    loadList("/api/iot", setIotData);
-    loadList("/api/refunds", setRefunds);
-  }, []);
+   const loadDashboard = async () => {
+    try {
+      const urls = [
+        "/api/riders",
+        "/api/vehicles",
+        "/api/hubs",
+        "/api/bookings",
+        "/api/tickets",
+        "/api/transactions",
+        "/api/iot",
+        "/api/refunds",
+        "/api/batteries",
+        "/api/battery-swaps",
+        "/api/partners",
+        "/api/wallets",
+      ];
 
-  const totalRevenue = transactions.reduce((sum: number, item: any) => sum + (item.amount || 0), 0);
+      const responses = await Promise.all(
+        urls.map((url) => fetch(url))
+      );
+
+      const data = await Promise.all(
+        responses.map((r) => r.json())
+      );
+
+      setRiders(data[0].data || []);
+      setVehicles(data[1].data || []);
+      setHubs(data[2].data || []);
+      setBookings(data[3].data || []);
+      setTickets(data[4].data || []);
+      setTransactions(data[5].data || []);
+      setIotData(data[6].data || []);
+      setRefunds(data[7].data || []);
+      setBatteries(data[8].data || []);
+      setBatterySwaps(data[9].data || []);
+      setPartners(data[10].data || []);
+      setWallets(data[11].data || []);
+
+      setLastUpdated(new Date().toLocaleTimeString());
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+  loadDashboard();
+
+  const timer = setInterval(loadDashboard, 10000);
+
+  return () => clearInterval(timer);
+}, []);
+
+  const totalRevenue = transactions
+  .filter((item: any) => item.status === "Success")
+  .reduce(
+    (sum: number, item: any) => sum + (item.amount || 0),
+    0
+  );
 
   const activeRides = bookings.filter(
     (item: any) => item.rideStatus === "Booked" || item.rideStatus === "In Ride"
@@ -149,6 +194,9 @@ const onlineVehicles = iotData.filter(
 const offlineVehicles = iotData.filter(
   (item: any) => getGpsStatus(item.gpsStatus) === "OFFLINE"
 ).length;
+const availableVehicles = vehicles.filter(
+  (item: any) => item.vehicleStatus === "Available"
+).length;
   const openTickets = tickets.filter((item: any) => item.status === "OPEN").length;
   const processingRefunds = refunds.filter((item: any) => item.refundStatus === "PROCESSING").length;
   const activeHubs = hubs.filter((item: any) => item.status === "Active").length;
@@ -157,6 +205,43 @@ const offlineVehicles = iotData.filter(
 
 
   const criticalAlerts = lowBatteryVehicles + geofenceAlerts + offlineVehicles + processingRefunds;
+
+  const readyBatteries = batteries.filter(
+(b)=>b.status==="READY"
+).length;
+
+const chargingBatteries = batteries.filter(
+(b)=>b.status==="CHARGING"
+).length;
+
+const lowChargeBatteries = batteries.filter(
+(b)=>b.chargePercentage<=20
+).length;
+
+const pendingSwaps = batterySwaps.filter(
+(s)=>s.status==="PENDING"
+).length;
+
+const completedSwaps = batterySwaps.filter(
+(s)=>s.status==="COMPLETED"
+).length;
+
+const pendingPartners = partners.filter(
+(p)=>p.applicationStatus==="Pending"
+).length;
+
+const approvedPartners = partners.filter(
+(p)=>p.applicationStatus==="Approved"
+).length;
+
+const blockedWallets = wallets.filter(
+(w)=>w.status==="Blocked"
+).length;
+
+const totalWalletBalance = wallets.reduce(
+(sum,w)=>sum+(w.balance||0),
+0
+);
 
   const recentActivities: ActivityItem[] = [
   ...bookings.slice(0, 3).map((booking: any) => ({
@@ -191,8 +276,41 @@ const offlineVehicles = iotData.filter(
     tone: "bg-rose-50 text-rose-600",
   })),
 ]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 8);
+
+.sort((a, b) => b.time.localeCompare(a.time))
+.slice(0, 8);
+
+const notifications = [
+
+...bookings.slice(0,2).map((b:any)=>({
+id:b._id,
+title:`New Booking ${b.bookingId}`,
+time:formatActivityTime(b.createdAt)
+})),
+
+...refunds.slice(0,2).map((r:any)=>({
+id:r._id,
+title:`Refund ₹${r.amount}`,
+time:formatActivityTime(r.createdAt)
+})),
+
+...batterySwaps.slice(0,2).map((s:any)=>({
+id:s._id,
+title:`Battery Swap ${s.status}`,
+time:formatActivityTime(s.createdAt)
+})),
+
+...partners.slice(0,2).map((p:any)=>({
+id:p._id,
+title:`Partner Application ${p.applicationStatus}`,
+time:formatActivityTime(p.createdAt)
+})),
+
+]
+
+  .sort((a, b) => b.time.localeCompare(a.time))
+
+.slice(0,8);
 
   const pageClass = darkMode
     ? "min-h-screen bg-[#080b12] text-slate-100"
@@ -279,7 +397,7 @@ const offlineVehicles = iotData.filter(
       },
     },
     {
-      title: "Today's Revenue",
+      title: "Total Revenue",
       value: rupee(totalRevenue),
       note: "Live Collection",
       icon: IndianRupee,
@@ -311,8 +429,10 @@ const offlineVehicles = iotData.filter(
       icon: Bike,
       tone: "bg-emerald-50 text-emerald-600",
       badgeClass: "text-emerald-600",
-      lines: [`Online Vehicles : ${onlineVehicles}`, `Available Vehicles : ${vehicles.length}`],
-    },
+      lines: [
+`Online Vehicles : ${onlineVehicles}`,
+`Available Vehicles : ${availableVehicles}`
+],},
     {
       title: "Hub Network",
       badge: activeHubs,
@@ -323,7 +443,7 @@ const offlineVehicles = iotData.filter(
     },
     {
       title: "Battery Network",
-      badge: "Healthy",
+      badge: `${readyBatteries} Ready`,
       icon: BatteryCharging,
       tone: "bg-amber-50 text-amber-600",
       badgeClass: "text-amber-600",
@@ -404,14 +524,52 @@ const offlineVehicles = iotData.filter(
   { title: "Hubs", description: "Hub Operations", dashboard: "hub", icon: MapPin, tone: "bg-sky-50 text-sky-600" },
   { title: "Batteries", description: "Battery Network", dashboard: "battery", icon: BatteryCharging, tone: "bg-amber-50 text-amber-600" },
   { title: "Revenue", description: "Finance Dashboard", dashboard: "revenue", icon: IndianRupee, tone: "bg-pink-50 text-pink-600" },
+  { title: "Wallet", description: "Wallet Management", dashboard: "wallet", icon: Wallet, tone: "bg-green-50 text-green-600" },
   { title: "Analytics", description: "Business Reports", dashboard: "analytics", icon: BarChart3, tone: "bg-violet-50 text-violet-600" },
   { title: "Support", description: "Tickets & Refunds", dashboard: "support", icon: Headphones, tone: "bg-red-50 text-red-600" },
   { title: "IoT", description: "Live Tracking", dashboard: "iot", icon: Cpu, tone: "bg-cyan-50 text-cyan-600" },
   { title: "Bookings", description: "Ride Management", dashboard: "bookings", icon: BookOpen, tone: "bg-orange-50 text-orange-600" },
   { title: "Partners", description: "Franchise Requests", dashboard: "partner", icon: Handshake, tone: "bg-indigo-50 text-indigo-600" },
   { title: "KYC", description: "Verification Center", dashboard: "kyc", icon: BadgeCheck, tone: "bg-teal-50 text-teal-600" },
+  {
+  title: "Audit Logs",
+  description: "System Activity Logs",
+  dashboard: "audit",
+  icon: AlertTriangle,
+  tone: "bg-gray-100 text-gray-700",
+},
   { title: "Settings", description: "System Configuration", dashboard: "admin", icon: Settings, tone: "bg-[#0A1134] text-white", featured: true },
 ];
+
+const refreshDashboard = async () => {
+
+  setLoading(true);
+
+  await loadDashboard();
+
+  setLoading(false);
+
+};
+
+if (loading) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="text-center">
+
+        <div className="mx-auto h-12 w-12 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"></div>
+
+        <h2 className="mt-6 text-2xl font-black">
+          Loading Dashboard...
+        </h2>
+
+        <p className="mt-2 text-gray-500">
+          Fetching live Kebu One data...
+        </p>
+
+      </div>
+    </div>
+  );
+}
 
   return (
     <section className={`${pageClass} overflow-x-hidden transition-colors duration-300`}>
@@ -430,16 +588,19 @@ const offlineVehicles = iotData.filter(
               </div>
 
               <h1 className={`mt-4 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl ${headingClass}`}>
-                Admin Dashboard
+                Kebu One Command Center
               </h1>
 
               <p className={`mt-3 max-w-3xl text-sm leading-6 sm:text-base ${mutedClass}`}>
                 Monitor your riders, hubs, fleet, IoT devices, battery network and complete Kebu One business from one intelligent dashboard.
               </p>
+             <p className="mt-3 text-sm font-semibold text-pink-500">
+  Last Updated : {lastUpdated || "--"}
+</p>
             </div>
 
             <div className="flex w-full flex-col gap-3 xl:w-auto">
-              <div className="relative min-w-0 xl:w-[360px]">
+              <div className="relative min-w-0 w-full xl:w-[360px]">
                 <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   value={search}
@@ -460,11 +621,13 @@ const offlineVehicles = iotData.filter(
                     className={`relative flex h-11 w-11 items-center justify-center rounded-md border transition ${iconButtonClass}`}
                   >
                     <Bell size={19} />
-                    <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+                    {notifications.length > 0 && (
+  <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+)}
                   </button>
 
                   {notificationOpen && (
-                    <div className={`absolute right-0 z-50 mt-3 w-[calc(100vw-2rem)] overflow-hidden rounded-lg sm:w-80 ${menuClass}`}>
+                    <div className={`absolute right-0 z-50 mt-3 max-w-[360] w-[calc(100vw-2rem)] overflow-hidden rounded-lg sm:w-80  ${menuClass}`}>
                       <div className={`border-b px-5 py-4 ${borderClass}`}>
                         <h3 className={`font-bold ${headingClass}`}>Notifications</h3>
                       </div>
@@ -538,7 +701,17 @@ const offlineVehicles = iotData.filter(
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
             </span>
-            <span className="font-bold text-emerald-600">All Systems Operational</span>
+            <div>
+
+  <span className="font-bold text-emerald-600">
+    {onlineVehicles} Vehicles Online
+  </span>
+
+  <p className="text-xs text-gray-500">
+    {offlineVehicles} Offline
+  </p>
+
+</div>
           </div>
         </div>
 
@@ -610,6 +783,150 @@ const offlineVehicles = iotData.filter(
         </section>
 
         <section className="space-y-5">
+
+<h2 className={`text-2xl font-black ${headingClass}`}>
+
+Enterprise Overview
+
+</h2>
+
+<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
+
+<div className={`${panelClass} rounded-lg p-5`}>
+
+<h3 className="font-bold">
+
+Battery Network
+
+</h3>
+
+<div className="mt-3 space-y-2">
+
+  <div className="flex justify-between">
+    <span>🟢 Ready</span>
+    <span>{readyBatteries}</span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>🟡 Charging</span>
+    <span>{chargingBatteries}</span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>🔴 Low Charge</span>
+    <span>{lowChargeBatteries}</span>
+  </div>
+
+</div>
+</div>
+
+<div className={`${panelClass} rounded-lg p-5`}>
+
+<h3 className="font-bold">
+
+Battery Swaps
+
+</h3>
+
+<p>
+
+Pending : {pendingSwaps}
+
+</p>
+
+<p>
+
+Completed : {completedSwaps}
+
+</p>
+
+</div>
+
+<div className={`${panelClass} rounded-lg p-5`}>
+
+<h3 className="font-bold">
+
+Partners
+
+</h3>
+
+<p>
+
+Pending : {pendingPartners}
+
+</p>
+
+<p>
+
+Approved : {approvedPartners}
+
+</p>
+
+</div>
+
+<div className={`${panelClass} rounded-lg p-5`}>
+
+<h3 className="font-bold">
+
+Wallet
+
+</h3>
+
+<div className="mt-3 space-y-2">
+
+  <div className="flex justify-between">
+    <span>Total Wallets</span>
+    <span>{wallets.length}</span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>Blocked</span>
+    <span>{blockedWallets}</span>
+  </div>
+
+  <div className="flex justify-between font-bold text-green-600">
+    <span>Balance</span>
+    <span>{rupee(totalWalletBalance)}</span>
+  </div>
+
+</div>
+
+</div>
+
+<div className={`${panelClass} rounded-lg p-5`}>
+
+<h3 className="font-bold">
+
+IoT Network
+
+</h3>
+
+<div className="mt-3 space-y-2">
+
+  <div className="flex justify-between">
+    <span>🟢 Online</span>
+    <span>{onlineVehicles}</span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>🔴 Offline</span>
+    <span>{offlineVehicles}</span>
+  </div>
+
+  <div className="flex justify-between">
+    <span>⚠ Alerts</span>
+    <span>{geofenceAlerts}</span>
+  </div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+        <section className="space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>System Alerts</h2>
@@ -651,9 +968,12 @@ const offlineVehicles = iotData.filter(
               <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Automatically updated from your live database.</p>
             </div>
 
-            <button className="inline-flex h-11 w-fit items-center gap-2 rounded-md bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5">
+            <button
+  onClick={refreshDashboard}
+  className="inline-flex h-11 w-fit items-center gap-2 rounded-md bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5"
+>
               <RefreshCw size={16} />
-              Refresh Feed
+              Refresh Dashboard
             </button>
           </div>
 

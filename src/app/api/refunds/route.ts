@@ -89,14 +89,31 @@ export async function POST(req: Request) {
     }
 
     const refund = await Refund.create({
-      ...body,
-      refundId,
-      ticketId,
-      amount: Number(body.amount),
-      gatewayTxnId,
-      refundStatus,
-    });
+  ...body,
 
+  refundId,
+
+  bookingId: clean(body.bookingId),
+
+  ticketId,
+
+  riderId: clean(body.riderId),
+
+  amount: Number(body.amount),
+
+  gatewayTxnId,
+
+  refundStatus,
+
+  remarks: clean(body.remarks),
+
+  processedBy: clean(body.processedBy),
+
+  processedAt:
+    refundStatus === "REFUNDED"
+      ? new Date()
+      : undefined,
+});
     return NextResponse.json({
       success: true,
       data: refund,

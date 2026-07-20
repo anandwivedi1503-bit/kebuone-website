@@ -184,22 +184,33 @@ export async function PATCH(
       );
     }
 
-    const vehicle = await Vehicle.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const vehicle = await Vehicle.findById(id);
 
-    if (!vehicle) {
-      return NextResponse.json(
-        {
-          success: false,
-          errors: ["Vehicle not found."],
-        },
-        { status: 404 }
-      );
-    }
+if (!vehicle) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Vehicle not found."],
+    },
+    { status: 404 }
+  );
+}
 
-    return NextResponse.json({
+Object.assign(vehicle, updateData);
+if (vehicle.batteryPercentage < 20) {
+  vehicle.vehicleStatus = "Low Battery";
+}
+
+if (
+  vehicle.vehicleStatus === "Low Battery" &&
+  vehicle.batteryPercentage >= 20
+) {
+  vehicle.vehicleStatus = "Available";
+}
+
+await vehicle.save();
+
+     return NextResponse.json({
       success: true,
       data: vehicle,
     });
@@ -225,6 +236,32 @@ export async function DELETE(
     await connectDB();
 
     const { id } = await params;
+
+    const vehicle = await Vehicle.findById(id);
+
+if (!vehicle) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Vehicle not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (
+  vehicle.vehicleStatus === "Booked" ||
+  vehicle.vehicleStatus === "In Ride" ||
+  vehicle.vehicleStatus === "Maintenance"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: "Cannot delete a vehicle that is booked or currently in ride.",
+    },
+    { status: 400 }
+  );
+}
 
     await Vehicle.findByIdAndDelete(id);
 

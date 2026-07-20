@@ -5,6 +5,9 @@ import Razorpay from "razorpay";
 import { connectDB } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
+import Wallet from "@/models/Wallet";
+import WalletTransaction from "@/models/WalletTransaction";
+
 
 export const runtime = "nodejs";
 
@@ -20,6 +23,12 @@ function signaturesMatch(expected: string, received: string) {
     expectedBuffer.length === receivedBuffer.length &&
     crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
   );
+}
+
+function generatePickupOTP() {
+  return Math.floor(
+    100000 + Math.random() * 900000
+  ).toString();
 }
 
 export async function POST(req: Request) {
@@ -127,6 +136,53 @@ if (String(order.notes?.bookingMongoId || "") !== bookingMongoId) {
       );
     }
 
+    const rider = await Rider.findOne({
+  riderId: booking.riderId,
+});
+
+    if (!rider) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (!rider.bookingEnabled) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking is disabled for this rider.",
+    },
+    { status: 403 }
+  );
+}
+
+if (rider.status !== "Active") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider account is not active.",
+    },
+    { status: 403 }
+  );
+}
+
+if (
+  booking.paymentStatus === "Paid" ||
+  booking.pendingAmount <= 0
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "This booking has already been fully paid.",
+    },
+    { status: 400 }
+  );
+}
+
     const payableAmount = Number(booking.securityDeposit || 0) + Number(booking.totalAmount || 0);
     const oldReceivedAmount = Number(booking.receivedAmount || 0);
     const remainingAmount = Math.max(Number((payableAmount - oldReceivedAmount).toFixed(2)), 0);
@@ -142,55 +198,150 @@ if (String(order.notes?.bookingMongoId || "") !== bookingMongoId) {
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const paymentStatus = pendingAmount <= 0 ? "Paid" : "Partial";
 
+const rideStatus =
+  pendingAmount <= 0
+    ? "Ready For Pickup"
+    : "Payment Pending";
+
+    const pickupOTP =
+  pendingAmount <= 0
+    ? generatePickupOTP()
+    : "";
+
+const pickupOTPExpiry =
+  pendingAmount <= 0
+    ? new Date(Date.now() + 15 * 60 * 1000)
+    : null;
+
     await Transaction.create({
       transactionId: razorpayPaymentId,
       bookingId: booking.bookingId,
       userId: booking.userPhone || booking.userId || "Rider",
       userName: booking.userName || "Rider",
       amount: paidAmount,
-      gstAmount: Number((Number(booking.totalAmount || 0) * 0.05).toFixed(2)),
+      gstAmount: Number((paidAmount * 0.05).toFixed(2)),
       paymentMethod: "Razorpay",
       transactionType: "Booking Payment",
       status: "Success",
     });
 
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      bookingMongoId,
-      {
-        receivedAmount: newReceivedAmount,
-        pendingAmount,
-        paymentMode: "Razorpay",
-        paymentStatus,
-        paymentDate: new Date(),
-        razorpayOrderId,
-razorpayPaymentId,
-        remarks: `${booking.remarks || ""}
+    const wallet = await Wallet.findOne({
+  riderId: booking.riderId,
+});
 
-Razorpay paid INR ${paidAmount}
-Order: ${razorpayOrderId}
-Payment: ${razorpayPaymentId}`,
-      },
-      { new: true }
+if (wallet) {
+  wallet.balance += paidAmount;
+
+  wallet.totalRecharge += paidAmount;
+
+  if (wallet.securityDepositHold <= 0) {
+    wallet.securityDepositHold = Number(
+      booking.securityDeposit || 0
     );
-    await Rider.findOneAndUpdate(
-  { riderId: booking.riderId },
+  }
+
+  await wallet.save();
+
+  await WalletTransaction.create({
+    transactionId: `WALLET-${Date.now()}`,
+
+    riderId: booking.riderId,
+
+    userId: booking.userId,
+
+    userName: booking.userName,
+
+    amount: paidAmount,
+
+    transactionType: "Recharge",
+
+    paymentMethod: "Razorpay",
+
+    bookingId: booking.bookingId,
+
+    razorpayOrderId,
+
+    razorpayPaymentId,
+
+    balanceAfter: wallet.balance,
+
+    remarks: "Booking payment added to wallet.",
+
+    status: "Success",
+  });
+}
+
+    const updatedBooking = await Booking.findOneAndUpdate(
+{
+    _id: bookingMongoId,
+    paymentStatus: { $ne: "Paid" }
+},
+{
+    receivedAmount: newReceivedAmount,
+    pendingAmount,
+    paymentMode: "Razorpay",
+    paymentStatus,
+    rideStatus,
+    pickupOTP,
+    pickupOTPExpiry,
+    pickupOTPVerified: false,
+    paymentDate: new Date(),
+    paymentVerifiedAt: new Date(),
+    razorpayOrderId,
+    razorpayPaymentId,
+    remarks: `${booking.remarks || ""}
+
+Payment Verified
+Amount : ₹${paidAmount}
+Order : ${razorpayOrderId}
+Payment : ${razorpayPaymentId}
+Verified : ${new Date().toLocaleString("en-IN")}
+`,
+},
+{ new: true }
+);
+    
+    const Vehicle = (await import("@/models/Vehicle")).default;
+
+await Vehicle.findOneAndUpdate(
   {
-    $inc: {
-      totalEarnings: paidAmount,
-    },
+    vehicleId: booking.vehicleId,
+  },
+  {
+    vehicleStatus:
+pendingAmount <= 0
+    ? "Ready For Pickup"
+    : "Booked",
+    currentBookingId: booking.bookingId,
+    currentRiderId: booking.riderId,
+    assignedRider: booking.riderId,
+    lockStatus: "Locked",
   }
 );
 
+await Rider.findOneAndUpdate(
+  {
+    riderId: booking.riderId,
+  },
+  {
+    activeRide: true,
+    currentBookingId: booking.bookingId,
+  }
+ );
     return NextResponse.json({
       success: true,
       message:
-        paymentStatus === "Paid"
-          ? "Payment verified successfully."
-          : "Partial payment verified successfully.",
+paymentStatus === "Paid"
+? "Payment verified. Bike is ready for pickup."
+: "Partial payment verified successfully.",
       data: updatedBooking,
       paidAmount,
       pendingAmount,
       paymentStatus,
+      pickupOTP:
+      pendingAmount <= 0
+      ? pickupOTP
+      : undefined,
     });
   } catch (error) {
     console.error("RAZORPAY VERIFY PAYMENT ERROR:", error);

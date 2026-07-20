@@ -2,12 +2,20 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Ticket from "@/models/Ticket";
+import Booking from "@/models/Booking";
 
 const allowedStatuses = [
   "OPEN",
   "IN-PROGRESS",
   "RESOLVED",
   "CLOSED",
+];
+
+const allowedPriorities = [
+  "Low",
+  "Medium",
+  "High",
+  "Critical",
 ];
 
 const allowedCategories = [
@@ -21,10 +29,19 @@ const allowedCategories = [
 ];
 
 const allowedUpdateFields = [
-  "category",
-  "description",
-  "status",
-  "assignedTo",
+
+"category",
+
+"description",
+
+"status",
+
+"assignedTo",
+
+"priority",
+
+"adminRemarks",
+
 ];
 
 function clean(value: unknown) {
@@ -90,6 +107,33 @@ export async function PATCH(
 
       updateData.status = status;
     }
+    
+     if (updateData.status === "RESOLVED") {
+  updateData.resolvedAt = new Date();
+
+  const ticket = await Ticket.findById(id);
+
+  if (ticket?.bookingId) {
+    await Booking.findOneAndUpdate(
+      {
+        bookingId: ticket.bookingId,
+      },
+      {
+        $push: {
+          remarks: `
+
+Ticket ${ticket.ticketId} resolved on ${new Date().toLocaleString("en-IN")}
+
+`,
+        },
+      }
+    );
+  }
+}
+
+if (updateData.status === "CLOSED") {
+  updateData.closedAt = new Date();
+}
 
     if (updateData.description !== undefined) {
       const description = clean(updateData.description);
@@ -100,6 +144,18 @@ export async function PATCH(
 
       updateData.description = description;
     }
+
+    if (updateData.priority !== undefined) {
+
+  if (
+    !allowedPriorities.includes(
+      String(updateData.priority)
+    )
+  ) {
+    errors.push("Invalid priority.");
+  }
+
+}
 
     if (updateData.assignedTo !== undefined) {
       const assignedTo = clean(updateData.assignedTo);
@@ -121,12 +177,12 @@ export async function PATCH(
       );
     }
 
-    const ticket = await Ticket.findByIdAndUpdate(id, updateData, {
+    const updatedTicket = await Ticket.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
 
-    if (!ticket) {
+    if (!updatedTicket) {
       return NextResponse.json(
         {
           success: false,
@@ -138,7 +194,7 @@ export async function PATCH(
 
     return NextResponse.json({
       success: true,
-      data: ticket,
+      data: updatedTicket,
     });
   } catch (error) {
     return NextResponse.json(

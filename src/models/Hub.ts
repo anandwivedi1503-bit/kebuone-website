@@ -3,16 +3,26 @@ import mongoose from "mongoose";
 const HubSchema = new mongoose.Schema(
   {
     hubName: {
-      type: String,
-      required: true,
-    },
+  type: String,
+  required: true,
+  unique: true,
+  trim: true,
+},
 
     hubCode: {
+  type: String,
+  required: true,
+  unique: true,
+  uppercase: true,
+  trim: true,
+},
+
+    hubLocation: {
       type: String,
       required: true,
     },
 
-    hubLocation: {
+    city: {
       type: String,
       required: true,
     },
@@ -49,6 +59,12 @@ const HubSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+HubSchema.index({ hubCode: 1 });
+
+HubSchema.index({ status: 1 });
+
+HubSchema.index({ city: 1 });
 
 export default mongoose.models.Hub ||
   mongoose.model("Hub", HubSchema);

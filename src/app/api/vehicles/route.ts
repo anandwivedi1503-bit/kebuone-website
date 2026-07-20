@@ -21,6 +21,7 @@ export async function POST(req: Request) {
       .trim()
       .toUpperCase();
     const vehicleModel = String(body.vehicleModel || "").trim();
+    const currentHub = String(body.currentHub || "").trim();
 
     const errors: string[] = [];
 
@@ -39,6 +40,9 @@ export async function POST(req: Request) {
     if (vehicleModel.length < 2) {
       errors.push("Vehicle model is required.");
     }
+    if (currentHub.length < 2) {
+  errors.push("Current Hub is required.");
+}
 
     if (
       body.batteryPercentage !== undefined &&
@@ -90,12 +94,23 @@ export async function POST(req: Request) {
     }
 
     const vehicle = await Vehicle.create({
-      ...body,
-      vehicleId,
-      registrationNumber,
-      chassisNumber,
-      vehicleModel,
-    });
+  ...body,
+
+  vehicleId,
+  registrationNumber,
+  chassisNumber,
+  vehicleModel,
+  currentHub,
+
+  vehicleStatus: "Available",
+  assignedRider: "",
+  currentBookingId: "",
+  currentRiderId: "",
+  batteryPercentage: Number(body.batteryPercentage || 100),
+  gpsStatus: body.gpsStatus || "ONLINE",
+  lockStatus: "Locked",
+  isActive: true,
+});
 
     return NextResponse.json({
       success: true,

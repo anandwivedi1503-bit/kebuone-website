@@ -13,20 +13,30 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 export default function PartnerDashboard(){
 
 const [partners,setPartners]=useState<any[]>([]);
+const [loading, setLoading] = useState(true);
+const [updating, setUpdating] = useState("");
+const [search, setSearch] = useState("");
 
-useEffect(()=>{
+const [stageFilter, setStageFilter] = useState("ALL");
 
-fetch("/api/partners")
+const [priorityFilter, setPriorityFilter] = useState("ALL");
 
-.then((res)=>res.json())
+const loadPartners = async () => {
+  try {
+    setLoading(true);
 
-.then((data)=>{
+    const res = await fetch("/api/partners");
+    const data = await res.json();
 
-setPartners(data.data||[]);
+    setPartners(data.data || []);
+  } finally {
+    setLoading(false);
+  }
+};
 
-});
-
-},[]);
+useEffect(() => {
+  loadPartners();
+}, []);
 
 const totalApplications=partners.length;
 
@@ -42,39 +52,55 @@ const rejectedApplications=partners.filter(
 (p)=>p.applicationStatus==="Rejected"
 ).length;
 
-const approvePartner=async(id:string)=>{
+const approvePartner = async (id: string) => {
+  setUpdating(id);
 
-await fetch(`/api/partners/${id}`,{
-method:"PATCH",
-headers:{
-"Content-Type":"application/json",
-},
-body:JSON.stringify({
-applicationStatus:"Approved",
-reviewedDate:new Date(),
+  await fetch(`/api/partners/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+  applicationStatus: "Approved",
+  applicationStage: "Approved",
+  reviewedDate: new Date(),
 }),
-});
+  });
 
-location.reload();
+  await loadPartners();
 
+  setUpdating("");
 };
 
-const rejectPartner=async(id:string)=>{
+const rejectPartner = async (id: string) => {
+  setUpdating(id);
 
-await fetch(`/api/partners/${id}`,{
-method:"PATCH",
-headers:{
-"Content-Type":"application/json",
-},
-body:JSON.stringify({
-applicationStatus:"Rejected",
-reviewedDate:new Date(),
-}),
-});
+  await fetch(`/api/partners/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      applicationStatus: "Rejected",
+      applicationStage: "Rejected",
+      reviewedDate: new Date(),
+    }),
+  });
 
-location.reload();
+  await loadPartners();
 
+  setUpdating("");
 };
+
+if (loading) {
+  return (
+    <PageContainer>
+      <div className="flex items-center justify-center h-96 text-xl font-semibold">
+        Loading partner applications...
+      </div>
+    </PageContainer>
+  );
+}
 
 return(
 
@@ -140,6 +166,66 @@ subtitle="Live Partner Records"
 
 >
 
+  <div className="mb-6 grid gap-4 md:grid-cols-3">
+
+<input
+type="text"
+placeholder="Search Name, Phone, City..."
+value={search}
+onChange={(e)=>setSearch(e.target.value)}
+className="rounded-xl border border-gray-200 px-4 py-3"
+/>
+
+<select
+value={stageFilter}
+onChange={(e)=>setStageFilter(e.target.value)}
+className="rounded-xl border border-gray-200 px-4 py-3"
+>
+
+<option value="ALL">All Stages</option>
+
+<option>New</option>
+
+<option>Under Review</option>
+
+<option>Meeting Scheduled</option>
+
+<option>Documents Pending</option>
+
+<option>Documents Verified</option>
+
+<option>Business Evaluation</option>
+
+<option>Approved</option>
+
+<option>Agreement Signed</option>
+
+<option>Onboarding</option>
+
+<option>Live Partner</option>
+
+<option>Rejected</option>
+
+</select>
+
+<select
+value={priorityFilter}
+onChange={(e)=>setPriorityFilter(e.target.value)}
+className="rounded-xl border border-gray-200 px-4 py-3"
+>
+
+<option value="ALL">All Priority</option>
+
+<option>High</option>
+
+<option>Medium</option>
+
+<option>Low</option>
+
+</select>
+
+</div>
+
   <div className="overflow-x-auto rounded-3xl">
 
 <table className="min-w-full">
@@ -180,119 +266,120 @@ Approve
 Reject
 </th>
 
+
+
 </tr>
 
 </thead>
 
 <tbody>
 
-{partners.map((partner)=>(
+{partners
+  .filter((partner) => {
+    const keyword = search.toLowerCase();
 
-<tr
-key={partner._id}
-className="
-border-b
-border-pink-50
-hover:bg-pink-50/40
-transition
-"
->
+    const matchesSearch =
+      partner.fullName?.toLowerCase().includes(keyword) ||
+      partner.phone?.includes(keyword) ||
+      partner.city?.toLowerCase().includes(keyword) ||
+      partner.organizationName?.toLowerCase().includes(keyword);
 
-<td className="px-6 py-5 font-semibold">
-{partner.fullName}
+    const matchesStage =
+      stageFilter === "ALL" ||
+      partner.applicationStage === stageFilter;
+
+    const matchesPriority =
+      priorityFilter === "ALL" ||
+      partner.priority === priorityFilter;
+
+    return matchesSearch && matchesStage && matchesPriority;
+  })
+
+  .map((partner) => (
+
+    <tr
+      key={partner._id}
+      className="
+      border-b
+      border-pink-50
+      hover:bg-pink-50/40
+      transition
+      "
+    >
+
+     <td className="px-6 py-5 font-semibold">
+  {partner.fullName}
 </td>
 
 <td className="px-6 py-5">
-{partner.phone}
+  {partner.phone}
 </td>
 
 <td className="px-6 py-5">
-{partner.city}
+  {partner.city}
 </td>
 
 <td className="px-6 py-5 text-center">
-{partner.partnerType}
+  {partner.partnerType}
 </td>
 
 <td className="px-6 py-5 text-center font-bold">
-{partner.investmentCapacity}
+  {partner.investmentCapacity}
 </td>
 
 <td className="px-6 py-5 text-center">
 
-{partner.applicationStatus==="Approved"&&(
-<StatusBadge status="active"/>
-)}
+  {partner.applicationStatus === "Approved" && (
+    <StatusBadge status="active" />
+  )}
 
-{partner.applicationStatus==="Pending"&&(
-<StatusBadge status="warning"/>
-)}
+  {partner.applicationStatus === "Pending" && (
+    <StatusBadge status="warning" />
+  )}
 
-{partner.applicationStatus==="Rejected"&&(
-<StatusBadge status="inactive"/>
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{partner.applicationStatus==="Pending"?(
-<button
-onClick={()=>approvePartner(partner._id)}
-className="
-px-5
-py-2
-rounded-xl
-bg-green-600
-text-white
-font-semibold
-hover:bg-green-700
-transition
-"
->
-Approve
-</button>
-):(
-
-<span className="text-gray-400 font-semibold">
-—
-</span>
-
-)}
+  {partner.applicationStatus === "Rejected" && (
+    <StatusBadge status="inactive" />
+  )}
 
 </td>
 
 <td className="px-6 py-5 text-center">
 
-{partner.applicationStatus==="Pending"?(
-<button
-onClick={()=>rejectPartner(partner._id)}
-className="
-px-5
-py-2
-rounded-xl
-bg-red-600
-text-white
-font-semibold
-hover:bg-red-700
-transition
-"
->
-Reject
-</button>
-):(
-
-<span className="text-gray-400 font-semibold">
-—
-</span>
-
-)}
+  {partner.applicationStatus === "Pending" ? (
+    <button
+      disabled={updating === partner._id}
+      onClick={() => approvePartner(partner._id)}
+      className="px-5 py-2 rounded-xl bg-green-600 text-white font-semibold hover:bg-green-700 transition"
+    >
+      {updating === partner._id ? "Approving..." : "Approve"}
+    </button>
+  ) : (
+    <span className="text-gray-400 font-semibold">—</span>
+  )}
 
 </td>
 
-</tr>
+<td className="px-6 py-5 text-center">
 
-))}
+  {partner.applicationStatus === "Pending" ? (
+    <button
+      disabled={updating === partner._id}
+      onClick={() => rejectPartner(partner._id)}
+      className="px-5 py-2 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition"
+    >
+      {updating === partner._id ? "Rejecting..." : "Reject"}
+    </button>
+  ) : (
+    <span className="text-gray-400 font-semibold">—</span>
+  )}
+
+</td>
+
+
+
+    </tr>
+
+  ))}
 
 </tbody>
 
@@ -302,5 +389,6 @@ Reject
 
 </DashboardCard>
 </PageContainer>
+
 );
 }

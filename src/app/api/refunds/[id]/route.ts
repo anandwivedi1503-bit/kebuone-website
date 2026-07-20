@@ -2,6 +2,11 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
+import Booking from "@/models/Booking";
+import Wallet from "@/models/Wallet";
+import WalletTransaction from "@/models/WalletTransaction";
+import Transaction from "@/models/Transaction";
+import Rider from "@/models/Rider";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -92,6 +97,147 @@ export async function PATCH(
 
       updateData.refundStatus = refundStatus;
     }
+
+    if (updateData.refundStatus === "REFUNDED") {
+
+  const refund = await Refund.findById(id);
+
+if (!refund) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Refund not found."],
+    },
+    { status: 404 }
+  );
+}
+
+if (refund.refundStatus === "REFUNDED") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "This refund has already been processed.",
+    },
+    { status: 400 }
+  );
+}
+
+{
+
+    const booking = await Booking.findOne({
+  bookingId: refund.bookingId,
+});
+
+    if (booking) {
+
+      booking.refundAmount = Number(refund.amount);
+
+      booking.securityDepositRefunded = true;
+
+      booking.remarks = `${booking.remarks || ""}
+
+Refund Completed
+
+Refund ID : ${refund.refundId}
+
+Amount : ₹${refund.amount}
+
+Date : ${new Date().toLocaleString("en-IN")}
+
+`;
+
+      await booking.save();
+
+      await Rider.findOneAndUpdate(
+  {
+    riderId: booking.riderId,
+  },
+  {
+    securityDeposit: 0,
+  }
+);
+
+      const wallet = await Wallet.findOne({
+        riderId: booking.riderId,
+      });
+
+      if (wallet) {
+
+        wallet.balance += Number(refund.amount);
+
+wallet.totalRefund += Number(refund.amount);
+
+wallet.totalSpent = Math.max(
+  0,
+  wallet.totalSpent - Number(refund.amount)
+);
+
+        wallet.securityDepositHold = Math.max(
+          0,
+          wallet.securityDepositHold - Number(refund.amount)
+        );
+
+        await wallet.save();
+
+        await WalletTransaction.create({
+
+          transactionId:
+            "WR-" +
+            Date.now(),
+
+          riderId: booking.riderId,
+
+          userId: booking.userId,
+
+          userName: booking.userName,
+
+          amount: refund.amount,
+
+          transactionType: "Refund",
+
+          paymentMethod: "Wallet",
+
+          bookingId: booking.bookingId,
+
+          balanceAfter: wallet.balance,
+
+          remarks: "Security Deposit Refunded",
+
+          status: "Success",
+
+        });
+
+      }
+
+      await Transaction.create({
+
+        transactionId:
+          "RF-" +
+          Date.now(),
+
+        bookingId: booking.bookingId,
+
+        userId: String(booking.userId),
+
+        userName: booking.userName,
+
+        amount: refund.amount,
+
+        paymentMethod: "Wallet",
+
+        transactionType: "Refund",
+
+        status: "Success",
+
+        refundStatus: "Completed",
+
+      });
+
+    }
+
+  }
+
+}
 
     if (errors.length > 0) {
       return NextResponse.json(

@@ -27,7 +27,8 @@ export default function SectionHeader({
 
         <h2
           className="
-          text-3xl
+          text-2xl
+          sm:text-3xl
           md:text-5xl
           font-black
           bg-gradient-to-r

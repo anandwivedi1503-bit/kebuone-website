@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Rider from "@/models/Rider";
 import { adminAuth } from "@/lib/firebaseAdmin";
+import Wallet from "@/models/Wallet";
 
 export const runtime = "nodejs";
 
@@ -123,7 +124,8 @@ const riderId = `RDR-${String(nextNumber).padStart(6, "0")}`;
   walletBalance: 0,
   securityDeposit: 0,
 
-  status: "Active",
+  status: "Blocked",
+bookingEnabled: false,
   blacklisted: false,
 
   notificationsEnabled: true,
@@ -131,6 +133,38 @@ const riderId = `RDR-${String(nextNumber).padStart(6, "0")}`;
   lastOtpVerifiedAt: new Date(),
 
   firebaseIdToken: undefined,
+});
+
+const existingWallet = await Wallet.findOne({
+  riderId: rider.riderId,
+});
+
+if (!existingWallet) {
+  await Wallet.create({
+    riderId: rider.riderId,
+
+    userId: rider._id,
+
+    userName: rider.fullName,
+
+    phone: rider.phone,
+
+    balance: 0,
+
+    securityDepositHold: 0,
+
+    totalRecharge: 0,
+
+    totalSpent: 0,
+
+    totalRefund: 0,
+
+    status: "Active",
+  });
+}
+
+await Rider.findByIdAndUpdate(rider._id, {
+  walletBalance: 0,
 });
 
     return NextResponse.json({
@@ -152,17 +186,60 @@ const riderId = `RDR-${String(nextNumber).padStart(6, "0")}`;
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    await connectDB();
+
+    const { searchParams } = new URL(req.url);
+
+    const phone = clean(searchParams.get("phone"));
+
+    if (phone) {
+
+  const rider = await Rider.findOne({ phone }).select(
+    `
+    riderId
+    fullName
+    phone
+    email
+    approvalStatus
+    kycStatus
+    phoneVerified
+    bookingEnabled
+    blacklisted
+    status
+    walletBalance
+    `
+  );
+
+  if (!rider) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Rider not found",
+      },
+      { status: 404 }
+    );
+  }
+
+  return NextResponse.json({
+    success: true,
+    data: rider,
+  });
+
+}
+
     if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
 
-    await connectDB();
-
-    const riders = await Rider.find().sort({
-      createdAt: -1,
-    });
+    const riders = await Rider.find()
+.select(
+"riderId fullName phone email kycStatus approvalStatus status bookingEnabled walletBalance aadhaarFileUrl licenseFileUrl profilePhotoUrl createdAt"
+)
+.sort({
+createdAt:-1
+});
 
     return NextResponse.json({
       success: true,

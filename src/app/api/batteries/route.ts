@@ -10,7 +10,9 @@ export async function GET() {
 }
     await connectDB();
 
-    const batteries = await Battery.find();
+   const batteries = await Battery.find().sort({
+  createdAt: -1,
+});
 
     return NextResponse.json({
       success: true,
@@ -31,6 +33,20 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
+
+    const existing = await Battery.findOne({
+  batteryId: body.batteryId,
+});
+
+if (existing) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Battery ID already exists.",
+    },
+    { status: 409 }
+  );
+}
 
     const battery = await Battery.create(body);
 

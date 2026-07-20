@@ -285,6 +285,16 @@ firebaseIdToken,
 
     if (data.success) {
 
+  localStorage.setItem(
+    "kebu_rider_phone",
+    phone
+  );
+
+  localStorage.setItem(
+    "kebu_rider_id",
+    data.data.riderId
+  );
+
   setRegisteredRiderId(data.data.riderId);
 
   setSubmitted(true);
@@ -1004,25 +1014,11 @@ Step 2 of 4
   ">
     {otpMessage}
   </div>
-)}
-
-      {otpVerified && (
-        <div className="
-        p-4
-        rounded-xl
-        bg-green-50
-        border
-        border-green-200
-        text-green-700
-        font-semibold
-        ">
-          ✅ Phone Number Verified
-        </div>
       )}
-
       </div>
-  </>
-)}
+      </>
+              )}
+            
 
               {step === 3 && (
                 <>
@@ -1394,7 +1390,7 @@ ${isContinueDisabled ? "bg-gray-300 cursor-not-allowed shadow-none" : "bg-gradie
   ? "Continue to Verification →"
   : step === 2
   ? "Continue to KYC →"
-  : "Continue to Documents →"} -&gt;
+  : "Continue to Documents →"}
 </button>
                 ) : (
                   <button

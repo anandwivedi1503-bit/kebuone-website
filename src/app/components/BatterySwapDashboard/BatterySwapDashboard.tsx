@@ -52,6 +52,18 @@ export default function BatterySwapDashboard() {
   const [formData, setFormData] = useState(emptyForm);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  
+
+const [search, setSearch] = useState("");
+
+const [statusFilter, setStatusFilter] =
+  useState("ALL");
+
+const [editingSwap, setEditingSwap] =
+  useState<Swap | null>(null);
+
+const [showEditModal, setShowEditModal] =
+  useState(false);
 
   const fetchAll = async () => {
     const [swapRes, batteryRes, vehicleRes] = await Promise.all([
@@ -81,6 +93,26 @@ export default function BatterySwapDashboard() {
       readyBatteries: batteries.filter((b) => b.status === "READY").length,
     };
   }, [swaps, batteries]);
+
+  const filteredSwaps = swaps.filter((swap) => {
+
+  const keyword = search.toLowerCase();
+
+  const matchesSearch =
+    swap.swapId?.toLowerCase().includes(keyword) ||
+    swap.vehicleId?.toLowerCase().includes(keyword) ||
+    swap.batteryOutId?.toLowerCase().includes(keyword) ||
+    swap.batteryInId?.toLowerCase().includes(keyword) ||
+    swap.hubName?.toLowerCase().includes(keyword) ||
+    swap.staffId?.toLowerCase().includes(keyword);
+
+  const matchesStatus =
+    statusFilter === "ALL" ||
+    swap.status === statusFilter;
+
+  return matchesSearch && matchesStatus;
+
+});
 
   const handleChange = (field: keyof typeof emptyForm, value: string) => {
     setFormData((prev) => ({
@@ -140,6 +172,15 @@ export default function BatterySwapDashboard() {
     e.preventDefault();
     setLoading(true);
     setMessage("");
+    if (formData.batteryOutId === formData.batteryInId) {
+
+  setMessage("Battery In and Battery Out cannot be the same.");
+
+  setLoading(false);
+
+  return;
+
+}
 
     const selectedBatteryIn = batteries.find(
       (battery) => battery.batteryId === formData.batteryInId
@@ -162,23 +203,42 @@ export default function BatterySwapDashboard() {
     }
 
     await patchBattery(formData.batteryOutId, {
-      status: "CHARGING",
-      vehicleId: "",
-      hubId: formData.hubId,
-      hubName: formData.hubName,
-    });
+  status: "CHARGING",
+  vehicleId: "",
+  hubId: formData.hubId,
+  hubName: formData.hubName,
+  chargePercentage: 20,
+});
+
+const vehicle = vehicles.find(
+  (v) => v.vehicleId === formData.vehicleId
+);
+
+if (vehicle?._id) {
+  await fetch(`/api/vehicles/${vehicle._id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      batteryPercentage: 100,
+      vehicleStatus: "Available",
+      gpsStatus: "ONLINE",
+      lockStatus: "Locked",
+      currentHub: formData.hubName,
+    }),
+  });
+}
 
     await patchBattery(formData.batteryInId, {
-      status: "IN-VEHICLE",
-      vehicleId: formData.vehicleId,
-      hubId: formData.hubId,
-      hubName: formData.hubName,
-    });
+  status: "IN-VEHICLE",
+  vehicleId: formData.vehicleId,
+  hubId: formData.hubId,
+  hubName: formData.hubName,
+  chargePercentage: 100,
+});
 
-    await patchVehicle(formData.vehicleId, {
-      batteryPercentage: selectedBatteryIn?.chargePercentage || 100,
-      vehicleStatus: "Available",
-    });
+    
 
     setMessage("Battery swap recorded successfully.");
     setFormData({
@@ -200,7 +260,37 @@ export default function BatterySwapDashboard() {
     fetchAll();
   };
 
+  const saveSwap = async () => {
+
+  if (!editingSwap) return;
+
+  const res = await fetch(
+    `/api/battery-swaps/${editingSwap._id}`,
+    {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(editingSwap),
+    }
+  );
+
+  const data = await res.json();
+
+  if (data.success) {
+
+    setShowEditModal(false);
+
+    setEditingSwap(null);
+
+    fetchAll();
+
+  }
+
+};
+
   return (
+    <>
     <div className="space-y-8">
       <div>
         <p className="text-sm font-black uppercase tracking-[0.25em] text-[#FF165E]">
@@ -281,7 +371,9 @@ export default function BatterySwapDashboard() {
               className="mt-2 h-12 w-full rounded-xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
             >
               <option value="">Select old battery</option>
-              {batteries.map((battery) => (
+              {batteries
+  .filter((battery) => battery.status === "IN-VEHICLE")
+  .map((battery) => (
                 <option key={battery._id} value={battery.batteryId}>
                   {battery.batteryId} - {battery.status || "READY"}
                 </option>
@@ -301,7 +393,11 @@ export default function BatterySwapDashboard() {
             >
               <option value="">Select charged battery</option>
               {batteries
-                .filter((battery) => battery.status === "READY")
+                .filter(
+  (battery) =>
+    battery.status === "READY" &&
+    battery.batteryId !== formData.batteryOutId
+)
                 .map((battery) => (
                   <option key={battery._id} value={battery.batteryId}>
                     {battery.batteryId} - {battery.chargePercentage || 100}%
@@ -353,6 +449,31 @@ export default function BatterySwapDashboard() {
           Swap Logs
         </h2>
 
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+
+<input
+type="text"
+placeholder="Search Swap, Vehicle, Battery, Hub..."
+value={search}
+onChange={(e)=>setSearch(e.target.value)}
+className="rounded-xl border border-gray-200 px-4 py-3"
+/>
+
+<select
+value={statusFilter}
+onChange={(e)=>setStatusFilter(e.target.value)}
+className="rounded-xl border border-gray-200 px-4 py-3"
+>
+
+<option value="ALL">All Status</option>
+<option value="COMPLETED">Completed</option>
+<option value="PENDING">Pending</option>
+<option value="FAILED">Failed</option>
+
+</select>
+
+</div>
+
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
             <thead>
@@ -370,7 +491,7 @@ export default function BatterySwapDashboard() {
             </thead>
 
             <tbody>
-              {swaps.map((swap) => (
+              {filteredSwaps.map((swap) => (
                 <tr key={swap._id} className="border-b text-sm">
                   <td className="py-4 font-bold text-[#0A1134]">
                     {swap.swapId || "-"}
@@ -391,17 +512,31 @@ export default function BatterySwapDashboard() {
                       : "-"}
                   </td>
                   <td>
-                    <button
-                      onClick={() => deleteSwap(swap._id)}
-                      className="rounded-lg bg-red-50 px-4 py-2 font-bold text-red-600"
-                    >
-                      Delete
-                    </button>
+                    <div className="flex gap-2">
+
+<button
+onClick={()=>{
+setEditingSwap({...swap});
+setShowEditModal(true);
+}}
+className="rounded-lg bg-blue-50 px-4 py-2 font-bold text-blue-600"
+>
+Edit
+</button>
+
+<button
+onClick={()=>deleteSwap(swap._id)}
+className="rounded-lg bg-red-50 px-4 py-2 font-bold text-red-600"
+>
+Delete
+</button>
+
+</div>
                   </td>
                 </tr>
               ))}
 
-              {swaps.length === 0 && (
+              {filteredSwaps.length === 0 && (
                 <tr>
                   <td colSpan={9} className="py-10 text-center text-gray-500">
                     No battery swaps recorded yet.
@@ -413,8 +548,91 @@ export default function BatterySwapDashboard() {
         </div>
       </div>
     </div>
+
+    {showEditModal && editingSwap && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
+
+          <h2 className="mb-6 text-3xl font-black text-[#0A1134]">
+            Edit Battery Swap
+          </h2>
+
+          <div className="grid gap-5 md:grid-cols-2">
+
+            <Input
+              label="Hub Name"
+              value={editingSwap.hubName || ""}
+              onChange={(value) =>
+                setEditingSwap({
+                  ...editingSwap,
+                  hubName: value,
+                })
+              }
+            />
+
+            <Input
+              label="Staff ID"
+              value={editingSwap.staffId || ""}
+              onChange={(value) =>
+                setEditingSwap({
+                  ...editingSwap,
+                  staffId: value,
+                })
+              }
+            />
+
+            <div>
+              <label className="text-sm font-bold text-[#0A1134]">
+                Status
+              </label>
+
+              <select
+                value={editingSwap.status || "PENDING"}
+                onChange={(e) =>
+                  setEditingSwap({
+                    ...editingSwap,
+                    status: e.target.value,
+                  })
+                }
+                className="mt-2 h-12 w-full rounded-xl border border-gray-200 px-4"
+              >
+                <option value="COMPLETED">COMPLETED</option>
+                <option value="PENDING">PENDING</option>
+                <option value="FAILED">FAILED</option>
+              </select>
+            </div>
+
+          </div>
+
+          <div className="mt-8 flex justify-end gap-4">
+            <button
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingSwap(null);
+              }}
+              className="rounded-xl border px-6 py-3"
+            >
+              Cancel
+            </button>
+
+            <button
+              onClick={saveSwap}
+              className="rounded-xl bg-[#FF165E] px-8 py-3 font-bold text-white"
+            >
+              Save Changes
+            </button>
+          </div>
+
+        </div>
+      </div>
+            )}
+            </>
+
   );
 }
+
+
+
 
 function StatCard({
   title,

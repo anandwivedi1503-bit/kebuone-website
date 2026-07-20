@@ -227,6 +227,52 @@ invoiceNumber: {
   default: "",
 },
 
+pickupOTP: {
+  type: String,
+  default: "",
+},
+
+pickupOTPExpiry: {
+  type: Date,
+},
+
+pickupOTPVerified: {
+  type: Boolean,
+  default: false,
+},
+
+pickupOTPVerifiedAt: {
+  type: Date,
+},
+
+rideStartOTP: {
+  type: String,
+  default: "",
+},
+
+rideStartOTPExpiry: {
+  type: Date,
+},
+
+rideStartOTPVerified: {
+  type: Boolean,
+  default: false,
+},
+
+rideEndOTP: {
+  type: String,
+  default: "",
+},
+
+rideEndOTPExpiry: {
+  type: Date,
+},
+
+rideEndOTPVerified: {
+  type: Boolean,
+  default: false,
+},
+
 otpVerifiedAt: Date,
 
 paymentVerifiedAt: Date,
@@ -236,5 +282,27 @@ paymentVerifiedAt: Date,
   }
 );
 
+BookingSchema.index({ createdAt: -1 });
+
+BookingSchema.index({ rideStatus: 1 });
+
+BookingSchema.index({ startHub: 1 });
+
+BookingSchema.index({ vehicleModel: 1 });
+
+BookingSchema.index({ bookingDate: -1 });
+
+BookingSchema.index({
+  vehicleId: 1,
+});
+
+BookingSchema.index({
+  riderId: 1,
+});
+
+BookingSchema.index({
+  paymentStatus: 1,
+});
+
 export default mongoose.models.Booking ||
-  mongoose.model("Booking", BookingSchema);
+  mongoose.model("Booking", BookingSchema); 

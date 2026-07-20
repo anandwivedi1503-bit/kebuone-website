@@ -2,10 +2,23 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
+import Rider from "@/models/Rider";
+import Vehicle from "@/models/Vehicle";
+import Wallet from "@/models/Wallet";
+import WalletTransaction from "@/models/WalletTransaction";
+import Refund from "@/models/Refund";
 
 const paymentModes = ["Cash", "UPI", "Card", "Bank Transfer", "Razorpay"];
 const paymentStatuses = ["Pending", "Partial", "Paid"];
-const rideStatuses = ["Booked", "Reserved", "In Ride", "Completed", "Cancelled"];
+const rideStatuses = [
+  "Booked",
+  "Reserved",
+  "Payment Pending",
+  "Ready For Pickup",
+  "In Ride",
+  "Completed",
+  "Cancelled",
+];
 
 const allowedUpdateFields = [
   "rentalEndDate",
@@ -130,20 +143,156 @@ export async function PATCH(
       );
     }
 
-    const booking = await Booking.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
+    const booking = await Booking.findById(id);
 
-    if (!booking) {
-      return NextResponse.json(
-        {
-          success: false,
-          errors: ["Booking not found."],
-        },
-        { status: 404 }
-      );
+if (!booking) {
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Booking not found."],
+    },
+    { status: 404 }
+  );
+}
+
+Object.assign(booking, updateData);
+
+/*
+|--------------------------------------------------------------------------
+| Cancel Booking Workflow
+|--------------------------------------------------------------------------
+*/
+
+if (
+booking.rideStatus === "Completed" ||
+booking.rideStatus === "In Ride"
+) {
+return NextResponse.json(
+{
+success:false,
+errors:[
+"Completed or active rides cannot be cancelled."
+]
+},
+{status:400}
+);
+}
+
+if (booking.rideStatus === "Cancelled") {
+
+  await Vehicle.findOneAndUpdate(
+    {
+      vehicleId: booking.vehicleId,
+    },
+    {
+      vehicleStatus: "Available",
+      assignedRider: "",
+      currentBookingId: "",
+      currentRiderId: "",
+      lockStatus: "Unlocked",
     }
+  );
+
+  await Rider.findOneAndUpdate(
+    {
+      riderId: booking.riderId,
+    },
+    {
+      activeRide: false,
+      currentBookingId: "",
+    }
+  );
+
+  /*
+|--------------------------------------------------------------------------
+| Release Security Deposit Hold
+|--------------------------------------------------------------------------
+*/
+
+const wallet = await Wallet.findOne({
+  riderId: booking.riderId,
+});
+
+if (wallet) {
+
+  wallet.securityDepositHold = Math.max(
+    0,
+    wallet.securityDepositHold -
+      Number(booking.securityDeposit || 0)
+  );
+
+  await wallet.save();
+
+  await WalletTransaction.create({
+
+    transactionId:
+      "WTX-" +
+      Date.now(),
+
+    riderId: booking.riderId,
+
+    userId: booking.userId,
+
+    userName: booking.userName,
+
+    bookingId: booking.bookingId,
+
+    amount: booking.securityDeposit,
+
+    paymentMethod: "Wallet",
+
+    transactionType:
+      "Security Deposit Release",
+
+    balanceAfter: wallet.balance,
+
+    remarks:
+      "Booking Cancelled",
+
+    status: "Success",
+
+  });
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| Create Refund Record
+|--------------------------------------------------------------------------
+*/
+
+if (
+  Number(booking.receivedAmount || 0) > 0
+) {
+
+  await Refund.create({
+
+    refundId:
+      "RF-" +
+      Date.now(),
+
+    bookingId:
+      booking.bookingId,
+
+    riderId:
+      booking.riderId,
+
+    amount:
+      booking.receivedAmount,
+
+    refundStatus:
+      "PENDING",
+
+    remarks:
+      "Auto refund after booking cancellation",
+
+  });
+
+}
+
+}
+
+await booking.save();
 
     return NextResponse.json({
       success: true,
@@ -165,23 +314,61 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-        if (!(await isAdminAuthenticated())) {
+    if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
+
     await connectDB();
 
     const { id } = await params;
 
+    const booking = await Booking.findById(id);
+
+    if (!booking) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Booking not found.",
+        },
+        { status: 404 }
+      );
+    }
+
+    // Release Vehicle
+    await Vehicle.findOneAndUpdate(
+      { vehicleId: booking.vehicleId },
+      {
+        vehicleStatus: "Available",
+        assignedRider: "",
+        currentBookingId: "",
+        currentRiderId: "",
+        lockStatus: "Unlocked",
+      }
+    );
+
+    // Release Rider
+    await Rider.findOneAndUpdate(
+      { riderId: booking.riderId },
+      {
+        activeRide: false,
+        currentBookingId: "",
+      }
+    );
+
+    // Delete Booking
     await Booking.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,
+      message: "Booking deleted successfully.",
     });
   } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        message: "Failed to delete booking.",
       },
       { status: 500 }
     );

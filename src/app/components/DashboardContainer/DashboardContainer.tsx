@@ -11,6 +11,7 @@ import BatteryDashboard from "../BatteryDashboard/BatteryDashboard";
 import BatterySwapDashboard from "../BatterySwapDashboard/BatterySwapDashboard";
 import IoTDashboard from "../IoTDashboard/IoTDashboard";
 import RevenueDashboard from "../RevenueDashboard/RevenueDashboard";
+import WalletDashboard from "../WalletDashboard/WalletDashboard";
 import PartnerDashboard from "../PartnerDashboard/PartnerDashboard";
 import SupportDashboard from "../SupportDashboard/SupportDashboard";
 import KYCDashboard from "../KYCDashboard/KYCDashboard";
@@ -21,6 +22,7 @@ import BookingDashboard from "../BookingDashboard/BookingDashboard";
 import TransactionDashboard from "../TransactionDashboard/TransactionDashboard";
 import AnalyticsDashboard from "../AnalyticsDashboard/AnalyticsDashboard";
 import RefundDashboard from "../RefundDashboard/RefundDashboard";
+
 
 export default function DashboardContainer() {
   const [activeDashboard, setActiveDashboard] = useState("admin");
@@ -43,6 +45,7 @@ export default function DashboardContainer() {
           {activeDashboard === "battery" && <BatteryDashboard />}
           {activeDashboard === "swap" && <BatterySwapDashboard />}
           {activeDashboard === "iot" && <IoTDashboard />}
+          {activeDashboard === "wallet" && <WalletDashboard />}
           {activeDashboard === "revenue" && <RevenueDashboard />}
           {activeDashboard === "partner" && <PartnerDashboard />}
           {activeDashboard === "support" && <SupportDashboard />}

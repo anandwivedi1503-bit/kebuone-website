@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import {
   Bike,
   CheckCircle2,
@@ -107,9 +109,11 @@ export default function BikeBooking() {
 
   const [riderName, setRiderName] = useState("");
   const [riderPhone, setRiderPhone] = useState("");
+  const [riderEmail, setRiderEmail] = useState("");
   const [city, setCity] = useState("");
   const [hub, setHub] = useState("");
   const [selectedBike, setSelectedBike] = useState("");
+  const [bikeSearch, setBikeSearch] = useState("");
   const [rentalMode, setRentalMode] = useState<"Daily" | "Weekly" | "Monthly">("Daily");
   const [referenceBy, setReferenceBy] = useState("");
 
@@ -126,18 +130,20 @@ export default function BikeBooking() {
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [riderId, setRiderId] = useState("");
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      const [vehicleRes, hubRes] = await Promise.all([
-        fetch("/api/vehicles"),
-        fetch("/api/hubs"),
-      ]);
+             const [vehicleRes, hubRes] = await Promise.all([
+  fetch("/api/vehicles"),
+  fetch("/api/hubs"),
+]);
 
       const vehicleData = await vehicleRes.json();
       const hubData = await hubRes.json();
+      
 
       if (vehicleData.success) setVehicles(vehicleData.data || []);
       if (hubData.success) setHubs(hubData.data || []);
@@ -151,6 +157,41 @@ export default function BikeBooking() {
   useEffect(() => {
     loadData();
   }, []);
+
+ useEffect(() => {
+  const loadRider = async (phone: string) => {
+    try {
+      const res = await fetch(`/api/riders?phone=${phone}`);
+      const data = await res.json();
+
+      if (!data.success) return;
+
+      const rider = data.data;
+
+      setRiderName(rider.fullName || "");
+      setRiderPhone(rider.phone || "");
+      setRiderEmail(rider.email || "");
+      setRiderId(rider.riderId || "");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user?.phoneNumber) {
+      await loadRider(user.phoneNumber.replace("+91", ""));
+      return;
+    }
+
+    const savedPhone = localStorage.getItem("kebu_rider_phone");
+
+    if (savedPhone) {
+      await loadRider(savedPhone);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
 
   const currentBike = vehicles.find((bike) => bike.vehicleId === selectedBike);
 
@@ -193,15 +234,35 @@ const selectedHubKeys = [
   .map(normalizeText)
   .filter(Boolean);
 
-const filteredBikes = selectedHubKeys.length === 0
-  ? []
-  : vehicles.filter((bike) => {
-      return (
-        normalizeText(bike.vehicleStatus) === "available" &&
-        selectedHubKeys.includes(normalizeText(bike.currentHub))
-      );
-    });
+const filteredBikes =
+  selectedHubKeys.length === 0
+    ? []
+    : vehicles
+        .filter((bike) => {
+          const bikeHub = normalizeText(bike.currentHub);
 
+          return (
+            normalizeText(bike.vehicleStatus) === "available" &&
+            selectedHubKeys.some(
+              (hub) => normalizeText(hub) === bikeHub
+            )
+          );
+        })
+        .filter((bike) => {
+          if (!bikeSearch.trim()) return true;
+
+          const search = bikeSearch.toLowerCase();
+
+          return (
+            bike.vehicleId?.toLowerCase().includes(search) ||
+            bike.registrationNumber?.toLowerCase().includes(search)
+          );
+        })
+        .sort(
+          (a, b) =>
+            amount(b.batteryPercentage) -
+            amount(a.batteryPercentage)
+        );
 const rentalAmount =
   rentalMode === "Daily"
     ? amount(currentBike?.dailyRate)
@@ -219,30 +280,55 @@ const amountDue = bookingDone ? pendingAmount : payableAmount;
     }
   }, [payableAmount, bookingDone]);
 
-  const goToBikeStep = () => {
-    const validName = cleanName(riderName);
-    const validPhone = cleanDigits(riderPhone).slice(0, 10);
+  const goToBikeStep = async () => {
+  const validName = cleanName(riderName);
+  const validPhone = cleanDigits(riderPhone).slice(0, 10);
 
-    if (!nameRegex.test(validName)) {
-      setError("Enter a valid rider name.");
-      return;
-    }
+  if (!nameRegex.test(validName)) {
+    setError("Enter a valid rider name.");
+    return;
+  }
 
-    if (!phoneRegex.test(validPhone)) {
-      setError("Enter a valid 10 digit Indian mobile number.");
-      return;
-    }
+  if (!phoneRegex.test(validPhone)) {
+    setError("Enter a valid 10 digit Indian mobile number.");
+    return;
+  }
 
-    if (!city || !hub) {
-      setError("Select pickup city and pickup hub.");
-      return;
-    }
+  if (!city || !hub) {
+    setError("Select pickup city and pickup hub.");
+    return;
+  }
 
-    setRiderName(validName);
-    setRiderPhone(validPhone);
-    setError("");
-    setStep(2);
-  };
+  try {
+    const res = await fetch(`/api/riders?phone=${validPhone}`);
+const data = await res.json();
+
+if (!data.success) {
+  setError("Unable to verify your account.");
+  return;
+}
+
+if (
+  !data.data.phoneVerified ||
+  data.data.approvalStatus !== "Approved" ||
+  data.data.kycStatus !== "Approved" ||
+  data.data.blacklisted
+) {
+  setError(
+    "Your KYC or account has not been approved yet. Please wait for admin approval."
+  );
+  return;
+}
+
+setRiderName(validName);
+setRiderPhone(validPhone);
+
+setError("");
+setStep(2);
+  } catch {
+    setError("Unable to verify your account.");
+  }
+};
 
   const goToReserveStep = () => {
     if (!currentBike) {
@@ -298,6 +384,7 @@ const amountDue = bookingDone ? pendingAmount : payableAmount;
           bookingId: newBookingId,
           userName: riderName,
           userPhone: riderPhone,
+          riderId,
           vehicleId: currentBike.vehicleId,
 startHub: currentBike.currentHub || hub,
 pickupHubName: hub,
@@ -472,11 +559,11 @@ referenceBy,
             Bike Booking
           </span>
 
-          <h1 className="mt-6 text-5xl font-black tracking-tight text-[#0A1134] md:text-7xl">
+          <h1 className="mt-6 text-4xl sm:text-5xl font-black tracking-tight text-[#0A1134] md:text-7xl">
     Ride Smarter
 </h1>
 
-<h2 className="mt-2 text-3xl font-black text-[#FF165E] md:text-5xl">
+<h2 className="mt-2 text-2xl sm:text-3xl  font-black text-[#FF165E] md:text-5xl">
     Reserve Your Electric Scooter
 </h2>
 
@@ -498,7 +585,7 @@ referenceBy,
           </div>
         )}
 
-        <div className="mb-10 grid grid-cols-4 gap-3 rounded-3xl bg-white p-4 shadow-lg">
+        <div className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-3 rounded-3xl bg-white p-4 shadow-lg">
           {["Details", "Bike", "Reserve", "Payment"].map((label, index) => (
             <div
               key={label}
@@ -531,21 +618,39 @@ shadow-[0_30px_100px_rgba(10,17,52,0.10)]
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="Rider Name *">
                   <input
+disabled={!!riderName}
                     value={riderName}
                     onChange={(e) => setRiderName(e.target.value)}
-                    className="h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
+                    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none focus:border-[#FF165E] disabled:cursor-not-allowed"
                     placeholder="Full name"
                   />
                 </Field>
 
                 <Field label="Phone Number *">
                   <input
+disabled={!!riderPhone}
                     value={riderPhone}
                     onChange={(e) => setRiderPhone(cleanDigits(e.target.value).slice(0, 10))}
-                    className="h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
+                    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none focus:border-[#FF165E] disabled:cursor-not-allowed"
                     placeholder="10 digit mobile"
                   />
                 </Field>
+
+                <Field label="Email">
+  <input
+    value={riderEmail}
+    disabled
+    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none disabled:cursor-not-allowed"
+  />
+</Field>
+
+<Field label="Rider ID">
+  <input
+    value={riderId}
+    disabled
+    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none disabled:cursor-not-allowed"
+  />
+</Field>
 
                 <Field label="Pickup City *">
                   <select
@@ -594,20 +699,43 @@ shadow-[0_30px_100px_rgba(10,17,52,0.10)]
                   />
                 </Field>
 
+                
+
                 <div className="flex items-end">
                   <button
-                    type="button"
-                    onClick={goToBikeStep}
-                    className="h-14 w-full rounded-2xl bg-[#FF165E] font-black text-white"
-                  >
-                   Continue →
-                  </button>
+  type="button"
+  onClick={goToBikeStep}
+  className="h-14 w-full rounded-2xl bg-[#FF165E] font-black text-white"
+>
+  Continue →
+</button>
                 </div>
               </div>
             )}
 
             {step === 2 && (
               <div>
+               <div className="mt-6 mb-6">
+  <input
+    type="text"
+    placeholder="Search by Vehicle ID or Registration Number..."
+    value={bikeSearch}
+    onChange={(e) => setBikeSearch(e.target.value)}
+    className="
+      h-14
+      w-full
+      rounded-2xl
+      border
+      border-gray-200
+      px-5
+      outline-none
+      focus:border-[#FF165E]
+      focus:ring-4
+      focus:ring-pink-100
+    "
+  />
+</div>
+
                 <div className="mb-5 grid grid-cols-3 gap-2">
                   {["Daily", "Weekly", "Monthly"].map((item) => (
                     <button
@@ -660,15 +788,37 @@ shadow-[0_30px_100px_rgba(10,17,52,0.10)]
     {bike.registrationNumber}
 </p>
                           <div className="mt-4 space-y-2 text-sm text-gray-600">
-                            <div className="flex items-center justify-between">
-    <span>Battery</span>
+                            <div>
 
-    <span className="rounded-full bg-green-100 px-3 py-1 text-green-700 font-bold">
-        {amount(bike.batteryPercentage)}%
-    </span>
+<div className="flex justify-between mb-2">
+<span>Battery </span>
+
+<span className="font-bold">
+{amount(bike.batteryPercentage)}%
+</span>
+
+</div>
+
+<div className="h-3 rounded-full bg-gray-200 overflow-hidden">
+
+<div
+  className={`h-full rounded-full transition-all duration-700 ${
+    amount(bike.batteryPercentage) >= 70
+      ? "bg-green-500"
+      : amount(bike.batteryPercentage) >= 40
+      ? "bg-yellow-500"
+      : "bg-red-500"
+  }`}
+  style={{
+    width: `${amount(bike.batteryPercentage)}%`,
+  }}
+/>
+
+</div>
+
 </div>
                             <div className="flex items-center justify-between">
-    <span>Battery</span>
+    <span>Battery Type</span>
 
     <span className="font-bold text-[#0A1134]">
         {bike.batteryType || "Chargeable"}
@@ -707,6 +857,56 @@ shadow-[0_30px_100px_rgba(10,17,52,0.10)]
                 <div className="mt-6 rounded-3xl bg-pink-50 p-5 text-sm font-semibold text-[#0A1134]">
                   Total payable: {formatINR(payableAmount)} including {formatINR(securityDeposit)} deposit.
                 </div>
+
+                <div className="mt-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+
+  <h3 className="mb-5 text-xl font-black text-[#0A1134]">
+    Booking Review
+  </h3>
+
+  <div className="grid gap-4 md:grid-cols-2">
+
+    <Summary label="Rider Name" value={riderName} />
+
+    <Summary label="Rider ID" value={riderId || "-"} />
+
+    <Summary label="Vehicle ID" value={selectedBike} />
+
+    <Summary
+      label="Vehicle Model"
+      value={currentBike?.vehicleModel || "-"}
+    />
+
+    <Summary
+      label="Registration"
+      value={currentBike?.registrationNumber || "-"}
+    />
+
+    <Summary label="Pickup City" value={city} />
+
+    <Summary label="Pickup Hub" value={hub} />
+
+    <Summary label="Rental Mode" value={rentalMode} />
+
+    <Summary
+      label="Rental Amount"
+      value={formatINR(rentalAmount)}
+    />
+
+    <Summary
+      label="Security Deposit"
+      value={formatINR(securityDeposit)}
+    />
+
+    <Summary
+      label="Total Payable"
+      value={formatINR(payableAmount)}
+      strong
+    />
+
+  </div>
+
+</div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <button
@@ -767,9 +967,18 @@ Amount to Pay
 </div>
                  
                 <div className="mt-4 grid grid-cols-2 gap-3">
-                  <AmountBox label="Paid" value={formatINR(paidAmount)} tone="green" />
-                  <AmountBox label="Pending" value={formatINR(amountDue)} tone="amber" />
-                </div>
+  <AmountBox
+    label="Paid"
+    value={formatINR(paidAmount)}
+    tone="green"
+  />
+
+  <AmountBox
+    label="Pending"
+    value={formatINR(pendingAmount)}
+    tone="amber"
+  />
+</div>
 
                 <button
                   type="button"
@@ -807,16 +1016,92 @@ Payment Status
 
 {paymentSuccess && (
 
-<div className="mt-6 rounded-3xl border border-green-200 bg-green-50 p-6">
+<div className="mt-8 rounded-[32px] border border-green-200 bg-gradient-to-br from-green-50 to-white p-8 shadow-lg">
 
-<h3 className="text-2xl font-black text-green-700">
-🎉 Booking Confirmed
-</h3>
+<div className="text-center">
 
-<p className="mt-2 text-gray-700">
-Your payment has been received successfully.
-Your scooter booking is confirmed.
+<div className="text-7xl mb-5">
+🎉
+</div>
+
+<h2 className="text-4xl font-black text-green-700">
+Booking Confirmed
+</h2>
+
+<p className="mt-3 text-gray-600">
+Payment completed successfully.
+Your scooter has been reserved.
 </p>
+
+</div>
+
+<div className="mt-8 space-y-3">
+
+<Summary
+label="Booking ID"
+value={bookingId}
+/>
+
+<Summary
+label="Rider ID"
+value={riderId}
+/>
+
+<Summary
+label="Vehicle ID"
+value={selectedBike}
+/>
+
+<Summary
+label="Vehicle Model"
+value={currentBike?.vehicleModel || "-"}
+/>
+
+<Summary
+label="Registration Number"
+value={currentBike?.registrationNumber || "-"}
+/>
+
+<Summary
+label="Pickup City"
+value={city}
+/>
+
+<Summary
+label="Pickup Hub"
+value={hub}
+/>
+
+<Summary
+label="Rental Mode"
+value={rentalMode}
+/>
+
+</div>
+
+<div className="mt-8 grid grid-cols-2 gap-4">
+
+<AmountBox
+label="Paid"
+value={formatINR(paidAmount)}
+tone="green"
+/>
+
+<AmountBox
+label="Pending"
+value={formatINR(0)}
+tone="green"
+/>
+
+</div>
+
+<div className="mt-8 rounded-2xl border border-green-200 bg-green-100 p-5">
+
+<p className="font-bold text-green-800">
+Show this Booking ID while collecting your scooter from the selected hub.
+</p>
+
+</div>
 
 </div>
 
@@ -825,7 +1110,7 @@ Your scooter booking is confirmed.
             )}
           </form>
 
-          <aside className="space-y-6">
+          <aside className="space-y-6 lg:sticky lg:top-24 self-start">
             <div className="
 rounded-[32px]
 bg-white
@@ -948,7 +1233,7 @@ function Empty({ text }: { text: string }) {
   );
 }
 
-function StepButtons({
+function StepButtons({    
   onBack,
   onNext,
   nextText,

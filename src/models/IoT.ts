@@ -2,25 +2,53 @@ import mongoose from "mongoose";
 
 const IoTSchema = new mongoose.Schema(
   {
-    vehicleId: String,
+    vehicleId: {
+      type: String,
+      required: true,
+    },
 
-    batteryPercentage: Number,
+    batteryPercentage: {
+      type: Number,
+      required: true,
+    },
 
-    currentLat: Number,
-    currentLng: Number,
+    currentLat: {
+      type: Number,
+      required: true,
+    },
 
-    lockStatus: String,
+    currentLng: {
+      type: Number,
+      required: true,
+    },
 
-    gpsStatus: String,
+    lockStatus: {
+      type: String,
+      required: true,
+    },
 
-    vehicleStatus: String,
+    gpsStatus: {
+      type: String,
+      required: true,
+    },
 
-    alertType: String,
+    vehicleStatus: {
+      type: String,
+      required: true,
+    },
+
+    alertType: {
+      type: String,
+      default: "",
+    },
   },
   {
-    timestamps: true,
+  timestamps: true,
   }
 );
+
+IoTSchema.index({ vehicleId: 1 });
+IoTSchema.index({ createdAt: -1 });
 
 export default mongoose.models.IoT ||
   mongoose.model(

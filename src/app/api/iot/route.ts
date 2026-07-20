@@ -1,7 +1,8 @@
 import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import IoT from "@/models/IoT";
+import iot from "@/models/IoT";
+import Vehicle from "@/models/Vehicle";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
@@ -31,7 +32,44 @@ export async function GET() {
 
     await connectDB();
 
-    const iotData = await IoT.find().sort({ createdAt: -1 }).limit(500);
+    const vehicles = await Vehicle.find().sort({
+  updatedAt: -1,
+});
+
+const latestAlerts = await iot.find().sort({
+  createdAt: -1,
+});
+
+const iotData = vehicles.map((vehicle) => {
+
+  const latestAlert = latestAlerts.find(
+    (item) => item.vehicleId === vehicle.vehicleId
+  );
+
+  return {
+    _id: vehicle._id,
+
+    vehicleId: vehicle.vehicleId,
+
+    batteryPercentage: vehicle.batteryPercentage,
+
+    currentLat: vehicle.currentLatitude,
+
+    currentLng: vehicle.currentLongitude,
+
+    lockStatus: vehicle.lockStatus,
+
+    gpsStatus: vehicle.gpsStatus,
+
+    vehicleStatus: vehicle.vehicleStatus,
+
+    updatedAt: vehicle.lastPingTime,
+
+    createdAt: vehicle.createdAt,
+
+    alertType: latestAlert?.alertType || "",
+  };
+});
 
     return NextResponse.json({
       success: true,
@@ -77,21 +115,40 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, errors }, { status: 400 });
     }
 
-    const iot = await IoT.create({
-      vehicleId,
-      batteryPercentage: Number(body.batteryPercentage),
-      currentLat: Number(body.currentLat),
-      currentLng: Number(body.currentLng),
-      lockStatus,
-      gpsStatus,
-      vehicleStatus,
-      alertType,
-    });
+    await Vehicle.findOneAndUpdate(
+  { vehicleId },
+  {
+    batteryPercentage: Number(body.batteryPercentage),
 
-    return NextResponse.json({
-      success: true,
-      data: iot,
-    });
+    gpsStatus,
+
+    lockStatus,
+
+    vehicleStatus,
+
+    currentLatitude: Number(body.currentLat),
+
+    currentLongitude: Number(body.currentLng),
+
+    lastPingTime: new Date(),
+  }
+);
+
+const newIot = await iot.create({
+  vehicleId,
+  batteryPercentage: Number(body.batteryPercentage),
+  currentLat: Number(body.currentLat),
+  currentLng: Number(body.currentLng),
+  lockStatus,
+  gpsStatus,
+  vehicleStatus,
+  alertType,
+});
+
+return NextResponse.json({
+  success: true,
+  data: newIot,
+});
   } catch {
     return NextResponse.json(
       { success: false, message: "Failed to save IoT data." },

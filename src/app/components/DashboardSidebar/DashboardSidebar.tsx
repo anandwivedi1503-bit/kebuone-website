@@ -21,6 +21,7 @@ import {
   CreditCard,
   BarChart3,
   RefreshCcw,
+  Wallet,
 } from "lucide-react";
 
 type Props = {
@@ -69,6 +70,12 @@ const menus = [
     name: "IoT Dashboard",
     icon: Radio,
   },
+
+  {
+  id: "wallet",
+  name: "Wallet Dashboard",
+  icon: Wallet,
+},
   {
     id: "revenue",
     name: "Revenue Dashboard",
@@ -114,6 +121,7 @@ const menus = [
     name: "Refund Dashboard",
     icon: RefreshCcw,
   },
+
 ];
 export default function DashboardSidebar({
   activeDashboard,

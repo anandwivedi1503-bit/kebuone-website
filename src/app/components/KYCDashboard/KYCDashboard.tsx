@@ -13,20 +13,19 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 export default function KYCDashboard(){
 
 const [riders,setRiders]=useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
-useEffect(()=>{
-
-fetch("/api/riders")
-
-.then((res)=>res.json())
-
-.then((data)=>{
-
-setRiders(data.data||[]);
-
-});
-
-},[]);
+useEffect(() => {
+  fetch("/api/riders")
+    .then((res) => res.json())
+    .then((data) => {
+      setRiders(data.data || []);
+    })
+    .catch((err) => console.error(err))
+    .finally(() => {
+      setLoading(false);
+    });
+}, []);
 
 const totalApplications=riders.length;
 
@@ -52,19 +51,19 @@ headers:{
 "Content-Type":"application/json",
 },
 
-body:JSON.stringify({
-
-kycStatus:"Approved",
-
-approvalStatus:"Approved",
-
-approvedAt:new Date(),
-
+body: JSON.stringify({
+  kycStatus: "Approved",
+  approvalStatus: "Approved",
+   approvedAt: new Date(),
+   approvedBy: "Admin",
+   activeRide: false,
 }),
 
 });
 
-location.reload();
+const refreshed = await fetch("/api/riders");
+const refreshedData = await refreshed.json();
+setRiders(refreshedData.data || []);
 
 };
 
@@ -92,13 +91,28 @@ activeRide:false,
 
 rejectedReason:reason,
 
+approvedBy:"",
+
 }),
 
 });
 
-location.reload();
+const refreshed = await fetch("/api/riders");
+const refreshedData = await refreshed.json();
+setRiders(refreshedData.data || []);
 
 };
+
+if (loading) {
+  return (
+    <PageContainer>
+      <DashboardHeader
+        title="KYC Verification Dashboard"
+        subtitle="Loading KYC applications..."
+      />
+    </PageContainer>
+  );
+}
 
 return(
 
@@ -166,11 +180,15 @@ subtitle="Live KYC Records"
 
   <div className="overflow-x-auto rounded-3xl">
 
-<table className="min-w-full">
+<table className="min-w-[1300px] w-full">
 
 <thead>
 
 <tr className="bg-pink-50 border-b border-pink-100">
+
+  <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
+Rider ID
+</th>
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Rider
@@ -210,6 +228,17 @@ Reject
 
 <tbody>
 
+  {riders.length === 0 && (
+  <tr>
+    <td
+      colSpan={9}
+      className="text-center py-12 text-gray-500"
+    >
+      No KYC applications found.
+    </td>
+  </tr>
+)}
+
 {riders.map((rider)=>(
 
 <tr
@@ -221,6 +250,9 @@ hover:bg-pink-50/40
 transition
 "
 >
+<td className="px-6 py-5 font-semibold text-[#FF165E]">
+{rider.riderId}
+</td>
 
 <td className="px-6 py-5 font-semibold">
 {rider.fullName}
@@ -232,41 +264,50 @@ transition
 
 <td className="px-6 py-5 text-center">
 
-<a
-href={rider.aadhaarFileUrl}
-target="_blank"
-className="
-text-[#FF165E]
-font-semibold
-hover:underline
-"
->
-View
-</a>
+{rider.aadhaarFileUrl ? (
+  <a
+    href={rider.aadhaarFileUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-[#FF165E] font-semibold hover:underline"
+  >
+    View
+  </a>
+) : (
+  <span className="text-gray-400">
+    Not Uploaded
+  </span>
+)}
 
 </td>
 
 <td className="px-6 py-5 text-center">
 
-<a
-href={rider.licenseFileUrl}
-target="_blank"
-className="
-text-[#FF165E]
-font-semibold
-hover:underline
-"
->
-View
-</a>
+{rider.licenseFileUrl ? (
+  <a
+    href={rider.licenseFileUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-[#FF165E] font-semibold hover:underline"
+  >
+    View
+  </a>
+) : (
+  <span className="text-gray-400">
+    Not Uploaded
+  </span>
+)}
 
 </td>
 
 <td className="px-6 py-5 text-center">
+
+{rider.profilePhotoUrl ? (
 
 <a
 href={rider.profilePhotoUrl}
 target="_blank"
+rel="noopener noreferrer"
 className="
 text-[#FF165E]
 font-semibold
@@ -276,11 +317,19 @@ hover:underline
 View
 </a>
 
+) : (
+
+<span className="text-gray-400">
+Not Uploaded
+</span>
+
+)}
+
 </td>
 
 <td className="px-6 py-5 text-center">
 
-{rider.kycStatus==="Verified"&&(
+{rider.kycStatus==="Approved"&&(
 <StatusBadge status="active"/>
 )}
 

@@ -12,6 +12,8 @@ import ActionButton from "../DashboardUI/ActionButton";
 
 export default function HubManagement() {
 
+const [saving, setSaving] = useState(false);
+
 const [formData,setFormData]=useState({
 
 hubName:"",
@@ -19,6 +21,8 @@ hubName:"",
 hubCode:"",
 
 hubLocation:"",
+
+city:"",
 
 latitude:0,
 
@@ -40,6 +44,28 @@ const handleSubmit=async(e:any)=>{
 
 e.preventDefault();
 
+if (!formData.hubName.trim()) {
+  alert("Hub Name is required.");
+  return;
+}
+
+if (!formData.hubCode.trim()) {
+  alert("Hub Code is required.");
+  return;
+}
+
+if (!formData.city.trim()) {
+  alert("City is required.");
+  return;
+}
+
+if (!formData.hubLocation.trim()) {
+  alert("Hub Location is required.");
+  return;
+}
+
+setSaving(true);
+
 const res=await fetch("/api/hubs",{
 
 method:"POST",
@@ -54,7 +80,15 @@ body:JSON.stringify(formData),
 
 const data=await res.json();
 
-if(data.success){
+if (!data.success) {
+
+setSaving(false);
+
+alert("Unable to add hub.");
+
+return;
+
+}
 
 alert("Hub Added Successfully");
 
@@ -65,6 +99,8 @@ hubName:"",
 hubCode:"",
 
 hubLocation:"",
+
+city:"",
 
 latitude:0,
 
@@ -82,7 +118,9 @@ status:"Active",
 
 });
 
-}
+setSaving(false);
+
+
 
 };
 
@@ -258,16 +296,16 @@ transition
 <div>
 
 <label className="block mb-3 font-bold text-[#0A1134]">
-Geofence Radius (Meters)
+City
 </label>
 
 <input
-type="number"
-value={formData.geofenceRadius}
+type="text"
+value={formData.city}
 onChange={(e)=>
 setFormData({
 ...formData,
-geofenceRadius:Number(e.target.value),
+city:e.target.value,
 })
 }
 className="
@@ -288,10 +326,50 @@ transition
 
 </div>
 
+<div>
+
+<label className="block mb-3 font-bold text-[#0A1134]">
+Geofence Radius (Meters)
+</label>
+
+<input
+type="number"
+value={formData.geofenceRadius}
+onChange={(e)=>
+setFormData({
+...formData,
+geofenceRadius: Math.max(
+10,
+Number(e.target.value)
+),
+})
+}
+className="
+w-full
+h-14
+rounded-2xl
+border
+border-pink-100
+bg-pink-50/40
+px-5
+focus:outline-none
+focus:ring-2
+focus:ring-pink-200
+focus:border-[#FF165E]
+transition
+"
+/>
+
+</div>
+
+<div className="lg:col-span-2 mt-8">
+
 <SectionHeader
 title="Location Information"
 subtitle="Configure GPS coordinates for the hub."
 />
+
+</div>
 
 <div>
 
@@ -359,10 +437,14 @@ transition
 
 </div>
 
+<div className="lg:col-span-2 mt-8">
+
 <SectionHeader
 title="Hub Capacity & Inventory"
 subtitle="Configure operational capacity and battery inventory."
 />
+
+</div>
 
 <div>
 
@@ -376,7 +458,10 @@ value={formData.capacity}
 onChange={(e)=>
 setFormData({
 ...formData,
-capacity:Number(e.target.value),
+capacity: Math.max(
+0,
+Number(e.target.value)
+),
 })
 }
 className="
@@ -409,7 +494,13 @@ value={formData.availableBikes}
 onChange={(e)=>
 setFormData({
 ...formData,
-availableBikes:Number(e.target.value),
+availableBikes: Math.max(
+0,
+Math.min(
+formData.capacity,
+Number(e.target.value)
+)
+),
 })
 }
 className="
@@ -423,12 +514,15 @@ px-5
 focus:outline-none
 focus:ring-2
 focus:ring-pink-200
-focus:border-[#FF165E]
-transition
+ focus:border-[#FF165E]
 "
 />
 
 </div>
+
+
+
+
 
 <div>
 
@@ -442,7 +536,10 @@ value={formData.readyBatteries}
 onChange={(e)=>
 setFormData({
 ...formData,
-readyBatteries:Number(e.target.value),
+readyBatteries: Math.max(
+0,
+Number(e.target.value)
+),
 })
 }
 className="
@@ -504,9 +601,12 @@ focus:border-[#FF165E]
 
 <div className="lg:col-span-2 pt-6">
 
-<ActionButton>
+<ActionButton
+type="submit"
+disabled={saving}
+>
 
-Add Hub
+{saving ? "Adding Hub..." : "Add Hub"}
 
 </ActionButton>
 

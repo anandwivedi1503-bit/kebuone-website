@@ -1,10 +1,17 @@
 import mongoose from "mongoose";
 
-const TransactionSchema = new mongoose.Schema(
+const TransactionSchema = new mongoose.Schema( 
   {
-    transactionId: String,
+   transactionId: {
+  type: String,
+  required: true,
+  unique: true,
+},
 
-    bookingId: String,
+    bookingId: {
+  type: String,
+  default: "",
+},
 
     userId: String,
     userName: String,
@@ -16,7 +23,11 @@ const TransactionSchema = new mongoose.Schema(
       default: 0,
     },
 
-    paymentMethod: String,
+    paymentMethod: {
+  type: String,
+  enum: ["Razorpay"],
+  default: "Razorpay",
+},
 
     razorpayOrderId: {
   type: String,
@@ -25,6 +36,8 @@ const TransactionSchema = new mongoose.Schema(
 
 razorpayPaymentId: {
   type: String,
+  unique:true,
+  sparse:true,
   default: "",
 },
 
@@ -33,26 +46,87 @@ invoiceNumber: {
   default: "",
 },
 
+invoiceGenerated: {
+  type: Boolean,
+  default: false,
+},
+
 refundStatus: {
   type: String,
   enum: ["None", "Pending", "Completed"],
   default: "None",
 },
 
-    transactionType: {
-      type: String,
-      default: "Ride Payment",
-    },
+refundAmount: {
+  type: Number,
+  default: 0,
+},
 
+refundDate: {
+  type: Date,
+},
+
+refundReason: {
+  type: String,
+  default: "",
+},
+    transactionType: {
+  type: String,
+  enum: [
+    "Booking Payment",
+    "Refund",
+    "Penalty",
+    "Extension Payment",
+    "Security Deposit Refund",
+  ],
+  default: "Booking Payment",
+},
     status: {
-      type: String,
-      default: "Success",
-    },
+  type: String,
+  enum: [
+    "Pending",
+    "Success",
+    "Failed",
+    "Refunded",
+  ],
+  default: "Success",
+},
+
+remarks: {
+  type: String,
+  default: "",
+},
   },
   {
     timestamps: true,
   }
 );
+
+TransactionSchema.index({ createdAt: -1 });
+
+TransactionSchema.index({ status: 1 });
+
+TransactionSchema.index({ paymentMethod: 1 });
+
+TransactionSchema.index({
+  transactionId: 1,
+});
+
+TransactionSchema.index({
+  bookingId: 1,
+});
+
+TransactionSchema.index({
+  razorpayPaymentId: 1,
+});
+
+TransactionSchema.index({
+  userId: 1,
+});
+
+TransactionSchema.index({
+  transactionType: 1,
+});
 
 export default mongoose.models.Transaction ||
   mongoose.model(

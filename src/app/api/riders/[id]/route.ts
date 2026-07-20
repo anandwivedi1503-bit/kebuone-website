@@ -30,10 +30,27 @@ export async function PATCH(
       );
     }
 
+    if (
+  rider.activeRide &&
+  body.approvalStatus === "Rejected"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Cannot reject rider while a ride is active.",
+    },
+    { status: 400 }
+  );
+}
+
     // Only allow these fields to be updated
     if (body.approvalStatus) {
       rider.approvalStatus = body.approvalStatus;
     }
+
+    if (body.status) {
+  rider.status = body.status;
+}
 
     if (body.kycStatus) {
       rider.kycStatus = body.kycStatus;
@@ -47,17 +64,43 @@ export async function PATCH(
       rider.approvedBy = body.approvedBy;
     }
 
-    if (body.approvedAt) {
-      rider.approvedAt = new Date(body.approvedAt);
-    }
+         if (
+  body.approvalStatus === "Approved" &&
+  !rider.approvedAt
+) {
+  rider.approvedAt = new Date();
+}
+
+    if (body.activeRide !== undefined) {
+  rider.activeRide = body.activeRide;
+}
 
     // Automatically activate rider after approval
     if (
-      rider.approvalStatus === "Approved" &&
-      rider.kycStatus === "Approved"
-    ) {
-      rider.status = "Active";
-    }
+  rider.approvalStatus === "Approved" &&
+  rider.kycStatus === "Approved"
+) {
+  rider.status = "Active";
+  rider.bookingEnabled = true;
+  rider.rejectedReason = "";
+
+rider.blacklisted = false;
+
+rider.blacklistReason = "";
+} else if (rider.status === "Suspended") {
+  rider.bookingEnabled = false;
+  rider.activeRide = false;
+  rider.currentBookingId = "";
+
+} else {
+  rider.status = "Blocked";
+
+  rider.bookingEnabled = false;
+
+  rider.activeRide = false;
+
+  rider.currentBookingId = "";
+}
 
     await rider.save();
 

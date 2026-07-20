@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { connectDB } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
+import Rider from "@/models/Rider";
 
 function clean(value: unknown) {
   return String(value || "").trim();
@@ -45,16 +46,63 @@ export async function POST(req: Request) {
     await connectDB();
 
     const booking = await Booking.findById(bookingMongoId);
+   if (!booking) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking not found.",
+    },
+    { status: 404 }
+  );
+}
 
-    if (!booking) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Booking not found.",
-        },
-        { status: 404 }
-      );
-    }
+const rider = await Rider.findOne({
+  riderId: booking.riderId,
+});
+
+if (!rider) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (!rider.bookingEnabled) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking is not enabled for this rider.",
+    },
+    { status: 403 }
+  );
+}
+
+if (rider.status !== "Active") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider account is not active.",
+    },
+    { status: 403 }
+  );
+}
+
+   if (
+  booking.paymentStatus === "Paid"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Booking already paid.",
+    },
+    { status: 400 }
+  );
+}
+
 
     const payableAmount =
       Number(booking.securityDeposit || 0) + Number(booking.totalAmount || 0);

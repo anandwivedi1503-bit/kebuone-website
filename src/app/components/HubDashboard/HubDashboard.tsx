@@ -20,6 +20,7 @@ const [searchTerm,setSearchTerm]=useState("");
 const [statusFilter,setStatusFilter]=useState("All");
 
 const [editingHub,setEditingHub]=useState<any>(null);
+const [saving, setSaving] = useState(false);
 
 useEffect(()=>{
 
@@ -400,7 +401,7 @@ value={editingHub.capacity}
 onChange={(e)=>
 setEditingHub({
 ...editingHub,
-capacity:Number(e.target.value),
+capacity: Math.max(0, Number(e.target.value)),
 })
 }
 className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
@@ -420,7 +421,13 @@ value={editingHub.availableBikes}
 onChange={(e)=>
 setEditingHub({
 ...editingHub,
-availableBikes:Number(e.target.value),
+availableBikes: Math.max(
+0,
+Math.min(
+editingHub.capacity,
+Number(e.target.value)
+)
+),
 })
 }
 className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
@@ -440,7 +447,10 @@ value={editingHub.readyBatteries}
 onChange={(e)=>
 setEditingHub({
 ...editingHub,
-readyBatteries:Number(e.target.value),
+readyBatteries: Math.max(
+0,
+Number(e.target.value)
+),
 })
 }
 className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
@@ -476,8 +486,9 @@ className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-non
 <div className="flex flex-col sm:flex-row gap-4 pt-4">
 
 <ActionButton
+disabled={saving}
 onClick={async()=>{
-
+setSaving(true);
 await fetch(
 `/api/hubs/${editingHub._id}`,
 {
@@ -489,11 +500,16 @@ body:JSON.stringify(editingHub),
 }
 );
 
-window.location.reload();
+const refreshed = await fetch("/api/hubs");
+const refreshedData = await refreshed.json();
+
+setHubs(refreshedData.data || []);
+setEditingHub(null);
+setSaving(false);
 
 }}
 >
-Save Changes
+{saving ? "Saving..." : "Save Changes"}
 </ActionButton>
 
 <button
