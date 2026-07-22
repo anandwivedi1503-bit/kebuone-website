@@ -3,6 +3,48 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Rider from "@/models/Rider";
 
+export async function GET(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    await connectDB();
+
+    const { id } = await params;
+
+    const rider = await Rider.findOne({
+      riderId: id,
+    }).select(
+"riderId fullName phone bookingEnabled approvalStatus kycStatus activeRide status"
+)
+
+    if (!rider) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rider not found",
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: rider,
+    });
+  } catch (error) {
+    console.error(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Server Error",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }

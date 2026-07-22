@@ -60,14 +60,145 @@ const [reference2Phone, setReference2Phone] = useState("");
 
 const [error, setError] = useState("");
 const [otpMessage, setOtpMessage] = useState("");
-useEffect(() => {
-  const riderId = localStorage.getItem("kebu_rider_id");
-  const riderPhone = localStorage.getItem("kebu_rider_phone");
+const [checkingRegistration, setCheckingRegistration] =
+useState(true);
+const [approvalStatus, setApprovalStatus] =
+useState("Under Review");
 
-  if (riderId && riderPhone) {
-    window.location.href = "/book-bike";
-  }
+const [bookingEnabled, setBookingEnabled] =
+useState(false);
+useEffect(() => {
+
+  const verifyExistingRider = async () => {
+
+    const phone =
+      localStorage.getItem("kebu_rider_phone");
+
+    if (!phone) {
+
+      setCheckingRegistration(false);
+
+      return;
+
+    }
+
+    try {
+
+      const response = await fetch(
+        `/api/riders?phone=${phone}`
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+
+        localStorage.removeItem("kebu_rider_phone");
+        localStorage.removeItem("kebu_rider_id");
+
+        setCheckingRegistration(false);
+
+        return;
+
+      }
+
+      if (
+        data.data.bookingEnabled &&
+        data.data.approvalStatus==="Approved"
+      ) {
+
+        window.location.href="/book-bike";
+
+        return;
+
+      }
+
+      
+setApprovalStatus(
+  data.data.approvalStatus
+);
+
+setBookingEnabled(
+  data.data.bookingEnabled
+);
+
+setRegisteredRiderId(
+  data.data.riderId
+);
+
+setSubmitted(true);
+
+    }
+
+    catch {
+
+      localStorage.removeItem(
+        "kebu_rider_phone"
+      );
+
+      localStorage.removeItem(
+        "kebu_rider_id"
+      );
+
+    }
+
+    setCheckingRegistration(false);
+
+  };
+
+  verifyExistingRider();
+
 }, []);
+
+useEffect(() => {
+
+  if (!submitted) return;
+
+  const riderId =
+    localStorage.getItem("kebu_rider_id");
+
+  if (!riderId) return;
+
+  const interval = setInterval(async () => {
+
+    try {
+
+      const response =
+        await fetch(`/api/riders/${riderId}`);
+
+      const data =
+        await response.json();
+
+      if (!data.success) return;
+
+      setApprovalStatus(
+        data.data.approvalStatus
+      );
+
+      setBookingEnabled(
+        data.data.bookingEnabled
+      );
+
+      if (
+  data.data.bookingEnabled &&
+  data.data.approvalStatus === "Approved"
+) {
+
+  localStorage.setItem(
+    "kebu_rider_id",
+    data.data.riderId
+  );
+
+  clearInterval(interval);
+
+}
+
+    } catch {}
+
+  }, 10000);
+
+  return () => clearInterval(interval);
+
+}, [submitted]);
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -240,8 +371,9 @@ const uploadFile = async (file: File) => {
 };
 const submitForm = async () => {
   try {
-    setSubmitting(true);
+   setSubmitting(true);
 setError("");
+showOtpMessage("Preparing your registration...");
     if (!firebaseIdToken) {
   setError("Please verify OTP again before uploading documents.");
   return;
@@ -329,7 +461,13 @@ profilePhotoUrl: profileUrl,
 
   setRegisteredRiderId(data.data.riderId);
 
-  setSubmitted(true);
+setApprovalStatus("Under Review");
+
+setBookingEnabled(false);
+
+showOtpMessage("Registration completed successfully.");
+
+setSubmitted(true);
 
 } else {
   setError(data.errors?.join(" ") || data.message || "Registration failed");
@@ -391,10 +529,9 @@ const sendOtp = async () => {
     setPhone(validPhone);
     setOtp("");
 setOtpVerified(false);
-    setOtpLoading(true);
-    setConfirmationResult(null);
-    setOtpVerified(false);
-    resetRecaptcha();
+setOtpLoading(true);
+setConfirmationResult(null);
+resetRecaptcha();
 
     recaptchaVerifierRef.current = new RecaptchaVerifier(
       auth,
@@ -633,7 +770,47 @@ if (
 
 const isContinueDisabled = step === 2 && !otpVerified;
 
-  if (submitted) {
+if (checkingRegistration) {
+
+  return (
+
+    <section
+      className="py-40 bg-white text-center"
+    >
+
+      <div className="max-w-xl mx-auto">
+
+        <div
+          className="
+          w-16
+          h-16
+          mx-auto
+          rounded-full
+          border-4
+          border-[#FF165E]
+          border-t-transparent
+          animate-spin
+          mb-8
+          "
+        />
+
+        <h2 className="text-3xl font-black text-[#0A1134]">
+          Checking Rider Status...
+        </h2>
+
+        <p className="text-gray-500 mt-4">
+          Please wait while we verify your account.
+        </p>
+
+      </div>
+
+    </section>
+
+  );
+
+}
+
+if (submitted) {
   return (
   <section
     id="rider-registration"
@@ -680,9 +857,17 @@ const isContinueDisabled = step === 2 && !otpVerified;
                 KYC Status
               </p>
 
-              <h3 className="font-bold text-orange-500">
-                Under Verification
-              </h3>
+              <h3
+className={`font-bold ${
+approvalStatus==="Approved"
+? "text-green-600"
+: approvalStatus==="Rejected"
+? "text-red-600"
+: "text-orange-500"
+}`}
+>
+{approvalStatus}
+</h3>
             </div>
 
             <div className="bg-pink-50 rounded-3xl p-6">
@@ -700,41 +885,98 @@ const isContinueDisabled = step === 2 && !otpVerified;
         Booking Access
     </p>
 
-    <h3 className="font-bold text-red-600">
-        Disabled
-    </h3>
+    <h3
+className={`font-bold ${
+bookingEnabled
+? "text-green-600"
+: "text-red-600"
+}`}
+>
+{bookingEnabled
+? "Enabled"
+: "Disabled"}
+</h3>
 </div>
 
           </div>
 
-          <p className="text-[#555] mb-8">
-            Your documents have been securely submitted.
+          {bookingEnabled ? (
 
-Our verification team will review your profile.
+<p className="text-green-700 font-semibold mb-8">
 
-Your KYC is under verification.
+🎉 Congratulations!
 
-After the Admin approves your account, bike booking will automatically be enabled in your dashboard.
+Your account has been approved.
 
-Until then, booking remains disabled for security purposes.
-          </p>
+You can now book your first bike.
+
+</p>
+
+) : (
+
+<p className="text-[#555] mb-8">
+
+Your documents have been securely submitted.
+
+Our verification team is reviewing your profile.
+
+This page updates automatically after approval.
+
+</p>
+
+)}
 
           <div className="flex flex-col md:flex-row gap-4 justify-center">
 
-  <button
-  disabled
-  className="
-  px-10
-  py-4
-  rounded-2xl
-  bg-gray-300
-  text-gray-600
-  font-bold
-  cursor-not-allowed
-  "
+  
+  {bookingEnabled ? (
+
+<button
+
+onClick={()=>{
+window.location.href="/book-bike";
+}}
+
+className="
+px-10
+py-4
+rounded-2xl
+bg-gradient-to-r
+from-[#FF165E]
+to-[#FF5A8B]
+text-white
+font-bold
+"
+
 >
-  Waiting For Admin Approval
+
+Book Your First Bike
+
 </button>
+
+) : (
+
+<button
+
+disabled
+
+className="
+px-10
+py-4
+rounded-2xl
+bg-gray-300
+text-gray-600
+font-bold
+cursor-not-allowed
+"
+
+>
+
+Waiting For Admin Approval
+
+</button>
+
+)}
   <button
     onClick={() => window.location.href = "/"}
     className="

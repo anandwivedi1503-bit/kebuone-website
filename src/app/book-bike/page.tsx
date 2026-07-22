@@ -9,17 +9,80 @@ import Footer from "../components/Footer/Footer";
 export default function BookBikePage() {
 
   const [allowed, setAllowed] = useState(false);
+const [checking, setChecking] = useState(true);
 
-  useEffect(() => {
+useEffect(() => {
 
-    const riderId = localStorage.getItem("kebu_rider_id");
+  const verifyRider = async () => {
+
     const phone = localStorage.getItem("kebu_rider_phone");
 
-    if (riderId && phone) {
-      setAllowed(true);
+    if (!phone) {
+      setAllowed(false);
+      setChecking(false);
+      return;
     }
 
-  }, []);
+    try {
+
+      const response = await fetch(
+        `/api/riders?phone=${phone}`
+      );
+
+      const data = await response.json();
+
+      if (
+  data.success &&
+  data.data.bookingEnabled &&
+  data.data.approvalStatus === "Approved" &&
+  data.data.status === "Active"
+) {
+
+        setAllowed(true);
+
+      } else {
+
+        setAllowed(false);
+
+      }
+
+    } catch {
+
+      setAllowed(false);
+
+    }
+
+    setChecking(false);
+
+  };
+
+  verifyRider();
+
+}, []);
+
+if (checking) {
+
+  return (
+
+    <main>
+
+      <Navbar />
+
+      <div className="pt-40 text-center">
+
+        <h2 className="text-3xl font-bold">
+          Checking Rider Status...
+        </h2>
+
+      </div>
+
+      <Footer />
+
+    </main>
+
+  );
+
+}
 
   if (!allowed) {
 
@@ -40,7 +103,7 @@ export default function BookBikePage() {
           </p>
 
           <button
-            onClick={() => window.location.href = "/careers"}
+            onClick={() => window.location.href="/register"}
             className="
             px-8
             py-4

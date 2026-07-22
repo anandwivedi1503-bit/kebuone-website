@@ -197,21 +197,20 @@ export async function GET(req: Request) {
 
     if (phone) {
 
-  const rider = await Rider.findOne({ phone }).select(
-    `
-    riderId
-    fullName
-    phone
-    email
-    approvalStatus
-    kycStatus
-    phoneVerified
-    bookingEnabled
-    blacklisted
-    status
-    walletBalance
-    `
-  );
+  const rider = await Rider.findOne({ phone }).select(`
+riderId
+fullName
+phone
+email
+approvalStatus
+kycStatus
+phoneVerified
+bookingEnabled
+blacklisted
+status
+walletBalance
+`)
+
 
   if (!rider) {
     return NextResponse.json(
