@@ -66,20 +66,30 @@ const RiderSchema = new mongoose.Schema(
       default: "",
     },
 
-    aadhaarFileUrl: {
-      type: String,
-      default: "",
-    },
+    aadhaarFrontUrl: {
+  type: String,
+  default: "",
+},
 
-    licenseFileUrl: {
-      type: String,
-      default: "",
-    },
+aadhaarBackUrl: {
+  type: String,
+  default: "",
+},
 
-    profilePhotoUrl: {
-      type: String,
-      default: "",
-    },
+licenseFrontUrl: {
+  type: String,
+  default: "",
+},
+
+licenseBackUrl: {
+  type: String,
+  default: "",
+},
+
+profilePhotoUrl: {
+  type: String,
+  default: "",
+},
 
     kycStatus: {
       type: String,
@@ -92,15 +102,16 @@ const RiderSchema = new mongoose.Schema(
     },
 
     approvalStatus: {
-      type: String,
-      enum: [
-        "Under Review",
-        "Approved",
-        "Rejected",
-      ],
-      default: "Under Review",
-    },
+  type: String,
+  enum: [
+    "Under Review",
+    "Approved",
+    "Rejected",
+    "Suspended",
+  ],
+  default: "Under Review",
 
+},
     approvedAt: Date,
 
     approvedBy: {

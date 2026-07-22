@@ -445,11 +445,9 @@ View
 
 <td className="px-6 py-5 text-center">
 
-{refund.refundStatus==="REFUNDED"?(
-<span className="text-green-600 font-bold">
-Done ✓
-</span>
-):(
+{refund.refundStatus === "PROCESSING" ||
+refund.refundStatus === "PENDING" ? (
+
 <button
 disabled={processingId===refund._id}
 onClick={()=>approveRefund(refund._id)}
@@ -468,17 +466,28 @@ transition
 ? "Processing..."
 : "Approve"}
 </button>
+
+) : refund.refundStatus === "REFUNDED" ? (
+
+<span className="text-green-600 font-bold">
+Done ✓
+</span>
+
+) : (
+
+<span className="text-gray-400 font-semibold">
+—
+</span>
+
 )}
 
 </td>
 
 <td className="px-6 py-5 text-center">
 
-{refund.refundStatus==="REJECTED"?(
-<span className="text-red-600 font-bold">
-Done ✕
-</span>
-):(
+{refund.refundStatus === "PROCESSING" ||
+refund.refundStatus === "PENDING" ? (
+
 <button
 disabled={processingId===refund._id}
 onClick={()=>rejectRefund(refund._id)}
@@ -497,6 +506,19 @@ transition
 ? "Processing..."
 : "Reject"}
 </button>
+
+) : refund.refundStatus === "REJECTED" ? (
+
+<span className="text-red-600 font-bold">
+Done ✕
+</span>
+
+) : (
+
+<span className="text-gray-400 font-semibold">
+—
+</span>
+
 )}
 
 </td>

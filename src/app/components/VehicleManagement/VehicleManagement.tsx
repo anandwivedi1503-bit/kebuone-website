@@ -29,11 +29,9 @@ vehicleModel: "",
 
 batteryType: "Chargeable",
 
-dailyRate: 200,
-
-weeklyRate: 1200,
-
-monthlyRate: 4500,
+dailyRate: 0,
+weeklyRate: 0,
+monthlyRate: 0,
 
 securityDeposit: 0,
 
@@ -108,6 +106,8 @@ if (!data.success) {
 }
 
 alert("Vehicle Added Successfully");
+
+window.location.reload();
 
 setFormData({
 
@@ -524,8 +524,7 @@ onChange={(e)=>
 setFormData({
 ...formData,
 batteryType:e.target.value,
-dailyRate:e.target.value==="Chargeable"?200:250,
-})
+ })
 }
 className="
 w-full
@@ -559,17 +558,25 @@ Daily Rate (₹)
 <input
 type="number"
 value={formData.dailyRate}
-readOnly
+onChange={(e)=>
+setFormData({
+...formData,
+dailyRate: Math.max(0, Number(e.target.value)),
+})
+}
 className="
 w-full
 h-14
 rounded-2xl
 border
 border-pink-100
-bg-gray-100
+bg-pink-50/40
 px-5
-font-bold
-text-[#0A1134]
+focus:outline-none
+focus:ring-2
+focus:ring-pink-200
+focus:border-[#FF165E]
+transition
 "
 />
 
@@ -587,7 +594,7 @@ value={formData.weeklyRate}
 onChange={(e)=>
 setFormData({
 ...formData,
-weeklyRate:Number(e.target.value),
+weeklyRate: Math.max(0, Number(e.target.value)),
 })
 }
 className="
@@ -602,6 +609,7 @@ focus:outline-none
 focus:ring-2
 focus:ring-pink-200
 focus:border-[#FF165E]
+transition
 "
 />
 
@@ -619,7 +627,7 @@ value={formData.monthlyRate}
 onChange={(e)=>
 setFormData({
 ...formData,
-monthlyRate:Number(e.target.value),
+monthlyRate: Math.max(0, Number(e.target.value)),
 })
 }
 className="
@@ -634,6 +642,7 @@ focus:outline-none
 focus:ring-2
 focus:ring-pink-200
 focus:border-[#FF165E]
+transition
 "
 />
 

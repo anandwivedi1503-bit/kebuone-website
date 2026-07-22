@@ -6,6 +6,7 @@ import Vehicle from "@/models/Vehicle";
 const vehicleStatuses = [
   "Available",
   "Booked",
+  "Ready For Pickup",
   "In Ride",
   "Maintenance",
   "Low Battery",
@@ -197,15 +198,24 @@ if (!vehicle) {
 }
 
 Object.assign(vehicle, updateData);
-if (vehicle.batteryPercentage < 20) {
-  vehicle.vehicleStatus = "Low Battery";
+if (
+vehicle.vehicleStatus !== "Maintenance" &&
+vehicle.vehicleStatus !== "Booked" &&
+vehicle.vehicleStatus !== "Ready For Pickup" &&
+vehicle.vehicleStatus !== "In Ride" &&
+vehicle.batteryPercentage < 20
+){
+vehicle.vehicleStatus="Low Battery";
 }
 
-if (
-  vehicle.vehicleStatus === "Low Battery" &&
-  vehicle.batteryPercentage >= 20
-) {
-  vehicle.vehicleStatus = "Available";
+if(
+vehicle.vehicleStatus==="Low Battery" &&
+vehicle.batteryPercentage>=20
+){
+vehicle.vehicleStatus="Available";
+vehicle.assignedRider="";
+vehicle.currentBookingId="";
+vehicle.currentRiderId="";
 }
 
 await vehicle.save();
@@ -251,6 +261,7 @@ if (!vehicle) {
 
 if (
   vehicle.vehicleStatus === "Booked" ||
+  vehicle.vehicleStatus === "Ready For Pickup" ||
   vehicle.vehicleStatus === "In Ride" ||
   vehicle.vehicleStatus === "Maintenance"
 ) {

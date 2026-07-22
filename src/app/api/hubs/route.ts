@@ -97,9 +97,7 @@ const hub = await Hub.create({
 
 export async function GET() {
   try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+    
     await connectDB();
 
     const hubs = await Hub.find().lean();

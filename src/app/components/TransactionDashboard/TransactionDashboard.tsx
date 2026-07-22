@@ -25,38 +25,49 @@ const fetchTransactions=async()=>{
 
 const res=await fetch("/api/transactions");
 
-const data=await res.json();
+const data = await res.json();
 
-if(data.success){
-
-setTransactions(data.data);
-
+if (!data.success) {
+  alert(data.message || "Unable to load transactions.");
+  return;
 }
 
-};
+ setTransactions(data.data);
 
-const filteredTransactions=transactions.filter((item)=>
+ };
 
-item.transactionId
-?.toLowerCase()
-.includes(search.toLowerCase())
+const filteredTransactions = transactions.filter((item) => {
+
+  const keyword = search.toLowerCase();
+
+  return (
+
+item.transactionId?.toLowerCase().includes(keyword) ||
+
+item.bookingId?.toLowerCase().includes(keyword) ||
+
+item.userName?.toLowerCase().includes(keyword) ||
+
+item.paymentMethod?.toLowerCase().includes(keyword) ||
+
+item.status?.toLowerCase().includes(keyword)
 
 );
 
-const totalRevenue=transactions.reduce(
+});
 
-(sum,item)=>sum+(item.amount||0),
-
+const totalRevenue = transactions
+.filter(item => item.status === "Success")
+.reduce(
+(sum,item)=>sum+Number(item.amount||0),
 0
-
 );
 
-const totalGST=transactions.reduce(
-
-(sum,item)=>sum+(item.gstAmount||0),
-
+const totalGST = transactions
+.filter(item => item.status === "Success")
+.reduce(
+(sum,item)=>sum+Number(item.gstAmount||0),
 0
-
 );
 
 const successfulPayments=transactions.filter(
@@ -65,10 +76,9 @@ const successfulPayments=transactions.filter(
 
 ).length;
 
-const pendingPayments=transactions.filter(
-
-(item)=>item.status!=="Success"
-
+const pendingPayments =
+transactions.filter(
+item=>item.status==="Pending"
 ).length;
 
 return(
@@ -95,7 +105,7 @@ color="pink"
 
 <KPICard
 title="Revenue"
-value={`₹${totalRevenue}`}
+value={`₹${totalRevenue.toLocaleString("en-IN")}`}
 subtitle="Collected"
 icon="💰"
 color="green"
@@ -103,7 +113,7 @@ color="green"
 
 <KPICard
 title="GST"
-value={`₹${totalGST}`}
+value={`₹${totalGST.toLocaleString("en-IN")}`}
 subtitle="Collected"
 icon="🧾"
 color="blue"
@@ -210,7 +220,24 @@ Created
 
 <tbody>
 
-{filteredTransactions.map((item)=>(
+{filteredTransactions.length === 0 ? (
+
+<tr>
+
+<td
+colSpan={8}
+className="py-10 text-center text-gray-500 font-medium"
+>
+
+No transactions found.
+
+</td>
+
+</tr>
+
+) : (
+
+filteredTransactions.map((item)=>(
 
 <tr
 key={item._id}
@@ -235,11 +262,11 @@ transition
 </td>
 
 <td className="px-6 py-5 text-center font-bold">
-₹{item.amount}
+₹{Number(item.amount || 0).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
-₹{item.gstAmount}
+₹{Number(item.gstAmount || 0).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -263,12 +290,16 @@ transition
 </td>
 
 <td className="px-6 py-5 text-center">
-{new Date(item.createdAt).toLocaleDateString()}
+{item.createdAt
+? new Date(item.createdAt).toLocaleString("en-IN")
+: "-"}
 </td>
 
 </tr>
 
-))}
+))
+
+)}
 
 </tbody>
 

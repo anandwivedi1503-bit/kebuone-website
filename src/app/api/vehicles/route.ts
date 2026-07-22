@@ -102,7 +102,10 @@ export async function POST(req: Request) {
   vehicleModel,
   currentHub,
 
-  vehicleStatus: "Available",
+  vehicleStatus:
+Number(body.batteryPercentage || 100) < 20
+? "Low Battery"
+: "Available",
   assignedRider: "",
   currentBookingId: "",
   currentRiderId: "",

@@ -136,6 +136,27 @@ export async function POST(req: Request) {
       transactionId,
     });
 
+    if (body.razorpayPaymentId) {
+
+const existingPayment =
+await Transaction.findOne({
+razorpayPaymentId: body.razorpayPaymentId,
+});
+
+if(existingPayment){
+
+return NextResponse.json(
+{
+success:false,
+errors:["This Razorpay payment already exists."]
+},
+{status:409}
+);
+
+}
+
+}
+
     if (existingTransaction) {
       return NextResponse.json(
         {

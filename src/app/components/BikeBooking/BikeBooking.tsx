@@ -585,7 +585,7 @@ referenceBy,
           </div>
         )}
 
-        <div className="mb-10 grid grid-cols-2 md:grid-cols-4 gap-3 rounded-3xl bg-white p-4 shadow-lg">
+        <div className="mb-10 grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-3xl bg-white p-4 shadow-lg">
           {["Details", "Bike", "Reserve", "Payment"].map((label, index) => (
             <div
               key={label}
@@ -705,7 +705,7 @@ disabled={!!riderPhone}
                   <button
   type="button"
   onClick={goToBikeStep}
-  className="h-14 w-full rounded-2xl bg-[#FF165E] font-black text-white"
+  className="min-h-[56px] w-full rounded-2xl bg-[#FF165E] font-black text-white"
 >
   Continue →
 </button>
@@ -760,7 +760,7 @@ disabled={!!riderPhone}
 ) : filteredBikes.length === 0 ? (
   <Empty text="No available scooters found for this hub. In Vehicle Management, keep vehicleStatus as Available and currentHub equal to this hub name or hub code." />
 ) : (              
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 ">
                     {filteredBikes.map((bike) => {
                       const isSelected = selectedBike === bike.vehicleId;
                       const price =
@@ -864,7 +864,7 @@ disabled={!!riderPhone}
     Booking Review
   </h3>
 
-  <div className="grid gap-4 md:grid-cols-2">
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
     <Summary label="Rider Name" value={riderName} />
 
@@ -912,7 +912,7 @@ disabled={!!riderPhone}
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="h-14 flex-1 rounded-2xl border border-gray-200 font-bold"
+                    className="min-h-[56px] flex-1 rounded-2xl border border-gray-200 font-bold"
                   >
                     Back
                   </button>
@@ -920,7 +920,7 @@ disabled={!!riderPhone}
                   <button
                     type="submit"
                     disabled={bookingDone || saving}
-                    className="flex h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FF165E] font-black text-white disabled:opacity-60"
+                    className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FF165E] font-black text-white disabled:opacity-60"
                   >
                     <ShieldCheck size={18} />
                     {saving ? "Reserving..." : bookingDone ? "Reserved" : "Reserve Scooter"}
@@ -931,7 +931,7 @@ disabled={!!riderPhone}
                   <button
                     type="button"
                     onClick={() => setStep(4)}
-                    className="mt-4 h-14 w-full rounded-2xl bg-[#0A1134] font-black text-white"
+                    className="mt-4 min-h-[56px] w-full rounded-2xl bg-[#0A1134] font-black text-white"
                   >
                     Go To Payment
                   </button>
@@ -1079,7 +1079,7 @@ value={rentalMode}
 
 </div>
 
-<div className="mt-8 grid grid-cols-2 gap-4">
+<div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
 
 <AmountBox
 label="Paid"
@@ -1110,7 +1110,7 @@ Show this Booking ID while collecting your scooter from the selected hub.
             )}
           </form>
 
-          <aside className="space-y-6 lg:sticky lg:top-24 self-start">
+          <aside className="space-y-6 lg:sticky lg:top-24 xl:top-28 self-start">
             <div className="
 rounded-[32px]
 bg-white
@@ -1247,7 +1247,7 @@ function StepButtons({
       <button
         type="button"
         onClick={onBack}
-        className="h-14 flex-1 rounded-2xl border border-gray-200 font-bold"
+        className="min-h-[56px] flex-1 rounded-2xl border border-gray-200 font-bold"
       >
         Back
       </button>

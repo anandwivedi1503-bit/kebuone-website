@@ -40,7 +40,11 @@ export async function POST(req: Request) {
     if (!emailRegex.test(email)) errors.push("Enter a valid email address.");
     if (!aadhaarRegex.test(aadhaarNumber)) errors.push("Aadhaar number must be exactly 12 digits.");
     if (drivingLicense && !drivingLicenseRegex.test(drivingLicense)) errors.push("Enter a valid driving license number.");
-    if (!body.aadhaarFileUrl) errors.push("Aadhaar document is required.");
+    if (!body.aadhaarFrontUrl)
+    errors.push("Aadhaar Front is required.");
+
+if (!body.aadhaarBackUrl)
+    errors.push("Aadhaar Back is required.");
     if (!body.profilePhotoUrl) errors.push("Profile photo is required.");
 
     if (body.reference1Phone && !phoneRegex.test(clean(body.reference1Phone))) {
@@ -161,13 +165,10 @@ if (!existingWallet) {
 
     status: "Active",
   });
-}
+ }
+ 
 
-await Rider.findByIdAndUpdate(rider._id, {
-  walletBalance: 0,
-});
-
-    return NextResponse.json({
+     return NextResponse.json({
       success: true,
       message: "Rider Registered Successfully",
       data: rider,
@@ -235,7 +236,7 @@ export async function GET(req: Request) {
 
     const riders = await Rider.find()
 .select(
-"riderId fullName phone email kycStatus approvalStatus status bookingEnabled walletBalance aadhaarFileUrl licenseFileUrl profilePhotoUrl createdAt"
+"riderId fullName phone email kycStatus approvalStatus status bookingEnabled walletBalance aadhaarFrontUrl aadhaarBackUrl licenseFrontUrl licenseBackUrl profilePhotoUrl createdAt"
 )
 .sort({
 createdAt:-1

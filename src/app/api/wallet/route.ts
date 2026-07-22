@@ -67,7 +67,7 @@ export async function POST(req: Request) {
       errors.push("Invalid user name.");
     }
 
-    if (phone.length < 10) {
+    if (!/^[6-9]\d{9}$/.test(phone)) {
       errors.push("Invalid phone number.");
     }
 

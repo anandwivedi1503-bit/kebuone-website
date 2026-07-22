@@ -155,6 +155,19 @@ if (!booking) {
   );
 }
 
+if (
+  booking.rideStatus === "In Ride" ||
+  booking.rideStatus === "Completed"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Cannot delete completed or active bookings.",
+    },
+    { status: 400 }
+  );
+}
+
 Object.assign(booking, updateData);
 
 /*
@@ -179,17 +192,24 @@ errors:[
 }
 
 if (booking.rideStatus === "Cancelled") {
+  const vehicle = await Vehicle.findOne({
+  vehicleId: booking.vehicleId,
+});
 
   await Vehicle.findOneAndUpdate(
     {
       vehicleId: booking.vehicleId,
     },
     {
-      vehicleStatus: "Available",
+      vehicleStatus:
+  vehicle &&
+  vehicle.batteryPercentage < 20
+    ? "Low Battery"
+    : "Available",
       assignedRider: "",
       currentBookingId: "",
       currentRiderId: "",
-      lockStatus: "Unlocked",
+      lockStatus: "Locked",
     }
   );
 
@@ -213,7 +233,11 @@ const wallet = await Wallet.findOne({
   riderId: booking.riderId,
 });
 
-if (wallet) {
+if (
+  wallet &&
+  (booking.paymentStatus === "Paid" ||
+   booking.paymentStatus === "Partial")
+) {
 
   wallet.securityDepositHold = Math.max(
     0,
@@ -262,6 +286,7 @@ if (wallet) {
 */
 
 if (
+  booking.paymentStatus !== "Pending" &&
   Number(booking.receivedAmount || 0) > 0
 ) {
 
@@ -291,6 +316,18 @@ if (
 }
 
 }
+
+booking.pickupOTP = "";
+booking.pickupOTPExpiry = null;
+booking.pickupOTPVerified = false;
+
+booking.rideStartOTP = "";
+booking.rideStartOTPExpiry = null;
+booking.rideStartOTPVerified = false;
+
+booking.rideEndOTP = "";
+booking.rideEndOTPExpiry = null;
+booking.rideEndOTPVerified = false;
 
 await booking.save();
 
@@ -334,6 +371,29 @@ export async function DELETE(
       );
     }
 
+    if (
+  booking.rideStatus === "In Ride" ||
+  booking.rideStatus === "Completed"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Active or completed bookings cannot be deleted.",
+    },
+    { status: 400 }
+  );
+}
+
+if (booking.paymentStatus === "Paid") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Paid bookings cannot be deleted.",
+    },
+    { status: 400 }
+  );
+}
+
     // Release Vehicle
     await Vehicle.findOneAndUpdate(
       { vehicleId: booking.vehicleId },
@@ -342,7 +402,7 @@ export async function DELETE(
         assignedRider: "",
         currentBookingId: "",
         currentRiderId: "",
-        lockStatus: "Unlocked",
+        lockStatus: "Locked",
       }
     );
 

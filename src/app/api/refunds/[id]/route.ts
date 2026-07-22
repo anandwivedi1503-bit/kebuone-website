@@ -96,6 +96,13 @@ export async function PATCH(
       }
 
       updateData.refundStatus = refundStatus;
+      if (refundStatus === "REFUNDED") {
+
+    updateData.processedAt = new Date();
+
+    updateData.processedBy = "Admin";
+
+}
     }
 
     if (updateData.refundStatus === "REFUNDED") {

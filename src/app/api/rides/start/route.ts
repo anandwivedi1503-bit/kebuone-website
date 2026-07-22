@@ -1,3 +1,7 @@
+import {
+  isAdminAuthenticated,
+  unauthorizedResponse,
+} from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 
@@ -8,6 +12,9 @@ import Rider from "@/models/Rider";
 export async function POST(req: Request) {
   try {
     await connectDB();
+    if (!(await isAdminAuthenticated())) {
+  return unauthorizedResponse();
+}
 
     const { bookingId, pickupOTP } = await req.json();
 
@@ -88,41 +95,69 @@ if (
   );
 }
 
-    if (booking.rideStatus === "In Ride") {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Ride already started.",
-        },
-        { status: 400 }
-      );
-    }
+    if (booking.rideStatus !== "Ready For Pickup") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking is not ready for pickup.",
+    },
+    { status: 400 }
+  );
+}
+      
 
     booking.rideStatus = "In Ride";
 booking.actualRideStart = new Date();
+booking.completedAt = undefined;
 
-booking.pickupOTPVerified = true;
-booking.pickupOTPVerifiedAt = new Date();
-booking.pickupOTP = "";
-booking.pickupOTPExpiry = null;
+ booking.pickupOTPVerified = true;
+ booking.pickupOTPVerifiedAt = new Date();
+ booking.pickupOTP = "";
+ booking.pickupOTPExpiry = null;
 
-booking.rideStartOTP = Math.floor(
-  100000 + Math.random() * 900000
-).toString();
+  
 
-booking.rideStartOTPExpiry = new Date(
-  Date.now() + 15 * 60 * 1000
-);
-
-booking.rideEndOTP = Math.floor(
-  100000 + Math.random() * 900000
-).toString();
+  booking.rideEndOTP = Math.floor(
+   100000 + Math.random() * 900000
+ ).toString();
 
 booking.rideEndOTPExpiry = new Date(
   Date.now() + 24 * 60 * 60 * 1000
 );
 
-    await booking.save();
+     const vehicle = await Vehicle.findOne({
+  vehicleId: booking.vehicleId,
+});
+
+if (!vehicle) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (vehicle.vehicleStatus !== "Booked") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle is not ready for pickup.",
+    },
+    { status: 400 }
+  );
+}
+
+if (vehicle.currentBookingId !== booking.bookingId) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle booking mismatch.",
+    },
+    { status: 400 }
+  );
+}
 
     await Vehicle.findOneAndUpdate(
       {
@@ -134,8 +169,33 @@ booking.rideEndOTPExpiry = new Date(
   assignedRider: booking.riderId,
   currentBookingId: booking.bookingId,
   currentRiderId: booking.riderId,
+  rideStartedAt: new Date(),
 }
     );
+
+    const rider = await Rider.findOne({
+  riderId: booking.riderId,
+});
+
+if (!rider) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (rider.activeRide) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider already has an active ride.",
+    },
+    { status: 400 }
+  );
+}
 
     await Rider.findOneAndUpdate(
       {
@@ -147,11 +207,12 @@ booking.rideEndOTPExpiry = new Date(
       }
     );
 
+    await booking.save();
+
     return NextResponse.json({
   success: true,
   message: "Ride started successfully.",
-  rideStartOTP: booking.rideStartOTP,
-  rideEndOTP:  booking.rideEndOTP,
+  rideEndOTP: booking.rideEndOTP,
   data: booking,
 });
 

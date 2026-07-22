@@ -101,7 +101,29 @@ userEmail: {
 
 actualRideEnd: Date,
 
+completedAt: Date,
+
 expectedReturnDate: Date,
+
+totalRideMinutes: {
+  type: Number,
+  default: 0,
+},
+
+rideDistanceKm: {
+  type: Number,
+  default: 0,
+},
+
+startOdometer: {
+  type: Number,
+  default: 0,
+},
+
+endOdometer: {
+  type: Number,
+  default: 0,
+},
 
     // Hub Details
     startHub: String,
@@ -273,7 +295,9 @@ rideEndOTPVerified: {
   default: false,
 },
 
-otpVerifiedAt: Date,
+rideEndOTPVerifiedAt: {
+  type: Date,
+},
 
 paymentVerifiedAt: Date,
   },

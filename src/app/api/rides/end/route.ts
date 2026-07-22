@@ -1,3 +1,7 @@
+import {
+  isAdminAuthenticated,
+  unauthorizedResponse,
+} from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 
@@ -8,8 +12,20 @@ import Rider from "@/models/Rider";
 export async function POST(req: Request) {
   try {
     await connectDB();
+    if (!(await isAdminAuthenticated())) {
+  return unauthorizedResponse();
+}
 
     const { bookingId, endHub, rideEndOTP } = await req.json();
+    if (!endHub?.trim()) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "End Hub is required.",
+    },
+    { status: 400 }
+  );
+}
 
     if (!bookingId) {
       return NextResponse.json(
@@ -87,6 +103,7 @@ if (
     }
 
     booking.actualRideEnd = new Date();
+    booking.completedAt = new Date();
 
     if (booking.actualRideStart) {
 
@@ -105,28 +122,66 @@ booking.endHub = endHub || booking.startHub;
 
 booking.rideEndOTPVerified = true;
 
-booking.otpVerifiedAt = new Date();
+booking.rideEndOTPVerifiedAt = new Date();
 
 booking.rideEndOTP = "";
 
 booking.rideEndOTPExpiry = null;
 
-    await booking.save();
+  
+
+    const vehicle = await Vehicle.findOne({
+  vehicleId: booking.vehicleId,
+});
+
+if (!vehicle) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (vehicle.vehicleStatus !== "In Ride") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle is not currently in ride.",
+    },
+    { status: 400 }
+  );
+}
+
+if (vehicle.currentBookingId !== booking.bookingId) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle booking mismatch.",
+    },
+    { status: 400 }
+  );
+}
 
     await Vehicle.findOneAndUpdate(
       {
         vehicleId: booking.vehicleId,
       },
       {
-        vehicleStatus: "Available",
+        vehicleStatus:
+  vehicle.batteryPercentage < 20
+    ? "Low Battery"
+    : "Available",
         currentHub: endHub || booking.startHub,
         currentBookingId: "",
         currentRiderId: "",
         assignedRider: "",
         lockStatus: "Locked",
+        rideEndedAt: new Date(),
       }
     );
-
+    
     await Rider.findOneAndUpdate(
       {
         riderId: booking.riderId,
@@ -136,6 +191,8 @@ booking.rideEndOTPExpiry = null;
         currentBookingId: "",
       }
     );
+
+    await booking.save();
 
     return NextResponse.json({
       success: true,

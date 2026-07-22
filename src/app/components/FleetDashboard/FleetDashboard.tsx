@@ -91,8 +91,11 @@ const vehicle = vehicles.find((v) => v._id === id);
 
 if (
   vehicle &&
-  (vehicle.vehicleStatus === "In Ride" ||
-    vehicle.vehicleStatus === "Booked")
+  (
+    vehicle.vehicleStatus === "In Ride" ||
+    vehicle.vehicleStatus === "Booked" ||
+    vehicle.vehicleStatus === "Ready For Pickup"
+  )
 ) {
   alert("This vehicle cannot be deleted because it is currently active.");
   return;
@@ -222,10 +225,20 @@ subtitle="Live data coming from MongoDB"
     "
   >
     <option value="All">All Status</option>
-    <option value="Available">Available</option>
-    <option value="In Ride">In Ride</option>
-    <option value="Maintenance">Maintenance</option>
-    <option value="Low Battery">Low Battery</option>
+
+<option value="Available">Available</option>
+
+<option value="Booked">Booked</option>
+
+<option value="Ready For Pickup">
+Ready For Pickup
+</option>
+
+<option value="In Ride">In Ride</option>
+
+<option value="Maintenance">Maintenance</option>
+
+<option value="Low Battery">Low Battery</option>
   </select>
 
 </div>
@@ -312,21 +325,29 @@ subtitle="Live data coming from MongoDB"
 
           <td className="px-6 py-5">
 
-            {vehicle.vehicleStatus === "Available" && (
-              <StatusBadge status="active" />
-            )}
+           {vehicle.vehicleStatus === "Available" && (
+  <StatusBadge status="active" />
+)}
 
-            {vehicle.vehicleStatus === "In Ride" && (
-              <StatusBadge status="active" />
-            )}
+{vehicle.vehicleStatus === "Booked" && (
+  <StatusBadge status="warning" />
+)}
 
-            {vehicle.vehicleStatus === "Maintenance" && (
-              <StatusBadge status="warning" />
-            )}
+{vehicle.vehicleStatus === "Ready For Pickup" && (
+  <StatusBadge status="active" />
+)}
 
-            {vehicle.vehicleStatus === "Low Battery" && (
-              <StatusBadge status="danger" />
-            )}
+{vehicle.vehicleStatus === "In Ride" && (
+  <StatusBadge status="active" />
+)}
+
+{vehicle.vehicleStatus === "Maintenance" && (
+  <StatusBadge status="warning" />
+)}
+
+{vehicle.vehicleStatus === "Low Battery" && (
+  <StatusBadge status="danger" />
+)}
 
           </td>
 
@@ -400,6 +421,7 @@ Vehicle ID
 
 <input
 type="text"
+disabled
 value={editingVehicle.vehicleId}
 onChange={(e)=>
 setEditingVehicle({
@@ -473,9 +495,16 @@ className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-non
 >
 
  <option>Available</option>
- <option>In Ride</option>
- <option>Maintenance</option>
- <option>Low Battery</option>
+
+<option>Booked</option>
+
+<option>Ready For Pickup</option>
+
+<option>In Ride</option>
+
+<option>Maintenance</option>
+
+<option>Low Battery</option>
 
 </select>
 
@@ -495,7 +524,7 @@ if (!editingVehicle.vehicleModel?.trim()) {
   return;
 }
 
-await fetch(
+const res = await fetch(
 `/api/vehicles/${editingVehicle._id}`,
 {
 method:"PATCH",
@@ -505,6 +534,19 @@ headers:{
 body:JSON.stringify(editingVehicle),
 }
 );
+
+const data = await res.json();
+
+if (!data.success) {
+
+alert(
+data.errors?.join("\n") ||
+"Unable to update vehicle."
+);
+
+return;
+
+}
 
 setEditingVehicle(null);
 

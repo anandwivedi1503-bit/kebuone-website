@@ -55,6 +55,9 @@ if (wallet.status === "Blocked") {
     wallet.balance += rechargeAmount;
 wallet.totalRecharge += rechargeAmount;
 
+wallet.balance = Number(wallet.balance.toFixed(2));
+wallet.totalRecharge = Number(wallet.totalRecharge.toFixed(2));
+
     await wallet.save();
 
     const transactionId =
@@ -84,7 +87,7 @@ wallet.totalRecharge += rechargeAmount;
 
   balanceAfter: wallet.balance,
 
-  remarks,
+  remarks: String(remarks || "").trim().slice(0, 200),
 
   status: "Success",
 

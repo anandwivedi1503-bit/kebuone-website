@@ -65,6 +65,9 @@ if (wallet.status === "Blocked") {
      wallet.balance -= debitAmount;
 wallet.totalSpent += debitAmount;
 
+wallet.balance = Number(wallet.balance.toFixed(2));
+wallet.totalSpent = Number(wallet.totalSpent.toFixed(2));
+
     await wallet.save();
 
     const transactionId =
@@ -94,7 +97,7 @@ wallet.totalSpent += debitAmount;
 
   balanceAfter: wallet.balance,
 
-  remarks,
+  remarks: String(remarks || "").trim().slice(0, 200),
 
   status: "Success",
 

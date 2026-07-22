@@ -40,8 +40,14 @@ const otpMessageTimeout = useRef<NodeJS.Timeout | null>(null);
 const [aadhaar, setAadhaar] = useState("");
 const [license, setLicense] = useState("");
 
-const [aadhaarFile, setAadhaarFile] = useState<File | null>(null);
-const [licenseFile, setLicenseFile] = useState<File | null>(null);
+const [aadhaarFrontFile, setAadhaarFrontFile] = useState<File | null>(null);
+
+const [aadhaarBackFile, setAadhaarBackFile] = useState<File | null>(null);
+
+const [licenseFrontFile, setLicenseFrontFile] = useState<File | null>(null);
+
+const [licenseBackFile, setLicenseBackFile] = useState<File | null>(null);
+const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
 const [instagramId, setInstagramId] = useState("");
 const [facebookId, setFacebookId] = useState("");
 
@@ -50,10 +56,18 @@ const [reference1Phone, setReference1Phone] = useState("");
 
 const [reference2Name, setReference2Name] = useState("");
 const [reference2Phone, setReference2Phone] = useState("");
-const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+
 
 const [error, setError] = useState("");
 const [otpMessage, setOtpMessage] = useState("");
+useEffect(() => {
+  const riderId = localStorage.getItem("kebu_rider_id");
+  const riderPhone = localStorage.getItem("kebu_rider_phone");
+
+  if (riderId && riderPhone) {
+    window.location.href = "/book-bike";
+  }
+}, []);
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -233,21 +247,33 @@ setError("");
   return;
 }
 
-    let aadhaarUrl = "";
-    let licenseUrl = "";
-    let profileUrl = "";
+ let aadhaarFrontUrl = "";
+let aadhaarBackUrl = "";
 
-    if (aadhaarFile) {
-      aadhaarUrl = await uploadFile(aadhaarFile);
-    }
+let licenseFrontUrl = "";
+let licenseBackUrl = "";
 
-    if (licenseFile) {
-      licenseUrl = await uploadFile(licenseFile);
-    }
+let profileUrl = "";
 
-    if (profilePhoto) {
-      profileUrl = await uploadFile(profilePhoto);
-    }
+if (aadhaarFrontFile) {
+    aadhaarFrontUrl = await uploadFile(aadhaarFrontFile);
+}
+
+if (aadhaarBackFile) {
+    aadhaarBackUrl = await uploadFile(aadhaarBackFile);
+}
+
+if (licenseFrontFile) {
+    licenseFrontUrl = await uploadFile(licenseFrontFile);
+}
+
+if (licenseBackFile) {
+    licenseBackUrl = await uploadFile(licenseBackFile);
+}
+
+if (profilePhoto) {
+    profileUrl = await uploadFile(profilePhoto);
+}
 
     const response = await fetch("/api/riders", {
       method: "POST",
@@ -266,9 +292,15 @@ firebaseIdToken,
         aadhaarNumber: aadhaar,
         drivingLicense: license,
 
-        aadhaarFileUrl: aadhaarUrl,
-        licenseFileUrl: licenseUrl,
-        profilePhotoUrl: profileUrl,
+        aadhaarFrontUrl,
+
+aadhaarBackUrl,
+
+licenseFrontUrl,
+
+licenseBackUrl,
+
+profilePhotoUrl: profileUrl,
 
         instagramId,
         facebookId,
@@ -534,19 +566,57 @@ const validateStep = () => {
   }
 
   if (step === 4) {
-    if (!aadhaarFile) {
-      setError("Please upload Aadhaar Card");
-      return false;
-    }
+   if (!aadhaarFrontFile) {
+    setError("Please upload Aadhaar Front.");
+    return false;
+}
 
-    if (!validateSelectedFile(aadhaarFile, allowedDocumentTypes, "Aadhaar document")) {
-      return false;
-    }
+if (!aadhaarBackFile) {
+    setError("Please upload Aadhaar Back.");
+    return false;
+}
 
-    if (licenseFile && !validateSelectedFile(licenseFile, allowedDocumentTypes, "Driving license document")) {
-      return false;
-    }
+if (
+    !validateSelectedFile(
+        aadhaarFrontFile,
+        allowedDocumentTypes,
+        "Aadhaar Front"
+    )
+) {
+    return false;
+}
 
+if (
+    !validateSelectedFile(
+        aadhaarBackFile,
+        allowedDocumentTypes,
+        "Aadhaar Back"
+    )
+) {
+    return false;
+}
+
+if (
+    licenseFrontFile &&
+    !validateSelectedFile(
+        licenseFrontFile,
+        allowedDocumentTypes,
+        "Driving License Front"
+    )
+) {
+    return false;
+}
+
+if (
+    licenseBackFile &&
+    !validateSelectedFile(
+        licenseBackFile,
+        allowedDocumentTypes,
+        "Driving License Back"
+    )
+) {
+    return false;
+}
     if (!profilePhoto) {
       setError("Please upload Profile Photo");
       return false;
@@ -625,6 +695,16 @@ const isContinueDisabled = step === 2 && !otpVerified;
               </h3>
             </div>
 
+            <div className="bg-pink-50 rounded-3xl p-6">
+    <p className="text-sm text-gray-500 mb-2">
+        Booking Access
+    </p>
+
+    <h3 className="font-bold text-red-600">
+        Disabled
+    </h3>
+</div>
+
           </div>
 
           <p className="text-[#555] mb-8">
@@ -632,27 +712,29 @@ const isContinueDisabled = step === 2 && !otpVerified;
 
 Our verification team will review your profile.
 
-Once approved, you'll receive confirmation and can immediately book your bike.
+Your KYC is under verification.
+
+After the Admin approves your account, bike booking will automatically be enabled in your dashboard.
+
+Until then, booking remains disabled for security purposes.
           </p>
 
           <div className="flex flex-col md:flex-row gap-4 justify-center">
 
   <button
-    onClick={() => window.location.href = "/book-bike"}
-    className="
-    px-10
-    py-4
-    rounded-2xl
-    bg-gradient-to-r
-    from-[#FF165E]
-    to-[#FF5A8B]
-    text-white
-    font-bold
-    "
-  >
-    Book Your First Bike →
-  </button>
-
+  disabled
+  className="
+  px-10
+  py-4
+  rounded-2xl
+  bg-gray-300
+  text-gray-600
+  font-bold
+  cursor-not-allowed
+  "
+>
+  Waiting For Admin Approval
+</button>
   <button
     onClick={() => window.location.href = "/"}
     className="
@@ -1116,7 +1198,7 @@ Step 2 of 4
 Step 4 of 4
 </p>
 
-                  <div className="grid md:grid-cols-3 gap-6">
+                  <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
 
   <label
     className="
@@ -1142,7 +1224,7 @@ hover:shadow-xl
     </div>
 
     <h4 className="font-bold text-[#0A1134] mb-2">
-      Aadhaar Card
+      Aadhaar Front *
     </h4>
     <p className="text-xs text-red-500 mb-2 font-medium">
 Required
@@ -1158,14 +1240,14 @@ Maximum Size: 5 MB
     <p className="text-xs text-[#666]">
       PDF • JPG • PNG
     </p>
-   {aadhaarFile && (
+   {aadhaarFrontFile && (
   <>
     <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {aadhaarFile.name}
+      ✅ {aadhaarFrontFile.name}
     </p>
 
     <p className="text-xs text-gray-500">
-      {(aadhaarFile.size / 1024 / 1024).toFixed(2)} MB
+      {(aadhaarFrontFile.size / 1024 / 1024).toFixed(2)} MB
     </p>
   </>
 )}
@@ -1177,9 +1259,77 @@ Maximum Size: 5 MB
       onChange={(e) =>
   selectValidatedFile(
     e.target.files ? e.target.files[0] : null,
-    setAadhaarFile,
+    setAadhaarFrontFile,
     allowedDocumentTypes,
-    "Aadhaar document"
+    "Aadhaar Front"
+  )
+}
+    />
+
+  </label>
+
+  <label
+    className="
+    cursor-pointer
+    border-2
+    border-dashed
+    border-pink-200
+    rounded-3xl
+    p-8
+    bg-pink-50/50
+    hover:scale-[1.03]
+hover:shadow-xl
+    hover:border-[#FF165E]
+    hover:bg-pink-50
+    transition-all
+    duration-300
+    text-center
+    "
+  >
+
+    <div className="text-5xl mb-4">
+      📄
+    </div>
+
+    <h4 className="font-bold text-[#0A1134] mb-2">
+      Aadhaar Back *
+    </h4>
+    <p className="text-xs text-red-500 mb-2 font-medium">
+Required
+</p>
+
+    <p className="text-[#444] text-sm mb-3">
+      Drag & Drop or Click To Upload
+    </p>
+    <p className="text-xs text-gray-400 mt-2">
+Maximum Size: 5 MB
+</p>
+
+    <p className="text-xs text-[#666]">
+      PDF • JPG • PNG
+    </p>
+   {aadhaarBackFile && (
+  <>
+    <p className="mt-3 text-green-600 text-sm font-semibold">
+      ✅ {aadhaarBackFile.name}
+    </p>
+
+    <p className="text-xs text-gray-500">
+      {(aadhaarBackFile.size / 1024 / 1024).toFixed(2)} MB
+    </p>
+  </>
+)}
+
+    <input
+      type="file"
+       accept=".pdf,.jpg,.jpeg,.png,.webp"
+      className="hidden"
+      onChange={(e) =>
+  selectValidatedFile(
+    e.target.files ? e.target.files[0] : null,
+    setAadhaarBackFile,
+    allowedDocumentTypes,
+    "Aadhaar Back"
   )
 }
     />
@@ -1210,7 +1360,7 @@ hover:shadow-xl
     </div>
 
     <h4 className="font-bold text-[#0A1134] mb-2">
-  Driving License
+  Driving License Front
 </h4>
 
 <p className="text-xs text-orange-500 mb-2 font-medium">
@@ -1228,14 +1378,14 @@ Maximum Size: 5 MB
       PDF • JPG • PNG
     </p>
 
-    {licenseFile && (
+    {licenseFrontFile && (
   <>
     <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {licenseFile.name}
+      ✅ {licenseFrontFile.name}
     </p>
 
     <p className="text-xs text-gray-500">
-      {(licenseFile.size / 1024 / 1024).toFixed(2)} MB
+      {(licenseFrontFile.size / 1024 / 1024).toFixed(2)} MB
     </p>
   </>
 )}
@@ -1247,9 +1397,79 @@ Maximum Size: 5 MB
   onChange={(e) =>
     selectValidatedFile(
       e.target.files ? e.target.files[0] : null,
-      setLicenseFile,
+      setLicenseFrontFile,
       allowedDocumentTypes,
-      "Driving license document"
+      "Driving license front"
+    )
+  }
+/>
+
+  </label>
+
+  <label
+    className="
+    cursor-pointer
+    border-2
+    border-dashed
+    border-pink-200
+    rounded-3xl
+    p-8
+    bg-pink-50/50
+    hover:border-[#FF165E]
+    hover:bg-pink-50
+    hover:scale-[1.03]
+hover:shadow-xl
+    transition-all
+    duration-300
+    text-center
+    "
+  >
+
+    <div className="text-5xl mb-4">
+      🪪
+    </div>
+
+    <h4 className="font-bold text-[#0A1134] mb-2">
+  Driving License Back
+</h4>
+
+<p className="text-xs text-orange-500 mb-2 font-medium">
+  Optional
+</p>
+
+    <p className="text-gray-500 text-sm mb-3">
+      Drag & Drop or Click To Upload
+    </p>
+    <p className="text-xs text-gray-400 mt-2">
+Maximum Size: 5 MB
+</p>
+
+    <p className="text-xs text-gray-400">
+      PDF • JPG • PNG
+    </p>
+
+    {licenseBackFile && (
+  <>
+    <p className="mt-3 text-green-600 text-sm font-semibold">
+      ✅ {licenseBackFile.name}
+    </p>
+
+    <p className="text-xs text-gray-500">
+      {(licenseBackFile.size / 1024 / 1024).toFixed(2)} MB
+    </p>
+  </>
+)}
+
+    <input
+  type="file"
+  accept=".pdf,.jpg,.jpeg,.png,.webp"
+  className="hidden"
+  onChange={(e) =>
+    selectValidatedFile(
+      e.target.files ? e.target.files[0] : null,
+      setLicenseBackFile,
+      allowedDocumentTypes,
+      "Driving license Back"
     )
   }
 />

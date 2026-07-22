@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 }
 
 const rider = await Rider.findOne({
-  riderId: booking.riderId,
+riderId: booking.riderId,
 });
 
 if (!rider) {
@@ -90,6 +90,20 @@ if (rider.status !== "Active") {
   );
 }
 
+if (
+  rider.activeRide &&
+  rider.currentBookingId &&
+  rider.currentBookingId !== booking.bookingId
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider already has another active booking.",
+    },
+    { status: 400 }
+  );
+}
+
    if (
   booking.paymentStatus === "Paid"
 ) {
@@ -103,6 +117,18 @@ if (rider.status !== "Active") {
   );
 }
 
+if (
+  booking.rideStatus === "Cancelled" ||
+  booking.rideStatus === "Completed"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Payment cannot be made for this booking.",
+    },
+    { status: 400 }
+  );
+}
 
     const payableAmount =
       Number(booking.securityDeposit || 0) + Number(booking.totalAmount || 0);
@@ -131,6 +157,16 @@ if (rider.status !== "Active") {
         { status: 400 }
       );
     }
+
+    if (booking.riderId !== rider.riderId) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking rider mismatch.",
+    },
+    { status: 400 }
+  );
+}
 
     const razorpay = new Razorpay({
       key_id: keyId,

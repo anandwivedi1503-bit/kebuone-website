@@ -298,6 +298,21 @@ await session.endSession();
   );
 }
 
+if (vehicle.batteryPercentage < 20) {
+  await session.abortTransaction();
+  await session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "Vehicle battery is too low for booking.",
+      ],
+    },
+    { status: 400 }
+  );
+}
+
 const vehicleHub = clean(vehicle.currentHub).toLowerCase();
 
 const matched = hubAliases.some(
@@ -318,6 +333,8 @@ await session.endSession();
 
 vehicle.vehicleStatus = "Booked";
 vehicle.assignedRider = rider.riderId;
+vehicle.currentBookingId = bookingId;
+vehicle.currentRiderId = rider.riderId;
 vehicle.lockStatus = "Locked";
 
 await vehicle.save({ session });
@@ -466,65 +483,11 @@ return NextResponse.json(
   }
 );
 
-booking = bookingArray[0];
+ booking = bookingArray[0];
 
-    const wallet = await Wallet.findOne(
-  {
-    riderId: rider.riderId,
-  },
-  null,
-  { session }
-);
-
-if (!wallet) {
-  throw new Error("Wallet not found.");
-}
-
-wallet.securityDepositHold += securityDeposit;
-
-await wallet.save({
-  session,
-});
-
-await WalletTransaction.create(
-[
-{
-  transactionId:
-    "WTX-" +
-    Date.now() +
-    "-" +
-    Math.floor(Math.random() * 1000),
-
-  riderId: rider.riderId,
-
-  userId: rider._id,
-
-  userName: rider.fullName,
-
-  amount: securityDeposit,
-
-  transactionType: "Security Deposit Hold",
-
-  paymentMethod: "Wallet",
-
-  bookingId: booking.bookingId,
-
-  balanceAfter: wallet.balance,
-
-  remarks: `Security deposit held for Booking ${booking.bookingId}`,
-
-  status: "Success",
-},
-],
-{
-session,
-}
-);
-
-    await Rider.findByIdAndUpdate(
+  await Rider.findByIdAndUpdate(
   rider._id,
-  {
-    activeRide: true,
+   {
     currentBookingId: booking.bookingId,
   },
   {

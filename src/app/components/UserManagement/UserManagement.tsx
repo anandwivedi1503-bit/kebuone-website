@@ -42,7 +42,7 @@ const pendingKYC=riders.filter(
 ).length;
 
 const suspendedUsers=riders.filter(
-(rider)=>rider.approvalStatus==="Suspended"
+(rider)=>rider.status==="Suspended"
 ).length;
 
 const filteredRiders=riders.filter((rider)=>{
@@ -55,11 +55,12 @@ rider.phone?.includes(search)||
 
 rider.email?.toLowerCase().includes(search.toLowerCase());
 
-const matchesStatus=
+const matchesStatus =
+statusFilter === "All" ||
 
-statusFilter==="All"||
+rider.approvalStatus === statusFilter ||
 
-rider.approvalStatus===statusFilter;
+rider.status === statusFilter;
 return matchesSearch && matchesStatus;
 
 });
@@ -99,10 +100,13 @@ headers:{
 },
 
 body: JSON.stringify({
+
   status: "Suspended",
-  kycStatus: rider.kycStatus,
-  approvalStatus: rider.approvalStatus,
-  activeRide: false,
+
+  approvalStatus: "Suspended",
+
+  activeRide:false,
+
 }),
 
 });
@@ -355,7 +359,7 @@ INACTIVE
 
 <td className="px-6 py-5 text-center">
 
-{rider.status === "Suspended" ||
+{rider.approvalStatus==="Suspended" ||
  rider.approvalStatus === "Rejected" ? (
 <button
 onClick={()=>activateRider(rider._id)}

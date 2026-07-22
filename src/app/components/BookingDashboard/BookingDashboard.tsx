@@ -246,10 +246,15 @@ const cancelledBookings = bookings.filter(
 
 const getBookingAmount = (booking: any) =>
   Number(booking.receivedAmount || 0);
-const totalRevenue = bookings.reduce(
-  (sum, booking) => sum + getBookingAmount(booking),
-  0
-);
+const totalRevenue = bookings
+  .filter(
+    (booking) => booking.rideStatus !== "Cancelled"
+  )
+  .reduce(
+    (sum, booking) =>
+      sum + Number(booking.receivedAmount || 0),
+    0
+  );
 
 return(
 
@@ -937,7 +942,13 @@ Booking Details
 Payment Details
 </h3>
 
-<p><b>Total :</b> ₹{selectedBooking.paymentDue}</p>
+<p>
+  <b>Total :</b> ₹
+  {(
+    Number(selectedBooking.totalAmount || 0) +
+    Number(selectedBooking.securityDeposit || 0)
+  ).toLocaleString("en-IN")}
+</p>
 
 <p><b>Received :</b> ₹{selectedBooking.receivedAmount}</p>
 

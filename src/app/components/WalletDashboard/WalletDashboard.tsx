@@ -45,6 +45,11 @@ const res=await fetch("/api/wallet");
 
 const data=await res.json();
 
+if (!data.success) {
+  alert(data.message || "Unable to load wallets.");
+  return;
+}
+
 if(data.success){
 
 setWallets(data.data);
@@ -58,6 +63,10 @@ const loadTransactions=async()=>{
 const res=await fetch("/api/wallet-transactions");
 
 const data=await res.json();
+if (!data.success) {
+  alert(data.message || "Unable to load transactions.");
+  return;
+}
 
 if(data.success){
 
@@ -234,14 +243,20 @@ const totalBalance=wallets.reduce(
 
 );
 
-const totalCredits=transactions
-.filter(t=>t.transactionType==="Credit")
-.reduce((sum,t)=>sum+(t.amount||0),0);
+const totalCredits = transactions
+.filter((t) =>
+  ["Admin Credit", "Recharge"].includes(t.transactionType)
+)
+.reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
-const totalDebits=transactions
-.filter(t=>t.transactionType==="Debit")
-.reduce((sum,t)=>sum+(t.amount||0),0);
-
+const totalDebits = transactions
+.filter((t) =>
+  [
+    "Admin Debit",
+    "Booking Payment",
+  ].includes(t.transactionType)
+)
+.reduce((sum, t) => sum + Number(t.amount || 0), 0);
 const filteredWallets = useMemo(() => {
 
   return wallets.filter((wallet) => {
@@ -691,11 +706,11 @@ className="border-b border-pink-50 hover:bg-pink-50/40 transition"
 </td>
 
 <td className="px-6 py-5 text-center font-bold text-green-600">
-₹{wallet.balance}
+₹{Number(wallet.balance).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
-₹{wallet.securityDepositHold}
+₹{Number(wallet.securityDepositHold).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1030,13 +1045,13 @@ className="border-b border-pink-50"
 
 <td className="px-5 py-4 text-center font-bold">
 
-₹{txn.amount}
+₹{Number(txn.amount || 0).toLocaleString("en-IN")}
 
 </td>
 
 <td className="px-5 py-4 text-center">
 
-₹{txn.balanceAfter}
+₹{Number(txn.balanceAfter || 0).toLocaleString("en-IN")}
 
 </td>
 

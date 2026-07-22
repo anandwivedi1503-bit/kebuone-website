@@ -199,11 +199,19 @@ Phone
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
-Aadhaar
+Aadhaar Front
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
-Driving License
+Aadhaar Back
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+DL Front
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+DL Back
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
@@ -231,7 +239,7 @@ Reject
   {riders.length === 0 && (
   <tr>
     <td
-      colSpan={9}
+      colSpan={11}
       className="text-center py-12 text-gray-500"
     >
       No KYC applications found.
@@ -264,38 +272,92 @@ transition
 
 <td className="px-6 py-5 text-center">
 
-{rider.aadhaarFileUrl ? (
-  <a
-    href={rider.aadhaarFileUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-[#FF165E] font-semibold hover:underline"
-  >
-    View
-  </a>
+{rider.aadhaarFrontUrl ? (
+
+<a
+href={rider.aadhaarFrontUrl}
+target="_blank"
+rel="noopener noreferrer"
+className="text-[#FF165E] font-semibold hover:underline"
+>
+View
+</a>
+
 ) : (
-  <span className="text-gray-400">
-    Not Uploaded
-  </span>
+
+<span className="text-gray-400">
+Not Uploaded
+</span>
+
 )}
 
 </td>
 
 <td className="px-6 py-5 text-center">
 
-{rider.licenseFileUrl ? (
-  <a
-    href={rider.licenseFileUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-[#FF165E] font-semibold hover:underline"
-  >
-    View
-  </a>
+{rider.aadhaarBackUrl ? (
+
+<a
+href={rider.aadhaarBackUrl}
+target="_blank"
+rel="noopener noreferrer"
+className="text-[#FF165E] font-semibold hover:underline"
+>
+View
+</a>
+
 ) : (
-  <span className="text-gray-400">
-    Not Uploaded
-  </span>
+
+<span className="text-gray-400">
+Not Uploaded
+</span>
+
+)}
+
+</td>
+
+<td className="px-6 py-5 text-center">
+
+{rider.licenseFrontUrl ? (
+
+<a
+href={rider.licenseFrontUrl}
+target="_blank"
+rel="noopener noreferrer"
+className="text-[#FF165E] font-semibold hover:underline"
+>
+View
+</a>
+
+) : (
+
+<span className="text-gray-400">
+Not Uploaded
+</span>
+
+)}
+
+</td>
+
+<td className="px-6 py-5 text-center">
+
+{rider.licenseBackUrl ? (
+
+<a
+href={rider.licenseBackUrl}
+target="_blank"
+rel="noopener noreferrer"
+className="text-[#FF165E] font-semibold hover:underline"
+>
+View
+</a>
+
+) : (
+
+<span className="text-gray-400">
+Not Uploaded
+</span>
+
 )}
 
 </td>

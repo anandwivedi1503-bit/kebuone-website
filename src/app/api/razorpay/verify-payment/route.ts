@@ -150,6 +150,19 @@ if (String(order.notes?.bookingMongoId || "") !== bookingMongoId) {
   );
 }
 
+if (
+  rider.currentBookingId &&
+  rider.currentBookingId !== booking.bookingId
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider already has another booking.",
+    },
+    { status: 400 }
+  );
+}
+
 if (!rider.bookingEnabled) {
   return NextResponse.json(
     {
@@ -178,6 +191,19 @@ if (
     {
       success: false,
       message: "This booking has already been fully paid.",
+    },
+    { status: 400 }
+  );
+}
+
+if (
+  booking.rideStatus === "Cancelled" ||
+  booking.rideStatus === "Completed"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "This booking is no longer payable.",
     },
     { status: 400 }
   );
@@ -213,6 +239,8 @@ const pickupOTPExpiry =
     ? new Date(Date.now() + 15 * 60 * 1000)
     : null;
 
+    
+
     await Transaction.create({
       transactionId: razorpayPaymentId,
       bookingId: booking.bookingId,
@@ -221,29 +249,47 @@ const pickupOTPExpiry =
       amount: paidAmount,
       gstAmount: Number((paidAmount * 0.05).toFixed(2)),
       paymentMethod: "Razorpay",
+      razorpayOrderId,
+
+      razorpayPaymentId,
       transactionType: "Booking Payment",
       status: "Success",
     });
 
-    const wallet = await Wallet.findOne({
-  riderId: booking.riderId,
+   const wallet =
+await Wallet.findOne({
+riderId:rider.riderId
 });
 
-if (wallet) {
-  wallet.balance += paidAmount;
+if (!wallet) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Wallet not found.",
+    },
+    { status: 404 }
+  );
+}
 
-  wallet.totalRecharge += paidAmount;
+const existingWalletTransaction =
+  await WalletTransaction.findOne({
+    razorpayPaymentId,
+  });
 
-  if (wallet.securityDepositHold <= 0) {
-    wallet.securityDepositHold = Number(
-      booking.securityDeposit || 0
-    );
-  }
+if (!existingWalletTransaction) {
+
+  // Hold only the security deposit
+  wallet.securityDepositHold = Math.max(
+    Number(wallet.securityDepositHold || 0),
+    Number(booking.securityDeposit || 0)
+  );
 
   await wallet.save();
 
   await WalletTransaction.create({
-    transactionId: `WALLET-${Date.now()}`,
+
+    transactionId:
+      "WTX-" + Date.now(),
 
     riderId: booking.riderId,
 
@@ -251,9 +297,12 @@ if (wallet) {
 
     userName: booking.userName,
 
-    amount: paidAmount,
+    amount: Number(
+      booking.securityDeposit || 0
+    ),
 
-    transactionType: "Recharge",
+    transactionType:
+      "Security Deposit Hold",
 
     paymentMethod: "Razorpay",
 
@@ -263,12 +312,15 @@ if (wallet) {
 
     razorpayPaymentId,
 
-    balanceAfter: wallet.balance,
+    balanceAfter: Number(wallet.balance || 0),
 
-    remarks: "Booking payment added to wallet.",
+    remarks:
+      "Security deposit held for bike booking.",
 
     status: "Success",
+
   });
+
 }
 
     const updatedBooking = await Booking.findOneAndUpdate(
@@ -300,10 +352,20 @@ Verified : ${new Date().toLocaleString("en-IN")}
 },
 { new: true }
 );
+
+if (!updatedBooking) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking was already updated.",
+    },
+    { status: 409 }
+  );
+}
     
     const Vehicle = (await import("@/models/Vehicle")).default;
 
-await Vehicle.findOneAndUpdate(
+const updatedVehicle = await Vehicle.findOneAndUpdate(
   {
     vehicleId: booking.vehicleId,
   },
@@ -319,15 +381,25 @@ pendingAmount <= 0
   }
 );
 
+if (!updatedVehicle) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Vehicle not found.",
+    },
+    { status: 404 }
+  );
+}
+
 await Rider.findOneAndUpdate(
-  {
+{
     riderId: booking.riderId,
-  },
-  {
-    activeRide: true,
+},
+{
+    activeRide: false,
     currentBookingId: booking.bookingId,
-  }
- );
+}
+);
     return NextResponse.json({
       success: true,
       message:
