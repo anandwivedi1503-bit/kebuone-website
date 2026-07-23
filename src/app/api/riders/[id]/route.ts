@@ -59,6 +59,24 @@ export async function PATCH(
     const { id } = await params;
 
     const body = await req.json();
+    const validApprovalStatus = [
+  "Under Review",
+  "Approved",
+  "Rejected",
+  "Suspended",
+];
+
+const validKycStatus = [
+  "Pending",
+  "Approved",
+  "Rejected",
+];
+
+const validStatus = [
+  "Active",
+  "Blocked",
+  "Suspended",
+];
 
     const rider = await Rider.findById(id);
 
@@ -71,6 +89,16 @@ export async function PATCH(
         { status: 404 }
       );
     }
+
+    if (rider.blacklisted) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Blacklisted riders cannot be updated.",
+    },
+    { status: 403 }
+  );
+}
 
     if (
   rider.activeRide &&
@@ -85,18 +113,58 @@ export async function PATCH(
   );
 }
 
-    // Only allow these fields to be updated
-    if (body.approvalStatus) {
-      rider.approvalStatus = body.approvalStatus;
-    }
+    // Validate approval status
 
-    if (body.status) {
+if (
+  body.approvalStatus &&
+  !validApprovalStatus.includes(body.approvalStatus)
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Invalid approval status.",
+    },
+    { status: 400 }
+  );
+}
+
+if (
+  body.kycStatus &&
+  !validKycStatus.includes(body.kycStatus)
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Invalid KYC status.",
+    },
+    { status: 400 }
+  );
+}
+
+if (
+  body.status &&
+  !validStatus.includes(body.status)
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Invalid rider status.",
+    },
+    { status: 400 }
+  );
+}
+
+if (body.approvalStatus) {
+  rider.approvalStatus = body.approvalStatus;
+}
+
+if (body.status) {
   rider.status = body.status;
 }
 
-    if (body.kycStatus) {
-      rider.kycStatus = body.kycStatus;
-    }
+if (body.kycStatus) {
+  rider.kycStatus = body.kycStatus;
+}
 
     if (body.rejectedReason !== undefined) {
       rider.rejectedReason = body.rejectedReason;

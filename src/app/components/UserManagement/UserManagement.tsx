@@ -18,17 +18,31 @@ const [statusFilter,setStatusFilter]=useState("All");
 const [loading, setLoading] = useState(true);
 
 useEffect(() => {
-  fetch("/api/riders")
-    .then((res) => res.json())
-    .then((data) => {
-      setRiders(data.data || []);
-    })
-    .catch((err) => {
-      console.error(err);
-    })
-    .finally(() => {
-      setLoading(false);
-    });
+
+  const loadRiders = () => {
+
+    fetch("/api/riders")
+      .then((res) => res.json())
+      .then((data) => {
+
+        setRiders(data.data || []);
+
+      })
+      .catch(console.error)
+      .finally(() => {
+
+        setLoading(false);
+
+      });
+
+  };
+
+  loadRiders();
+
+  const interval = setInterval(loadRiders,10000);
+
+  return () => clearInterval(interval);
+
 }, []);
 
 const totalRiders=riders.length;

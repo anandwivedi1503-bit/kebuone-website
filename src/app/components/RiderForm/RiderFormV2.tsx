@@ -329,6 +329,19 @@ const selectValidatedFile = (
   setFile(file);
   setError("");
 };
+const areFilesIdentical = (
+  file1: File | null,
+  file2: File | null
+) => {
+  if (!file1 || !file2) return false;
+
+  return (
+    file1.name === file2.name &&
+    file1.size === file2.size &&
+    file1.lastModified === file2.lastModified
+  );
+};
+
 const convertToBase64 = (file: File) => {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -370,8 +383,12 @@ const uploadFile = async (file: File) => {
   return data.url;
 };
 const submitForm = async () => {
+
+  if (submitting) return;
+
+  setSubmitting(true);
+
   try {
-   setSubmitting(true);
 setError("");
 showOtpMessage("Preparing your registration...");
     if (!firebaseIdToken) {
@@ -468,6 +485,27 @@ setBookingEnabled(false);
 showOtpMessage("Registration completed successfully.");
 
 setSubmitted(true);
+
+// Reset registration state
+setStep(4);
+
+setOtp("");
+
+setOtpSent(false);
+
+setConfirmationResult(null);
+
+setOtpVerified(false);
+
+setOtpCooldown(0);
+
+setOtpVerifyAttempts(0);
+
+setOtpSendCount(0);
+
+setFirebaseUid("");
+
+setFirebaseIdToken("");
 
 } else {
   setError(data.errors?.join(" ") || data.message || "Registration failed");
@@ -603,7 +641,56 @@ const verifyOtp = async () => {
     setOtpVerified(true);
     setOtpCooldown(0);
     setOtpVerifyAttempts(0);
-    showOtpMessage("Phone number verified successfully.");
+    // Check whether this phone number is already registered
+
+const existingResponse = await fetch(
+  `/api/riders?phone=${cleanDigits(phone)}`
+);
+
+const existingData = await existingResponse.json();
+
+if (
+  existingData.success &&
+  existingData.data
+) {
+
+  localStorage.setItem(
+    "kebu_rider_phone",
+    existingData.data.phone
+  );
+
+  localStorage.setItem(
+    "kebu_rider_id",
+    existingData.data.riderId
+  );
+
+  setRegisteredRiderId(
+    existingData.data.riderId
+  );
+
+  setApprovalStatus(
+    existingData.data.approvalStatus
+  );
+
+  setBookingEnabled(
+    existingData.data.bookingEnabled
+  );
+
+  if (
+    existingData.data.bookingEnabled &&
+    existingData.data.approvalStatus === "Approved"
+  ) {
+
+    window.location.href = "/book-bike";
+    return;
+
+  }
+
+  setSubmitted(true);
+  return;
+
+}
+    showOtpMessage("");
   } catch (error) {
     console.error(error);
 
@@ -713,6 +800,16 @@ if (!aadhaarBackFile) {
     return false;
 }
 
+if (areFilesIdentical(aadhaarFrontFile, aadhaarBackFile)) {
+
+  setError(
+    "Aadhaar Front and Aadhaar Back cannot be the same file."
+  );
+
+  return false;
+
+}
+
 if (
     !validateSelectedFile(
         aadhaarFrontFile,
@@ -742,6 +839,21 @@ if (
     )
 ) {
     return false;
+}
+
+if (
+  licenseFrontFile &&
+  licenseBackFile &&
+  areFilesIdentical(
+    licenseFrontFile,
+    licenseBackFile
+  )
+) {
+  setError(
+    "Driving License Front and Back cannot be the same file."
+  );
+
+  return false;
 }
 
 if (
@@ -822,7 +934,7 @@ if (submitted) {
         <div className="
         bg-white
         rounded-[40px]
-        p-12
+        p-6 md:p-12
         shadow-[0_30px_100px_rgba(255,22,94,0.12)]
         text-center
         border border-pink-100
@@ -1070,10 +1182,10 @@ Waiting For Admin Approval
 </h3>
 
 <p className="text-gray-600 text-lg mt-6 mb-10 max-w-xl">
-  Complete your registration, verify your identity and unlock smart mobility designed for Tier-2 India.
+  Complete your registration, verify your identity and unlock smart mobility designed for Tier-2 India.p-12
 </p>
 
-            <div className="flex items-center justify-between mb-8 mt-8">
+            <div className="flex items-center justify-between mb-8 mt-8 overflow-x-auto pb-2">
 
   <div className="flex flex-col items-center">
   <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${step >= 1 ? "bg-[#FF165E] text-white" : "bg-gray-200"}`}>
@@ -1135,7 +1247,7 @@ Waiting For Admin Approval
 bg-white/90
 backdrop-blur-xl
 rounded-[36px]
-p-10 md:p-12
+p-6 sm:p-8 md:p-12
 border
 border-white
 shadow-[0_30px_100px_rgba(255,22,94,0.12)]
@@ -1491,6 +1603,17 @@ Maximum Size: 5 MB
     <p className="text-xs text-gray-500">
       {(aadhaarFrontFile.size / 1024 / 1024).toFixed(2)} MB
     </p>
+
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        setAadhaarFrontFile(null);
+      }}
+      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
+    >
+      ❌ Remove File
+    </button>
   </>
 )}
 
@@ -1559,6 +1682,17 @@ Maximum Size: 5 MB
     <p className="text-xs text-gray-500">
       {(aadhaarBackFile.size / 1024 / 1024).toFixed(2)} MB
     </p>
+
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        setAadhaarBackFile(null);
+      }}
+      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
+    >
+      ❌ Remove File
+    </button>
   </>
 )}
 
@@ -1629,6 +1763,17 @@ Maximum Size: 5 MB
     <p className="text-xs text-gray-500">
       {(licenseFrontFile.size / 1024 / 1024).toFixed(2)} MB
     </p>
+
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        setLicenseFrontFile(null);
+      }}
+      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
+    >
+      ❌ Remove File
+    </button>
   </>
 )}
 
@@ -1699,6 +1844,17 @@ Maximum Size: 5 MB
     <p className="text-xs text-gray-500">
       {(licenseBackFile.size / 1024 / 1024).toFixed(2)} MB
     </p>
+
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        setLicenseBackFile(null);
+      }}
+      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
+    >
+      ❌ Remove File
+    </button>
   </>
 )}
 
@@ -1770,6 +1926,17 @@ Maximum Size: 5 MB
     <p className="text-xs text-gray-500">
       {(profilePhoto.size / 1024 / 1024).toFixed(2)} MB
     </p>
+
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        setProfilePhoto(null);
+      }}
+      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
+    >
+      ❌ Remove File
+    </button>
   </>
 )}
 
@@ -1874,8 +2041,12 @@ to-[#FF5A8B]
 text-white
 font-bold
 shadow-lg
+transition-all
+duration-300
 disabled:opacity-50
 disabled:cursor-not-allowed
+disabled:scale-100
+hover:scale-105
 "
 >
   {submitting ? "Creating Rider Account..." : "Submit Registration"}

@@ -47,6 +47,52 @@ if (!body.aadhaarBackUrl)
     errors.push("Aadhaar Back is required.");
     if (!body.profilePhotoUrl) errors.push("Profile photo is required.");
 
+    // Prevent duplicate document uploads
+
+if (
+  body.aadhaarFrontUrl &&
+  body.aadhaarBackUrl &&
+  body.aadhaarFrontUrl === body.aadhaarBackUrl
+) {
+  errors.push(
+    "Aadhaar Front and Aadhaar Back cannot be the same file."
+  );
+}
+
+if (
+  body.licenseFrontUrl &&
+  body.licenseBackUrl &&
+  body.licenseFrontUrl === body.licenseBackUrl
+) {
+  errors.push(
+    "Driving License Front and Back cannot be the same file."
+  );
+}
+
+if (
+  body.aadhaarFrontUrl &&
+  body.licenseFrontUrl &&
+  body.aadhaarFrontUrl === body.licenseFrontUrl
+) {
+  errors.push(
+    "Aadhaar and Driving License cannot use the same document."
+  );
+}
+
+if (
+  body.profilePhotoUrl &&
+  (
+    body.profilePhotoUrl === body.aadhaarFrontUrl ||
+    body.profilePhotoUrl === body.aadhaarBackUrl ||
+    body.profilePhotoUrl === body.licenseFrontUrl ||
+    body.profilePhotoUrl === body.licenseBackUrl
+  )
+) {
+  errors.push(
+    "Profile photo must be different from uploaded documents."
+  );
+}
+
     if (body.reference1Phone && !phoneRegex.test(clean(body.reference1Phone))) {
       errors.push("Reference 1 phone number is invalid.");
     }
@@ -76,18 +122,75 @@ if (!body.aadhaarBackUrl)
     { phone },
     { email },
     { aadhaarNumber },
+    { drivingLicense },
     { firebaseUid: decodedToken.uid },
   ],
 });
 
 if (existingRider) {
+
+  if (
+    existingRider.approvalStatus === "Approved" &&
+    existingRider.bookingEnabled
+  ) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        riderExists: true,
+        riderStatus: "Approved",
+        riderId: existingRider.riderId,
+        message:
+          "Your account is already approved. Please continue to Book Bike.",
+      },
+      { status: 409 }
+    );
+
+  }
+
+  if (
+    existingRider.approvalStatus === "Under Review"
+  ) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        riderExists: true,
+        riderStatus: "Under Review",
+        message:
+          "Your KYC verification is under review.",
+      },
+      { status: 409 }
+    );
+
+  }
+
+  if (
+    existingRider.approvalStatus === "Rejected"
+  ) {
+
+    return NextResponse.json(
+      {
+        success: false,
+        riderExists: true,
+        riderStatus: "Rejected",
+        message:
+          "Your previous registration was rejected. Please contact support.",
+      },
+      { status: 409 }
+    );
+
+  }
+
   return NextResponse.json(
     {
       success: false,
-      errors: ["A rider with this phone, email, Aadhaar, or verified account already exists."],
+      message:
+        "A rider with this information already exists.",
     },
     { status: 409 }
   );
+
 }
 
 const lastRider = await Rider.findOne().sort({ createdAt: -1 });
