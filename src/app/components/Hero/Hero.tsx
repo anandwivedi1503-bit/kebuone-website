@@ -50,7 +50,7 @@ export default function Hero() {
 </h1>
 
 <p className="block text-white/70 text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium leading-snug mt-4 sm:mt-5 md:mt-6 lg:mt-8">
-  Welcome to Kebu One!
+ Welcome to Kebu One 🚀
 </p>
 
 <p className="text-base sm:text-lg md:text-xl text-white/80 max-w-xl lg:max-w-2xl mt-5 leading-relaxed">
