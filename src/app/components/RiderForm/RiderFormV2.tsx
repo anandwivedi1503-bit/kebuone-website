@@ -61,93 +61,13 @@ const [reference2Phone, setReference2Phone] = useState("");
 const [error, setError] = useState("");
 const [otpMessage, setOtpMessage] = useState("");
 const [checkingRegistration, setCheckingRegistration] =
-useState(true);
+useState(false);
 const [approvalStatus, setApprovalStatus] =
 useState("Under Review");
 
 const [bookingEnabled, setBookingEnabled] =
 useState(false);
-useEffect(() => {
 
-  const verifyExistingRider = async () => {
-
-    const phone =
-      localStorage.getItem("kebu_rider_phone");
-
-    if (!phone) {
-
-      setCheckingRegistration(false);
-
-      return;
-
-    }
-
-    try {
-
-      const response = await fetch(
-        `/api/riders?phone=${phone}`
-      );
-
-      const data = await response.json();
-
-      if (!data.success) {
-
-        localStorage.removeItem("kebu_rider_phone");
-        localStorage.removeItem("kebu_rider_id");
-
-        setCheckingRegistration(false);
-
-        return;
-
-      }
-
-      if (
-        data.data.bookingEnabled &&
-        data.data.approvalStatus==="Approved"
-      ) {
-
-        window.location.href="/book-bike";
-
-        return;
-
-      }
-
-      
-setApprovalStatus(
-  data.data.approvalStatus
-);
-
-setBookingEnabled(
-  data.data.bookingEnabled
-);
-
-setRegisteredRiderId(
-  data.data.riderId
-);
-
-setSubmitted(true);
-
-    }
-
-    catch {
-
-      localStorage.removeItem(
-        "kebu_rider_phone"
-      );
-
-      localStorage.removeItem(
-        "kebu_rider_id"
-      );
-
-    }
-
-    setCheckingRegistration(false);
-
-  };
-
-  verifyExistingRider();
-
-}, []);
 
 useEffect(() => {
 
@@ -181,8 +101,7 @@ useEffect(() => {
       if (
   data.data.bookingEnabled &&
   data.data.approvalStatus === "Approved"
-) {
-
+ ) {
   localStorage.setItem(
     "kebu_rider_id",
     data.data.riderId
@@ -190,6 +109,7 @@ useEffect(() => {
 
   clearInterval(interval);
 
+  window.location.href = "/book-bike";
 }
 
     } catch {}
@@ -462,31 +382,95 @@ profilePhotoUrl: profileUrl,
       }),
     });
 
-    const data = await response.json();
+    const result = await response.json();
 
-    if (data.success) {
+if (!response.ok) {
 
-  localStorage.setItem(
-    "kebu_rider_phone",
-    phone
+  if (
+    result.riderExists &&
+    result.riderStatus === "Approved"
+  ) {
+
+    localStorage.setItem(
+      "kebu_rider_phone",
+      phone
+    );
+
+    if (result.riderId) {
+      localStorage.setItem(
+        "kebu_rider_id",
+        result.riderId
+      );
+    }
+
+    window.location.href = "/book-bike";
+    return;
+  }
+
+  if (
+    result.riderExists &&
+    result.riderStatus === "Under Review"
+  ) {
+
+    setRegisteredRiderId(result.riderId || "");
+
+    setApprovalStatus("Under Review");
+
+    setBookingEnabled(false);
+
+    setSubmitted(true);
+
+    return;
+  }
+
+  if (
+    result.riderExists &&
+    result.riderStatus === "Rejected"
+  ) {
+
+    alert(result.message);
+
+    return;
+  }
+
+  setError(
+    result.message ||
+    "Registration failed."
   );
+
+  return;
+}
+
+localStorage.setItem(
+  "kebu_rider_phone",
+  phone
+);
+
+if (result.data?.riderId) {
 
   localStorage.setItem(
     "kebu_rider_id",
-    data.data.riderId
+    result.data.riderId
   );
 
-  setRegisteredRiderId(data.data.riderId);
+  setRegisteredRiderId(
+    result.data.riderId
+  );
+
+}
 
 setApprovalStatus("Under Review");
 
 setBookingEnabled(false);
 
-showOtpMessage("Registration completed successfully.");
+showOtpMessage(
+  "Registration completed successfully."
+);
 
 setSubmitted(true);
 
 // Reset registration state
+
 setStep(4);
 
 setOtp("");
@@ -505,11 +489,7 @@ setOtpSendCount(0);
 
 setFirebaseUid("");
 
-setFirebaseIdToken("");
-
-} else {
-  setError(data.errors?.join(" ") || data.message || "Registration failed");
-}
+ setFirebaseIdToken("");
 
   } catch (error) {
   console.error(error);
@@ -643,54 +623,80 @@ const verifyOtp = async () => {
     setOtpVerifyAttempts(0);
     // Check whether this phone number is already registered
 
-const existingResponse = await fetch(
-  `/api/riders?phone=${cleanDigits(phone)}`
-);
 
-const existingData = await existingResponse.json();
+    try {
 
-if (
-  existingData.success &&
-  existingData.data
-) {
-
-  localStorage.setItem(
-    "kebu_rider_phone",
-    existingData.data.phone
+  const response = await fetch(
+    `/api/riders?phone=${phone}`
   );
 
-  localStorage.setItem(
-    "kebu_rider_id",
-    existingData.data.riderId
-  );
+  const data = await response.json();
 
-  setRegisteredRiderId(
-    existingData.data.riderId
-  );
+  if (data.success) {
 
-  setApprovalStatus(
-    existingData.data.approvalStatus
-  );
+    localStorage.setItem(
+      "kebu_rider_phone",
+      phone
+    );
 
-  setBookingEnabled(
-    existingData.data.bookingEnabled
-  );
+    if (data.data.riderId) {
 
-  if (
-    existingData.data.bookingEnabled &&
-    existingData.data.approvalStatus === "Approved"
-  ) {
+      localStorage.setItem(
+        "kebu_rider_id",
+        data.data.riderId
+      );
 
-    window.location.href = "/book-bike";
-    return;
+      setRegisteredRiderId(
+        data.data.riderId
+      );
+
+    }
+
+    if (
+      data.data.approvalStatus === "Approved" &&
+      data.data.bookingEnabled
+    ) {
+
+      window.location.href = "/book-bike";
+      return;
+
+    }
+
+    if (
+      data.data.approvalStatus === "Under Review"
+    ) {
+
+      setApprovalStatus("Under Review");
+
+      setBookingEnabled(false);
+
+      setSubmitted(true);
+
+      return;
+
+    }
+
+    if (
+      data.data.approvalStatus === "Rejected"
+    ) {
+
+      alert(
+        "Your previous registration was rejected. Please contact support."
+      );
+
+      return;
+
+    }
 
   }
 
-  setSubmitted(true);
-  return;
+} catch (error) {
+
+  console.error(error);
 
 }
-    showOtpMessage("");
+
+showOtpMessage("Phone verified successfully.");
   } catch (error) {
     console.error(error);
 
