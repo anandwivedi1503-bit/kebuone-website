@@ -42,6 +42,12 @@ const [statusFilter, setStatusFilter] =
 const [showEditModal, setShowEditModal] =
   useState(false);
 
+  const [selectedBattery, setSelectedBattery] =
+  useState<Battery | null>(null);
+
+const [showViewModal, setShowViewModal] =
+  useState(false);
+
   const fetchBatteries = async () => {
     const res = await fetch("/api/batteries");
     const data = await res.json();
@@ -360,12 +366,76 @@ const [showEditModal, setShowEditModal] =
         </button>
       </form>
 
-      <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-xl">
-        <h2 className="text-2xl font-black text-[#0A1134]">
-          Battery Inventory
-        </h2>
+      <div className="flex items-center justify-between">
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+<h2 className="text-2xl font-black text-[#0A1134]">
+Battery Inventory
+</h2>
+
+<button
+onClick={() => {
+
+const rows = filteredBatteries.map((b:any)=>({
+
+BatteryID:b.batteryId,
+
+Hub:b.hubName,
+
+Vehicle:b.vehicleId,
+
+Charge:b.chargePercentage,
+
+Health:b.batteryHealth,
+
+Cycles:b.cycleCount,
+
+Status:b.status,
+
+}));
+
+const csv=[
+
+Object.keys(rows[0]||{}).join(","),
+
+...rows.map(Object.values).map(r=>r.join(","))
+
+].join("\n");
+
+const blob=new Blob([csv],{
+type:"text/csv"
+});
+
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+
+a.href=url;
+
+a.download="BatteryInventory.csv";
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}}
+
+className="
+rounded-xl
+bg-green-600
+px-5
+py-3
+font-bold
+text-white
+hover:bg-green-700
+"
+>
+
+Export CSV
+
+</button>
+
+</div>
+<div className="mt-6 grid gap-4 md:grid-cols-2">
 
   <input
     type="text"
@@ -405,6 +475,30 @@ const [showEditModal, setShowEditModal] =
 
 </div>
 
+  <div className="mt-6 flex flex-wrap gap-3">
+
+<div className="rounded-xl bg-green-100 px-4 py-2 font-bold text-green-700">
+🟢 Ready : {stats.ready}
+</div>
+
+<div className="rounded-xl bg-yellow-100 px-4 py-2 font-bold text-yellow-700">
+🟡 Charging : {stats.charging}
+</div>
+
+<div className="rounded-xl bg-blue-100 px-4 py-2 font-bold text-blue-700">
+🔵 In Vehicle : {stats.inVehicle}
+</div>
+
+<div className="rounded-xl bg-red-100 px-4 py-2 font-bold text-red-700">
+🔴 Maintenance : {stats.maintenance}
+</div>
+
+<div className="rounded-xl bg-pink-100 px-4 py-2 font-bold text-pink-700">
+⚠ Replace Soon : {stats.replacementNeeded}
+</div>
+
+</div>
+
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[900px] text-left">
             <thead>
@@ -431,51 +525,110 @@ const [showEditModal, setShowEditModal] =
                   </td>
                   <td>{battery.hubName || battery.hubId || "-"}</td>
                   <td>{battery.vehicleId || "-"}</td>
-                  <td>
-  <div className="flex items-center gap-2">
+                  <td className="py-4">
 
-    <span
-      className={
-        battery.chargePercentage! <= 20
-          ? "font-bold text-red-600"
-          : battery.chargePercentage! <= 50
-          ? "font-bold text-yellow-600"
-          : "font-bold text-green-600"
-      }
-    >
-      {battery.chargePercentage ?? 0}%
-    </span>
+<div className="w-36">
 
-    {battery.chargePercentage! <= 20 && (
-      <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
-        LOW
-      </span>
-    )}
+<div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
 
-  </div>
+<div
+className={`h-3 rounded-full ${
+battery.chargePercentage! >= 80
+? "bg-green-500"
+: battery.chargePercentage! >= 40
+? "bg-yellow-500"
+: "bg-red-500"
+}`}
+style={{
+width: `${battery.chargePercentage ?? 0}%`,
+}}
+/>
+
+</div>
+
+<div className="mt-2 flex items-center justify-between">
+
+<span className="text-sm font-bold">
+{battery.chargePercentage ?? 0}%
+</span>
+
+{battery.chargePercentage! <= 20 && (
+
+<span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
+
+LOW
+
+</span>
+
+)}
+
+</div>
+
+</div>
+
 </td>
-                  <td>
-  <div className="flex items-center gap-2">
+                  <td className="py-4">
 
-    <span
-      className={
-        (battery.batteryHealth ?? 0) >= 80
-          ? "font-bold text-green-600"
-          : (battery.batteryHealth ?? 0) >= 50
-          ? "font-bold text-yellow-600"
-          : "font-bold text-red-600"
-      }
-    >
-      {battery.batteryHealth ?? 0}%
-    </span>
+<div className="w-36">
 
-    {(battery.batteryHealth ?? 0) < 50 && (
-      <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
-        Replace Soon
-      </span>
-    )}
+<div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
 
-  </div>
+<div
+className={`h-3 rounded-full ${
+(battery.batteryHealth ?? 0) >= 80
+? "bg-green-500"
+: (battery.batteryHealth ?? 0) >= 50
+? "bg-yellow-500"
+: "bg-red-500"
+}`}
+style={{
+width: `${battery.batteryHealth ?? 0}%`,
+}}
+/>
+
+</div>
+
+<div className="mt-2 flex items-center justify-between">
+
+<span className="text-sm font-bold">
+{battery.batteryHealth ?? 0}%
+</span>
+
+{(battery.batteryHealth ?? 0) >= 80 && (
+
+<span className="rounded-full bg-green-100 px-2 py-1 text-xs font-bold text-green-700">
+
+Excellent
+
+</span>
+
+)}
+
+{(battery.batteryHealth ?? 0) >= 50 &&
+(battery.batteryHealth ?? 0) < 80 && (
+
+<span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-bold text-yellow-700">
+
+Good
+
+</span>
+
+)}
+
+{(battery.batteryHealth ?? 0) < 50 && (
+
+<span className="rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-700">
+
+Replace
+
+</span>
+
+)}
+
+</div>
+
+</div>
+
 </td>
                   <td>{battery.cycleCount ?? 0}</td>
 
@@ -496,35 +649,101 @@ const [showEditModal, setShowEditModal] =
 </td>
 
 <td>
-  <span className="rounded-full bg-pink-50 px-3 py-1 font-bold text-[#FF165E]">
-    {battery.status || "READY"}
-  </span>
+
+{battery.status === "READY" && (
+<span className="rounded-full bg-green-100 px-3 py-1 font-bold text-green-700">
+READY
+</span>
+)}
+
+{battery.status === "CHARGING" && (
+<span className="rounded-full bg-yellow-100 px-3 py-1 font-bold text-yellow-700">
+CHARGING
+</span>
+)}
+
+{battery.status === "IN-VEHICLE" && (
+<span className="rounded-full bg-blue-100 px-3 py-1 font-bold text-blue-700">
+IN-VEHICLE
+</span>
+)}
+
+{battery.status === "MAINTENANCE" && (
+<span className="rounded-full bg-red-100 px-3 py-1 font-bold text-red-700">
+MAINTENANCE
+</span>
+)}
+
+ </td>
+
+ <td>
+
+<select
+value={battery.status}
+onChange={(e)=>
+updateStatus(
+battery._id,
+e.target.value
+)
+}
+className="
+rounded-lg
+border
+border-gray-200
+px-3
+py-2
+text-sm
+"
+>
+
+<option value="READY">
+READY
+</option>
+
+<option value="CHARGING">
+CHARGING
+</option>
+
+<option value="IN-VEHICLE">
+IN-VEHICLE
+</option>
+
+<option value="MAINTENANCE">
+MAINTENANCE
+</option>
+
+</select>
+
 </td>
-                  <td>
-                    <select
-                      value={battery.status || "READY"}
-                      onChange={(e) => updateStatus(battery._id, e.target.value)}
-                      className="rounded-lg border border-gray-200 px-3 py-2"
-                    >
-                      <option value="READY">READY</option>
-                      <option value="CHARGING">CHARGING</option>
-                      <option value="IN-VEHICLE">IN-VEHICLE</option>
-                      <option value="MAINTENANCE">MAINTENANCE</option>
-                    </select>
-                  </td>
-                  <td>
+
+<td>
 
 <div className="flex gap-2">
 
 <button
-  onClick={() => {
+onClick={() => {
 
-    setEditingBattery({ ...battery });
+setSelectedBattery(battery);
 
-    setShowEditModal(true);
+setShowViewModal(true);
 
-  }}
-  className="rounded-lg bg-blue-50 px-4 py-2 font-bold text-blue-600"
+}}
+className="rounded-lg bg-green-50 px-4 py-2 font-bold text-green-700"
+>
+
+View
+
+</button>
+
+<button
+onClick={() => {
+
+setEditingBattery({ ...battery });
+
+setShowEditModal(true);
+
+}}
+className="rounded-lg bg-blue-50 px-4 py-2 font-bold text-blue-600"
 >
 
 Edit
@@ -532,8 +751,8 @@ Edit
 </button>
 
 <button
-  onClick={() => deleteBattery(battery._id)}
-  className="rounded-lg bg-red-50 px-4 py-2 font-bold text-red-600"
+onClick={() => deleteBattery(battery._id)}
+className="rounded-lg bg-red-50 px-4 py-2 font-bold text-red-600"
 >
 
 Delete
@@ -542,22 +761,23 @@ Delete
 
 </div>
 
+
+
 </td>
                 </tr>
               ))}
 
               {filteredBatteries.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="py-10 text-center text-gray-500">
+                  <td colSpan={11} className="py-10 text-center text-gray-500">
                     No batteries added yet.
                   </td>
                 </tr>
               )}
             </tbody>
-          </table>
+                    </table>
         </div>
       </div>
-    </div>
 
     {showEditModal && editingBattery && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -676,7 +896,107 @@ Delete
       </div>
     )}
 
-  </>
+
+
+{showViewModal && selectedBattery && (
+
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+
+<div className="w-full max-w-3xl rounded-3xl bg-white p-8 shadow-2xl">
+
+<div className="mb-6 flex items-center justify-between">
+
+<h2 className="text-3xl font-black text-[#0A1134]">
+Battery Details
+</h2>
+
+<button
+onClick={() => {
+
+setShowViewModal(false);
+
+setSelectedBattery(null);
+
+}}
+className="rounded-xl bg-red-600 px-5 py-2 font-bold text-white"
+>
+
+Close
+
+</button>
+
+</div>
+
+<div className="grid gap-6 md:grid-cols-2">
+
+<div className="rounded-2xl border p-5">
+
+<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+Basic Information
+</h3>
+
+<p><b>Battery ID :</b> {selectedBattery.batteryId}</p>
+
+<p><b>Hub :</b> {selectedBattery.hubName || "-"}</p>
+
+<p><b>Hub ID :</b> {selectedBattery.hubId || "-"}</p>
+
+<p><b>Vehicle :</b> {selectedBattery.vehicleId || "-"}</p>
+
+</div>
+
+<div className="rounded-2xl border p-5">
+
+<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+Battery Health
+</h3>
+
+<p><b>Charge :</b> {selectedBattery.chargePercentage}%</p>
+
+<p><b>Health :</b> {selectedBattery.batteryHealth}%</p>
+
+<p><b>Cycle Count :</b> {selectedBattery.cycleCount}</p>
+
+<p><b>Status :</b> {selectedBattery.status}</p>
+
+</div>
+
+<div className="rounded-2xl border p-5 md:col-span-2">
+
+<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+Charging Information
+</h3>
+
+<p>
+
+<b>Last Charged :</b>{" "}
+
+{selectedBattery.lastChargedAt
+? new Date(selectedBattery.lastChargedAt).toLocaleString("en-IN")
+: "-"}
+
+</p>
+
+<p>
+
+<b>Created :</b>{" "}
+
+{selectedBattery.createdAt
+? new Date(selectedBattery.createdAt).toLocaleString("en-IN")
+: "-"}
+
+</p>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+)}
+</>
 );
 }
 

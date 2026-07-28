@@ -107,7 +107,23 @@ export async function PATCH(
 
       updateData.status = status;
     }
-    
+    const existingTicket = await Ticket.findById(id);
+
+if (
+  existingTicket &&
+  existingTicket.status !== "RESOLVED" &&
+  status === "CLOSED"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Resolve the ticket before closing it.",
+    },
+    { status: 400 }
+  );
+}
+
      if (updateData.status === "RESOLVED") {
   updateData.resolvedAt = new Date();
 
@@ -219,7 +235,33 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await Ticket.findByIdAndDelete(id);
+const ticket = await Ticket.findById(id);
+
+if (!ticket) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Ticket not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (
+  ticket.status === "OPEN" ||
+  ticket.status === "IN-PROGRESS"
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Cannot delete an active support ticket.",
+    },
+    { status: 400 }
+  );
+}
+
+await Ticket.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,

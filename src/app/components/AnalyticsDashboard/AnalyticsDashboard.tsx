@@ -2,6 +2,21 @@
 
 import { useEffect, useState } from "react";
 
+import {
+  Users,
+  Bike,
+  MapPinned,
+  ClipboardList,
+  Activity,
+  IndianRupee,
+  BatteryCharging,
+  Wrench,
+  CreditCard,
+  UserCheck,
+  XCircle,
+  Flag,
+} from "lucide-react";
+
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -85,18 +100,27 @@ return(
 
 <DashboardHeader
 
-title="Analytics Dashboard"
+title="Business Intelligence"
 
-subtitle="Business intelligence and operational insights."
+subtitle="Enterprise analytics, operational performance, revenue trends and live mobility insights."
 
 />
 
-<p className="mb-6 text-right text-sm text-gray-500">
+<div className="mb-8 flex items-center justify-end gap-3">
 
-Last Updated:
-{loading ? "Updating..." : lastUpdated || "--"}
+<span className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></span>
+
+<p className="text-sm font-medium text-slate-500">
+
+Live • Updated
+
+{" "}
+
+{loading ? "just now..." : lastUpdated || "--"}
 
 </p>
+
+</div>
 
 <KPIGrid>
 
@@ -104,7 +128,7 @@ Last Updated:
 title="Riders"
 value={analytics?.totalRiders || 0}
 subtitle="Registered"
-icon="👥"
+icon={<Users size={26} />}
 color="pink"
 />
 
@@ -112,7 +136,7 @@ color="pink"
 title="Vehicles"
 value={analytics?.totalVehicles || 0}
 subtitle="Fleet"
-icon="🛵"
+icon={<Bike size={26} />}
 color="green"
 />
 
@@ -120,7 +144,7 @@ color="green"
 title="Hubs"
 value={analytics?.totalHubs || 0}
 subtitle="Locations"
-icon="📍"
+icon={<MapPinned size={26} />}
 color="blue"
 />
 
@@ -128,7 +152,7 @@ color="blue"
 title="Bookings"
 value={analytics?.totalBookings || 0}
 subtitle="Total"
-icon="📋"
+icon={<ClipboardList size={26} />}
 color="yellow"
 />
 
@@ -136,7 +160,7 @@ color="yellow"
 title="Active"
 value={analytics?.activeRides || 0}
 subtitle="Current Rides"
-icon="🚲"
+icon={<Activity size={26} />}
 color="purple"
 />
 
@@ -146,7 +170,7 @@ value={`₹${Number(
 analytics?.totalRevenue || 0
 ).toLocaleString("en-IN")}`}
 subtitle="Collected"
-icon="💰"
+icon={<IndianRupee size={26} />}
 color="red"
 />
 
@@ -271,7 +295,7 @@ Average earning generated per booking.
     title="Available Vehicles"
     value={analytics?.availableVehicles || 0}
     subtitle="Ready for booking"
-    icon="🛵"
+    icon={<Bike size={24} />}
     color="green"
   />
 
@@ -279,7 +303,7 @@ Average earning generated per booking.
     title="Vehicles In Ride"
     value={analytics?.inRideVehicles || 0}
     subtitle="Currently active"
-    icon="🚲"
+    icon={<Activity size={24} />}
     color="blue"
   />
 
@@ -287,7 +311,7 @@ Average earning generated per booking.
     title="Maintenance"
     value={analytics?.maintenanceVehicles || 0}
     subtitle="Under service"
-    icon="🔧"
+    icon={<Wrench size={24} />}
     color="yellow"
   />
 
@@ -295,7 +319,7 @@ Average earning generated per booking.
     title="Low Battery"
     value={analytics?.lowBatteryVehicles || 0}
     subtitle="Needs charging"
-    icon="🔋"
+    icon={<BatteryCharging size={24} />}
     color="red"
   />
 
@@ -303,7 +327,7 @@ Average earning generated per booking.
     title="Active Riders"
     value={analytics?.activeRiders || 0}
     subtitle="Currently riding"
-    icon="👤"
+    icon={<UserCheck size={24} />}
     color="purple"
   />
 
@@ -311,7 +335,7 @@ Average earning generated per booking.
     title="Cancelled Bookings"
     value={analytics?.cancelledBookings || 0}
     subtitle="Current period"
-    icon="❌"
+    icon={<XCircle size={24} />}
     color="pink"
   />
 
@@ -319,7 +343,7 @@ Average earning generated per booking.
     title="Payment Success"
     value={`${analytics?.paymentSuccessRate || 0}%`}
     subtitle="Gateway success"
-    icon="💳"
+    icon={<CreditCard size={24} />}
     color="green"
   />
 
@@ -327,7 +351,7 @@ Average earning generated per booking.
     title="Completed Rides"
     value={analytics?.completedRides || 0}
     subtitle="Current period"
-    icon="🏁"
+    icon={<Flag size={24} />}
     color="blue"
   />
 

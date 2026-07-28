@@ -82,18 +82,7 @@ if (booking.pickupOTP !== pickupOTP) {
   );
 }
 
-if (
-  booking.pickupOTPExpiry &&
-  new Date() > new Date(booking.pickupOTPExpiry)
-) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Pickup OTP has expired.",
-    },
-    { status: 400 }
-  );
-}
+
 
     if (booking.rideStatus !== "Ready For Pickup") {
   return NextResponse.json(

@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { MoreHorizontal } from "lucide-react";
 
 type DashboardCardProps = {
   title?: string;
@@ -11,25 +12,27 @@ type DashboardCardProps = {
 
 export default function DashboardCard({
   title,
-  subtitle,
+ subtitle,
   rightContent,
   children,
 }: DashboardCardProps) {
   return (
     <div
       className="
-      bg-white
+      overflow-hidden
       rounded-[32px]
       border
-      border-pink-100
-      shadow-lg
-      hover:shadow-2xl
+      border-slate-200
+      bg-white/90
+      backdrop-blur-xl
+      shadow-[0_10px_40px_rgba(15,23,42,0.06)]
       transition-all
       duration-300
-      overflow-hidden
+      hover:shadow-[0_25px_70px_rgba(15,23,42,0.10)]
       "
     >
       {(title || subtitle || rightContent) && (
+
         <div
           className="
           flex
@@ -37,39 +40,62 @@ export default function DashboardCard({
           lg:flex-row
           lg:items-center
           lg:justify-between
-          gap-4
+          gap-5
           px-8
-          py-6
+          py-7
           border-b
-          border-pink-100
+          border-slate-200
           bg-gradient-to-r
-          from-pink-50
+          from-slate-50
           to-white
           "
         >
+
           <div>
+
             {title && (
-              <h3 className="text-2xl font-black text-[#0A1134]">
+              <h3 className="text-2xl font-bold text-slate-900">
                 {title}
               </h3>
             )}
 
             {subtitle && (
-              <p className="mt-2 text-gray-500">
+              <p className="mt-2 text-slate-500">
                 {subtitle}
               </p>
             )}
+
           </div>
 
-          {rightContent && (
-            <div>
-              {rightContent}
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+
+            {rightContent}
+
+            <button
+              className="
+              w-11
+              h-11
+              rounded-xl
+              border
+              border-slate-200
+              bg-white
+              flex
+              items-center
+              justify-center
+              hover:bg-slate-50
+              transition
+              "
+            >
+              <MoreHorizontal size={20} />
+            </button>
+
+          </div>
+
         </div>
+
       )}
 
-      <div className="p-4 sm:p-6 lg:p-8">
+      <div className="p-8">
 
         {children}
 

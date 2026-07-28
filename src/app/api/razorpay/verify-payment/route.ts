@@ -234,10 +234,7 @@ const rideStatus =
     ? generatePickupOTP()
     : "";
 
-const pickupOTPExpiry =
-  pendingAmount <= 0
-    ? new Date(Date.now() + 15 * 60 * 1000)
-    : null;
+const pickupOTPExpiry = null;
 
     
 

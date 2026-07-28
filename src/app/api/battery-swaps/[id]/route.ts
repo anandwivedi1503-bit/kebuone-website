@@ -49,6 +49,29 @@ export async function DELETE(
 
     const { id } = await params;
 
+    const swap = await BatterySwap.findById(id);
+
+if (!swap) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Swap not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (swap.status === "COMPLETED") {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Completed battery swaps cannot be deleted.",
+    },
+    { status: 400 }
+  );
+}
+
     await BatterySwap.findByIdAndDelete(id);
 
     return NextResponse.json({

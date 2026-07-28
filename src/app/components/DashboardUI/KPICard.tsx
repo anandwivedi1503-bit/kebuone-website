@@ -1,6 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
+import { ArrowUpRight, Activity } from "lucide-react";
 
 type KPICardProps = {
   title: string;
@@ -15,115 +16,145 @@ export default function KPICard({
   value,
   subtitle,
   icon,
-  color = "pink",
+  color = "blue",
 }: KPICardProps) {
-
   const colors = {
     pink: {
-      bg: "from-pink-50 to-white",
       border: "border-pink-100",
-      text: "text-[#FF165E]",
-      icon: "bg-pink-100",
+      bg: "bg-pink-50",
+      text: "text-pink-600",
     },
+
     green: {
-      bg: "from-green-50 to-white",
       border: "border-green-100",
+      bg: "bg-green-50",
       text: "text-green-600",
-      icon: "bg-green-100",
     },
+
     blue: {
-      bg: "from-blue-50 to-white",
       border: "border-blue-100",
+      bg: "bg-blue-50",
       text: "text-blue-600",
-      icon: "bg-blue-100",
     },
+
     yellow: {
-      bg: "from-yellow-50 to-white",
       border: "border-yellow-100",
+      bg: "bg-yellow-50",
       text: "text-yellow-600",
-      icon: "bg-yellow-100",
     },
+
     red: {
-      bg: "from-red-50 to-white",
       border: "border-red-100",
+      bg: "bg-red-50",
       text: "text-red-600",
-      icon: "bg-red-100",
     },
+
     purple: {
-      bg: "from-purple-50 to-white",
       border: "border-purple-100",
+      bg: "bg-purple-50",
       text: "text-purple-600",
-      icon: "bg-purple-100",
     },
   };
 
   return (
-
     <div
       className={`
+      relative
+      overflow-hidden
       rounded-[30px]
       border
-      bg-gradient-to-br
-      ${colors[color].bg}
       ${colors[color].border}
-      p-6
-      shadow-lg
-      hover:shadow-2xl
-      hover:-translate-y-1
+      bg-white
+      p-7
       transition-all
       duration-300
+      shadow-[0_10px_35px_rgba(15,23,42,0.05)]
+      hover:-translate-y-2
+      hover:shadow-[0_25px_60px_rgba(15,23,42,0.12)]
       `}
     >
+      {/* Top Row */}
 
-      {icon && (
+      <div className="flex justify-between items-start">
 
         <div
           className={`
-          w-14
-          h-14
+          w-16
+          h-16
           rounded-2xl
           flex
           items-center
           justify-center
           text-2xl
-          mb-5
-          ${colors[color].icon}
+          ${colors[color].bg}
+          ${colors[color].text}
           `}
         >
           {icon}
         </div>
 
-      )}
+        <ArrowUpRight
+          size={20}
+          className="text-slate-400"
+        />
 
-      <p className="text-gray-500 text-sm font-medium">
+      </div>
+
+      {/* Title */}
+
+      <p className="mt-8 text-slate-500 font-medium">
         {title}
       </p>
 
-      <h2
-  className={`
-    mt-3
-    text-3xl
-    sm:text-4xl
-    xl:text-5xl
-    font-black
-    break-words
-    ${colors[color].text}
-  `}
->
-  {value}
-</h2>
+      {/* Value */}
 
-      {subtitle && (
+      <h2
+        className={`
+        mt-3
+        text-5xl
+        font-black
+        tracking-tight
+        ${colors[color].text}
+        `}
+      >
+        {value}
+      </h2>
+
+      {/* Bottom */}
+
+      <div className="mt-8 flex items-center justify-between">
 
         <p
-          className={`mt-4 text-sm font-semibold ${colors[color].text}`}
+          className={`
+          text-sm
+          font-semibold
+          ${colors[color].text}
+          `}
         >
           {subtitle}
         </p>
 
-      )}
+        <Activity
+          size={18}
+          className="text-slate-300"
+        />
+
+      </div>
+
+      {/* Decorative Circle */}
+
+      <div
+        className="
+        absolute
+        -top-10
+        -right-10
+        w-40
+        h-40
+        rounded-full
+        bg-slate-100/40
+        "
+      />
 
     </div>
-
-  );
+   );
 }

@@ -191,14 +191,42 @@ subtitle="Live Support Tickets"
 
 >
 
-  <div className="mb-6 flex gap-4 justify-between">
+  <div
+className="
+mb-8
+flex
+flex-col
+lg:flex-row
+gap-4
+justify-between
+items-stretch
+lg:items-center
+"
+>
 
     <input
 type="text"
 placeholder="Search Ticket, Booking, Vehicle..."
 value={search}
 onChange={(e)=>setSearch(e.target.value)}
-className="w-full max-w-md rounded-xl border border-gray-200 px-4 py-3"
+className="
+w-full
+lg:max-w-lg
+rounded-2xl
+border
+border-slate-200
+bg-white/90
+backdrop-blur-xl
+px-5
+py-3.5
+shadow-sm
+transition-all
+duration-300
+focus:border-[#00C853]
+focus:ring-4
+focus:ring-[#00C853]/10
+focus:outline-none
+"
 />
 
 <select
@@ -207,7 +235,21 @@ value={statusFilter}
 
 onChange={(e)=>setStatusFilter(e.target.value)}
 
-className="rounded-xl border border-gray-200 px-4 py-3"
+className="
+rounded-2xl
+border
+border-slate-200
+bg-white
+px-5
+py-3.5
+shadow-sm
+transition-all
+duration-300
+focus:border-[#00C853]
+focus:ring-4
+focus:ring-[#00C853]/10
+focus:outline-none
+"
 
 >
 
@@ -274,6 +316,55 @@ Action
 </thead>
 
 <tbody>
+
+  {tickets
+.filter((ticket)=>{
+
+const keyword = search.toLowerCase();
+
+const matchesSearch =
+ticket.ticketId?.toLowerCase().includes(keyword) ||
+ticket.userId?.toLowerCase().includes(keyword) ||
+ticket.bookingId?.toLowerCase().includes(keyword) ||
+ticket.vehicleId?.toLowerCase().includes(keyword) ||
+ticket.category?.toLowerCase().includes(keyword);
+
+const matchesStatus =
+statusFilter==="ALL" ||
+ticket.status===statusFilter;
+
+return matchesSearch && matchesStatus;
+
+}).length===0 && (
+
+<tr>
+
+<td
+colSpan={9}
+className="py-16 text-center"
+>
+
+<div>
+
+<div className="text-5xl mb-4">
+🎫
+</div>
+
+<h3 className="text-xl font-bold text-slate-700">
+No Support Tickets Found
+</h3>
+
+<p className="mt-2 text-gray-500">
+New customer issues will automatically appear here.
+</p>
+
+</div>
+
+</td>
+
+</tr>
+
+)}
 
 {tickets
 .filter((ticket)=>{
@@ -342,6 +433,13 @@ onClick={(e)=>e.stopPropagation()}
 value={ticket.status}
 
 onChange={async(e)=>{
+  if(
+!confirm(
+"Are you sure you want to change this ticket status?"
+)
+){
+return;
+}
 
 await fetch(`/api/tickets/${ticket._id}`,{
 
@@ -361,8 +459,7 @@ status:e.target.value
 
 });
 
-const ticketRes = await fetch("/api/tickets");
-
+ const ticketRes = await fetch("/api/tickets");
 const ticketData = await ticketRes.json();
 
 setTickets(ticketData.data || []);
@@ -409,7 +506,21 @@ e.stopPropagation();
 setEditingTicket({...ticket});
 setShowEditModal(true);
 }}
-className="rounded-lg bg-blue-50 px-4 py-2 font-bold text-blue-600"
+className="
+rounded-xl
+bg-gradient-to-r
+from-blue-500
+to-blue-600
+px-5
+py-2.5
+font-semibold
+text-white
+shadow-md
+transition-all
+duration-300
+hover:scale-[1.04]
+hover:shadow-xl
+"
 >
 Edit
 </button>
@@ -434,7 +545,21 @@ if (selectedTicket?._id === ticket._id) {
 }
 
 }}
-className="rounded-lg bg-red-50 px-4 py-2 font-bold text-red-600"
+className="
+rounded-xl
+bg-gradient-to-r
+from-red-500
+to-red-600
+px-5
+py-2.5
+font-semibold
+text-white
+shadow-md
+transition-all
+duration-300
+hover:scale-[1.04]
+hover:shadow-xl
+"
 >
 Delete
 </button>
@@ -504,38 +629,98 @@ Admin Remarks
 
 </div>
 
-<div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-6">
+<div
+className="
+mt-10
+grid
+grid-cols-2
+xl:grid-cols-4
+gap-5
+"
+>
 
-<div>
+<div
+className="
+rounded-2xl
+border
+border-slate-200
+bg-gradient-to-br
+from-white
+to-slate-50
+p-5
+shadow-sm
+"
+>
+<p className="text-xs uppercase tracking-wide text-gray-500">
+Priority
+</p>
 
-<b>Priority</b>
-
-<p>{selectedTicket.priority}</p>
-
+<h3 className="mt-2 text-lg font-bold text-[#07111F]">
+{selectedTicket.priority}
+</h3>
 </div>
 
-<div>
+<div
+className="
+rounded-2xl
+border
+border-slate-200
+bg-gradient-to-br
+from-white
+to-slate-50
+p-5
+shadow-sm
+"
+>
+<p className="text-xs uppercase tracking-wide text-gray-500">
+Status
+</p>
 
-<b>Status</b>
-
-<p>{selectedTicket.status}</p>
-
+<h3 className="mt-2 text-lg font-bold text-[#07111F]">
+{selectedTicket.status}
+</h3>
 </div>
 
-<div>
+<div
+className="
+rounded-2xl
+border
+border-slate-200
+bg-gradient-to-br
+from-white
+to-slate-50
+p-5
+shadow-sm
+"
+>
+<p className="text-xs uppercase tracking-wide text-gray-500">
+Assigned To
+</p>
 
-<b>Assigned</b>
-
-<p>{selectedTicket.assignedTo}</p>
-
+<h3 className="mt-2 text-lg font-bold text-[#07111F]">
+{selectedTicket.assignedTo}
+</h3>
 </div>
 
-<div>
+<div
+className="
+rounded-2xl
+border
+border-slate-200
+bg-gradient-to-br
+from-white
+to-slate-50
+p-5
+shadow-sm
+"
+>
+<p className="text-xs uppercase tracking-wide text-gray-500">
+Vehicle
+</p>
 
-<b>Vehicle</b>
-
-<p>{selectedTicket.vehicleId || "-"}</p>
-
+<h3 className="mt-2 text-lg font-bold text-[#07111F]">
+{selectedTicket.vehicleId || "-"}
+</h3>
 </div>
 
 </div>
@@ -626,7 +811,7 @@ transition
 
 <td className="px-6 py-5 text-center">
 
-{refund.refundStatus==="SUCCESS"&&(
+{refund.refundStatus==="REFUNDED"&&(
 <StatusBadge status="active"/>
 )}
 
@@ -654,9 +839,38 @@ transition
 
 {showEditModal && editingTicket && (
 
-<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+<div
+className="
+fixed
+inset-0
+z-[100]
+flex
+items-center
+justify-center
+bg-black/60
+backdrop-blur-md
+px-4
+py-6
+lg:pl-[340px]
+"
+>
 
-<div className="w-full max-w-2xl rounded-3xl bg-white p-8 shadow-2xl">
+<div
+className="
+relative
+w-full
+max-w-3xl
+max-h-[90vh]
+overflow-y-auto
+rounded-[32px]
+bg-white
+border
+border-slate-200
+shadow-[0_40px_120px_rgba(0,0,0,0.25)]
+p-6
+md:p-8
+"
+>
 
 <h2 className="mb-6 text-3xl font-black text-[#0A1134]">
 Edit Support Ticket
@@ -733,14 +947,39 @@ onClick={()=>{
 setShowEditModal(false);
 setEditingTicket(null);
 }}
-className="rounded-xl border px-6 py-3"
+className="
+rounded-xl
+border
+border-slate-300
+bg-white
+px-6
+py-3
+font-semibold
+transition-all
+duration-300
+hover:bg-slate-100
+"
 >
 Cancel
 </button>
 
 <button
 onClick={saveTicket}
-className="rounded-xl bg-[#FF165E] px-8 py-3 font-bold text-white"
+className="
+rounded-xl
+bg-gradient-to-r
+from-[#00C853]
+to-[#00E676]
+px-8
+py-3
+font-bold
+text-[#07111F]
+shadow-lg
+transition-all
+duration-300
+hover:scale-[1.03]
+hover:shadow-2xl
+"
 >
 Save Changes
 </button>

@@ -61,13 +61,15 @@ const suspendedUsers=riders.filter(
 
 const filteredRiders=riders.filter((rider)=>{
 
-const matchesSearch=
+const matchesSearch =
 
-rider.fullName?.toLowerCase().includes(search.toLowerCase())||
+rider.fullName?.toLowerCase().includes(search.toLowerCase()) ||
 
-rider.phone?.includes(search)||
+rider.phone?.includes(search) ||
 
-rider.email?.toLowerCase().includes(search.toLowerCase());
+rider.email?.toLowerCase().includes(search.toLowerCase()) ||
+
+rider.riderId?.toLowerCase().includes(search.toLowerCase());
 
 const matchesStatus =
 statusFilter === "All" ||

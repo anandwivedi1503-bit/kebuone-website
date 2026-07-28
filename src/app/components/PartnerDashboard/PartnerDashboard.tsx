@@ -35,7 +35,17 @@ const loadPartners = async () => {
 };
 
 useEffect(() => {
+
   loadPartners();
+
+  const interval = setInterval(() => {
+
+    loadPartners();
+
+  }, 30000);
+
+  return () => clearInterval(interval);
+
 }, []);
 
 const totalApplications=partners.length;
@@ -271,8 +281,9 @@ Reject
 </tr>
 
 </thead>
-
 <tbody>
+
+{/* Empty State */}
 
 {partners
   .filter((partner) => {
@@ -292,7 +303,51 @@ Reject
       priorityFilter === "ALL" ||
       partner.priority === priorityFilter;
 
-    return matchesSearch && matchesStage && matchesPriority;
+    return (
+      matchesSearch &&
+      matchesStage &&
+      matchesPriority
+    );
+  }).length === 0 && (
+
+<tr>
+<td
+colSpan={8}
+className="py-12 text-center text-gray-500 font-medium"
+>
+No Partner Applications Found
+</td>
+</tr>
+
+)}
+
+{/* Actual Table Rows */}
+
+{partners
+  .filter((partner) => {
+
+    const keyword = search.toLowerCase();
+
+    const matchesSearch =
+      partner.fullName?.toLowerCase().includes(keyword) ||
+      partner.phone?.includes(keyword) ||
+      partner.city?.toLowerCase().includes(keyword) ||
+      partner.organizationName?.toLowerCase().includes(keyword);
+
+    const matchesStage =
+      stageFilter === "ALL" ||
+      partner.applicationStage === stageFilter;
+
+    const matchesPriority =
+      priorityFilter === "ALL" ||
+      partner.priority === priorityFilter;
+
+    return (
+      matchesSearch &&
+      matchesStage &&
+      matchesPriority
+    );
+
   })
 
   .map((partner) => (

@@ -184,9 +184,9 @@ export default function DashboardSidebar({
         h-screen
         w-[300px]
         bg-gradient-to-b
-        from-[#D6006E]
-        via-[#FF165E]
-        to-[#FF5556]
+        from-[#07111F]
+via-[#0E1728]
+to-[#15253D]
         text-white
         shadow-[0_25px_80px_rgba(0,0,0,0.25)]
         flex
@@ -207,13 +207,35 @@ export default function DashboardSidebar({
 
           <div className="flex items-center justify-between">
 
-            <Image
-              src="/kebu_1-removebg-preview.png"
-              alt="Kebu One"
-              width={190}
-              height={55}
-              priority
-            />
+            <div className="flex items-center gap-4">
+
+  <Image
+    src="/evuddy.jpeg"
+    alt="EVUDDY"
+    width={64}
+    height={64}
+    priority
+    className="
+      rounded-2xl
+      shadow-xl
+      border
+      border-white/20
+    "
+  />
+
+  <div>
+
+    <h2 className="text-3xl font-black tracking-wide leading-none">
+      EVUDDY
+    </h2>
+
+    <p className="text-sm text-white/75">
+      Smart Electric Mobility
+    </p>
+
+  </div>
+
+</div>
 
             <button
               onClick={() => setMobileOpen(false)}
@@ -224,9 +246,11 @@ export default function DashboardSidebar({
 
           </div>
 
-          <p className="mt-4 text-white/80 leading-6 text-sm">
-            Enterprise Smart Mobility Platform
-          </p>
+          <p className="mt-5 leading-7 text-sm text-white/75">
+
+Enterprise Operations Center
+
+</p>
 
         </div>
 
@@ -269,10 +293,10 @@ export default function DashboardSidebar({
       overflow-hidden
 
       ${
-        activeDashboard === menu.id
-          ? "bg-white text-[#FF165E] shadow-2xl scale-[1.02]"
-          : "text-white hover:bg-white/10 hover:translate-x-1"
-      }
+  activeDashboard === menu.id
+    ? "bg-gradient-to-r from-[#00C853] to-[#00E676] text-[#07111F] shadow-2xl scale-[1.02]"
+    : "text-white hover:bg-white/10 hover:translate-x-1"
+}
       `}
     >
 
@@ -308,7 +332,7 @@ export default function DashboardSidebar({
 
         ${
           activeDashboard === menu.id
-            ? "bg-[#FF165E]/10"
+            ? "bg-white/70"
             : "bg-white/10 group-hover:bg-white/20"
         }
         `}
@@ -408,13 +432,13 @@ export default function DashboardSidebar({
 
               <div>
 
-                <p className="text-xs text-white/70">
-                  Logged in as
-                </p>
+                <p className="text-xs text-white/60 mb-1">
+Logged in as
+</p>
 
-                <h3 className="font-bold">
-                  Super Administrator
-                </h3>
+<h3 className="text-sm font-bold">
+EVUDDY Administrator
+</h3>
 
               </div>
 
@@ -431,11 +455,11 @@ export default function DashboardSidebar({
                 text-xs
                 "
               >
-                Enterprise
+               Operations Center
               </span>
 
               <span className="text-xs text-white/70">
-                v1.0.0
+                Version 2.0
               </span>
 
             </div>

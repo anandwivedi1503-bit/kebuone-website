@@ -1,9 +1,11 @@
 "use client";
 
+import { ReactNode } from "react";
+
 type SectionHeaderProps = {
   title: string;
   subtitle?: string;
-  rightContent?: React.ReactNode;
+  rightContent?: ReactNode;
 };
 
 export default function SectionHeader({
@@ -27,23 +29,26 @@ export default function SectionHeader({
 
         <h2
           className="
-          text-2xl
-          sm:text-3xl
-          md:text-5xl
+          text-3xl
+          md:text-4xl
           font-black
-          bg-gradient-to-r
-          from-[#D6006E]
-          via-[#FF165E]
-          to-[#FF5556]
-          bg-clip-text
-          text-transparent
+          text-slate-900
+          tracking-tight
           "
         >
           {title}
         </h2>
 
         {subtitle && (
-          <p className="mt-3 text-gray-500 text-base leading-7">
+          <p
+            className="
+            mt-3
+            text-slate-500
+            text-base
+            leading-7
+            max-w-3xl
+            "
+          >
             {subtitle}
           </p>
         )}
@@ -51,7 +56,7 @@ export default function SectionHeader({
       </div>
 
       {rightContent && (
-        <div className="flex items-center">
+        <div className="flex items-center gap-3">
           {rightContent}
         </div>
       )}

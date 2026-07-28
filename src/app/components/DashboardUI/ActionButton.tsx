@@ -12,7 +12,7 @@ type ActionButtonProps = {
 export default function ActionButton({
   children,
   onClick,
-  disabled = false,
+ disabled = false,
   type = "button",
 }: ActionButtonProps) {
   return (
@@ -23,15 +23,16 @@ export default function ActionButton({
       className={`
       px-6
       py-3
-        rounded-2xl
+      rounded-2xl
       font-semibold
-      shadow-lg
-        transition-all
+      transition-all
       duration-300
+      shadow-lg
+
       ${
         disabled
-          ? "bg-gray-300 text-gray-500 cursor-not-allowed shadow-none"
-          : "bg-gradient-to-r from-[#D6006E] via-[#FF165E] to-[#FF5556] text-white hover:shadow-2xl hover:scale-[1.02]"
+          ? "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none"
+          : "bg-gradient-to-r from-[#16A34A] to-[#22C55E] text-white hover:shadow-[0_15px_35px_rgba(34,197,94,0.35)] hover:-translate-y-1 active:translate-y-0"
       }
       `}
     >

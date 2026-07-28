@@ -79,15 +79,15 @@ return matchesSearch&&matchesStatus;
 
 });
 
-const deleteHub=async(id:string)=>{
+const deleteHub = async (hub: any) => {
 
-const confirmDelete=confirm(
-"Are you sure you want to delete this hub?"
+const confirmDelete = confirm(
+`Delete "${hub.hubName}"?\n\nAll vehicles and batteries must be moved before deleting this hub.`
 );
 
 if(!confirmDelete) return;
 
-const res=await fetch(`/api/hubs/${id}`,{
+const res = await fetch(`/api/hubs/${hub._id}`, {
 
 method:"DELETE",
 
@@ -95,17 +95,17 @@ method:"DELETE",
 
 const data=await res.json();
 
-if(data.success){
+if (data.success) {
 
-setHubs(
+  setHubs((prev) =>
+    prev.filter((item) => item._id !== hub._id)
+  );
 
-hubs.filter(
-(hub)=>hub._id!==id
-)
+  alert("Hub Deleted Successfully");
 
-);
+} else {
 
-alert("Hub Deleted Successfully");
+  alert(data.message || data.error || "Unable to delete hub.");
 
 }
 
@@ -259,7 +259,24 @@ Actions
 
 <tbody>
 
-{filteredHubs.map((hub)=>(
+{filteredHubs.length === 0 ? (
+
+<tr>
+
+<td
+colSpan={7}
+className="py-12 text-center text-gray-500 font-medium"
+>
+
+No hubs found.
+
+</td>
+
+</tr>
+
+) : (
+
+filteredHubs.map((hub)=>(
 
 <tr
 key={hub._id}
@@ -283,8 +300,15 @@ transition
 {hub.availableBikes}
 </td>
 
-<td className="px-6 py-5 text-center">
-{hub.capacity-hub.availableBikes}
+<td
+className={`px-6 py-5 text-center font-bold ${
+Math.max(0, hub.capacity - hub.availableBikes) >
+hub.capacity * 0.8
+? "text-red-600"
+: "text-green-600"
+}`}
+>
+{Math.max(0, hub.capacity - hub.availableBikes)}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -318,7 +342,7 @@ Edit
 </ActionButton>
 
 <button
-onClick={() => deleteHub(hub._id)}
+onClick={() => deleteHub(hub)}
 className="
 px-6
 py-3
@@ -339,7 +363,7 @@ Delete
 
 </tr>
 
-))}
+)))}
 
 </tbody>
 
@@ -486,10 +510,15 @@ className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-non
 <div className="flex flex-col sm:flex-row gap-4 pt-4">
 
 <ActionButton
+type="button"
 disabled={saving}
 onClick={async()=>{
+
+try{
+
 setSaving(true);
-await fetch(
+
+const res = await fetch(
 `/api/hubs/${editingHub._id}`,
 {
 method:"PATCH",
@@ -500,12 +529,30 @@ body:JSON.stringify(editingHub),
 }
 );
 
+const data = await res.json();
+
+if (!data.success) {
+
+alert(data.message || "Unable to save hub.");
+
+return;
+
+}
+
 const refreshed = await fetch("/api/hubs");
+
 const refreshedData = await refreshed.json();
 
 setHubs(refreshedData.data || []);
+
 setEditingHub(null);
+
+}
+finally{
+
 setSaving(false);
+
+}
 
 }}
 >

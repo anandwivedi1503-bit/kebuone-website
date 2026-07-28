@@ -197,7 +197,33 @@ if (!vehicle) {
   );
 }
 
+if (
+vehicle.vehicleStatus === "In Ride" ||
+vehicle.vehicleStatus === "Booked" ||
+vehicle.vehicleStatus === "Ready For Pickup"
+) {
+
+return NextResponse.json(
+{
+success:false,
+errors:[
+"Vehicle cannot be edited while assigned to an active booking."
+]
+},
+{status:400}
+);
+
+}
+
 Object.assign(vehicle, updateData);
+if(vehicle.vehicleStatus==="Available"){
+vehicle.lockStatus="Locked";
+}
+
+vehicle.batteryPercentage=Math.max(
+0,
+Math.min(100,vehicle.batteryPercentage)
+);
 if (
 vehicle.vehicleStatus !== "Maintenance" &&
 vehicle.vehicleStatus !== "Booked" &&

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Hub from "@/models/Hub";
 import Vehicle from "@/models/Vehicle";
+import Battery from "@/models/Battery";
 export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,7 +19,7 @@ export async function PATCH(
     const body = await req.json();
     if (
   body.capacity !== undefined &&
-  Number(body.capacity) < 0
+  Number(body.capacity) < 0 
 ) {
   return NextResponse.json(
     {
@@ -41,22 +42,72 @@ if (
     { status: 400 }
   );
 }
+
+if (
+  body.capacity !== undefined &&
+  body.readyBatteries !== undefined &&
+  Number(body.readyBatteries) > Number(body.capacity)
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Ready batteries cannot exceed hub capacity.",
+    },
+    { status: 400 }
+  );
+}
     delete body.hubCode;
     delete body.availableBikes;
 
-    const hub = await Hub.findByIdAndUpdate(
-      id,
-      body,
-      {
-        new: true,
-      }
-    );
+    const hub = await Hub.findById(id);
 
-    return NextResponse.json({
-      success: true,
-      data: hub,
-    });
-  } catch (error) {
+if (!hub) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Hub not found.",
+    },
+    { status: 404 }
+  );
+}
+
+Object.assign(hub, body);
+
+if (hub.readyBatteries > hub.capacity) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Ready batteries cannot exceed capacity.",
+    },
+    { status: 400 }
+  );
+}
+
+if (hub.availableBikes > hub.capacity) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Available bikes cannot exceed capacity.",
+    },
+    { status: 400 }
+  );
+}
+
+if (
+  hub.availableBikes === 0 &&
+  hub.readyBatteries === 0
+) {
+  hub.status = "Maintenance";
+}
+
+await hub.save();
+
+return NextResponse.json({
+  success: true,
+  data: hub,
+});
+
+    } catch (error) {
     return NextResponse.json(
       {
         success: false,
@@ -103,6 +154,23 @@ if (vehicles > 0) {
     {
       success: false,
       message: "Move all vehicles from this hub before deleting it.",
+    },
+    { status: 400 }
+  );
+}
+
+const batteries = await Battery.countDocuments({
+  $or: [
+    { hubName: hub.hubName },
+    { hubId: hub.hubCode },
+  ],
+});
+
+if (batteries > 0) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Move all batteries from this hub before deleting it.",
     },
     { status: 400 }
   );

@@ -201,6 +201,7 @@ const [showEditModal, setShowEditModal] =
       setLoading(false);
       return;
     }
+    if(formData.status==="COMPLETED"){
 
     await patchBattery(formData.batteryOutId, {
   status: "CHARGING",
@@ -237,7 +238,7 @@ if (vehicle?._id) {
   hubName: formData.hubName,
   chargePercentage: 100,
 });
-
+    }
     
 
     setMessage("Battery swap recorded successfully.");
@@ -263,6 +264,13 @@ if (vehicle?._id) {
   const saveSwap = async () => {
 
   if (!editingSwap) return;
+  if(
+!confirm(
+"Are you sure you want to update this battery swap?"
+)
+){
+return;
+}
 
   const res = await fetch(
     `/api/battery-swaps/${editingSwap._id}`,
@@ -502,10 +510,26 @@ className="rounded-xl border border-gray-200 px-4 py-3"
                   <td>{swap.batteryInId || "-"}</td>
                   <td>{swap.staffId || "-"}</td>
                   <td>
-                    <span className="rounded-full bg-pink-50 px-3 py-1 font-bold text-[#FF165E]">
-                      {swap.status || "PENDING"}
-                    </span>
-                  </td>
+
+  {swap.status === "COMPLETED" && (
+    <span className="rounded-full bg-green-100 px-3 py-1 font-bold text-green-700">
+      Completed
+    </span>
+  )}
+
+  {swap.status === "PENDING" && (
+    <span className="rounded-full bg-yellow-100 px-3 py-1 font-bold text-yellow-700">
+      Pending
+    </span>
+  )}
+
+  {swap.status === "FAILED" && (
+    <span className="rounded-full bg-red-100 px-3 py-1 font-bold text-red-700">
+      Failed
+    </span>
+  )}
+
+</td>
                   <td>
                     {swap.createdAt
                       ? new Date(swap.createdAt).toLocaleString()

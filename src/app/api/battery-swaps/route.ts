@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import BatterySwap from "@/models/BatterySwap";
 import Battery from "@/models/Battery";
+import Vehicle from "@/models/Vehicle";
 
 export async function GET() {
   try {
@@ -59,6 +60,25 @@ if (batteryAlreadyInstalled) {
     {
       success: false,
       message: "Selected battery is already installed in another vehicle.",
+    },
+    { status: 400 }
+  );
+}
+
+const batteryOut = await Battery.findOne({
+  batteryId: body.batteryOutId,
+});
+
+if (
+  batteryOut &&
+  batteryOut.vehicleId &&
+  batteryOut.vehicleId !== body.vehicleId
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Battery Out does not belong to the selected vehicle.",
     },
     { status: 400 }
   );

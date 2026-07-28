@@ -135,6 +135,21 @@ if (refund.refundStatus === "REFUNDED") {
   bookingId: refund.bookingId,
 });
 
+if (
+  booking &&
+  Number(refund.amount) >
+    Number(booking.securityDeposit || 0)
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Refund amount exceeds security deposit.",
+    },
+    { status: 400 }
+  );
+}
+
     if (booking) {
 
       booking.refundAmount = Number(refund.amount);
@@ -298,12 +313,44 @@ export async function DELETE(
 
     const { id } = await params;
 
-    await Refund.findByIdAndDelete(id);
+const refund = await Refund.findById(id);
+if (refund?.refundStatus === "REJECTED") {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Rejected refunds cannot be approved.",
+    },
+    { status: 400 }
+  );
+}
 
-    return NextResponse.json({
-      success: true,
-      message: "Refund deleted successfully",
-    });
+if (!refund) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Refund not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (refund.refundStatus === "REFUNDED") {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Completed refunds cannot be deleted.",
+    },
+    { status: 400 }
+  );
+}
+
+await Refund.findByIdAndDelete(id);
+
+return NextResponse.json({
+  success: true,
+  message: "Refund deleted successfully",
+});
   } catch (error) {
     return NextResponse.json(
       {

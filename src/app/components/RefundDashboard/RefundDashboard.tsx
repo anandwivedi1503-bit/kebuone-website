@@ -17,7 +17,10 @@ const [search,setSearch] = useState("")
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [selectedRefund, setSelectedRefund] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");
+const [loading, setLoading] = useState(true);
 const fetchRefunds = async () => {
+
+  setLoading(true);
 
   try {
 
@@ -35,6 +38,10 @@ const fetchRefunds = async () => {
 
     console.error(error);
 
+  } finally {
+
+    setLoading(false);
+
   }
 
 };
@@ -42,6 +49,14 @@ const fetchRefunds = async () => {
 useEffect(() => {
 
   fetchRefunds();
+
+  const interval = setInterval(() => {
+
+    fetchRefunds();
+
+  }, 10000);
+
+  return () => clearInterval(interval);
 
 }, []);
 
@@ -61,7 +76,22 @@ const rejectedRefunds=refunds.filter(
 (r)=>r.refundStatus==="REJECTED"
 ).length;
 
-const totalRefundAmount=refunds.reduce(
+const totalRefundAmount = refunds
+.filter(
+(r)=>r.refundStatus==="REFUNDED"
+)
+.reduce(
+(sum,r)=>sum+(r.amount||0),
+0
+);
+
+const pendingRefundAmount = refunds
+.filter(
+(r)=>
+r.refundStatus==="PROCESSING" ||
+r.refundStatus==="PENDING"
+)
+.reduce(
 (sum,r)=>sum+(r.amount||0),
 0
 );
@@ -104,17 +134,29 @@ const approveRefund = async (id: string) => {
 
   try {
 
-    await fetch(`/api/refunds/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        refundStatus: "REFUNDED",
-      }),
-    });
+    const res = await fetch(`/api/refunds/${id}`, {
+  method: "PATCH",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    refundStatus: "REFUNDED",
+  }),
+});
 
-    fetchRefunds();
+const data = await res.json();
+
+if (!data.success) {
+
+  alert(data.message || "Unable to approve refund.");
+
+  return;
+
+}
+
+alert("Refund approved successfully.");
+
+await fetchRefunds();
 
   } finally {
 
@@ -136,17 +178,29 @@ const rejectRefund = async (id: string) => {
 
   try {
 
-    await fetch(`/api/refunds/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        refundStatus: "REJECTED",
-      }),
-    });
+    const res = await fetch(`/api/refunds/${id}`, {
+  method: "PATCH",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    refundStatus: "REJECTED",
+  }),
+});
 
-    fetchRefunds();
+const data = await res.json();
+
+if (!data.success) {
+
+  alert(data.message || "Unable to reject refund.");
+
+  return;
+
+}
+
+alert("Refund rejected successfully.");
+
+await fetchRefunds();
 
   } finally {
 
@@ -207,6 +261,14 @@ value={rejectedRefunds}
 subtitle="Declined"
 icon="❌"
 color="red"
+/>
+
+<KPICard
+title="Pending Amount"
+value={`₹${pendingRefundAmount.toLocaleString("en-IN")}`}
+subtitle="Awaiting Refund"
+icon="💰"
+color="yellow"
 />
 
 
@@ -309,7 +371,17 @@ subtitle="Live Refund Records"
 
 >
 
-  <div className="overflow-x-auto rounded-3xl">
+  {loading ? (
+
+<div className="py-16 text-center text-xl font-bold text-gray-500">
+
+Loading refund records...
+
+</div>
+
+) : (
+
+<div className="overflow-x-auto rounded-3xl">
 
 <table className="min-w-full">
 
@@ -338,6 +410,14 @@ Gateway Txn
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Created
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Processed By
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
 Status
 </th>
 
@@ -358,6 +438,22 @@ Reject
 </thead>
 
 <tbody>
+  {filteredRefunds.length === 0 && (
+
+<tr>
+
+<td
+colSpan={11}
+className="py-12 text-center text-gray-500 text-lg font-semibold"
+>
+
+No refund records found.
+
+</td>
+
+</tr>
+
+)}
 
 {filteredRefunds.map((refund)=>(
 
@@ -391,34 +487,75 @@ transition
 {refund.gatewayTxnId}
 </td>
 
+<td className="px-6 py-5 text-center text-sm">
+{new Date(refund.createdAt).toLocaleString("en-IN")}
+</td>
+
+<td className="px-6 py-5 text-center">
+{refund.processedBy || "-"}
+</td>
+
 <td className="px-6 py-5 text-center">
 
+<div className="flex items-center justify-center gap-2">
+
 {refund.refundStatus==="REFUNDED" && (
-  <StatusBadge status="active" />
+<>
+<StatusBadge status="active" />
+<span className="font-semibold text-green-700">
+REFUNDED
+</span>
+</>
 )}
 
 {refund.refundStatus==="APPROVED" && (
-  <StatusBadge status="warning" />
+<>
+<StatusBadge status="warning" />
+<span className="font-semibold text-yellow-700">
+APPROVED
+</span>
+</>
 )}
 
 {refund.refundStatus==="PROCESSING" && (
-  <StatusBadge status="inactive" />
+<>
+<StatusBadge status="inactive" />
+<span className="font-semibold text-gray-700">
+PROCESSING
+</span>
+</>
 )}
 
 {refund.refundStatus==="PENDING" && (
-  <StatusBadge status="warning" />
+<>
+<StatusBadge status="warning" />
+<span className="font-semibold text-yellow-700">
+PENDING
+</span>
+</>
 )}
 
 {refund.refundStatus==="FAILED" && (
-  <StatusBadge status="danger" />
+<>
+<StatusBadge status="danger" />
+<span className="font-semibold text-red-700">
+FAILED
+</span>
+</>
 )}
 
 {refund.refundStatus==="REJECTED" && (
-  <StatusBadge status="danger" />
+<>
+<StatusBadge status="danger" />
+<span className="font-semibold text-red-700">
+REJECTED
+</span>
+</>
 )}
 
 
 
+</div>
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -533,6 +670,8 @@ Done ✕
 
 </div>
 
+)}
+
 </DashboardCard>
 {selectedRefund && (
 
@@ -549,7 +688,13 @@ Refund Details
 </h2>
 
 <button
-onClick={()=>setSelectedRefund(null)}
+onClick={() => {
+
+setSelectedRefund(null);
+
+fetchRefunds();
+
+}}
 className="rounded-xl bg-red-600 px-4 py-2 font-bold text-white"
 >
 

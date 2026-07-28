@@ -190,18 +190,49 @@ useEffect(() => {
 
 
 
-const getGpsStatus = (status: unknown) =>
-  String(status || "").trim().toUpperCase();
+const getGpsStatus = (
+status: unknown,
+updatedAt?: string,
+createdAt?: string
+) => {
+
+const gpsStatus =
+String(status || "").trim().toUpperCase();
+
+const lastPing = new Date(
+updatedAt || createdAt || 0
+).getTime();
+
+const secondsSincePing =
+(Date.now() - lastPing) / 1000;
+
+if(secondsSincePing > 60){
+return "OFFLINE";
+}
+
+return gpsStatus;
+
+};
 
 const getLockStatus = (status: unknown) =>
   String(status || "").trim().toUpperCase();
 
 const onlineVehicles = iotData.filter(
-  (iot) => getGpsStatus(iot.gpsStatus) === "ONLINE"
+(iot)=>
+getGpsStatus(
+iot.gpsStatus,
+iot.updatedAt,
+iot.createdAt
+)==="ONLINE"
 ).length;
 
 const offlineVehicles = iotData.filter(
-  (iot) => getGpsStatus(iot.gpsStatus) === "OFFLINE"
+(iot)=>
+getGpsStatus(
+iot.gpsStatus,
+iot.updatedAt,
+iot.createdAt
+)==="OFFLINE"
 ).length;
 
 const lockedVehicles = iotData.filter(
@@ -322,7 +353,24 @@ Last Ping
 
 <tbody>
 
-{iotData.map((iot)=>(
+{iotData.length===0 ? (
+
+<tr>
+
+<td
+colSpan={8}
+className="py-16 text-center text-gray-500 font-medium"
+>
+
+No IoT devices connected.
+
+</td>
+
+</tr>
+
+) : (
+
+iotData.map((iot)=>(
 
 <tr
 key={iot._id}
@@ -356,11 +404,25 @@ style={{
 
 </div>
 
+<div className="text-center">
+
 <span className="font-bold text-[#0A1134]">
 
 {iot.batteryPercentage}%
 
 </span>
+
+{Number(iot.batteryPercentage) < 20 && (
+
+<div className="mt-1 text-xs font-bold text-red-600">
+
+⚠ Low Battery
+
+</div>
+
+)}
+
+</div>
 
 </div>
 
@@ -387,18 +449,56 @@ style={{
 
 <td className="px-6 py-5 text-center">
 
-{getGpsStatus(iot.gpsStatus)==="ONLINE"&&(
+{getGpsStatus(
+iot.gpsStatus,
+iot.updatedAt,
+iot.createdAt
+)==="ONLINE"&&(
 <StatusBadge status="active"/>
 )}
 
-{getGpsStatus(iot.gpsStatus)==="OFFLINE"&&(
+{getGpsStatus(
+iot.gpsStatus,
+iot.updatedAt,
+iot.createdAt
+)==="OFFLINE"&&(
 <StatusBadge status="inactive"/>
 )}
 
 </td>
 
-<td className="px-6 py-5 text-center font-semibold">
-{iot.vehicleStatus}
+<td className="px-6 py-5 text-center">
+
+{iot.vehicleStatus==="Available"&&(
+<StatusBadge status="active"/>
+)}
+
+{iot.vehicleStatus==="Booked"&&(
+<StatusBadge status="warning"/>
+)}
+
+{iot.vehicleStatus==="Ready For Pickup"&&(
+<StatusBadge status="warning"/>
+)}
+
+{iot.vehicleStatus==="In Ride"&&(
+<span className="inline-flex rounded-full bg-pink-100 px-3 py-1 text-xs font-bold text-pink-700">
+In Ride
+</span>
+)}
+
+{iot.vehicleStatus==="Maintenance"&&(
+<span className="inline-flex rounded-full bg-orange-100 px-3 py-1 text-xs font-bold text-orange-700">
+Maintenance
+</span>
+)}
+
+{iot.vehicleStatus==="Low Battery"&&(
+<span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+Low Battery
+</span>
+)}
+
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -407,7 +507,9 @@ style={{
 
 </tr>
 
-))}
+))
+
+)}
 
 </tbody>
 
@@ -465,7 +567,24 @@ Time
 
 <tbody>
 
-{iotData
+{iotData.filter((iot)=>iot.alertType).length===0 ? (
+
+<tr>
+
+<td
+colSpan={6}
+className="py-16 text-center text-gray-500 font-medium"
+>
+
+No Geofence Alerts.
+
+</td>
+
+</tr>
+
+) : (
+
+iotData
 .filter((iot)=>iot.alertType)
 .map((iot)=>(
 
@@ -509,7 +628,9 @@ transition
 
 </tr>
 
-))}
+))
+
+)}
 
 </tbody>
 

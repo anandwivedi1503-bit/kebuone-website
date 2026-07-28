@@ -14,6 +14,7 @@ export default function KYCDashboard(){
 
 const [riders,setRiders]=useState<any[]>([]);
 const [loading, setLoading] = useState(true);
+const [processingId, setProcessingId] = useState("");
 
 useEffect(() => {
 
@@ -57,47 +58,66 @@ const rejectedApplications=riders.filter(
 (r)=>r.approvalStatus==="Rejected"
 ).length;
 
-const approveRider=async(id:string)=>{
+const approveRider = async (id: string) => {
 
-await fetch(`/api/riders/${id}`,{
+if (processingId) return;
 
-method:"PATCH",
+setProcessingId(id);
 
-headers:{
-"Content-Type":"application/json",
+try {
+
+await fetch(`/api/riders/${id}`, {
+
+method: "PATCH",
+
+headers: {
+"Content-Type": "application/json",
 },
 
 body: JSON.stringify({
-  kycStatus: "Approved",
-  approvalStatus: "Approved",
-   approvedAt: new Date(),
-   approvedBy: "Admin",
-   activeRide: false,
+kycStatus: "Approved",
+approvalStatus: "Approved",
+approvedAt: new Date(),
+approvedBy: "Admin",
+activeRide: false,
 }),
 
 });
 
 const refreshed = await fetch("/api/riders");
 const refreshedData = await refreshed.json();
+
 setRiders(refreshedData.data || []);
+
+} finally {
+
+setProcessingId("");
+
+}
 
 };
 
-const rejectRider=async(id:string)=>{
+const rejectRider = async (id: string) => {
 
-const reason=prompt("Enter rejection reason");
+if (processingId) return;
 
-if(!reason) return;
+const reason = prompt("Enter rejection reason");
 
-await fetch(`/api/riders/${id}`,{
+if (!reason) return;
 
-method:"PATCH",
+setProcessingId(id);
 
-headers:{
+try {
+
+await fetch(`/api/riders/${id}`, {
+
+method: "PATCH",
+
+headers: {
 "Content-Type":"application/json",
 },
 
-body:JSON.stringify({
+body: JSON.stringify({
 
 kycStatus:"Rejected",
 
@@ -115,7 +135,14 @@ approvedBy:"",
 
 const refreshed = await fetch("/api/riders");
 const refreshedData = await refreshed.json();
+
 setRiders(refreshedData.data || []);
+
+} finally {
+
+setProcessingId("");
+
+}
 
 };
 
@@ -235,6 +262,10 @@ Photo
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Submitted On
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
 Status
 </th>
 
@@ -306,6 +337,20 @@ Not Uploaded
 </span>
 
 )}
+
+</td>
+
+<td className="px-6 py-5 text-center text-sm">
+
+{rider.createdAt
+? new Date(rider.createdAt).toLocaleString("en-IN",{
+day:"2-digit",
+month:"short",
+year:"numeric",
+hour:"2-digit",
+minute:"2-digit",
+})
+: "-"}
 
 </td>
 
@@ -432,6 +477,7 @@ Approved
 ):(
 
 <button
+disabled={processingId===rider._id}
 onClick={()=>approveRider(rider._id)}
 className="
 px-5
@@ -444,7 +490,7 @@ hover:bg-green-700
 transition
 "
 >
-Approve
+{processingId===rider._id ? "Approving..." : "Approve"}
 </button>
 
 )}
@@ -462,6 +508,7 @@ Rejected
 ):(
 
 <button
+disabled={processingId===rider._id}
 onClick={()=>rejectRider(rider._id)}
 className="
 px-5
@@ -474,7 +521,7 @@ hover:bg-red-700
 transition
 "
 >
-Reject
+{processingId===rider._id ? "Rejecting..." : "Reject"}
 </button>
 
 )}

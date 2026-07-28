@@ -599,7 +599,7 @@ focus:border-[#FF165E]
 
 </div>
 
-<div className="lg:col-span-2 pt-6">
+<div className="lg:col-span-3 pt-6">
 
 <ActionButton
 type="submit"

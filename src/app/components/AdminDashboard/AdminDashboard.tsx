@@ -78,6 +78,7 @@ const [wallets, setWallets] = useState<any[]>([]);
 
 const [loading, setLoading] = useState(true);
 const [lastUpdated, setLastUpdated] = useState("");
+const [refreshing, setRefreshing] = useState(false);
 
   
 
@@ -157,7 +158,12 @@ const [lastUpdated, setLastUpdated] = useState("");
       setPartners(data[10].data || []);
       setWallets(data[11].data || []);
 
-      setLastUpdated(new Date().toLocaleTimeString());
+      setLastUpdated(
+  new Date().toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "medium",
+  })
+);
     } catch (err) {
       console.error(err);
     } finally {
@@ -243,6 +249,31 @@ const totalWalletBalance = wallets.reduce(
 0
 );
 
+const systemHealth =
+criticalAlerts === 0
+? {
+label:"System Healthy",
+bg:"bg-emerald-50",
+border:"border-emerald-200",
+text:"text-emerald-700",
+dot:"bg-emerald-500",
+}
+: criticalAlerts < 5
+? {
+label:"System Warning",
+bg:"bg-yellow-50",
+border:"border-yellow-200",
+text:"text-yellow-700",
+dot:"bg-yellow-500",
+}
+: {
+label:"System Critical",
+bg:"bg-red-50",
+border:"border-red-200",
+text:"text-red-700",
+dot:"bg-red-500",
+};
+
   const recentActivities: ActivityItem[] = [
   ...bookings.slice(0, 3).map((booking: any) => ({
     icon: Bike,
@@ -314,15 +345,15 @@ time:formatActivityTime(p.createdAt)
 
   const pageClass = darkMode
     ? "min-h-screen bg-[#080b12] text-slate-100"
-    : "min-h-screen bg-[#f5f7fb] text-slate-950";
+    : "min-h-screen bg-[#F2F5FA] text-slate-950";
 
   const panelClass = darkMode
     ? "border border-white/10 bg-[#101722] shadow-lg shadow-black/20"
-    : "border border-slate-200 bg-white shadow-sm shadow-slate-200/80";
+    : "border border-slate-200 bg-white/90 backdrop-blur-xl shadow-xl shadow-slate-200/80";
 
   const softPanelClass = darkMode
-    ? "border border-white/10 bg-white/[0.03]"
-    : "border border-slate-200 bg-slate-50/80";
+  ? "border border-white/10 bg-white/5 backdrop-blur-xl"
+  : "border border-slate-200 bg-slate-50/80";
 
   const headingClass = darkMode ? "text-white" : "text-[#0A1134]";
   const mutedClass = darkMode ? "text-slate-400" : "text-slate-500";
@@ -331,7 +362,7 @@ time:formatActivityTime(p.createdAt)
 
   const inputClass = darkMode
     ? "border-white/10 bg-[#0b111a] text-white placeholder:text-slate-500 focus:border-rose-400 focus:ring-rose-400/20"
-    : "border-slate-200 bg-white text-slate-950 placeholder:text-slate-400 focus:border-rose-400 focus:ring-rose-400/20";
+    : "border-slate-200 bg-white/90 backdrop-blur-xl text-slate-950 placeholder:text-slate-400 focus:border-rose-400 focus:ring-rose-400/20";
 
   const iconButtonClass = darkMode
     ? "border-white/10 bg-white/[0.04] text-slate-100 hover:bg-white/[0.08]"
@@ -339,7 +370,7 @@ time:formatActivityTime(p.createdAt)
 
   const menuClass = darkMode
     ? "border border-white/10 bg-[#101722] text-slate-100 shadow-2xl shadow-black/40"
-    : "border border-slate-200 bg-white text-slate-950 shadow-2xl shadow-slate-300/40";
+    : "border border-slate-200 bg-white/90 backdrop-blur-xl text-slate-950 shadow-2xl shadow-slate-300/40";
 
   const kpiCards: {
     title: string;
@@ -517,6 +548,9 @@ time:formatActivityTime(p.createdAt)
       border: "border-l-sky-500",
     },
   ];
+  const searchKeyword = search.trim().toLowerCase();
+
+
 
   const quickActions = [
   { title: "Users", description: "Manage Riders", dashboard: "users", icon: UserRound, tone: "bg-rose-50 text-rose-600" },
@@ -540,8 +574,14 @@ time:formatActivityTime(p.createdAt)
 },
   { title: "Settings", description: "System Configuration", dashboard: "admin", icon: Settings, tone: "bg-[#0A1134] text-white", featured: true },
 ];
+const filteredQuickActions = quickActions.filter((item) =>
+  item.title.toLowerCase().includes(searchKeyword) ||
+  item.description.toLowerCase().includes(searchKeyword)
+);
 
 const refreshDashboard = async () => {
+
+  setRefreshing(true);
 
   setLoading(true);
 
@@ -549,21 +589,27 @@ const refreshDashboard = async () => {
 
   setLoading(false);
 
+  setTimeout(() => {
+
+    setRefreshing(false);
+
+  },600);
+
 };
 
 if (loading) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white">
+    <div className="min-h-screen flex items-center justify-center bg-white/90 backdrop-blur-xl">
       <div className="text-center">
 
         <div className="mx-auto h-12 w-12 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"></div>
 
         <h2 className="mt-6 text-2xl font-black">
-          Loading Dashboard...
+          Loading EVUDDY Operations Command Center...
         </h2>
 
         <p className="mt-2 text-gray-500">
-          Fetching live Kebu One data...
+          Synchronizing live EVUDDY enterprise data...
         </p>
 
       </div>
@@ -573,8 +619,8 @@ if (loading) {
 
   return (
     <section className={`${pageClass} overflow-x-hidden transition-colors duration-300`}>
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-8 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className={`${panelClass} rounded-lg p-4 sm:p-5 lg:p-6`}>
+      <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-8 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+        <header className={`${panelClass} rounded-[28px] p-4 sm:p-5 lg:p-6`}>
           <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
@@ -588,11 +634,11 @@ if (loading) {
               </div>
 
               <h1 className={`mt-4 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl ${headingClass}`}>
-                Kebu One Command Center
+                EVUDDY Enterprise Control Center
               </h1>
 
               <p className={`mt-3 max-w-3xl text-sm leading-6 sm:text-base ${mutedClass}`}>
-                Monitor your riders, hubs, fleet, IoT devices, battery network and complete Kebu One business from one intelligent dashboard.
+                Monitor riders, fleet, hubs, batteries, IoT devices, finance, partners and customer operations from one intelligent enterprise command center.
               </p>
              <p className="mt-3 text-sm font-semibold text-pink-500">
   Last Updated : {lastUpdated || "--"}
@@ -605,8 +651,8 @@ if (loading) {
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search anything..."
-                  className={`h-12 w-full rounded-md border pl-11 pr-4 text-sm font-medium outline-none transition focus:ring-4 ${inputClass}`}
+                  placeholder="Search riders, vehicles, bookings, tickets, wallets..."
+                  className={`h-12 w-full rounded-2xl border pl-11 pr-4 text-sm font-medium outline-none transition focus:ring-4 ${inputClass}`}
                 />
               </div>
 
@@ -618,16 +664,20 @@ if (loading) {
                       setNotificationOpen(!notificationOpen);
                     }}
                     title="Notifications"
-                    className={`relative flex h-11 w-11 items-center justify-center rounded-md border transition ${iconButtonClass}`}
+                    className={`relative flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
                   >
                     <Bell size={19} />
                     {notifications.length > 0 && (
-  <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white"></span>
+  <span
+className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white"
+>
+{notifications.length}
+</span>
 )}
                   </button>
 
                   {notificationOpen && (
-                    <div className={`absolute right-0 z-50 mt-3 max-w-[360] w-[calc(100vw-2rem)] overflow-hidden rounded-lg sm:w-80  ${menuClass}`}>
+                    <div className={`absolute right-0 z-50 mt-3 max-w-[360] w-[calc(100vw-2rem)] overflow-hidden rounded-[28px] sm:w-80  ${menuClass}`}>
                       <div className={`border-b px-5 py-4 ${borderClass}`}>
                         <h3 className={`font-bold ${headingClass}`}>Notifications</h3>
                       </div>
@@ -647,7 +697,7 @@ if (loading) {
                 <button
                   onClick={() => setDarkMode(!darkMode)}
                   title="Toggle theme"
-                  className={`flex h-11 w-11 items-center justify-center rounded-md border transition ${iconButtonClass}`}
+                  className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
                 >
                   {darkMode ? <Sun size={19} /> : <Moon size={19} />}
                 </button>
@@ -658,9 +708,9 @@ if (loading) {
                       e.stopPropagation();
                       setProfileOpen(!profileOpen);
                     }}
-                    className={`flex h-11 items-center gap-3 rounded-md border px-2.5 transition sm:h-12 sm:px-3 ${iconButtonClass}`}
+                    className={`flex h-11 items-center gap-3 rounded-2xl border px-2.5 transition sm:h-12 sm:px-3 ${iconButtonClass}`}
                   >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-[#D6006E] to-[#FF5556] text-sm font-black text-white">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D6006E] to-[#FF5556] text-sm font-black text-white">
                       A
                     </div>
 
@@ -673,7 +723,7 @@ if (loading) {
                   </button>
 
                   {profileOpen && (
-                    <div className={`absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-lg ${menuClass}`}>
+                    <div className={`absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-[28px] ${menuClass}`}>
                       <button className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70">Profile</button>
                       <button className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70">Settings</button>
                       <a
@@ -690,13 +740,13 @@ if (loading) {
           </div>
         </header>
 
-        <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className={`${panelClass} rounded-lg p-4 sm:p-5`}>
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div className={`${panelClass} rounded-[28px] p-4 sm:p-5`}>
             <p className={`text-sm font-semibold ${mutedClass}`}>Today</p>
             <h2 className={`mt-1 text-xl font-black sm:text-2xl ${headingClass}`}>{formattedDate}</h2>
           </div>
 
-          <div className={`${panelClass} flex items-center gap-3 rounded-lg p-4 sm:p-5`}>
+          <div className={`${panelClass} flex items-center gap-3 rounded-[28px] p-4 sm:p-5`}>
             <span className="relative flex h-3 w-3">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
@@ -723,57 +773,228 @@ if (loading) {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
           {kpiCards.map((card) => {
             const Icon = card.icon;
 
             return (
-              <div key={card.title} className={`${panelClass} ${card.tone.border} rounded-lg p-5 transition duration-200 hover:-translate-y-1 hover:shadow-xl`}>
+              <div key={card.title} className={`
+relative
+overflow-hidden
+rounded-[28px]
+border
+${panelClass}
+${card.tone.border}
+p-6
+transition-all
+duration-500
+hover:-translate-y-2
+hover:scale-[1.02]
+hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)]
+group
+`}
+>                <div
+className="
+absolute
+top-0
+right-0
+w-40
+h-40
+rounded-full
+bg-gradient-to-br
+from-pink-500/10
+to-transparent
+blur-3xl
+pointer-events-none
+group-hover:scale-125
+transition-all
+duration-700
+"
+/>
                 <div className="flex items-start justify-between gap-3">
-                  <div className={`flex h-11 w-11 items-center justify-center rounded-md ${card.tone.icon}`}>
+                  <div
+className={`
+h-14
+w-14
+rounded-2xl
+flex
+items-center
+justify-center
+${card.tone.icon}
+shadow-lg
+group-hover:rotate-6
+group-hover:scale-110
+transition-all
+duration-500
+`}
+>
                     <Icon size={21} />
                   </div>
                   <Gauge size={18} className={mutedClass} />
                 </div>
 
-                <p className={`mt-5 text-sm font-semibold ${mutedClass}`}>{card.title}</p>
-                <h2 className={`mt-2 break-words text-3xl font-black tracking-tight ${card.tone.value}`}>{card.value}</h2>
-                <p className={`mt-3 text-sm font-bold ${card.tone.note}`}>{card.note}</p>
+                <p
+className={`
+mt-6
+uppercase
+tracking-[0.15em]
+text-xs
+font-bold
+${mutedClass}
+`}
+>{card.title}</p>
+               <h2
+className={`
+mt-3
+break-words
+text-4xl
+xl:text-5xl
+font-black
+tracking-tight
+${card.tone.value}
+`}
+>{card.value}</h2>
+                <div className="mt-5 flex items-center gap-2">
+
+<div
+className="
+w-2
+h-2
+rounded-full
+bg-green-500
+animate-pulse
+"
+/>
+
+<p
+className={`text-sm font-semibold ${card.tone.note}`}>
+{card.note}</p></div>
               </div>
             );
           })}
         </div>
 
         <section className="space-y-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Operations Monitoring</h2>
               <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Real-time operational health across the Kebu One ecosystem.</p>
             </div>
 
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-              System Healthy
+            <div
+className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold
+${systemHealth.border}
+${systemHealth.bg}
+${systemHealth.text}`}
+>
+              <span
+className={`h-2.5 w-2.5 rounded-full ${systemHealth.dot}`}
+/>
+              {systemHealth.label}
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
             {operationCards.map((card) => {
               const Icon = card.icon;
 
               return (
-                <div key={card.title} className={`${panelClass} rounded-lg p-5 transition duration-200 hover:-translate-y-1 hover:shadow-xl`}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-md ${card.tone}`}>
+                <div key={card.title}
+className={`
+relative
+overflow-hidden
+rounded-[28px]
+${panelClass}
+p-6
+transition-all
+duration-500
+hover:-translate-y-2
+hover:scale-[1.02]
+hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)]
+group
+`}
+>
+                  <div
+className="
+absolute
+-right-12
+-top-12
+h-36
+w-36
+rounded-full
+bg-gradient-to-br
+from-[#00E676]/10
+to-transparent
+blur-3xl
+group-hover:scale-125
+transition-all
+duration-700
+"
+/>
+
+<div className="flex items-start justify-between gap-6">
+                    <div
+className={`
+flex
+h-16
+w-16
+items-center
+justify-center
+rounded-2xl
+${card.tone}
+shadow-xl
+group-hover:rotate-6
+group-hover:scale-110
+transition-all
+duration-500
+`}
+>
                       <Icon size={23} />
                     </div>
-                    <span className={`text-sm font-black ${card.badgeClass}`}>{card.badge}</span>
+                    <span
+className={`
+rounded-full
+bg-white/90 backdrop-blur-xl
+px-4
+py-2
+text-sm
+font-black
+shadow-lg
+${card.badgeClass}
+`}
+>{card.badge}</span>
                   </div>
 
-                  <h3 className={`mt-6 text-xl font-black ${headingClass}`}>{card.title}</h3>
+                  <h3
+className={`
+mt-7
+text-2xl
+font-black
+tracking-tight
+${headingClass}
+`}
+>{card.title}</h3>
                   <div className="mt-3 space-y-1">
                     {card.lines.map((line) => (
-                      <p key={line} className={`text-sm ${mutedClass}`}>{line}</p>
+                      <div
+key={line}
+className="
+flex
+items-center
+gap-2
+"
+>
+
+<div
+className="
+h-2
+w-2
+rounded-full
+bg-green-500
+"
+/>
+
+<p className={`text-sm ${mutedClass}`}>{line}</p></div>
                     ))}
                   </div>
                 </div>
@@ -792,7 +1013,7 @@ Enterprise Overview
 
 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
 
-<div className={`${panelClass} rounded-lg p-5`}>
+<div className={`${panelClass} rounded-[28px] p-5`}>
 
 <h3 className="font-bold">
 
@@ -820,7 +1041,7 @@ Battery Network
 </div>
 </div>
 
-<div className={`${panelClass} rounded-lg p-5`}>
+<div className={`${panelClass} rounded-[28px] p-5`}>
 
 <h3 className="font-bold">
 
@@ -842,7 +1063,7 @@ Completed : {completedSwaps}
 
 </div>
 
-<div className={`${panelClass} rounded-lg p-5`}>
+<div className={`${panelClass} rounded-[28px] p-5`}>
 
 <h3 className="font-bold">
 
@@ -864,7 +1085,7 @@ Approved : {approvedPartners}
 
 </div>
 
-<div className={`${panelClass} rounded-lg p-5`}>
+<div className={`${panelClass} rounded-[28px] p-5`}>
 
 <h3 className="font-bold">
 
@@ -893,7 +1114,7 @@ Wallet
 
 </div>
 
-<div className={`${panelClass} rounded-lg p-5`}>
+<div className={`${panelClass} rounded-[28px] p-5`}>
 
 <h3 className="font-bold">
 
@@ -927,7 +1148,7 @@ IoT Network
 </section>
 
         <section className="space-y-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>System Alerts</h2>
               <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Live alerts generated automatically from your MongoDB database.</p>
@@ -939,14 +1160,14 @@ IoT Network
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {alertCards.map((card) => {
               const Icon = card.icon;
 
               return (
-                <div key={card.title} className={`${panelClass} ${card.border} rounded-lg border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-xl`}>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-md ${card.tone}`}>
+                <div key={card.title} className={`${panelClass} ${card.border} rounded-[28px] border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}>
+                  <div className="flex items-start justify-between gap-6">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
                       <Icon size={23} />
                     </div>
                     <span className={`text-xs font-black tracking-[0.12em] ${card.statusClass}`}>{card.status}</span>
@@ -962,7 +1183,7 @@ IoT Network
         </section>
 
         <section className="space-y-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Recent Activity</h2>
               <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Automatically updated from your live database.</p>
@@ -970,17 +1191,20 @@ IoT Network
 
             <button
   onClick={refreshDashboard}
-  className="inline-flex h-11 w-fit items-center gap-2 rounded-md bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5"
+  className="inline-flex h-12 w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5"
 >
-              <RefreshCw size={16} />
+              <RefreshCw
+size={16}
+className={refreshing ? "animate-spin" : ""}
+/>
               Refresh Dashboard
             </button>
           </div>
 
-          <div className={`${panelClass} overflow-hidden rounded-lg`}>
+          <div className={`${panelClass} overflow-hidden rounded-[28px]`}>
             <div className={`border-b px-4 py-4 sm:px-5 ${borderClass}`}>
               <h3 className={`text-lg font-black ${headingClass}`}>Live Activity Feed</h3>
-              <p className={`mt-1 text-sm ${mutedClass}`}>Real-time updates across all Kebu One modules.</p>
+              <p className={`mt-1 text-sm ${mutedClass}`}>Real-time updates across the complete EVUDDY Mobility Platform.</p>
             </div>
 
             <div className={`divide-y ${dividerClass}`}>
@@ -993,7 +1217,7 @@ IoT Network
 
                 return (
                   <div key={index} className="flex items-start gap-3 px-4 py-4 transition hover:bg-rose-50/60 sm:gap-4 sm:px-5">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md ${activity.tone}`}>
+                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${activity.tone}`}>
                       <Icon size={21} />
                     </div>
 
@@ -1016,8 +1240,8 @@ IoT Network
             <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Access every management module instantly.</p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
-            {quickActions.map((action) => {
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
+            {filteredQuickActions.map((action) => {
               const Icon = action.icon;
 
               return (
@@ -1026,9 +1250,9 @@ IoT Network
                   onClick={() => {
   setActiveDashboard?.(action.dashboard);
 }}
-                  className={`${panelClass} group rounded-lg p-5 text-left transition duration-200 hover:-translate-y-1 hover:shadow-xl`}
+                  className={`${panelClass} group rounded-[28px] p-5 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}
                 >
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-md transition group-hover:scale-105 ${action.tone}`}>
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-105 ${action.tone}`}>
                     <Icon size={23} />
                   </div>
 

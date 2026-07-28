@@ -9,6 +9,10 @@ import Booking from "@/models/Booking";
 import Vehicle from "@/models/Vehicle";
 import Rider from "@/models/Rider";
 
+import Wallet from "@/models/Wallet";
+import WalletTransaction from "@/models/WalletTransaction";
+import Refund from "@/models/Refund";
+
 export async function POST(req: Request) {
   try {
     await connectDB();
@@ -79,18 +83,7 @@ if (booking.rideEndOTP !== rideEndOTP) {
   );
 }
 
-if (
-  booking.rideEndOTPExpiry &&
-  new Date() > new Date(booking.rideEndOTPExpiry)
-) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Ride End OTP has expired.",
-    },
-    { status: 400 }
-  );
-}
+
 
     if (booking.rideStatus !== "In Ride") {
       return NextResponse.json(
@@ -119,6 +112,7 @@ if (
 booking.rideStatus = "Completed";
 
 booking.endHub = endHub || booking.startHub;
+booking.currentHub = endHub || booking.startHub;
 
 booking.rideEndOTPVerified = true;
 
@@ -191,6 +185,103 @@ if (vehicle.currentBookingId !== booking.bookingId) {
         currentBookingId: "",
       }
     );
+
+    /*
+|--------------------------------------------------------------------------
+| Release Security Deposit Hold
+|--------------------------------------------------------------------------
+*/
+
+const wallet = await Wallet.findOne({
+  riderId: booking.riderId,
+});
+
+if (
+  wallet &&
+  Number(booking.securityDeposit || 0) > 0
+) {
+
+  wallet.securityDepositHold = Math.max(
+    0,
+    Number(wallet.securityDepositHold || 0) -
+      Number(booking.securityDeposit || 0)
+  );
+
+  await wallet.save();
+
+  await WalletTransaction.create({
+
+    transactionId:
+      "WTX-" + Date.now(),
+
+    riderId: booking.riderId,
+
+    userId: booking.userId,
+
+    userName: booking.userName,
+
+    bookingId: booking.bookingId,
+
+    amount: booking.securityDeposit,
+
+    paymentMethod: "Wallet",
+
+    transactionType:
+      "Security Deposit Release",
+
+    balanceAfter: wallet.balance,
+
+    remarks:
+      "Ride completed",
+
+    status: "Success",
+
+  });
+
+}
+
+/*
+|--------------------------------------------------------------------------
+| Create Refund Request
+|--------------------------------------------------------------------------
+*/
+
+if (
+  Number(booking.securityDeposit || 0) > 0
+) {
+
+  const existingRefund =
+    await Refund.findOne({
+      bookingId: booking.bookingId,
+    });
+
+  if (!existingRefund) {
+
+    await Refund.create({
+
+      refundId:
+        "RF-" + Date.now(),
+
+      bookingId:
+        booking.bookingId,
+
+      riderId:
+        booking.riderId,
+
+      amount:
+        booking.securityDeposit,
+
+      refundStatus:
+        "PENDING",
+
+      remarks:
+        "Security deposit refund pending admin approval",
+
+    });
+
+  }
+
+}
 
     await booking.save();
 

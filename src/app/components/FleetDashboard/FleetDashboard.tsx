@@ -285,7 +285,28 @@ Ready For Pickup
 
     <tbody>
 
-      {filteredVehicles.map((vehicle) => (
+      {filteredVehicles.length === 0 ? (
+
+<tr>
+
+<td
+colSpan={7}
+className="text-center py-16 text-gray-500"
+>
+
+No Vehicles Found
+
+<br />
+
+Register a vehicle to start fleet operations.
+
+</td>
+
+</tr>
+
+) : (
+
+filteredVehicles.map((vehicle) => (
 
         <tr
           key={vehicle._id}
@@ -383,7 +404,9 @@ Ready For Pickup
 
         </tr>
 
-      ))}
+            ))
+
+)}
 
     </tbody>
 
@@ -554,6 +577,7 @@ const refreshed = await fetch("/api/vehicles");
 const refreshedData = await refreshed.json();
 
 setVehicles(refreshedData.data || []);
+alert("Vehicle updated successfully.");
 
 }}
 >

@@ -81,9 +81,17 @@ const filteredTransactions = transactions.filter(
   (t) => new Date(t.createdAt) >= startDate
 );
 
-    const totalRevenue = filteredTransactions
-      .filter((t) => t.status === "Success")
-      .reduce((sum, t) => sum + (t.amount || 0), 0);
+    const totalRevenue =
+filteredTransactions
+.filter(
+(t)=>
+t.status==="Success" &&
+t.transactionType==="Booking Payment"
+)
+.reduce(
+(sum,t)=>sum+(t.amount||0),
+0
+);
 
     const activeRides = filteredBookings.filter(
   (b) =>
@@ -95,6 +103,14 @@ const filteredTransactions = transactions.filter(
     const completedRides = filteredBookings.filter(
       (b) => b.rideStatus === "Completed"
     ).length;
+
+    const bookingSuccessRate =
+filteredBookings.length === 0
+? 0
+: Math.round(
+(completedRides /
+filteredBookings.length) * 100
+);
 
     const fleetUtilization =
       vehicles.length === 0
@@ -145,7 +161,11 @@ const paymentSuccessRate =
       const monthlyRevenue = Array(12).fill(0);
 
 filteredTransactions.forEach((txn) => {
-  if (txn.status !== "Success") return;
+  if(
+txn.status!=="Success" ||
+txn.transactionType!=="Booking Payment"
+)
+return;
 
   const month = new Date(txn.createdAt).getMonth();
 
@@ -238,6 +258,8 @@ const paymentDistribution = Object.entries(paymentMethods);
     cancelledBookings,
 
     paymentSuccessRate,
+
+    bookingSuccessRate,
 
     monthlyRevenue,
 

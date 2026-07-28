@@ -12,27 +12,34 @@ export default function StatusBadge({
 
   const styles = {
     active: {
-      bg: "bg-green-100",
-      text: "text-green-700",
-      dot: "bg-green-500",
+      bg: "bg-emerald-50",
+      text: "text-emerald-700",
+      border: "border-emerald-200",
+      dot: "bg-emerald-500",
       label: "ACTIVE",
     },
+
     warning: {
-      bg: "bg-yellow-100",
-      text: "text-yellow-700",
-      dot: "bg-yellow-500",
-      label: "WARNING",
+      bg: "bg-amber-50",
+      text: "text-amber-700",
+      border: "border-amber-200",
+      dot: "bg-amber-500",
+      label: "PENDING",
     },
+
     danger: {
-      bg: "bg-red-100",
+      bg: "bg-red-50",
       text: "text-red-700",
+      border: "border-red-200",
       dot: "bg-red-500",
       label: "CRITICAL",
     },
+
     inactive: {
-      bg: "bg-gray-100",
-      text: "text-gray-600",
-      dot: "bg-gray-400",
+      bg: "bg-slate-100",
+      text: "text-slate-600",
+      border: "border-slate-200",
+      dot: "bg-slate-400",
       label: "OFFLINE",
     },
   };
@@ -46,10 +53,15 @@ export default function StatusBadge({
       px-4
       py-2
       rounded-full
-      text-sm
-      font-bold
+      border
+      ${styles[status].border}
       ${styles[status].bg}
       ${styles[status].text}
+      text-sm
+      font-semibold
+      transition-all
+      duration-300
+      hover:scale-105
       `}
     >
       <span

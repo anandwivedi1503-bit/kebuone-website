@@ -31,32 +31,49 @@ const [amount,setAmount]=useState(0);
 const [remarks,setRemarks]=useState("");
 const [loading,setLoading]=useState(false);
 const [history,setHistory]=useState<any[]>([]);
+const [pageLoading, setPageLoading] = useState(true);
 
-useEffect(()=>{
+useEffect(() => {
 
-loadWallets();
-loadTransactions();
+    loadWallets();
+    loadTransactions();
 
-},[]);
+    const interval = setInterval(() => {
 
-const loadWallets=async()=>{
+        loadWallets();
+        loadTransactions();
 
-const res=await fetch("/api/wallet");
+    }, 10000);
 
-const data=await res.json();
+    return () => clearInterval(interval);
 
-if (!data.success) {
-  alert(data.message || "Unable to load wallets.");
-  return;
-}
+}, []);
 
-if(data.success){
+const loadWallets = async () => {
 
-setWallets(data.data);
+    setPageLoading(true);
 
-}
+    try {
+
+        const res = await fetch("/api/wallet");
+
+        const data = await res.json();
+
+        if (data.success) {
+
+            setWallets(data.data || []);
+
+        }
+
+    } finally {
+
+        setPageLoading(false);
+
+    }
 
 };
+
+
 
 const loadTransactions=async()=>{
 
@@ -282,6 +299,28 @@ const filteredWallets = useMemo(() => {
   });
 
 }, [wallets, search, statusFilter]);
+
+if (pageLoading) {
+
+    return (
+
+        <PageContainer>
+
+            <div className="flex h-[500px] items-center justify-center">
+
+                <div className="text-2xl font-bold">
+
+                    Loading Wallet Dashboard...
+
+                </div>
+
+            </div>
+
+        </PageContainer>
+
+    );
+
+}
 
 return(
 
@@ -822,6 +861,23 @@ wallet.status==="Active"
 </tr>
 
 ))}
+
+{filteredWallets.length === 0 && (
+
+<tr>
+
+<td
+colSpan={7}
+className="py-12 text-center text-gray-500"
+>
+
+No wallets found.
+
+</td>
+
+</tr>
+
+)}
 
 </tbody>
 

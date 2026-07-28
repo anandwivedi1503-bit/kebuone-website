@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  CalendarDays,
+  Clock3,
+  Bell,
+  ShieldCheck,
+} from "lucide-react";
 
 type DashboardHeaderProps = {
   title: string;
@@ -11,112 +17,177 @@ export default function DashboardHeader({
   title,
   subtitle,
 }: DashboardHeaderProps) {
-
-    const [greeting, setGreeting] = useState("Welcome");
-  const [formattedDate, setFormattedDate] = useState("");
+  const [greeting, setGreeting] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
 
   useEffect(() => {
-    const today = new Date();
-    const hour = today.getHours();
+    const update = () => {
+      const now = new Date();
+      const hour = now.getHours();
 
-    setGreeting(
-      hour < 12
-        ? "Good Morning"
-        : hour < 18
-        ? "Good Afternoon"
-        : "Good Evening"
-    );
+      setGreeting(
+        hour < 12
+          ? "Good Morning"
+          : hour < 18
+          ? "Good Afternoon"
+          : "Good Evening"
+      );
 
-    setFormattedDate(
-      new Intl.DateTimeFormat("en-IN", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(today)
-    );
+      setDate(
+        new Intl.DateTimeFormat("en-IN", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        }).format(now)
+      );
+
+      setTime(
+        now.toLocaleTimeString("en-IN", {
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    };
+
+    update();
+
+    const interval = setInterval(update, 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
+    <div
+      className="
+      rounded-[34px]
+      border
+      border-slate-200
+      bg-white/80
+      backdrop-blur-2xl
+      shadow-[0_25px_60px_rgba(15,23,42,0.08)]
+      p-8
+      lg:p-10
+      mb-10
+      "
+    >
+      <div className="flex flex-col xl:flex-row justify-between gap-10">
 
-    <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8 mb-12">
+        {/* LEFT */}
 
-      {/* Left */}
+        <div className="flex-1">
 
-      <div>
+          <p className="uppercase tracking-[5px] text-[#00B853] font-bold mb-3">
+            {greeting}
+          </p>
 
-        <p className="uppercase tracking-[4px] text-[#FF165E] font-bold mb-3">
+          <h1
+            className="
+            text-4xl
+            md:text-5xl
+            xl:text-6xl
+            font-black
+            text-[#07111F]
+            "
+          >
+            {title}
+          </h1>
 
-          {greeting}
+          <p className="mt-5 max-w-3xl text-slate-500 leading-8 text-lg">
+            {subtitle}
+          </p>
 
-        </p>
+        </div>
 
-        <h1
+        {/* RIGHT */}
+
+        <div
           className="
-          text-3xl
-          sm:text-4xl
-          md:text-5xl
-          xl:text-6xl
-          font-black
-          bg-gradient-to-r
-          from-[#D6006E]
-          via-[#FF165E]
-          to-[#FF5556]
-          bg-clip-text
-          text-transparent
+          xl:w-[360px]
+          rounded-3xl
+          border
+          border-slate-200
+          bg-gradient-to-br
+          from-white
+          to-slate-50
+          shadow-lg
+          p-7
           "
         >
-          {title}
-        </h1>
+          <div className="flex items-center gap-3">
 
-        <p className="mt-5 text-lg text-gray-500 max-w-3xl leading-8">
-          {subtitle}
-        </p>
+            <CalendarDays
+              size={22}
+              className="text-[#00B853]"
+            />
 
-      </div>
+            <span className="font-semibold text-slate-600">
+              {date}
+            </span>
 
-      {/* Right */}
+          </div>
 
-      <div
-        className="
-        rounded-[32px]
-        bg-white
-        border
-        border-pink-100
-        shadow-xl
-        p-7
-        w-full
-xl:w-auto
-xl:min-w-[300px]
-        "
-      >
+          <div className="mt-5 flex items-center gap-3">
 
-        <p className="text-gray-500 text-sm">
-          Today
-        </p>
+            <Clock3
+              size={22}
+              className="text-[#00B853]"
+            />
 
-        <h3 className="mt-2 text-2xl font-black text-[#0A1134]">
+            <span className="text-3xl font-black text-[#07111F]">
+              {time}
+            </span>
 
-          {formattedDate}
+          </div>
 
-        </h3>
+          <div className="mt-7 h-px bg-slate-200" />
 
-        <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 flex items-center justify-between">
 
-          <span className="w-3 h-3 rounded-full bg-green-500 animate-pulse"></span>
+            <div className="flex items-center gap-3">
 
-          <span className="text-green-600 font-semibold">
+              <ShieldCheck
+                size={22}
+                className="text-green-500"
+              />
 
-            All Systems Operational
+              <div>
 
-          </span>
+                <p className="font-bold text-green-600">
+                  Systems Healthy
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  All services operational
+                </p>
+
+              </div>
+
+            </div>
+
+            <button
+              className="
+              w-12
+              h-12
+              rounded-2xl
+              bg-slate-100
+              hover:bg-[#00B853]
+              hover:text-white
+              transition
+              flex
+              items-center
+              justify-center
+              "
+            >
+              <Bell size={20} />
+            </button>
+
+          </div>
 
         </div>
 
       </div>
-
-    </div>
-
-  );
-
-}
+     </div>
+   );
+ }

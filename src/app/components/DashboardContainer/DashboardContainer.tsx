@@ -28,14 +28,14 @@ export default function DashboardContainer() {
   const [activeDashboard, setActiveDashboard] = useState("admin");
 
   return (
-    <div className="min-h-screen bg-[#F6F8FC]">
+    <div className="min-h-screen bg-[#F4F7FB]">
       <DashboardSidebar
         activeDashboard={activeDashboard}
         setActiveDashboard={setActiveDashboard}
       />
 
       <main className="min-h-screen lg:ml-[300px]">
-        <div className="px-3 py-5 sm:p-5 lg:p-8 xl:p-10">
+        <div className="px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10 xl:px-10">
           {activeDashboard === "admin" && (
             <AdminDashboard setActiveDashboard={setActiveDashboard} />
           )}

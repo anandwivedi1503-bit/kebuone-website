@@ -64,6 +64,7 @@ remarks: "",
 const handleSubmit = async (e:any)=>{
 
 e.preventDefault();
+if (saving) return;
 if (!formData.vehicleId.trim()) {
   alert("Vehicle ID is required.");
   return;
@@ -84,32 +85,34 @@ if (!formData.currentHub.trim()) {
   return;
 }
    setSaving(true);
-const res = await fetch("/api/vehicles",{
-    
 
-method:"POST",
+try {
 
-headers:{
-"Content-Type":"application/json",
+const res = await fetch("/api/vehicles", {
+
+method: "POST",
+
+headers: {
+"Content-Type": "application/json",
 },
 
-body:JSON.stringify(formData),
+body: JSON.stringify(formData),
 
 });
 
 const data = await res.json();
 
 if (!data.success) {
-  setSaving(false);
-  alert(data.errors?.join("\n") || "Unable to add vehicle.");
-  return;
+
+alert(data.errors?.join("\n") || "Unable to add vehicle.");
+
+return;
+
 }
 
-alert("Vehicle Added Successfully");
+ alert("Vehicle Added Successfully");
 
-window.location.reload();
-
-setFormData({
+ setFormData({
 
 vehicleId:"",
 
@@ -157,11 +160,23 @@ pollutionExpiry:"",
 
 remarks:"",
 
- });
- setSaving(false);
+});
 
- };
+}
+catch (error) {
 
+console.error(error);
+
+alert("Something went wrong while adding the vehicle.");
+
+}
+finally {
+
+setSaving(false);
+
+}
+
+};
 return(
 
 <PageContainer>

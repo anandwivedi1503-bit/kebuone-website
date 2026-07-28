@@ -15,8 +15,30 @@ export default function BookingDashboard(){
 const [bookings,setBookings]=useState<any[]>([]);
 const [loading,setLoading]=useState(true);
 const [search,setSearch]=useState("");
+const [statusFilter, setStatusFilter] = useState("ALL");
+const [paymentFilter, setPaymentFilter] = useState("ALL");
 const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");
+const [generatedPickupOTP, setGeneratedPickupOTP] =
+useState<Record<string, string>>({});
+const [otpModalOpen, setOtpModalOpen] = useState(false);
+
+const [selectedRideBooking, setSelectedRideBooking] =
+useState<any>(null);
+
+const [enteredPickupOTP, setEnteredPickupOTP] =
+useState("");
+const [rideEndModalOpen, setRideEndModalOpen] =
+useState(false);
+
+const [selectedEndRideBooking, setSelectedEndRideBooking] =
+useState<any>(null);
+
+const [enteredRideEndOTP, setEnteredRideEndOTP] =
+useState("");
+
+const [enteredEndHub, setEnteredEndHub] =
+useState("");
 
 const fetchBookings=async()=>{
 
@@ -86,13 +108,71 @@ await fetchBookings();
 setProcessingId("");
  };
 
-const startRide = async (booking: any) => {
+ const generatePickupOTP = async (booking: any) => {
 
-  const pickupOTP = prompt(
-    "Enter Pickup OTP"
-  );
+  setProcessingId(booking._id);
 
-  if (!pickupOTP) return;
+  try {
+
+    const res = await fetch(
+      "/api/rides/generate-pickup-otp",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingId: booking.bookingId,
+        }),
+      }
+    );
+
+    const data = await res.json();
+
+    if (!data.success) {
+
+      alert(
+        data.message ||
+        "Unable to generate Pickup OTP."
+      );
+
+      setProcessingId("");
+
+      return;
+
+    }
+
+    setGeneratedPickupOTP((prev) => ({
+      ...prev,
+      [booking._id]: data.pickupOTP,
+    }));
+
+    alert("Pickup OTP generated successfully.");
+
+    await fetchBookings();
+
+  } catch {
+
+    alert("Something went wrong.");
+
+  }
+
+  setProcessingId("");
+
+};
+
+const startRide = async (
+  booking: any,
+  pickupOTP: string
+) => {
+
+  if (!pickupOTP) {
+
+    alert("Pickup OTP required.");
+
+    return;
+
+  }
 
   const confirmStart = confirm(
     "Start this ride?"
@@ -104,7 +184,7 @@ const startRide = async (booking: any) => {
   try {
 
     const res = await fetch(
-      "/api/ride/start",
+      "/api/rides/start",
       {
         method: "POST",
         headers: {
@@ -121,21 +201,34 @@ const startRide = async (booking: any) => {
 
     if (!data.success) {
 
-      alert(
-        data.message ||
-        "Unable to start ride."
-      );
+  alert(
+    data.message ||
+    "Unable to start ride."
+  );
 
-      setProcessingId("");
+  setProcessingId("");
 
-      return;
+  return;
 
-    }
+}
 
     alert("Ride started successfully.");
 
-    await fetchBookings();
-    setProcessingId("");
+setOtpModalOpen(false);
+
+setSelectedRideBooking(null);
+
+setEnteredPickupOTP("");
+
+await fetchBookings();
+
+setGeneratedPickupOTP((prev) => {
+  const updated = { ...prev };
+  delete updated[booking._id];
+  return updated;
+});
+
+setProcessingId("");
 
   } catch {
     setProcessingId("");
@@ -144,20 +237,27 @@ const startRide = async (booking: any) => {
 
 };
 
-const endRide = async (booking: any) => {
+const endRide = async (
+  booking: any,
+  rideEndOTP: string,
+  endHub: string
+) => {
 
-  const rideEndOTP = prompt(
-  "Enter Ride End OTP"
-);
+  if (!rideEndOTP) {
 
-  if (!rideEndOTP) return;
+    alert("Ride End OTP required.");
 
-  const endHub = prompt(
-    "Enter End Hub",
-    booking.startHub
-  );
+    return;
 
-  if (!endHub) return;
+  }
+
+  if (!endHub) {
+
+    alert("End Hub required.");
+
+    return;
+
+  }
 
   const confirmEnd = confirm(
     "Complete this ride?"
@@ -169,7 +269,7 @@ const endRide = async (booking: any) => {
   try {
 
     const res = await fetch(
-      "/api/ride/end",
+      "/api/rides/end",
       {
         method: "POST",
         headers: {
@@ -198,6 +298,14 @@ const endRide = async (booking: any) => {
 
     alert("Ride completed successfully.");
 
+setRideEndModalOpen(false);
+
+setSelectedEndRideBooking(null);
+
+setEnteredRideEndOTP("");
+
+setEnteredEndHub("");
+
 await fetchBookings();
 
 setProcessingId("");
@@ -212,17 +320,34 @@ setProcessingId("");
 };
 
 const filteredBookings = bookings.filter((booking) => {
+
   const keyword = search.toLowerCase();
 
-  return (
+  const matchesSearch =
+
     booking.bookingId?.toLowerCase().includes(keyword) ||
+
     booking.userName?.toLowerCase().includes(keyword) ||
+
     booking.userPhone?.toLowerCase().includes(keyword) ||
+
     booking.vehicleId?.toLowerCase().includes(keyword) ||
-    booking.startHub?.toLowerCase().includes(keyword) ||
-    booking.rideStatus?.toLowerCase().includes(keyword) ||
-booking.paymentStatus?.toLowerCase().includes(keyword)
-  );
+
+    booking.startHub?.toLowerCase().includes(keyword);
+
+  const matchesStatus =
+statusFilter === "ALL" ||
+booking.rideStatus === statusFilter;
+
+const matchesPayment =
+paymentFilter === "ALL" ||
+booking.paymentStatus === paymentFilter;
+
+return (
+matchesSearch &&
+matchesStatus &&
+matchesPayment
+);
 });
 
 const totalBookings=bookings.length;
@@ -255,6 +380,30 @@ const totalRevenue = bookings
       sum + Number(booking.receivedAmount || 0),
     0
   );
+
+  const todaysBookings = bookings.filter((booking) => {
+
+if (!booking.createdAt) return false;
+
+const today = new Date();
+
+const bookingDate = new Date(booking.createdAt);
+
+return bookingDate.toDateString() === today.toDateString();
+
+}).length;
+
+const readyForPickup = bookings.filter(
+(booking)=>booking.rideStatus==="Ready For Pickup"
+).length;
+
+const pendingPayments = bookings.filter(
+(booking)=>booking.paymentStatus==="Pending"
+).length;
+
+const partialPayments = bookings.filter(
+(booking)=>booking.paymentStatus==="Partial"
+).length;
 
 return(
 
@@ -309,12 +458,111 @@ subtitle="Bookings"
 icon="❌"
 color="red"
 />
+
+<KPICard
+title="Today's Bookings"
+value={todaysBookings}
+subtitle="Created Today"
+icon="📅"
+color="blue"
+/>
+
+<KPICard
+title="Ready For Pickup"
+value={readyForPickup}
+subtitle="Waiting"
+icon="🛵"
+color="yellow"
+/>
+
+<KPICard
+title="Pending Payments"
+value={pendingPayments}
+subtitle="Awaiting"
+icon="💰"
+color="red"
+/>
+
+<KPICard
+title="Partial Payments"
+value={partialPayments}
+subtitle="Advance Paid"
+icon="🟣"
+color="pink"
+/>
 </KPIGrid>
 
  <SectionHeader
  title="Booking Records"
 subtitle="Search and manage all ride bookings."
 rightContent={
+
+<div className="flex gap-3">
+
+<button
+onClick={() => {
+
+const rows = filteredBookings.map((b:any)=>({
+
+BookingID:b.bookingId,
+
+Customer:b.userName,
+
+Phone:b.userPhone,
+
+Vehicle:b.vehicleId,
+
+RideStatus:b.rideStatus,
+
+PaymentStatus:b.paymentStatus,
+
+Amount:b.totalAmount,
+
+Received:b.receivedAmount,
+
+}));
+
+const csv=[
+
+Object.keys(rows[0]||{}).join(","),
+
+...rows.map(Object.values).map(r=>r.join(","))
+
+].join("\n");
+
+const blob=new Blob([csv],{
+type:"text/csv"
+});
+
+const url=URL.createObjectURL(blob);
+
+const a=document.createElement("a");
+
+a.href=url;
+
+a.download="Bookings.csv";
+
+a.click();
+
+URL.revokeObjectURL(url);
+
+}}
+
+className="
+rounded-xl
+bg-green-600
+px-5
+py-3
+font-bold
+text-white
+hover:bg-green-700
+"
+>
+
+Export CSV
+
+</button>
+
 <button
 onClick={fetchBookings}
 className="
@@ -330,10 +578,15 @@ hover:scale-105
 transition
 "
 >
+
 🔄 Refresh
+
 </button>
-}
-/>
+
+</div>
+
+ }
+ />
 
 <div className="mb-8">
 
@@ -361,6 +614,93 @@ focus:ring-pink-200
 "
 
 />
+
+</div>
+
+<div className="mb-8 flex flex-wrap gap-3">
+
+{[
+"ALL",
+"Booked",
+"Payment Pending",
+"Ready For Pickup",
+"In Ride",
+"Completed",
+"Cancelled",
+].map((status)=>(
+
+<button
+
+key={status}
+
+onClick={()=>setStatusFilter(status)}
+
+className={`
+
+rounded-xl
+px-5
+py-2
+font-semibold
+transition
+
+${
+statusFilter===status
+
+? "bg-[#FF165E] text-white"
+
+: "bg-gray-100 hover:bg-pink-100"
+
+}
+
+`}
+
+>
+
+{status}
+
+</button>
+
+))}
+
+</div>
+
+<div className="mb-8 flex flex-wrap gap-3">
+
+{[
+"ALL",
+"Pending",
+"Partial",
+"Paid",
+].map((status)=>(
+
+<button
+
+key={status}
+
+onClick={()=>setPaymentFilter(status)}
+
+className={`
+rounded-xl
+px-5
+py-2
+font-semibold
+transition
+
+${
+paymentFilter===status
+? "bg-green-600 text-white"
+: "bg-gray-100 hover:bg-green-100"
+}
+
+`}
+
+>
+
+{status}
+
+</button>
+
+))}
 
 </div>
 
@@ -782,9 +1122,59 @@ disabled:cursor-not-allowed
 
 {booking.rideStatus === "Ready For Pickup" && (
 
+<>
+{!(booking.pickupOTP || generatedPickupOTP[booking._id]) ? (
+
 <button
-disabled={processingId === booking._id}
-onClick={() => startRide(booking)}
+disabled={processingId===booking._id}
+onClick={()=>generatePickupOTP(booking)}
+className="
+rounded-lg
+bg-blue-600
+px-3
+py-2
+text-white
+font-semibold
+disabled:opacity-50
+disabled:cursor-not-allowed
+"
+>
+
+{processingId===booking._id
+? "Generating..."
+: "Generate Pickup OTP"}
+
+</button>
+
+) : (
+
+<>
+
+<div className="rounded-lg bg-yellow-100 p-2 text-center border">
+
+<div className="text-xs text-gray-600">
+Pickup OTP
+</div>
+
+<div className="text-2xl font-bold tracking-widest">
+
+{booking.pickupOTP || generatedPickupOTP[booking._id]}
+
+</div>
+
+</div>
+
+<button
+disabled={processingId===booking._id}
+onClick={() => {
+
+setSelectedRideBooking(booking);
+
+setEnteredPickupOTP("");
+
+setOtpModalOpen(true);
+
+}}
 className="
 rounded-lg
 bg-green-600
@@ -796,8 +1186,18 @@ disabled:opacity-50
 disabled:cursor-not-allowed
 "
 >
-{processingId === booking._id ? "Starting..." : "Start Ride"}
+
+{processingId===booking._id
+? "Starting..."
+: "Start Ride"}
+
 </button>
+
+</>
+
+)}
+
+</>
 
 )}
 
@@ -805,7 +1205,19 @@ disabled:cursor-not-allowed
 
 <button
 disabled={processingId === booking._id}
-onClick={() => endRide(booking)}
+onClick={() => {
+
+setSelectedEndRideBooking(booking);
+
+setEnteredRideEndOTP("");
+
+setEnteredEndHub(
+booking.startHub || ""
+);
+
+setRideEndModalOpen(true);
+
+}}
 className="
 rounded-lg
 bg-orange-600
@@ -873,12 +1285,47 @@ View
 Booking Details
 </h2>
 
+<div className="flex gap-3">
+
 <button
-onClick={() => setSelectedBooking(null)}
-className="rounded-xl bg-red-600 px-4 py-2 font-bold text-white"
+
+onClick={()=>window.print()}
+
+className="
+rounded-xl
+bg-blue-600
+px-4
+py-2
+font-bold
+text-white
+"
+
 >
-Close
+
+Print
+
 </button>
+
+<button
+
+onClick={()=>setSelectedBooking(null)}
+
+className="
+rounded-xl
+bg-red-600
+px-4
+py-2
+font-bold
+text-white
+"
+
+>
+
+Close
+
+</button>
+
+</div>
 
 </div>
 
@@ -943,22 +1390,112 @@ Payment Details
 </h3>
 
 <p>
-  <b>Total :</b> ₹
-  {(
-    Number(selectedBooking.totalAmount || 0) +
-    Number(selectedBooking.securityDeposit || 0)
-  ).toLocaleString("en-IN")}
+<b>Rental Amount :</b>
+₹{Number(selectedBooking.totalAmount || 0).toLocaleString("en-IN")}
 </p>
 
-<p><b>Received :</b> ₹{selectedBooking.receivedAmount}</p>
+<p>
+<b>Security Deposit :</b>
+₹{Number(selectedBooking.securityDeposit || 0).toLocaleString("en-IN")}
+</p>
 
-<p><b>Pending :</b> ₹{selectedBooking.pendingAmount}</p>
+<p>
+<b>Total Payable :</b>
+₹{(
+Number(selectedBooking.totalAmount || 0)+
+Number(selectedBooking.securityDeposit || 0)
+).toLocaleString("en-IN")}
+</p>
 
-<p><b>Deposit :</b> ₹{selectedBooking.securityDeposit}</p>
+<hr className="my-3"/>
 
-<p><b>Payment Status :</b> {selectedBooking.paymentStatus}</p>
+<p>
+<b>Received :</b>
+₹{Number(selectedBooking.receivedAmount || 0).toLocaleString("en-IN")}
+</p>
 
-<p><b>Payment Mode :</b> {selectedBooking.paymentMode}</p>
+<p>
+<b>Pending :</b>
+₹{Number(selectedBooking.pendingAmount || 0).toLocaleString("en-IN")}
+</p>
+
+<p>
+<b>Payment Due :</b>
+₹{Number(selectedBooking.paymentDue || 0).toLocaleString("en-IN")}
+</p>
+
+<hr className="my-3"/>
+
+<div>
+
+<b>Payment Status :</b>{" "}
+
+{selectedBooking.paymentStatus === "Paid" && (
+<StatusBadge status="active" label="Paid" />
+)}
+
+{selectedBooking.paymentStatus === "Partial" && (
+<StatusBadge status="warning" label="Partial" />
+)}
+
+{selectedBooking.paymentStatus === "Pending" && (
+<StatusBadge status="inactive" label="Pending" />
+)}
+
+</div>
+
+<p>
+<b>Payment Mode :</b>
+{selectedBooking.paymentMode}
+</p>
+
+<p>
+<b>Payment Date :</b>
+{
+selectedBooking.paymentDate
+? new Date(selectedBooking.paymentDate).toLocaleString("en-IN")
+: "-"
+}
+</p>
+
+<p>
+<b>Payment Verified :</b>
+{
+selectedBooking.paymentVerifiedAt
+? new Date(selectedBooking.paymentVerifiedAt).toLocaleString("en-IN")
+: "-"
+}
+</p>
+
+<hr className="my-3"/>
+
+<p>
+<b>Invoice Generated :</b>{" "}
+{selectedBooking.invoiceGenerated ? "Yes" : "No"}
+</p>
+
+<p>
+<b>Invoice Number :</b>{" "}
+{selectedBooking.invoiceNumber || "-"}
+</p>
+
+<hr className="my-3"/>
+
+<p>
+<b>Razorpay Order ID :</b>
+<br />
+<span className="text-sm break-all">
+{selectedBooking.razorpayOrderId || "-"}
+</span>
+</p>
+
+<p className="mt-3">
+<b>Razorpay Payment ID :</b>
+<br />
+<span className="text-sm break-all">
+{selectedBooking.razorpayPaymentId || "-"}
+</span>
+</p>
 
 </div>
 
@@ -1066,6 +1603,43 @@ new Date(selectedBooking.actualRideEnd).toLocaleString("en-IN")
 
 </p>
 
+<hr className="my-4"/>
+
+<p>
+<b>Total Ride Minutes :</b>{" "}
+{selectedBooking.totalRideMinutes || 0}
+</p>
+
+<p>
+<b>Ride Distance :</b>{" "}
+{selectedBooking.rideDistanceKm || 0} km
+</p>
+
+<p>
+<b>Start Odometer :</b>{" "}
+{selectedBooking.startOdometer || 0}
+</p>
+
+<p>
+<b>End Odometer :</b>{" "}
+{selectedBooking.endOdometer || 0}
+</p>
+
+<p>
+<b>Pickup City :</b>{" "}
+{selectedBooking.pickupCity || "-"}
+</p>
+
+<p>
+<b>Current Hub :</b>{" "}
+{selectedBooking.currentHub || "-"}
+</p>
+
+<p>
+<b>End Hub :</b>{" "}
+{selectedBooking.endHub || "-"}
+</p>
+
 {selectedBooking.actualRideStart &&
  selectedBooking.actualRideEnd && (() => {
 
@@ -1084,6 +1658,8 @@ const days = Math.floor(totalMinutes / 1440);
 const hours = Math.floor((totalMinutes % 1440) / 60);
 
 const minutes = totalMinutes % 60;
+
+
 
 return (
 
@@ -1118,6 +1694,225 @@ Booking Remarks
 </p>
 
 </div>
+
+</div>
+
+</div>
+
+</div>
+
+)}
+
+{otpModalOpen && selectedRideBooking && (
+
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+
+<div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+
+<h2 className="text-2xl font-bold text-[#0A1134]">
+Verify Pickup OTP
+</h2>
+
+<p className="mt-2 text-gray-500">
+Booking :
+<strong>
+{" "}
+{selectedRideBooking.bookingId}
+</strong>
+</p>
+
+<div className="mt-6">
+
+<label className="mb-2 block font-semibold">
+Pickup OTP
+</label>
+
+<input
+type="text"
+value={enteredPickupOTP}
+onChange={(e)=>
+setEnteredPickupOTP(e.target.value)
+}
+placeholder="Enter Pickup OTP"
+className="
+w-full
+rounded-xl
+border
+p-4
+outline-none
+focus:ring-2
+focus:ring-pink-400
+"
+/>
+
+</div>
+
+<div className="mt-8 flex justify-end gap-3">
+
+<button
+onClick={()=>{
+setOtpModalOpen(false);
+setSelectedRideBooking(null);
+}}
+className="
+rounded-xl
+bg-gray-200
+px-5
+py-3
+font-semibold
+"
+>
+
+Cancel
+
+</button>
+
+<button
+onClick={async()=>{
+
+setOtpModalOpen(false);
+
+await startRide(
+selectedRideBooking,
+enteredPickupOTP
+);
+
+}}
+className="
+rounded-xl
+bg-green-600
+px-5
+py-3
+font-semibold
+text-white
+"
+>
+
+Verify & Start Ride
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+)}
+
+{rideEndModalOpen && selectedEndRideBooking && (
+
+<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+
+<div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl">
+
+<h2 className="text-2xl font-bold text-[#0A1134]">
+Complete Ride
+</h2>
+
+<p className="mt-2 text-gray-500">
+Booking :
+<strong>
+{" "}
+{selectedEndRideBooking.bookingId}
+</strong>
+</p>
+
+<div className="mt-6">
+
+<label className="mb-2 block font-semibold">
+Ride End OTP
+</label>
+
+<input
+type="text"
+value={enteredRideEndOTP}
+onChange={(e)=>
+setEnteredRideEndOTP(e.target.value)
+}
+placeholder="Enter Ride End OTP"
+className="
+w-full
+rounded-xl
+border
+p-4
+outline-none
+focus:ring-2
+focus:ring-pink-400
+"
+/>
+
+</div>
+
+<div className="mt-6">
+
+<label className="mb-2 block font-semibold">
+End Hub
+</label>
+
+<input
+type="text"
+value={enteredEndHub}
+onChange={(e)=>
+setEnteredEndHub(e.target.value)
+}
+placeholder="Enter End Hub"
+className="
+w-full
+rounded-xl
+border
+p-4
+outline-none
+focus:ring-2
+focus:ring-pink-400
+"
+/>
+
+</div>
+
+<div className="mt-8 flex justify-end gap-3">
+
+<button
+onClick={()=>{
+setRideEndModalOpen(false);
+setSelectedEndRideBooking(null);
+}}
+className="
+rounded-xl
+bg-gray-200
+px-5
+py-3
+font-semibold
+"
+>
+Cancel
+</button>
+
+<button
+onClick={async()=>{
+
+setRideEndModalOpen(false);
+
+await endRide(
+selectedEndRideBooking,
+enteredRideEndOTP,
+enteredEndHub
+);
+
+}}
+className="
+rounded-xl
+bg-orange-600
+px-5
+py-3
+font-semibold
+text-white
+"
+>
+
+Verify & Complete Ride
+
+</button>
 
 </div>
 
