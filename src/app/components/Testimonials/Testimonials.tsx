@@ -1,140 +1,414 @@
-export default function Testimonials() {
-  const testimonials = [
-    {
-      quote:
-        "Kebu One is building a complete ecosystem for mobility, deliveries and trusted home services. The platform experience is smooth and reliable.",
-      role: "Early Customer",
-      city: "Delhi",
-    },
-    {
-      quote:
-        "The EV mobility vision and multi-service approach make Kebu One a promising platform for modern cities and sustainable transportation.",
-      role: "Business Partner",
-      city: "Lucknow",
-    },
-    {
-      quote:
-        "Having rides, deliveries, househelp and EV rentals under one platform creates a convenient experience for customers and partners alike.",
-      role: "Service Partner",
-      city: "Kanpur",
-    },
-  ];
+"use client";
 
+import { motion } from "framer-motion";
+import {
+  Leaf,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
+
+export default function TrustSection() {
   return (
-    <section className="relative py-20 md:py-24 lg:py-32 bg-gradient-to-b from-[#FFF4F8] via-white to-[#FFF4F8] overflow-hidden">
-      {/* Background Glow */}
-<div className="absolute top-0 left-0 w-[500px] h-[500px] bg-pink-500/10 blur-[180px] rounded-full"></div>
+    <section
+      className="
+      relative
+      overflow-hidden
+      py-28
+      bg-[radial-gradient(circle_at_top,#FFFFFF_0%,#F9FFF9_55%,#FFF9FC_100%)]
+      "
+    >
+      {/* Ambient Glow */}
 
-<div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#EEB440]/10 blur-[180px] rounded-full"></div>
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="absolute left-0 top-0 h-80 w-80 rounded-full bg-[#18B368]/10 blur-[130px]" />
 
-        <div className="text-center mb-16">
+      <div className="absolute right-0 bottom-0 h-80 w-80 rounded-full bg-[#EC2A8C]/10 blur-[130px]" />
 
-  <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white border border-pink-100 shadow-lg">
+      <div className="relative mx-auto max-w-[1480px] px-6 lg:px-10">
 
-  <span className="text-pink-600 uppercase tracking-[4px] font-bold">
-    CUSTOMER STORIES
-  </span>
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center"
+        >
 
-  <span className="w-2 h-2 rounded-full bg-pink-500"></span>
+          <div
+            className="
+            inline-flex
+            items-center
+            gap-3
+            rounded-full
+            border
+            border-[#18B368]/20
+            bg-white/80
+            backdrop-blur-xl
+            px-6
+            py-3
+            shadow-lg
+            "
+          >
 
-  <span className="text-gray-600">
-    Trusted Across Cities
-  </span>
+            <span className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
+
+            <span className="font-semibold tracking-wide text-gray-700">
+              OUR COMMITMENT
+            </span>
+
+          </div>
+
+          <h2
+            className="
+            mt-8
+            text-5xl
+            md:text-6xl
+            lg:text-7xl
+            font-black
+            leading-[0.98]
+            tracking-[-0.04em]
+            text-gray-900
+            "
+          >
+
+            Built On Trust.
+
+            <br />
+
+            <span
+              className="
+              bg-gradient-to-r
+              from-[#18B368]
+              to-[#EC2A8C]
+              bg-clip-text
+              text-transparent
+              "
+            >
+
+              Designed For Tomorrow.
+
+            </span>
+
+          </h2>
+
+          <p
+            className="
+            mx-auto
+            mt-8
+            max-w-3xl
+            text-xl
+            leading-9
+            text-gray-500
+            "
+          >
+
+            EVUDDY is committed to creating a smarter,
+            cleaner and more reliable mobility ecosystem
+            for riders, partners and businesses.
+
+          </p>
+
+        </motion.div>
+
+        {/* ======================================================
+    TRUST CARDS
+====================================================== */}
+
+<div className="mt-20 grid gap-8 lg:grid-cols-3">
+
+  {/* Card 1 */}
+
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ duration: .6 }}
+    whileHover={{ y: -8 }}
+    className="
+    group
+    relative
+    overflow-hidden
+    rounded-[34px]
+    border
+    border-white/70
+    bg-white/85
+    backdrop-blur-2xl
+    p-8
+    shadow-[0_25px_60px_rgba(15,23,42,0.08)]
+    "
+  >
+
+    <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-[#18B368]/10 blur-[80px]" />
+
+    <div className="relative z-10">
+
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#18B368] to-[#13A75A] text-white">
+        <Leaf size={30} />
+      </div>
+
+      <h3 className="mt-8 text-2xl font-bold text-gray-900">
+        Electric First
+      </h3>
+
+      <p className="mt-5 leading-8 text-gray-500">
+        Every decision at EVUDDY is guided by our vision of
+        cleaner transportation and a smarter future powered
+        by electric mobility.
+      </p>
+
+      <div className="mt-8 h-px bg-gray-100" />
+
+      <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-[#18B368]">
+        EVUDDY Vision
+      </p>
+
+    </div>
+
+  </motion.div>
+
+  {/* Card 2 */}
+
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: .15 }}
+    whileHover={{ y: -8 }}
+    className="
+    group
+    relative
+    overflow-hidden
+    rounded-[34px]
+    border
+    border-white/70
+    bg-white/85
+    backdrop-blur-2xl
+    p-8
+    shadow-[0_25px_60px_rgba(15,23,42,0.08)]
+    "
+  >
+
+    <div className="absolute -left-12 bottom-0 h-40 w-40 rounded-full bg-[#EC2A8C]/10 blur-[80px]" />
+
+    <div className="relative z-10">
+
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#18B368] to-[#13A75A] text-white">
+        <ShieldCheck size={30} />
+      </div>
+
+      <h3 className="mt-8 text-2xl font-bold text-gray-900">
+        Trust & Transparency
+      </h3>
+
+      <p className="mt-5 leading-8 text-gray-500">
+        From fair pricing to dependable service,
+        we're building EVUDDY around transparency,
+        reliability and long-term trust.
+      </p>
+
+      <div className="mt-8 h-px bg-gray-100" />
+
+      <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-[#18B368]">
+        Our Commitment
+      </p>
+
+    </div>
+
+  </motion.div>
+
+  {/* Card 3 */}
+
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: .3 }}
+    whileHover={{ y: -8 }}
+    className="
+    group
+    relative
+    overflow-hidden
+    rounded-[34px]
+    border
+    border-white/70
+    bg-white/85
+    backdrop-blur-2xl
+    p-8
+    shadow-[0_25px_60px_rgba(15,23,42,0.08)]
+    "
+  >
+
+    <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-[#18B368]/10 blur-[80px]" />
+
+    <div className="relative z-10">
+
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#18B368] to-[#13A75A] text-white">
+        <Sparkles size={30} />
+      </div>
+
+      <h3 className="mt-8 text-2xl font-bold text-gray-900">
+        Built For Tomorrow
+      </h3>
+
+      <p className="mt-5 leading-8 text-gray-500">
+        EVUDDY is continuously evolving to deliver
+        innovative mobility experiences for riders,
+        partners and businesses.
+      </p>
+
+      <div className="mt-8 h-px bg-gray-100" />
+
+      <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-[#18B368]">
+        Future Ready
+      </p>
+
+    </div>
+
+  </motion.div>
 
 </div>
 
-  <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mt-4 mb-6 text-[#0A1134] leading-[1] max-w-5xl mx-auto">
-    Trusted By People
-    <br />
-    Across Multiple Cities
-  </h2>
+{/* ======================================================
+    CLOSING QUOTE PANEL
+====================================================== */}
 
-  <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-    Real feedback from customers and partners who experience
-    the Kebu One ecosystem every day.
-  </p>
+<motion.div
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.8 }}
+  className="
+  relative
+  mt-20
+  overflow-hidden
+  rounded-[40px]
+  border
+  border-white/70
+  bg-white/85
+  backdrop-blur-2xl
+  shadow-[0_30px_80px_rgba(15,23,42,0.08)]
+  "
+>
 
-  <div className="flex justify-center mt-8 mb-12">
-  <div className="h-1 w-32 rounded-full bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]"></div>
-</div>
+  {/* Green Glow */}
 
-  <div className="flex flex-wrap justify-center gap-4 mt-10">
+  <div
+    className="
+    absolute
+    -left-20
+    top-0
+    h-56
+    w-56
+    rounded-full
+    bg-[#18B368]/10
+    blur-[120px]
+    "
+  />
 
-    <div className="px-5 py-3 rounded-full bg-white shadow-lg border border-pink-100 text-[#0A1134] font-semibold">
-      ⭐ 5-Star Experience
+  {/* Pink Glow */}
+
+  <div
+    className="
+    absolute
+    -right-20
+    bottom-0
+    h-56
+    w-56
+    rounded-full
+    bg-[#EC2A8C]/10
+    blur-[120px]
+    "
+  />
+
+  <div
+    className="
+    relative
+    z-10
+    mx-auto
+    max-w-4xl
+    px-8
+    py-16
+    text-center
+    "
+  >
+
+    <div
+      className="
+      mb-8
+      inline-flex
+      h-16
+      w-16
+      items-center
+      justify-center
+      rounded-full
+      bg-gradient-to-br
+      from-[#18B368]
+      to-[#13A75A]
+      text-white
+      shadow-[0_15px_40px_rgba(24,179,104,0.30)]
+      "
+    >
+
+      <Sparkles size={30} />
+
     </div>
 
-    <div className="px-5 py-3 rounded-full bg-white shadow-lg border border-pink-100 text-[#0A1134] font-semibold">
-      ✓ Trusted Partners
-    </div>
+    <blockquote
+      className="
+      text-3xl
+      md:text-4xl
+      lg:text-5xl
+      font-black
+      leading-tight
+      tracking-[-0.03em]
+      text-gray-900
+      "
+    >
+      "The future of mobility isn't just electric.
+      It's intelligent, sustainable,
+      and built around people."
+    </blockquote>
 
-    <div className="px-5 py-3 rounded-full bg-white shadow-lg border border-pink-100 text-[#0A1134] font-semibold">
-      🛡 Verified Services
+    <p
+      className="
+      mt-8
+      text-lg
+      leading-8
+      text-gray-500
+      "
+    >
+      At EVUDDY, we're building a platform that connects
+      technology, sustainability and everyday convenience
+      into one seamless mobility experience.
+    </p>
+
+    <div
+      className="
+      mt-10
+      inline-flex
+      items-center
+      gap-3
+      rounded-full
+      border
+      border-[#18B368]/20
+      bg-[#18B368]/5
+      px-6
+      py-3
+      "
+    >
+
+      <span className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
+
+      <span className="font-semibold tracking-wide text-gray-700">
+        — TEAM EVUDDY
+      </span>
+
     </div>
 
   </div>
 
-</div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
-
-          {testimonials.map((item, index) => (
-            <div
-              key={index}
-              className="group relative overflow-hidden h-full flex flex-col rounded-[24px] lg:rounded-[32px] bg-white/95 backdrop-blur-xl border border-pink-100 p-6 lg:p-8 shadow-xl hover:-translate-y-3 hover:border-pink-300 hover:shadow-[0_35px_90px_rgba(255,22,94,0.18)] transition-all duration-500">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]"></div>
-             <div className="absolute top-6 right-6 text-7xl text-pink-100 font-bold">
-      "
-    </div>
-             
-
-              <p className="text-gray-700 text-base sm:text-lg leading-8 mb-8 flex-1 italic">
-                "{item.quote}"
-              </p>
-
-              <div className="flex items-center gap-4">
-
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E] flex items-center justify-center text-white font-bold text-lg sm:text-xl shadow-lg">
-                  {item.role.charAt(0)}
-                </div>
-
-                <div>
-                  <h4 className="font-bold text-gray-900">
-                    {item.role}
-                  </h4>
-
-                  <p className="text-gray-500">
-  {item.city}
-</p>
-
-</div>
-
-              </div>
-
-            </div>
-          ))}
-
-        </div>
-                </div>
-
-        {/* Bottom CTA */}
-
-        <div className="text-center mt-12 md:mt-20">
-
-         <p className="text-[#0A1134]/70 text-lg mb-6 max-w-3xl mx-auto">
-  Building India's next trusted urban services ecosystem —
-  one customer, one city and one service at a time.
-</p>
-
-          <a
-  href="/register"
-  className="inline-block bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E] px-10 py-4 rounded-2xl text-white font-semibold shadow-xl hover:scale-105 transition-all duration-300"
->
-  Join Kebu One Today →
-</a>
+</motion.div>
 
       </div>
+
     </section>
   );
 }

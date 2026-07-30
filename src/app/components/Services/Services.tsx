@@ -1,142 +1,263 @@
 "use client";
 
 import { motion } from "framer-motion";
+import {
+  BatteryCharging,
+  Gauge,
+  MapPinned,
+  Zap,
+} from "lucide-react";
 import ServiceCard from "../ServiceCard/ServiceCard";
 
 export default function Services() {
   return (
     <section
       id="services"
-      className="relative py-32 bg-gradient-to-b from-[#FFF7FA] via-white to-[#FFF7FA] overflow-hidden"
+      className="
+relative
+overflow-hidden
+py-32
+bg-[radial-gradient(circle_at_top,#F8FFF9_0%,#FFFFFF_45%,#FFF8FC_100%)]
+"
     >
       {/* Background Glow */}
-      <div className="absolute -top-20 right-0 w-[450px] h-[450px] rounded-full bg-[#FF165E]/10 blur-[180px]"></div>
-      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] rounded-full bg-[#EEB440]/10 blur-[180px]"></div>
+      <div
+className="
+absolute
+-top-28
+-right-24
+h-[420px]
+w-[420px]
+rounded-full
+bg-[#18B368]/10
+blur-[130px]
+"
+/>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+<div
+className="
+absolute
+-bottom-24
+-left-20
+h-[360px]
+w-[360px]
+rounded-full
+bg-[#EC2A8C]/8
+blur-[120px]
+"
+/>
 
-        <div className="text-center mb-16">
+      <div className="max-w-[1480px] mx-auto px-6 lg:px-10 relative z-10">
 
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="inline-flex flex-wrap justify-center items-center gap-3 px-6 py-3 rounded-full bg-pink-50 border border-pink-100 mb-8"
-          >
-            <span className="text-pink-600 font-bold tracking-[3px]">
-              KEBU ONE ECOSYSTEM
-            </span>
+        <div className="text-center mb-20">
 
-            <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+  {/* Badge */}
 
-            <span className="text-pink-600 font-semibold">
-              4 Core Services
-            </span>
-          </motion.div>
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.6 }}
+    viewport={{ once: true }}
+    className="
+    inline-flex
+    items-center
+    gap-3
+    rounded-full
+    border
+    border-[#18B368]/20
+    bg-white/90
+    backdrop-blur-md
+    px-6
+    py-2.5
+    shadow-[0_12px_40px_rgba(0,0,0,0.08)]
+    "
+  >
 
-          <motion.h2
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            viewport={{ once: true }}
-            className="text-4xl sm:text-5xl lg:text-7xl font-black text-[#0A1134] leading-[0.95] mb-6"
-          >
-            Urban Services
-            <br />
-            Reimagined
-          </motion.h2>
+    <span className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
 
-          <p className="text-[#555] max-w-3xl mx-auto text-base sm:text-lg lg:text-xl leading-relaxed">
-            Kebu One combines Bike On Rent, mobility, deliveries and
-            trusted home services into one seamless technology-driven
-            ecosystem.
-          </p>
+    <span className="text-sm font-semibold text-gray-700">
+      EVUDDY ELECTRIC SCOOTERS
+    </span>
 
-          <div className="flex justify-center mt-8 mb-12">
-            <div className="h-1 w-32 rounded-full bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]"></div>
-          </div>
+  </motion.div>
 
-          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-4 mt-10">
+  {/* Heading */}
 
-            <div className="px-5 py-3 rounded-full bg-white shadow-lg border border-pink-100 font-bold text-[#0A1134]">
-  ✓ Verified Partners
+  <motion.h2
+    initial={{ opacity: 0, y: 40 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.7 }}
+    viewport={{ once: true }}
+    className="
+    mt-8
+    text-5xl
+    md:text-6xl
+    lg:text-7xl
+    font-black
+    tracking-[-0.04em]
+    leading-[0.95]
+    "
+  >
+
+    <span
+      className="
+      bg-gradient-to-r
+      from-[#16C45B]
+      via-[#18B368]
+      via-[#4ADE80]
+      to-[#EC2A8C]
+      bg-clip-text
+      text-transparent
+      "
+    >
+      Built for
+    </span>
+
+    <br />
+
+    <span
+      className="
+      bg-gradient-to-r
+      from-[#16C45B]
+      via-[#18B368]
+      via-[#4ADE80]
+      to-[#EC2A8C]
+      bg-clip-text
+      text-transparent
+      "
+    >
+      Everyday Mobility
+    </span>
+
+  </motion.h2>
+
+  {/* Subtitle */}
+
+  <motion.p
+    initial={{ opacity: 0 }}
+    whileInView={{ opacity: 1 }}
+    transition={{ delay: .2 }}
+    viewport={{ once: true }}
+    className="
+    mt-8
+    mx-auto
+    max-w-3xl
+    text-xl
+    leading-9
+    text-gray-500
+    "
+  >
+    Discover EVUDDY's smart electric scooter designed for
+    effortless city commuting, sustainable travel, and a
+    seamless riding experience.
+  </motion.p>
+
 </div>
 
-<div className="px-5 py-3 rounded-full bg-white shadow-lg border border-pink-100 font-semibold text-[#0A1134]">
-  ⚡ Technology Driven
+       <motion.div
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.8 }}
+  viewport={{ once: true }}
+  className="mt-20"
+>
+  <ServiceCard
+    icon="⚡"
+    badge="Electric Scooter"
+    stat="01"
+    tags={[
+      "120 KM Range",
+      "Fast Charging",
+      "GPS Enabled",
+      "Zero Emissions",
+    ]}
+    title="EVUDDY Electric Scooter"
+    color="from-[#18B368] to-[#16C45B]"
+    description="Designed for effortless daily commuting with smart technology, long battery life, and a premium riding experience."
+    image="/trans.png"
+    link="/register"
+  />
+</motion.div>
+<div className="my-20 h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.7 }}
+  viewport={{ once: true }}
+  className="mt-16"
+>
+  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+
+   <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+
+  <BatteryCharging
+    size={36}
+    className="mx-auto mb-4 text-[#18B368]"
+  />
+
+  <h3 className="text-5xl font-black text-[#18B368]">
+    120
+  </h3>
+
+  <p className="mt-2 text-lg font-semibold text-gray-800">
+    KM Range
+  </p>
+
 </div>
 
-<div className="px-5 py-3 rounded-full bg-white shadow-lg border border-pink-100 font-semibold text-[#0A1134]">
-  📍 Real-Time Tracking
+    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+
+  <Gauge
+    size={36}
+    className="mx-auto mb-4 text-[#EC2A8C]"
+  />
+
+  <h3 className="text-5xl font-black text-[#EC2A8C]">
+    45
+  </h3>
+
+  <p className="mt-2 text-lg font-semibold text-gray-800">
+    km/h Speed
+  </p>
+
 </div>
 
-          </div>
+    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
 
-        </div>
+  <Zap
+    size={36}
+    className="mx-auto mb-4 text-[#18B368]"
+  />
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8 mt-16 lg:mt-20"
-        >
+  <h3 className="text-5xl font-black text-[#18B368]">
+    4h
+  </h3>
 
-          <div>
-            <ServiceCard
-icon="⚡"
-badge="Bike Rental"
-stat="01"
-tags={["Hourly","Daily","Electric"]}
-              title="Kebu Bike On Rent"
-              color="from-[#EEB440] to-[#FF9A3C]"
-              description="Affordable electric bike rentals for everyday commuting."
-              image="/biker-rent.jpeg"
-              link="/register"
-            />
-          </div>
+  <p className="mt-2 text-lg font-semibold text-gray-800">
+    Charging
+  </p>
 
-          <div>
-            <ServiceCard
-icon="🏠"
-badge="Househelp"
-stat="02"
-tags={["Verified","Cleaning","Cooking"]}
-              title="Kebu Househelp"
-              color="from-[#FF165E] to-[#FF5E8A]"
-              description="Verified maids, cooks, caregivers and trusted household professionals."
-              image="/househelp.jpeg"
-            />
-          </div>
+</div>
 
-          <div>
-            <ServiceCard
-icon="🚕"
-badge="Ride"
-stat="03"
-tags={["24/7","GPS","Safe Ride"]}
-              title="Kebu Ride"
-              color="from-[#0A1134] to-[#243B7A]"
-              description="Reliable ride booking with professional drivers and transparent pricing."
-              image="/cab.jpeg"
-            />
-          </div>
+    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
 
-          <div> 
-            <ServiceCard
-icon="📦"
-badge="Delivery"
-stat="04"
-tags={["Express","Business","Same Day"]}
-              title="Kebu Delivery"
-              color="from-[#FF5556] to-[#FF165E]"
-              description="Fast and secure parcel delivery across your city."
-              image="/delivery.jpeg"
-            />
-          </div>
+  <MapPinned
+    size={36}
+    className="mx-auto mb-4 text-[#EC2A8C]"
+  />
 
-        </motion.div>
+  <h3 className="text-5xl font-black text-[#EC2A8C]">
+    GPS
+  </h3>
+
+  <p className="mt-2 text-lg font-semibold text-gray-800">
+    Smart Tracking
+  </p>
+
+</div>
+
+  </div>
+</motion.div>
 
       </div>
     </section>

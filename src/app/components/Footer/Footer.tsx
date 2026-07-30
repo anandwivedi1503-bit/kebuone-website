@@ -1,357 +1,754 @@
 "use client";
+
+import Link from "next/link";
 import Image from "next/image";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  MapPin,
+  Mail,
+  Phone,
+  Clock,
+} from "lucide-react";
+
+import {
+  FaInstagram,
+  FaLinkedinIn,
+  FaYoutube,
+  FaFacebookF,
+} from "react-icons/fa";
 
 export default function Footer() {
   return (
     <footer
-  id="footer"
-  className="bg-[#0A1134] text-white relative overflow-hidden"
->
+      id="footer"
+      className="relative overflow-hidden bg-[#07111F] text-white"
+    >
+      {/* =======================================
+          Background Effects
+      ======================================= */}
 
-      {/* Top Gradient Line */}
-      <div className="h-1 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]" />
+      <div className="absolute inset-0">
 
-      {/* Background Effects */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-[#FF165E]/10 blur-3xl rounded-full" />
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-[#EEB440]/10 blur-3xl rounded-full" />
+        <div className="absolute -top-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#18B368]/15 blur-[140px]" />
 
-      <div className="max-w-7xl mx-auto px-6 py-14 md:py-24 relative z-10">
+        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-pink-500/10 blur-[140px]" />
 
-       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+      </div>
 
-  <h1 className="hidden lg:block text-[260px] font-black text-white/[0.03] select-none">
-    KEBU
-  </h1>
+      {/* Watermark */}
 
-</div> 
+      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center overflow-hidden lg:flex">
 
-        {/* CTA SECTION */}
-        <div className="mb-16 rounded-3xl bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E] p-[1px]">
+        <h1 className="select-none text-[220px] font-black tracking-[25px] text-white/[0.025]">
 
-          <div className="bg-[#08102D] rounded-3xl p-8 md:p-12 flex flex-col lg:flex-row items-center justify-between gap-6">
+          EVUDDY
 
-            <div>
-              <h2 className="text-3xl sm:text-5xl lg:text-7xl font-black leading-[0.95]">
-  The Future Of
-  <br />
-  Urban Services
-  <br />
-  Starts Here.
-</h2>
+        </h1>
 
-<p className="text-xl text-gray-300 mt-6 max-w-2xl">
-  Mobility, delivery, home services and EV solutions —
-  powered by one unified technology platform.
-</p>
+      </div>
 
-<div className="flex flex-wrap gap-4 mt-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-6">
 
-  <div className="px-5 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:border-[#EEB440] transition-all duration-300">
-    ⚡ Bike On Rent
-  </div>
+        {/* =======================================
+              Premium CTA
+        ======================================= */}
 
-  <div className="px-5 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:border-[#FF5556] transition-all duration-300">
-     🏠 Househelp
-  </div>
+        <motion.div
+          initial={{ opacity: 0, y: 60 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: .8 }}
+          viewport={{ once: true }}
+          className="py-24"
+        >
 
-  <div className="px-5 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:border-[#FF165E] transition-all duration-300">
-    📦 Delivery
-  </div>
-
-  <div className="px-5 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/10 hover:border-[#EEB440] transition-all duration-300">
-    🚕 Cabs
-  </div>
-
-
-               <div className="flex flex-wrap gap-6 mt-6 text-sm">
-
-    <div>
-      <span className="text-[#EEB440] font-bold text-xl">4+</span>
-      <p className="text-gray-400">Core Services</p>
-    </div>
-
-    <div>
-      <span className="text-[#FF5556] font-bold text-xl">24/7</span>
-      <p className="text-gray-400">Support</p>
-    </div>
-
-    <div>
-      <span className="text-[#FF165E] font-bold text-xl">100%</span>
-      <p className="text-gray-400">Verified Partners</p>
-    </div>
-
-  </div>
-
-</div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <button
-  onClick={() =>
-    alert(
-      "🚀 Kebu One App will be launching soon. Stay tuned for updates."
-    )
-  }
-  className="border border-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-[#0A1134] transition duration-300 inline-block w-[260px]"
->
-  Download App
-</button>
-
-              <a
-  href="/partners"
-  className="border border-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-[#0A1134] transition duration-300 inline-block"
->
-  Partner With Us →
-</a>
-            </div>
-
-          </div>
-        </div>
-
-        
-
-        {/* MAIN GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mt-16">
-
-          {/* COMPANY */} 
-        <div className="lg:col-span-2 bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-pink-500/40 hover:shadow-[0_20px_60px_rgba(255,22,94,0.15)] transition-all duration-500">
-            <Image
-  src="/kebu_1-removebg-preview.png"
-  alt="Kebu One"
-  width={160}
-  height={70}
-  className="mb-6"
-/>
-
-            <h3 className="text-2xl font-bold mb-4 leading-tight">
-              Building India's Next
-              <br />
-              Urban Services Super App
-            </h3>
-
-            <p className="text-gray-300 leading-relaxed mb-6">
-              Kebu One is a technology-enabled multi-service platform
-              bringing together mobility, delivery, househelp,
-              hyperlocal services and EV rentals into one powerful ecosystem.
-            </p>
-
-            <div className="mt-6 p-4 rounded-2xl bg-white/5 border border-white/10">
-
-  <p className="text-sm text-gray-400 mb-3">
-    Download Kebu One App
-  </p>
-
-  <div className="flex flex-col sm:flex-row gap-3">
-
-    <button
-  onClick={() =>
-    alert(
-      "🚀 Kebu One App will be launching soon. Stay tuned for updates."
-    )
-  }
-  className="px-4 py-2 rounded-xl bg-white text-black text-sm font-semibold"
->
-  Google Play
-</button>
-
-    <button
-  onClick={() =>
-    alert(
-      "🚀 Kebu One App will be launching soon. Stay tuned for updates."
-    )
-  }
-  className="px-4 py-2 rounded-xl bg-white text-black text-sm font-semibold"
->
-  App Store
-</button>
-
-  </div>
-
-</div>
-
-            </div>
-
-          {/* SERVICES */}
-          <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-pink-500/40 hover:shadow-[0_20px_50px_rgba(255,22,94,0.12)] transition-all duration-500">
-
-            <h4 className="font-bold text-xl mb-5 text-[#EEB440]">
-              Services
-            </h4>
-
-            <ul className="space-y-3 text-gray-300">
-
-              <li>
-  <a href="/register" className="hover:text-[#EEB440] transition duration-300">
-    Kebu Bike On Rent
-  </a>
-</li>
-
-              <li className="hover:text-[#EEB440] transition duration-300 cursor-pointer">
-                Kebu Househelp
-              </li>
-
-              <li className="hover:text-[#EEB440] transition duration-300 cursor-pointer">
-                Kebu Delivery
-              </li>
-
-              <li className="hover:text-[#EEB440] transition duration-300 cursor-pointer">
-                Kebu Ride
-              </li>
-
-              <li className="hover:text-[#EEB440] transition duration-300 cursor-pointer">
-                Corporate Mobility
-              </li>
-
-              <li className="hover:text-[#EEB440] transition duration-300 cursor-pointer">
-                Hyperlocal Services
-              </li>
-
-            </ul>
-
-          </div>
-
-          {/* COMPANY LINKS */}
-          <div className="bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-pink-500/40 hover:shadow-[0_20px_50px_rgba(255,22,94,0.12)] transition-all duration-500">
-
-            <h4 className="font-bold text-xl mb-5 text-[#FF5556]">
-              Company
-            </h4>
-
-            <ul className="space-y-3 text-gray-300">
-
-              <li>
-  <a href="/about" className="hover:text-[#EEB440] transition duration-300">
-    About Us
-  </a>
-</li>
-
-<li>
-  <a href="/vision" className="hover:text-[#EEB440] transition duration-300">
-    Our Vision
-  </a>
-</li>
-
-<li>
-  <a href="/careers" className="hover:text-[#EEB440] transition duration-300">
-    Careers
-  </a>
-</li>
-
-<li>
-  <a href="/partners" className="hover:text-[#EEB440] transition duration-300">
-    Become Partner
-  </a>
-</li>
-
-<li>
-  <a href="/contact" className="hover:text-[#EEB440] transition duration-300">
-    Contact Us
-  </a>
-</li>
-
-            </ul>
-
-          </div>
-
-          {/* CONTACT */}
           <div
-  id="contact"
-  className="bg-white/5 backdrop-blur-md rounded-3xl p-6 border border-white/10 hover:border-pink-500/40 hover:shadow-[0_20px_50px_rgba(255,22,94,0.12)] transition-all duration-500"
+            className="
+            rounded-[40px]
+            border
+            border-white/10
+            bg-white/5
+            backdrop-blur-2xl
+            p-10
+            md:p-16
+            "
+          >
+
+            <div className="mx-auto max-w-4xl text-center">
+
+              <span
+                className="
+                inline-flex
+                rounded-full
+                border
+                border-[#18B368]/30
+                bg-[#18B368]/10
+                px-5
+                py-2
+                text-sm
+                font-semibold
+                uppercase
+                tracking-[0.25em]
+                text-[#6EE7A8]
+                "
+              >
+                Ready For The Future?
+              </span>
+
+              <h2
+                className="
+                mt-8
+                text-5xl
+                font-black
+                leading-tight
+                md:text-7xl
+                "
+              >
+                Move Smarter.
+                <br />
+                Move Electric.
+              </h2>
+
+              <p
+                className="
+                mx-auto
+                mt-8
+                max-w-2xl
+                text-lg
+                leading-8
+                text-gray-300
+                "
+              >
+                Join EVUDDY and experience India's next generation
+                electric mobility ecosystem designed for riders,
+                businesses and everyday commuters.
+              </p>
+
+              <div
+                className="
+                mt-12
+                flex
+                flex-col
+                justify-center
+                gap-5
+                sm:flex-row
+                "
+              >
+
+                <Link
+                  href="/register"
+                  className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-full
+                  bg-[#18B368]
+                  px-8
+                  py-4
+                  text-lg
+                  font-semibold
+                  transition
+                  hover:scale-105
+                  hover:bg-[#14A35E]
+                  "
+                >
+                  Book an EV
+
+                  <ArrowRight className="ml-3 h-5 w-5" />
+                </Link>
+
+                <Link
+                  href="/partners"
+                  className="
+                  inline-flex
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-white/15
+                  bg-white/5
+                  px-8
+                  py-4
+                  text-lg
+                  font-semibold
+                  backdrop-blur-xl
+                  transition
+                  hover:border-[#18B368]
+                  hover:bg-[#18B368]/10
+                  "
+                >
+                  Become a Partner
+                </Link>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </motion.div>
+
+        {/* =======================================
+      Footer Main Grid
+======================================= */}
+
+<div className="grid gap-16 pb-20 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+
+  {/* ================= Brand ================= */}
+
+  <div>
+
+    <Link
+      href="/"
+      className="inline-flex items-center"
+    >
+      <Image
+        src="/evuddy-logo.png"
+        alt="EVUDDY"
+        width={170}
+        height={60}
+        priority
+      />
+    </Link>
+
+    <h3 className="mt-8 text-3xl font-bold leading-tight">
+
+      Smarter.
+      <br />
+      Cleaner.
+      <br />
+      Connected.
+
+    </h3>
+
+    <p
+      className="
+      mt-6
+      max-w-md
+      text-gray-400
+      leading-8
+      "
+    >
+      EVUDDY is building a smarter electric mobility
+      ecosystem that connects riders, businesses and
+      cities through sustainable transportation,
+      intelligent technology and trusted partners.
+    </p>
+
+    <div className="mt-10 space-y-5">
+
+      <div className="flex items-start gap-4">
+
+        <MapPin
+          className="
+          mt-1
+          h-5
+          w-5
+          text-[#18B368]
+          "
+        />
+
+        <p className="text-gray-300">
+
+          Goa, India
+
+        </p>
+
+      </div>
+
+      <div className="flex items-center gap-4">
+
+        <Mail
+          className="
+          h-5
+          w-5
+          text-[#18B368]
+          "
+        />
+
+        <a
+          href="mailto:info@kebuone.com"
+          className="transition hover:text-white"
+        >
+          info@kebuone.com
+        </a>
+
+      </div>
+
+      <div className="flex items-center gap-4">
+
+        <Phone
+          className="
+          h-5
+          w-5
+          text-[#18B368]
+          "
+        />
+
+        <a
+          href="tel:+919151074229"
+          className="transition hover:text-white"
+        >
+          +91 9151074229
+        </a>
+
+      </div>
+
+      <div className="flex items-center gap-4">
+
+        <Clock
+          className="
+          h-5
+          w-5
+          text-[#18B368]
+          "
+        />
+
+        <span>
+
+          24×7 Customer Support
+
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  {/* ================= Company ================= */}
+
+  <div>
+
+    <h4
+      className="
+      mb-8
+      text-xl
+      font-bold
+      "
+    >
+      Company
+    </h4>
+
+    <div className="space-y-5">
+
+      <Link
+        href="/about"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        About Us
+      </Link>
+
+      <Link
+        href="/vision"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Our Vision
+      </Link>
+
+      <Link
+        href="/partners"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Become a Partner
+      </Link>
+
+      <Link
+        href="/careers"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Careers
+      </Link>
+
+      <Link
+        href="/contact"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Contact
+      </Link>
+
+    </div>
+
+  </div>
+
+  {/* ================= Services ================= */}
+
+  <div>
+
+    <h4
+      className="
+      mb-8
+      text-xl
+      font-bold
+      "
+    >
+      Services
+    </h4>
+
+    <div className="space-y-5">
+
+      <Link
+        href="/services"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        EV Taxi
+      </Link>
+
+      <Link
+        href="/services"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        EV Bike Rental
+      </Link>
+
+      <Link
+        href="/services"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        EV Delivery
+      </Link>
+
+      <Link
+        href="/services"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        House Help
+      </Link>
+
+      <Link
+        href="/services"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Corporate Mobility
+      </Link>
+
+    </div>
+
+    </div>
+
+  {/* ================= Follow Us ================= */}
+
+  <div>
+
+    <h4
+      className="
+      mb-8
+      text-xl
+      font-bold
+      "
+    >
+      Follow Us
+    </h4>
+
+    <div className="space-y-4">
+
+      <motion.a
+        whileHover={{ x: 8 }}
+        href="https://www.instagram.com/kebuone/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+        flex
+        items-center
+        gap-3
+        text-gray-400
+        transition
+        hover:text-white
+        "
+      >
+        <FaInstagram size={20} />
+        Instagram
+      </motion.a>
+
+      <motion.a
+        whileHover={{ x: 8 }}
+        href="https://www.linkedin.com/company/kebu-one/"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+        flex
+        items-center
+        gap-3
+        text-gray-400
+        transition
+        hover:text-white
+        "
+      >
+        <FaLinkedinIn size={20} />
+        LinkedIn
+      </motion.a>
+
+      <motion.a
+        whileHover={{ x: 8 }}
+        href="https://youtube.com/@kebuone?si=ertP6rbNyGOyjRW9"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="
+        flex
+        items-center
+        gap-3
+        text-gray-400
+        transition
+        hover:text-white
+        "
+      >
+        <FaYoutube size={20} />
+        YouTube
+      </motion.a>
+
+      <motion.a
+        whileHover={{ x: 8 }}
+        href="#"
+        className="
+        flex
+        items-center
+        gap-3
+        text-gray-400
+        transition
+        hover:text-white
+        "
+      >
+        <FaFacebookF size={20} />
+        Facebook
+      </motion.a>
+
+    </div>
+
+    </div>
+
+</div>
+
+{/* =======================================
+      Divider
+======================================= */}
+
+<div className="border-t border-white/10" />
+
+{/* =======================================
+      Bottom Footer
+======================================= */}
+
+<div
+  className="
+  flex
+  flex-col
+  gap-10
+  py-10
+  lg:flex-row
+  lg:items-center
+  lg:justify-between
+  "
 >
-            <h4 className="font-bold text-xl mb-5 text-[#FF165E]">
-              Contact
-            </h4>
 
-            <div className="space-y-5 text-gray-300">
+  {/* Left */}
 
-  <div className="flex items-center gap-3">
-    <span className="text-xl">📧</span>
-    <span>info@kebuone.com</span>
+  <div>
+
+    <p className="text-gray-400">
+
+      © {new Date().getFullYear()} EVUDDY Technologies Pvt. Ltd.
+
+    </p>
+
+    <p className="mt-2 text-sm text-gray-500">
+
+      Driving India's Future Of Electric Mobility.
+
+    </p>
+
   </div>
 
-  <div className="flex items-center gap-3">
-    <span className="text-xl">📞</span>
-    <span>+91 9151074229</span>
+  {/* Center */}
+
+  <div
+    className="
+    flex
+    flex-wrap
+    gap-8
+    text-sm
+    "
+  >
+
+    <Link
+      href="/privacy-policy"
+      className="
+      text-gray-400
+      transition
+      hover:text-white
+      "
+    >
+      Privacy Policy
+    </Link>
+
+    <Link
+      href="/terms-and-conditions"
+      className="
+      text-gray-400
+      transition
+      hover:text-white
+      "
+    >
+      Terms & Conditions
+    </Link>
+
+    <Link
+      href="/refund-policy"
+      className="
+      text-gray-400
+      transition
+      hover:text-white
+      "
+    >
+      Refund Policy
+    </Link>
+
+    <Link
+      href="/contact"
+      className="
+      text-gray-400
+      transition
+      hover:text-white
+      "
+    >
+      Contact
+    </Link>
+
   </div>
 
-  <div className="flex items-center gap-3">
-    <span className="text-xl">⏰</span>
-    <span>24/7 Customer Support</span>
-  </div>
+  {/* Right */}
 
-</div>
-</div>
-        </div>
+  <div
+    className="
+    flex
+    items-center
+    gap-5
+    "
+  >
 
-        
-
-            
-
-        {/* SOCIAL LINKS */}
-
-<div className="mt-14">
-
-  <h4 className="text-center text-gray-400 uppercase tracking-widest text-sm mb-6">
-    Follow Kebu One
-  </h4>
-
-  <div className="flex flex-wrap justify-center gap-4">
-
-    <a
+    <motion.a
+      whileHover={{
+        y: -5,
+        scale: 1.08,
+      }}
+      whileTap={{
+        scale: .95,
+      }}
       href="https://www.instagram.com/kebuone/"
       target="_blank"
       rel="noopener noreferrer"
-      className="px-5 py-3 rounded-full font-medium bg-white/5 border border-white/10 hover:border-pink-500 hover:bg-pink-500/10 transition-all duration-300"
+      className="
+      flex
+      h-12
+      w-12
+      items-center
+      justify-center
+      rounded-full
+      border
+      border-white/10
+      bg-white/5
+      transition-all
+      duration-300
+      hover:border-[#18B368]
+      hover:bg-[#18B368]/15
+      "
     >
-      Instagram
-    </a>
+      <FaInstagram size={20} />
+    </motion.a>
 
-    <a
+    <motion.a
+      whileHover={{
+        y: -5,
+        scale: 1.08,
+      }}
+      whileTap={{
+        scale: .95,
+      }}
       href="https://www.linkedin.com/company/kebu-one/"
       target="_blank"
       rel="noopener noreferrer"
-      className="px-5 py-3 rounded-full bg-white/5 border border-white/10 hover:border-blue-500 hover:bg-blue-500/10 transition-all duration-300"
+      className="
+      flex
+      h-12
+      w-12
+      items-center
+      justify-center
+      rounded-full
+      border
+      border-white/10
+      bg-white/5
+      transition-all
+      duration-300
+      hover:border-[#18B368]
+      hover:bg-[#18B368]/15
+      "
     >
-      LinkedIn
-    </a>
+      <FaLinkedinIn size={20} />
+    </motion.a>
 
-    <a
-  href="https://youtube.com/@kebuone?si=ertP6rbNyGOyjRW9"
-  target="_blank"
-  rel="noopener noreferrer"
-  className="px-5 py-3 rounded-full bg-white/5 border border-white/10 hover:border-red-500 hover:bg-red-500/10 transition-all duration-300"
->
-  YouTube
-</a>
+    <motion.a
+      whileHover={{
+        y: -5,
+        scale: 1.08,
+      }}
+      whileTap={{
+        scale: .95,
+      }}
+      href="https://youtube.com/@kebuone?si=ertP6rbNyGOyjRW9"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="
+      flex
+      h-12
+      w-12
+      items-center
+      justify-center
+      rounded-full
+      border
+      border-white/10
+      bg-white/5
+      transition-all
+      duration-300
+      hover:border-[#18B368]
+      hover:bg-[#18B368]/15
+      "
+    >
+      <FaYoutube size={20} />
+    </motion.a>
+
+    <motion.a
+      whileHover={{
+        y: -5,
+        scale: 1.08,
+      }}
+      whileTap={{
+        scale: .95,
+      }}
+      href="#"
+      className="
+      flex
+      h-12
+      w-12
+      items-center
+      justify-center
+      rounded-full
+      border
+      border-white/10
+      bg-white/5
+      transition-all
+      duration-300
+      hover:border-[#18B368]
+      hover:bg-[#18B368]/15
+      "
+    >
+      <FaFacebookF size={20} />
+    </motion.a>
 
   </div>
 
 </div>
 
-  
-
-      {/* BOTTOM BAR */}
-     <div className="border-t border-white/10 mt-16 pt-8">
-
-  <div className="flex flex-col lg:flex-row justify-between items-center gap-4">
-
-    <p className="text-gray-400 text-sm">
-      © 2026 Kebu One. All Rights Reserved.
-    </p>
-
-    <p className="text-gray-500 text-sm">
-      Powered by Shubrax Mobility Ltd.
-    </p>
-
-    <p className="text-gray-500 text-sm">
-      India's Next Urban Services Ecosystem
-    </p>
-
   </div>
 
-</div>
-</div>
-
-    </footer>
-  );
+</footer>
+);
 }

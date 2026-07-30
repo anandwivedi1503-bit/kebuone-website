@@ -1,131 +1,330 @@
-export default function Stats() {
-  const stats = [
-    {
-      number: "25K+",
-      title: "Customers Served",
-      icon: "👥",
-    },
-    {
-      number: "1500+",
-      title: "Service Partners",
-      icon: "🤝",
-    },
-    {
-      number: "100+",
-      title: "EV Vehicles",
-      icon: "⚡",
-    },
-    {
-      number: "24/7",
-      title: "Customer Support",
-      icon: "🎧",
-    },
-  ];
+"use client";
 
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  ArrowRight,
+  Briefcase,
+  Wallet,
+  Smartphone,
+  Users,
+} from "lucide-react";
+
+export default function PartnerSection() {
   return (
-    <section className="relative py-20 md:py-24 lg:py-32 bg-gradient-to-br from-[#081126] via-[#0A1134] to-[#151F45] overflow-hidden text-white">
-      {/* Background Glow */}
+    <section
+      id="partner"
+      className="
+      relative
+      overflow-hidden
+      py-28
+      bg-[radial-gradient(circle_at_top,#F8FFF9_0%,#FFFFFF_45%,#FFF8FC_100%)]
+      "
+    >
 
-<div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]"></div>
-<div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-[#EEB440]/10 blur-[180px] rounded-full"></div>
-      <div className="max-w-7xl mx-auto px-6">
+      {/* Green Glow */}
 
-        <div className="text-center mb-16">
+      <div
+        className="
+        absolute
+        -left-32
+        top-20
+        h-[420px]
+        w-[420px]
+        rounded-full
+        bg-[#18B368]/10
+        blur-[150px]
+        "
+      />
 
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/5 border border-pink-500/20 backdrop-blur-md">
+      {/* Pink Glow */}
 
-  <span className="text-pink-400 uppercase tracking-[4px] font-bold">
-    OUR IMPACT
-  </span>
+      <div
+        className="
+        absolute
+        -right-32
+        bottom-10
+        h-[420px]
+        w-[420px]
+        rounded-full
+        bg-[#EC2A8C]/10
+        blur-[150px]
+        "
+      />
 
-  <span className="w-2 h-2 bg-pink-500 rounded-full"></span>
+      <div className="relative mx-auto max-w-[1480px] px-6 lg:px-10">
 
-  <span className="text-white/80">
-    Growing Every Day
-  </span>
+        {/* Badge */}
 
-</div>
+        <motion.div
+          initial={{ opacity: 0, y: 25 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="flex justify-center"
+        >
 
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mt-4 mb-6 leading-[1.05] max-w-5xl mx-auto">
-  Numbers That Reflect
-  <br />
-  Our Growth Journey
-</h2>
+          <div
+            className="
+            inline-flex
+            items-center
+            gap-3
+            rounded-full
+            border
+            border-[#18B368]/20
+            bg-white/80
+            backdrop-blur-xl
+            px-6
+            py-3
+            shadow-lg
+            "
+          >
 
-          <p className="text-gray-300 text-lg max-w-3xl mx-auto">
-            Building India's next multi-service ecosystem with
-            mobility, delivery and trusted home services.
-          </p>
+            <span className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
 
-          <div className="flex flex-wrap justify-center gap-4 mt-10">
+            <span className="font-semibold tracking-wide text-gray-700">
+              PARTNER WITH EVUDDY
+            </span>
 
-  <div className="px-5 py-3 rounded-full bg-white/10 border border-white/10">
-    ✓ Verified Partners
-  </div>
+          </div>
 
-  <div className="px-5 py-3 rounded-full bg-white/10 border border-white/10">
-    ✓ Operations First
-  </div>
+        </motion.div>
 
-  <div className="px-5 py-3 rounded-full bg-white/10 border border-white/10">
-    ✓ Trusted Ecosystem
-  </div>
+        {/* Heading */}
 
-  <div className="px-5 py-3 rounded-full bg-white/10 border border-white/10">
-    ✓ Built For Scale
-  </div>
+        <motion.h2
+          initial={{ opacity: 0, y: 35 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: .1 }}
+          className="
+          mt-8
+          text-center
+          text-5xl
+          md:text-6xl
+          lg:text-7xl
+          font-black
+          tracking-[-0.04em]
+          leading-[0.98]
+          text-gray-900
+          "
+        >
 
-</div>
+          Grow Together.
 
-        </div>
+          <br />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 lg:gap-8 mt-10">
-          {stats.map((item, index) => (
-            <div
-              key={index}
-              className="group relative overflow-hidden rounded-[24px] lg:rounded-[32px] bg-white/10 backdrop-blur-2xl border border-white/10 p-5 lg:p-7 text-center hover:-translate-y-3 hover:border-pink-500 hover:shadow-[0_30px_80px_rgba(255,22,94,0.20)] transition-all duration-500">
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-500 bg-gradient-to-br from-pink-500/10 via-transparent to-orange-500/10"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]"></div>
-              <div className="w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20 mx-auto mb-5 rounded-2xl lg:rounded-3xl bg-white/10 flex items-center justify-center text-3xl sm:text-4xl lg:text-5xl group-hover:scale-110 transition-all duration-500">
-  {item.icon}
-</div>
+          <span
+            className="
+            bg-gradient-to-r
+            from-[#18B368]
+            via-[#39D46B]
+            to-[#EC2A8C]
+            bg-clip-text
+            text-transparent
+            "
+          >
 
- <div className="text-xs uppercase tracking-[3px] text-pink-400 mb-3 font-semibold">
-  KEBU ONE
-</div>
+            Build The Future.
 
-              <h3 className="text-3xl sm:text-5xl lg:text-6xl font-black mb-3 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E] bg-clip-text text-transparent">
-                {item.number}
-              </h3>
+          </span>
 
-              <div>
-  <p className="text-white text-base sm:text-lg lg:text-xl font-semibold">
-    {item.title}
-  </p>
+        </motion.h2>
 
-  <div className="mt-4 w-12 h-[2px] bg-gradient-to-r from-[#EEB440] to-[#FF165E] mx-auto"></div>
-</div>
-            </div>
-          ))}
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: .2 }}
+          className="
+          mx-auto
+          mt-8
+          max-w-3xl
+          text-center
+          text-xl
+          leading-9
+          text-gray-500
+          "
+        >
 
-        </div>
-        <div className="text-center mt-20">
+          Join EVUDDY as a business partner and become
+          part of a technology-driven electric mobility
+          ecosystem designed for long-term growth.
 
-  <p className="text-gray-300 text-lg mb-6">
-    Powering the future of mobility, delivery and home services
-through one unified technology platform.
-  </p>
+        </motion.p>
 
-  <a
-  href="/register"
-  className="inline-block bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E] px-10 py-4 rounded-2xl font-semibold shadow-xl hover:scale-105 transition-all duration-300"
+        {/* ======================================================
+    PARTNER PANEL
+====================================================== */}
+
+<motion.div
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  viewport={{ once: true }}
+  transition={{ duration: 0.8 }}
+  className="
+  relative
+  mt-20
+  overflow-hidden
+  rounded-[42px]
+  border
+  border-white/70
+  bg-white/85
+  backdrop-blur-2xl
+  shadow-[0_30px_80px_rgba(15,23,42,0.08)]
+  "
 >
-  Get Started with Kebu One →
-</a>
 
-</div>
+  {/* Ambient Glow */}
+
+  <div className="absolute -left-20 top-0 h-64 w-64 rounded-full bg-[#18B368]/10 blur-[120px]" />
+  <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-[#EC2A8C]/10 blur-[120px]" />
+
+  <div className="relative z-10 p-8 lg:p-12">
+
+    <div className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+
+      {/* Left Side */}
+
+      <div>
+
+        <span className="inline-flex rounded-full bg-[#18B368]/10 px-4 py-2 text-sm font-semibold text-[#18B368]">
+          WHY PARTNER WITH US
+        </span>
+
+        <h3 className="mt-6 text-4xl font-black leading-tight text-gray-900 lg:text-5xl">
+          Build your business
+          <br />
+          with EVUDDY.
+        </h3>
+
+        <p className="mt-6 max-w-xl text-lg leading-8 text-gray-500">
+          Whether you're a fleet owner, service provider or entrepreneur,
+          EVUDDY provides the technology, support and ecosystem to help
+          you grow with confidence.
+        </p>
 
       </div>
+
+      {/* Right Side */}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+
+        {/* Benefit 1 */}
+
+        <div className="rounded-3xl border border-gray-100 bg-white/80 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+
+          <Wallet className="text-[#18B368]" size={34} />
+
+          <h4 className="mt-5 text-xl font-bold text-gray-900">
+            Higher Earnings
+          </h4>
+
+          <p className="mt-3 text-gray-500 leading-7">
+            Unlock new revenue opportunities through our growing EV ecosystem.
+          </p>
+
+        </div>
+
+        {/* Benefit 2 */}
+
+        <div className="rounded-3xl border border-gray-100 bg-white/80 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+
+          <Smartphone className="text-[#18B368]" size={34} />
+
+          <h4 className="mt-5 text-xl font-bold text-gray-900">
+            Smart Technology
+          </h4>
+
+          <p className="mt-3 text-gray-500 leading-7">
+            Manage bookings, operations and growth from one platform.
+          </p>
+
+        </div>
+
+        {/* Benefit 3 */}
+
+        <div className="rounded-3xl border border-gray-100 bg-white/80 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+
+          <Briefcase className="text-[#18B368]" size={34} />
+
+          <h4 className="mt-5 text-xl font-bold text-gray-900">
+            Business Growth
+          </h4>
+
+          <p className="mt-3 text-gray-500 leading-7">
+            Expand alongside a modern mobility platform built for the future.
+          </p>
+
+        </div>
+
+        {/* Benefit 4 */}
+
+        <div className="rounded-3xl border border-gray-100 bg-white/80 p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
+
+          <Users className="text-[#18B368]" size={34} />
+
+          <h4 className="mt-5 text-xl font-bold text-gray-900">
+            Strong Community
+          </h4>
+
+          <p className="mt-3 text-gray-500 leading-7">
+            Collaborate with partners who share the vision of smarter mobility.
+          </p>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    {/* CTA */}
+
+    <div className="mt-12 flex flex-col items-center justify-between gap-6 rounded-[28px] border border-[#18B368]/15 bg-[#18B368]/5 p-6 md:flex-row">
+
+      <div>
+
+        <h4 className="text-2xl font-bold text-gray-900">
+          Ready to grow with EVUDDY?
+        </h4>
+
+        <p className="mt-2 text-gray-500">
+          Join our partner network and be part of the next generation of urban mobility.
+        </p>
+
+      </div>
+
+      <Link href="/partner">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
+          className="
+          inline-flex
+          items-center
+          gap-3
+          rounded-full
+          bg-gradient-to-r
+          from-[#18B368]
+          to-[#12A857]
+          px-8
+          py-4
+          font-semibold
+          text-white
+          shadow-[0_15px_40px_rgba(24,179,104,0.30)]
+          "
+        >
+          Become a Partner
+          <ArrowRight size={20} />
+        </motion.button>
+      </Link>
+
+    </div>
+
+  </div>
+
+</motion.div>
+
+      </div>
+
     </section>
   );
 }

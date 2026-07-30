@@ -4,214 +4,341 @@ import Image from "next/image";
 import Link from "next/link";
 
 import {
-Menu,
-X,
-Download,
-Handshake,
-ArrowRight
+  Menu,
+  X,
+  ChevronRight,
+  Building2,
 } from "lucide-react";
 
 import {
-motion,
-AnimatePresence
+  motion,
+  AnimatePresence,
 } from "framer-motion";
 
 import {
-useState,
-useEffect
+  useState,
+  useEffect,
 } from "react";
 
+const navLinks = [
+  {
+    title: "Home",
+    href: "/",
+  },
+  {
+    title: "Fleet",
+    href: "#fleet",
+  },
+  {
+    title: "Corporate",
+    href: "#corporate",
+  },
+  {
+    title: "How It Works",
+    href: "#how-it-works",
+  },
+  {
+    title: "About",
+    href: "/about",
+  },
+  {
+    title: "Contact",
+    href: "/contact",
+  },
+];
+
 export default function Navbar() {
-  const [menuOpen, setMenuOpen] =
-useState(false);
 
-const [isScrolled, setIsScrolled] =
-useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-useEffect(() => {
+  const [isScrolled, setIsScrolled] = useState(false);
 
-const handleScroll = () => {
+  useEffect(() => {
 
-setIsScrolled(
-window.scrollY > 25
-);
+    const handleScroll = () => {
 
-};
+      setIsScrolled(window.scrollY > 30);
 
-window.addEventListener(
-"scroll",
-handleScroll
-);
+    };
 
-return () =>
-window.removeEventListener(
-"scroll",
-handleScroll
-);
+    window.addEventListener("scroll", handleScroll);
 
-}, []);
+    return () =>
+      window.removeEventListener(
+        "scroll",
+        handleScroll
+      );
 
-useEffect(() => {
+  }, []);
 
-if(menuOpen){
+  useEffect(() => {
 
-document.body.classList.add("menu-open");
+    if (menuOpen) {
 
-}else{
+      document.body.style.overflow = "hidden";
 
-document.body.classList.remove("menu-open");
+    } else {
 
-}
+      document.body.style.overflow = "auto";
 
-return ()=>{
+    }
 
-document.body.classList.remove("menu-open");
+    return () => {
 
-};
+      document.body.style.overflow = "auto";
 
-}, [menuOpen]);
+    };
 
-const handleDownloadApp = () => {
-  alert(
-    "🚀 Kebu One App will be launching soon. Stay tuned for updates."
-  );
-};
+  }, [menuOpen]);
+
+  
 
   return (
-    <nav
-  className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-    isScrolled
-      ? "bg-black/90 backdrop-blur-2xl shadow-lg border-b border-gray-800"
-      : "bg-gradient-to-r from-[#D6006E] via-[#FF165E] to-[#FF5556]"
-  }`}
->
-  <div className="max-w-[1500px] mx-auto h-16 px-8 xl:px-12 flex items-center justify-between gap-8">
 
-    {/* Logo */}
-
-   <Link
-  href="/"
-  className="flex items-center flex-shrink-0 mr-4"
->
-      <Image
-  src="/kebu_1-removebg-preview.png"
-  alt="Kebu One"
-  width={80}
-  height={28}
-  priority
-  className="h-7 w-auto object-contain"
-  style={{
-    objectPosition: "left center"
-  }}
-/>
-    </Link>
-
-    {/* Desktop Menu */}
-
-    <div className="hidden lg:flex flex-1 justify-center items-center gap-12">
-
-      <Link
-        href="/"
-        className={`font-semibold transition ${
-          isScrolled ? "text-white" : "text-white"
-        }`}
-      >
-        Home
-      </Link>
-
-      <a
-        href="#services"
-        className={`font-semibold transition ${
-          isScrolled ? "text-white" : "text-white"
-        }`}
-      >
-        Services
-      </a>
-
-      <Link
-        href="/about"
-        className={`font-semibold transition ${
-          isScrolled ? "text-white" : "text-white"
-        }`}
-      >
-        About
-      </Link>
-
-      <Link
-        href="/careers"
-        className={`font-semibold transition ${
-          isScrolled ? "text-white" : "text-white"
-        }`}
-      >
-        Careers
-      </Link>
-
-      <Link
-        href="/contact"
-        className={`font-semibold transition ${
-          isScrolled ? "text-white" : "text-white"
-        }`}
-      >
-        Contact
-      </Link>
-
-    </div>
-
-    {/* Right Buttons */}
-
-    <div className="hidden lg:flex flex-shrink-0 items-center gap-4">
-
-      <Link href="/partners">
-
-        <button
-className={`px-5 py-3 rounded-xl font-semibold transition border ${
+<nav
+className={`
+fixed
+top-4
+left-1/2
+-translate-x-1/2
+z-[999]
+w-[calc(100%-24px)]
+max-w-[1620px]
+transition-all
+duration-500
+${
 isScrolled
-? "border-[#FF165E] text-[#FF165E] hover:bg-[#FF165E] hover:text-white"
-: "border-white text-white hover:bg-[#C80064] hover:border-[#C80064]"
-}`}
+? "bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_25px_70px_rgba(15,23,42,0.10)] rounded-2xl"
+: "bg-white/55 backdrop-blur-2xl border border-white/40 rounded-2xl"
+}
+`}
 >
 
-Become Partner
+{/* Premium Bottom Highlight */}
+
+<div
+className="
+absolute
+bottom-0
+left-1/2
+-translate-x-1/2
+h-px
+w-[92%]
+bg-gradient-to-r
+from-transparent
+via-[#18B368]/20
+to-[#EC2A8C]/20
+"
+/>
+
+<div
+className="
+relative
+max-w-[1650px]
+mx-auto
+flex
+items-center
+justify-between
+h-[82px]
+px-8
+xl:px-12
+"
+>
+{/* ================= Logo ================= */}
+
+<Link
+href="/"
+className="
+flex
+items-center
+shrink-0
+w-[290px]
+group
+"
+>
+
+<Image
+src="/Evuddy-logo-dark-E.png"
+alt="EVUDDY"
+width={320}
+height={95}
+priority
+className="
+h-14
+w-auto
+object-contain
+transition-transform
+duration-500
+group-hover:scale-[1.02]
+"
+/>
+
+</Link>
+
+
+{/* ================= Desktop Menu ================= */}
+
+<div className="hidden lg:flex flex-1 items-center justify-center gap-12">
+
+{navLinks.map((item)=>(
+
+<Link
+key={item.title}
+href={item.href}
+className="
+group
+relative
+py-2
+text-[16px]
+font-medium
+tracking-[0.01em]
+text-gray-800
+transition-colors
+duration-300
+hover:text-[#18B368]
+"
+>
+
+{item.title}
+
+<span
+className="
+absolute
+left-0
+-bottom-[6px]
+h-[2px]
+w-0
+rounded-full
+bg-gradient-to-r
+from-[#18B368]
+via-[#45D98C]
+to-[#EC2A8C]
+transition-all
+duration-300
+group-hover:w-full
+"
+/>
+
+</Link>
+
+))}
+
+</div>
+
+{/* ================= Right Buttons ================= */}
+
+<div className="hidden lg:flex items-center gap-5 shrink-0 ml-10">
+
+<Link href="/partners">
+
+<button
+className="
+flex
+items-center
+gap-2
+rounded-full
+border
+border-[#18B368]/20
+bg-white/80
+backdrop-blur-xl
+px-7
+py-3
+font-semibold
+text-[#18B368]
+shadow-[0_12px_35px_rgba(15,23,42,0.08)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:border-[#18B368]
+hover:bg-[#18B368]
+hover:text-white
+hover:shadow-[0_18px_45px_rgba(24,179,104,0.25)]
+"
+>
+
+<Building2 size={18} />
+
+Become a Partner
 
 </button>
 
-      </Link>
+</Link>
 
-      <button
-        onClick={handleDownloadApp}
-        className="bg-[#EEB440] text-[#0A1134] px-5 py-3 rounded-xl font-semibold hover:scale-105 transition"
-      >
-        Download App
-      </button>
 
-      <Link href="/register">
-
-        <button className="bg-[#FF165E] text-white px-6 py-3 rounded-xl font-semibold flex items-center gap-2 hover:scale-105 transition">
-
-          Book Now
-
-          <ArrowRight size={18} />
-
-        </button>
-
-      </Link>
-
-    </div>
-
-    {/* Mobile Button */}
+<Link href="/register">
 
 <button
-  onClick={() => setMenuOpen(!menuOpen)}
-  className={`lg:hidden p-2 rounded-xl ${
-isScrolled ? "text-white" : "text-white"
-}`}
+className="
+group
+flex
+items-center
+gap-2
+rounded-full
+bg-gradient-to-r
+from-[#18B368]
+via-[#16C45B]
+to-[#13A657]
+px-7
+py-3
+font-semibold
+text-white
+shadow-[0_14px_40px_rgba(24,179,104,0.35)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-[0_22px_55px_rgba(24,179,104,0.45)]
+active:scale-[0.98]
+"
 >
-  {menuOpen ? <X size={30} /> : <Menu size={30} />}
+
+Book EV
+
+<ChevronRight
+size={18}
+className="transition-transform duration-300 group-hover:translate-x-1"
+/>
+
+</button>
+
+</Link>
+
+</div>
+
+{/* ================= Mobile Button ================= */}
+
+<button
+
+onClick={()=>setMenuOpen(!menuOpen)}
+
+className={`lg:hidden transition
+
+${
+
+isScrolled
+
+? "text-gray-900"
+
+: "text-white"
+
+}`}
+
+>
+
+{menuOpen ? (
+
+<X size={32}/>
+
+) : (
+
+<Menu size={30}/>
+
+)}
+
 </button>
 
 </div>
 
-{/* Mobile Sidebar */}
+    {/* ================= Mobile Sidebar ================= */}
 
 <AnimatePresence>
 
@@ -223,76 +350,140 @@ isScrolled ? "text-white" : "text-white"
 initial={{ opacity:0 }}
 animate={{ opacity:1 }}
 exit={{ opacity:0 }}
+transition={{ duration:0.25 }}
 onClick={()=>setMenuOpen(false)}
-className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
 />
 
 <motion.div
-initial={{ x:-350 }}
+
+initial={{ x:-420 }}
+
 animate={{ x:0 }}
-exit={{ x:-350 }}
+
+exit={{ x:-420 }}
+
 transition={{
 duration:0.45,
 type:"spring",
 stiffness:120
 }}
-className="fixed top-0 left-0 h-screen w-[82%] max-w-[340px] bg-[#0A1134]/95 backdrop-blur-2xl rounded-r-3xl shadow-2xl z-50 lg:hidden"
+
+className="fixed top-0 left-0 h-screen w-[88%] max-w-[360px] bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
+
 >
 
-<div className="flex items-center justify-between p-6 border-b border-white/10">
+{/* ================= Header ================= */}
+
+<div className="flex items-center justify-between px-6 py-6 border-b">
 
 <Image
-  src="/kebu_1-removebg-preview.png"
-  alt="logo"
-  width={80}
-  height={28}
-  className="h-7 w-auto object-contain"
-  style={{
-    objectPosition: "left center"
-  }}
+src="/Evuddy-logo-dark-E.png"
+alt="EVUDDY"
+width={180}
+height={55}
+className="h-11 w-auto"
 />
 
 <button
+
 onClick={()=>setMenuOpen(false)}
-className="text-white text-lg font-medium hover:text-[#EEB440] transition"
+
+className="rounded-full p-2 hover:bg-gray-100 transition"
+
 >
-<X size={28}/>
+
+<X size={28} className="text-gray-800"/>
+
 </button>
 
 </div>
 
-<div className="flex flex-col p-6 space-y-6">
+{/* ================= Links ================= */}
 
-<Link href="/" onClick={()=>setMenuOpen(false)} className="text-white">
-Home
+<div className="px-6 py-8 space-y-1">
+
+{navLinks.map((item)=>(
+
+<Link
+
+key={item.title}
+
+href={item.href}
+
+onClick={()=>setMenuOpen(false)}
+
+className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold text-gray-800 hover:bg-green-50 hover:text-green-600 transition"
+
+>
+
+{item.title}
+
+<ChevronRight size={18}/>
+
 </Link>
 
-<a href="#services" onClick={()=>setMenuOpen(false)} className="text-white">
-Services
-</a>
+))}
 
-<Link href="/about" onClick={() => setMenuOpen(false)} className="text-white">
-  About
+</div>
+
+{/* ================= CTA Section ================= */}
+
+<div className="px-6 pb-10 space-y-4">
+
+<Link
+href="/franchise"
+onClick={()=>setMenuOpen(false)}
+>
+
+<button
+
+className="
+w-full
+h-14
+rounded-full
+border
+border-[#18B368]/20
+bg-white
+text-[#18B368]
+font-semibold
+transition-all
+duration-300
+hover:bg-[#18B368]
+hover:text-white
+flex
+items-center
+justify-center
+gap-2
+"
+
+>
+
+<Building2 size={20}/>
+
+Become a Partner
+
+</button>
+
 </Link>
 
-<Link href="/careers" onClick={() => setMenuOpen(false)} className="text-white">
-  Careers
-</Link>
+<Link
+href="/register"
+onClick={()=>setMenuOpen(false)}
+>
 
-<Link href="/contact" onClick={() => setMenuOpen(false)} className="text-white">
-  Contact
-</Link>
+<button
 
-<Link href="/partners" onClick={() => setMenuOpen(false)}>
-  <button className="mt-3 w-full h-12 rounded-xl bg-[#FF165E] text-white font-bold flex items-center justify-center gap-2">
-    Become Partner
-  </button>
-</Link>
+className="w-full h-14 rounded-full bg-[#111827] text-white font-semibold hover:bg-black transition flex items-center justify-center gap-2"
 
-<Link href="/register" onClick={() => setMenuOpen(false)}>
-  <button className="mt-3 w-full h-12 rounded-xl bg-white text-[#0A1134] font-bold flex items-center justify-center gap-2">
-    Book Now
-  </button>
+>
+
+Book Ride
+
+<ChevronRight size={18}/>
+
+</button>
+
 </Link>
 
 </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 type ServiceCardProps = {
@@ -20,107 +21,508 @@ export default function ServiceCard({
   title,
   description,
   color,
-  link,
-  image,
+   image,
+   link,
   badge,
   stat,
   tags,
 }: ServiceCardProps) {
   return (
     <motion.div
-      whileHover={{ y: -12, scale: 1.02 }}
-      transition={{ duration: 0.35 }}
-      className="group relative overflow-hidden rounded-[28px] lg:rounded-[36px] min-h-[340px] sm:min-h-[420px] lg:min-h-[560px] bg-cover bg-center border border-white/10 shadow-2xl cursor-pointer"
-      style={{
-  backgroundImage: image ? `url(${image})` : undefined,
-  backgroundSize: "cover",
-  backgroundRepeat: "no-repeat",
-  backgroundPosition:
-    title === "Kebu Bike On Rent"
-      ? "center"
-      : title === "Kebu Househelp"
-      ? "center"
-      : title === "Kebu Ride"
-      ? "70% center"
-      : "72% center",
+      whileHover={{
+  y: -10,
+  scale: 1.01,
 }}
+      transition={{ duration: 0.35 }}
+      className="
+      group
+      relative
+      overflow-hidden
+      rounded-[40px]
+      border
+      border-gray-200/70
+      shadow-[0_35px_80px_rgba(15,23,42,0.12)]
+      bg-[linear-gradient(135deg,#F8FFF9_0%,#FFFFFF_60%,#FFF8FC_100%)]
+      "
     >
-      {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#050B1D]/95 via-[#050B1D]/75 to-black/25" />
 
-      {/* Premium Glow */}
-      <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-[#FF165E]/20 blur-[100px]" />
+      <div
+  className="
+  absolute
+  inset-0
+  bg-gradient-to-r
+  from-[#F8FFF9]
+  via-white
+  to-[#FFF8FC]
+  "
+/>
 
-      {/* Top Gradient Line */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E]" />
+<div
+  className="
+  absolute
+  inset-0
+  opacity-25
+  bg-[linear-gradient(120deg,transparent_20%,rgba(255,255,255,0.9)_50%,transparent_80%)]
+  "
+/>
 
-      <div className="relative z-20 flex h-full flex-col p-6 lg:p-8">
+<div
+  className="
+  absolute
+  inset-0
+  rounded-[40px]
+  border
+  border-white/50
+  "
+/>
 
-        <div className="absolute top-6 right-6">
+      {/* Green Glow */}
 
-<span className="text-white/30 text-6xl font-black">
+      <div
+        className="
+        absolute
+        -top-28
+        -left-24
+        h-[420px]
+        w-[420px]
+        rounded-full
+        bg-[#18B368]/10
+        blur-[130px]
+        "
+      />
 
-{stat}
+      {/* Pink Glow */}
 
-</span>
+      <div
+        className="
+        absolute
+        -bottom-24
+        right-0
+        h-[340px]
+        w-[340px]
+        rounded-full
+        bg-[#EC2A8C]/10
+        blur-[120px]
+        "
+      />
 
-</div>
+      {/* Premium Top Border */}
 
-        <div
-  className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${color}
-  flex items-center justify-center text-2xl
-  shadow-xl
-  group-hover:scale-105 transition-all duration-500`}
+      <div
+        className="
+        absolute
+        top-0
+        left-0
+        h-[4px]
+        w-full
+        bg-gradient-to-r
+        from-[#18B368]
+        via-[#4ADE80]
+        to-[#EC2A8C]
+        "
+      />
+
+      {/* ================= CONTENT ================= */}
+
+      <div
+        className="
+        relative
+        z-20
+        grid
+        lg:grid-cols-2
+        gap-10
+        xl:gap-14
+        items-center
+        px-8
+        py-12
+        lg:px-16
+        lg:py-16
+        "
+      >
+        {/* ================= LEFT SIDE ================= */}
+
+        <div className="max-w-[620px]">
+
+          {badge && (
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="
+              inline-flex
+              items-center
+              rounded-full
+              border
+              border-[#18B368]/20
+              bg-white/90
+              backdrop-blur-xl
+              px-5
+              py-2
+              shadow-lg
+              "
+            >
+              <span className="mr-2 h-2.5 w-2.5 rounded-full bg-[#18B368]" />
+
+              <span className="text-xs font-bold uppercase tracking-[0.20em] text-[#18B368]">
+                {badge}
+              </span>
+            </motion.div>
+          )}
+
+          <motion.h2
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="
+            mt-7
+            text-5xl
+            lg:text-7xl
+            font-black
+            leading-[0.95]
+            tracking-[-0.04em]
+            "
+          >
+            <>
+  <span className="block text-[#18B368]">
+    EVUDDY
+  </span>
+
+  <span
+    className="
+    block
+    mt-2
+    bg-gradient-to-r
+    from-[#16C45B]
+    via-[#18B368]
+    via-[#4ADE80]
+    to-[#EC2A8C]
+    bg-clip-text
+    text-transparent
+    "
+  >
+    Electric Scooter
+  </span>
+</>
+          </motion.h2>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="
+            mt-8
+            max-w-xl
+            text-lg
+            leading-9
+            text-gray-600
+            "
+          >
+            {description}
+          </motion.p>
+
+          <div className="mt-10 flex flex-wrap gap-3">
+
+            {(tags ?? []).map((tag) => (
+
+              <motion.div
+                key={tag}
+                whileHover={{
+                  y: -4,
+                  scale: 1.05,
+                }}
+                className="
+                rounded-full
+                border
+                border-white
+                bg-white
+                px-5
+                py-3
+                text-sm
+                font-semibold
+                text-gray-700
+                shadow-lg
+                "
+              >
+                <span className="mr-2 inline-block h-2 w-2 rounded-full bg-[#18B368]" />
+{tag}
+              </motion.div>
+
+            ))}
+
+          </div>
+
+          <div className="mt-12">
+
+            <Link
+              href={link || "#"}
+              className="
+              inline-flex
+              items-center
+              gap-3
+              rounded-full
+              bg-gradient-to-r
+              from-[#18B368]
+              to-[#13A657]
+              px-9
+              py-4
+              text-lg
+              font-semibold
+              text-white
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:shadow-[0_20px_45px_rgba(24,179,104,.35)]
+              hover:scale-105
+active:scale-95
+before:absolute
+before:inset-0
+before:bg-white/20
+before:opacity-0
+hover:before:opacity-100
+before:transition-opacity
+before:duration-300
+relative
+overflow-hidden
+              "
+            >
+              Reserve Your EV →
+            </Link>
+
+          </div>
+
+        </div>
+
+        {/* ================= RIGHT SIDE ================= */}
+        <motion.div
+  animate={{
+    y: [0, -15, 0],
+  }}
+  transition={{
+    duration: 5,
+    repeat: Infinity,
+    ease: "easeInOut",
+  }}
+  className="
+relative
+flex
+justify-center
+items-end
+pt-12
+"
 >
-  {icon}
-</div>
 
-        <div className="mt-6">
+  {/* Green Glow */}
 
-  {badge && (
-   <span className="inline-block rounded-full bg-white/25 border border-white/20 px-4 py-2 text-xs font-bold uppercase tracking-wider text-white">
-      {badge}
-    </span>
+  <div
+    className="
+    absolute
+    h-[420px]
+    w-[420px]
+    rounded-full
+    bg-[#18B368]/15
+    blur-[150px]
+    "
+  />
+
+  {/* Pink Glow */}
+
+  <div
+    className="
+    absolute
+    right-10
+    bottom-10
+    h-[220px]
+    w-[220px]
+    rounded-full
+    bg-[#EC2A8C]/15
+    blur-[120px]
+    "
+  />
+
+  {/* Center Ambient Light */}
+
+<div
+  className="
+  absolute
+  left-1/2
+  top-1/2
+  -translate-x-1/2
+  -translate-y-1/2
+  h-[600px]
+  w-[600px]
+  rounded-full
+  bg-gradient-to-r
+  from-[#18B368]/10
+  via-white/40
+  to-[#EC2A8C]/10
+  blur-[170px]
+  "
+/>
+
+  <div
+  className="
+  absolute
+  bottom-5
+  left-1/2
+  -translate-x-1/2
+  w-[440px]
+  h-[40px]
+  rounded-full
+  bg-gradient-to-r
+  from-black/5
+  via-black/20
+  to-black/5
+  blur-2xl
+  "
+/>
+
+<div
+  className="
+  absolute
+  bottom-8
+  left-1/2
+  -translate-x-1/2
+  w-[280px]
+  h-[8px]
+  rounded-full
+  bg-white/70
+  blur-md
+  "
+/>
+
+  {image && (
+
+    <Image
+      src={image}
+      alt={title}
+      width={720}
+      height={720}
+      priority
+      className="
+relative
+z-20
+w-full
+max-w-[560px]
+lg:max-w-[620px]
+object-contain
+drop-shadow-[0_55px_90px_rgba(0,0,0,0.32)]
+transition-all
+duration-700
+group-hover:scale-[1.1]
+group-hover:-rotate-[0.5deg]
+"
+    />
+    
+
   )}
+  {/* Floating Card */}
 
-  <h3 className="mt-5 text-2xl sm:text-4xl lg:text-5xl font-black leading-tight text-white drop-shadow-lg max-w-[320px]">
-    {title}
-  </h3>
+  <motion.div
+    animate={{
+      y: [0, -8, 0],
+    }}
+    transition={{
+      duration: 4,
+      repeat: Infinity,
+    }}
+    className="
+    absolute
+    top-8
+    right-0
+    z-30
+    rounded-3xl
+    bg-white/75
+backdrop-blur-2xl
+    px-4
+    py-2.5
+    shadow-[0_30px_70px_rgba(15,23,42,0.18)]
+    border
+    border-white/60
+    "
+  >
 
-  <p className="mt-4 max-w-md text-base lg:text-lg leading-7 text-white font-medium drop-shadow-md">
-    {description}
+    <p className="text-xs uppercase tracking-[0.22em] text-gray-500">
+      Battery Range
+    </p>
+
+    <h4 className="mt-2 text-3xl font-black text-[#18B368]">
+      120 KM
+    </h4>
+
+  </motion.div>
+
+  {/* Bottom Card */}
+
+  <motion.div
+    animate={{
+      y: [0, 8, 0],
+    }}
+    transition={{
+      duration: 4,
+      repeat: Infinity,
+    }}
+    className="
+    absolute
+    bottom-8
+    left-0
+    z-30
+    rounded-3xl
+    bg-white/75
+backdrop-blur-2xl
+    px-6
+    py-5
+    shadow-[0_30px_70px_rgba(15,23,42,0.18)]
+    border
+    border-white/60
+    "
+  >
+
+    <p className="text-xs uppercase tracking-[0.22em] text-gray-500">
+      Charging
+    </p>
+
+    <h4 className="mt-2 text-3xl font-black text-[#EC2A8C]">
+      Fast
+    </h4>
+</motion.div>
+
+<motion.div
+  animate={{
+    x: [0, 6, 0],
+  }}
+  transition={{
+    duration: 5,
+    repeat: Infinity,
+  }}
+  className="
+absolute
+left-0
+top-[40%]
+z-30
+rounded-3xl
+bg-white/75
+backdrop-blur-2xl
+px-6
+py-5
+shadow-[0_30px_70px_rgba(15,23,42,0.18)]
+border
+border-white/60
+"
+>
+
+  <p className="text-xs uppercase tracking-[0.22em] text-gray-500">
+    Top Speed
   </p>
 
-  <div className="mt-6 flex flex-wrap gap-3">
-    {(tags ?? []).map((tag) => (
-      <span
-        key={tag}
-        className="rounded-full bg-white/25 border border-white/20 px-4 py-2 text-sm font-semibold text-white shadow-md"
-      >
-        {tag}
-      </span>
-    ))}
-  </div>
+  <h4 className="mt-2 text-3xl font-black text-[#18B368]">
+    45 km/h
+  </h4>
 
-  <div className="flex-1"></div>
+</motion.div>
+</motion.div>
 
-  <div className="mt-8">
-    {link ? (
-      <Link
-        href={link}
-        className="inline-flex items-center justify-center w-full sm:w-auto rounded-2xl bg-white px-7 py-3 font-bold text-[#071024] transition hover:scale-105"
-      >
-        Book Service →
-      </Link>
-    ) : (
-      <span className="inline-flex items-center justify-center w-full sm:w-auto rounded-2xl bg-gradient-to-r from-[#FF165E] to-[#EEB440] px-7 py-3 font-bold text-white">
-        Coming Soon
-      </span>
-    )}
-  </div>
-
-</div>
       </div>
+
     </motion.div>
   );
 }
