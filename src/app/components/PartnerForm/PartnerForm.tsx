@@ -108,29 +108,119 @@ consentAccepted: false,
     >
       <div className="max-w-6xl mx-auto px-4 md:px-6">
 
-        {/* Header */}
-        <div className="text-center mb-14">
-          <span className="px-5 py-2 rounded-full bg-pink-100 text-pink-600 font-semibold">
-            KEBU ONE PARTNERSHIP PROGRAM
-          </span>
+        {/* ================= Premium EVUDDY Header ================= */}
 
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#0A1134] mt-6 mb-6">
-            Become A Kebu One Partner
-          </h2>
+<div className="text-center mb-20">
 
-          <p className="text-gray-600 text-lg max-w-3xl mx-auto">
-            Join Kebu One’s mobility ecosystem and build the future of
-            bike rentals, EV charging, fleet operations, smart hubs,
-            delivery services and campus mobility.
-          </p>
-        </div>
+  {/* Premium Badge */}
+
+  <div className="inline-flex items-center gap-3 rounded-full border border-[#18B368]/20 bg-white px-7 py-3 shadow-[0_15px_40px_rgba(15,23,42,0.08)]">
+
+    <div className="w-3 h-3 rounded-full bg-[#18B368] animate-pulse" />
+
+    <span className="text-[15px] font-semibold tracking-wide text-[#18B368] uppercase">
+      EVUDDY PARTNERSHIP PROGRAM
+    </span>
+
+  </div>
+
+  {/* Heading */}
+
+  <h2 className="mt-8 text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-[-0.04em]">
+
+    <span className="text-[#0F172A]">
+      Build the Future
+    </span>
+
+    <br />
+
+    <span className="bg-gradient-to-r from-[#16A34A] via-[#22C55E] to-[#EC2A8C] bg-clip-text text-transparent">
+      With EVUDDY
+    </span>
+
+  </h2>
+
+  {/* Description */}
+
+  <p className="mt-8 max-w-3xl mx-auto text-[19px] leading-9 text-slate-600">
+
+    Join India's next-generation electric mobility ecosystem.
+
+    Launch an EVUDDY franchise and build a sustainable business across
+
+    EV rentals, smart charging, fleet operations, mobility hubs,
+
+    delivery services and campus transportation.
+
+  </p>
+
+  {/* Trust Pills */}
+
+  <div className="mt-10 flex flex-wrap justify-center gap-4">
+
+    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
+      ✓ Fast Approval
+    </div>
+
+    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
+      ✓ Dedicated Support
+    </div>
+
+    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
+      ✓ PAN India Expansion
+    </div>
+
+    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
+      ✓ Trusted EV Platform
+    </div>
+
+  </div>
+
+</div>
 
         {/* Form */}
-        <div className="bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-12 shadow-2xl border border-pink-100">
+<div
+className="
+relative
+overflow-hidden
+bg-white/95
+backdrop-blur-xl
+rounded-[36px]
+md:rounded-[40px]
+p-6
+md:p-12
+border
+border-white
+shadow-[0_35px_90px_rgba(15,23,42,0.10)]
+transition-all
+duration-500
+"
+>
+
+  {/* Premium Top Border */}
+
+<div
+className="
+absolute
+top-0
+left-0
+w-full
+h-1
+bg-gradient-to-r
+from-[#18B368]
+via-[#22C55E]
+to-[#EC2A8C]
+"
+/>
 
           <form
   onSubmit={handleSubmit}
-  className=" grid grid-cols-1 md:grid-cols-2 gap-5"
+  className="
+grid
+grid-cols-1
+md:grid-cols-2
+gap-6
+"
 >
 
             {/* Name */}
@@ -141,18 +231,27 @@ consentAccepted: false,
   onChange={handleChange}
   placeholder="Full Name *"
   className="
-    border
-    border-gray-200
-    rounded-xl
-    h-14
-    px-4
-    bg-white
-    text-[#0A1134]
-    placeholder:text-gray-500
-    placeholder:opacity-100
-    outline-none
-    focus:border-[#FF165E]
-  "
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 />
 
             {/* Mobile */}
@@ -162,7 +261,28 @@ consentAccepted: false,
   value={formData.phone}
   onChange={handleChange}
   placeholder="Mobile Number *"
-              className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+              className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
             />
 
             {/* Email */}
@@ -172,7 +292,28 @@ consentAccepted: false,
   value={formData.email}
   onChange={handleChange}
   placeholder="Email Address *"
-              className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+              className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
             />
 
             {/* Organization */}
@@ -182,7 +323,28 @@ consentAccepted: false,
   value={formData.organizationName}
   onChange={handleChange}
   placeholder="Organization / Business Name *"
-              className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+              className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
             />
 
             {/* State */}
@@ -192,7 +354,28 @@ consentAccepted: false,
   value={formData.state}
   onChange={handleChange}
   placeholder="State *"
-              className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+              className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
             />
 
             {/* City */}
@@ -202,7 +385,28 @@ consentAccepted: false,
   value={formData.city}
   onChange={handleChange}
   placeholder="City *"
-              className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+              className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
             />
 
             <input
@@ -211,7 +415,28 @@ consentAccepted: false,
   value={formData.territory}
   onChange={handleChange}
   placeholder="Preferred Franchise Territory *"
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 />
 
             {/* Partner Type */}
@@ -219,7 +444,28 @@ consentAccepted: false,
   name="partnerType"
   value={formData.partnerType}
   onChange={handleChange}
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] outline-none focus:border-[#FF165E]"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 >
               <option>Select Partnership Type *</option>
               <option>College Mobility Partner</option>
@@ -236,7 +482,28 @@ consentAccepted: false,
   name="investmentCapacity"
   value={formData.investmentCapacity}
   onChange={handleChange}
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] outline-none focus:border-[#FF165E]"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 >
               <option>Investment Capacity *</option>
               <option>Below ₹5 Lakhs</option>
@@ -251,7 +518,28 @@ consentAccepted: false,
   name="propertyAvailable"
   value={formData.propertyAvailable}
   onChange={handleChange}
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] outline-none focus:border-[#FF165E]"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 >
               <option>Property Available? *</option>
               <option>Yes</option>
@@ -263,7 +551,28 @@ consentAccepted: false,
   name="availableSpace"
   value={formData.availableSpace}
   onChange={handleChange}
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] outline-none focus:border-[#FF165E]"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 >
               <option>Available Space *</option>
               <option>Below 500 Sq Ft</option>
@@ -277,7 +586,28 @@ consentAccepted: false,
   name="businessExperience"
   value={formData.businessExperience}
   onChange={handleChange}
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] outline-none focus:border-[#FF165E]"
+ className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 >
               <option>Business Experience *</option>
               <option>Fresher</option>
@@ -290,7 +620,28 @@ consentAccepted: false,
   name="plannedFleetSize"
   value={formData.plannedFleetSize}
   onChange={handleChange}
-  className="border border-gray-200 rounded-xl h-14 px-4 bg-white text-[#0A1134] outline-none focus:border-[#FF165E]"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
 >
   <option>Planned Fleet Size *</option>
   <option>1 - 10 Vehicles</option>
@@ -306,28 +657,105 @@ consentAccepted: false,
   onChange={handleChange}
   rows={6}
   placeholder="Tell us about your business, organization, college, property, or partnership interest..."
-              className="md:col-span-2 border border-gray-200 rounded-xl p-4 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 outline-none focus:border-[#FF165E]"
+              className="
+md:col-span-2
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+p-5
+text-[15px]
+leading-7
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+resize-none
+"
             />
 
-            <label className="md:col-span-2 flex items-center gap-3 text-sm text-gray-600">
+            <label
+className="
+md:col-span-2
+flex
+items-center
+gap-4
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+py-4
+text-[15px]
+text-slate-600
+"
+>
   <input
-    type="checkbox"
+type="checkbox"
+className="
+h-5
+w-5
+rounded
+border-slate-300
+text-[#16A34A]
+focus:ring-[#22C55E]
+"
     name="consentAccepted"
     checked={formData.consentAccepted}
     onChange={handleChange}
   />
-  I agree to be contacted by Kebu One regarding franchise opportunities.
+  I agree to be contacted by EVUDDY regarding partnership and franchise opportunities.
 </label>
+
+<div className="md:col-span-2 flex flex-wrap gap-3 mb-2">
+
+<div className="px-5 py-2 rounded-full bg-[#F4FFF8] border border-[#18B368]/20 text-[#16A34A] text-sm font-semibold">
+✓ Fast Verification
+</div>
+
+<div className="px-5 py-2 rounded-full bg-[#F4FFF8] border border-[#18B368]/20 text-[#16A34A] text-sm font-semibold">
+✓ Dedicated Support
+</div>
+
+<div className="px-5 py-2 rounded-full bg-[#F4FFF8] border border-[#18B368]/20 text-[#16A34A] text-sm font-semibold">
+✓ PAN India Network
+</div>
+
+</div>
 
             {/* Submit */}
             <button
               type="submit"
-              className="md:col-span-2 bg-gradient-to-r from-[#EEB440] via-[#FF5556] to-[#FF165E] text-white py-5 rounded-2xl font-bold text-lg hover:scale-[1.02] transition-all duration-300"
+              className="
+md:col-span-2
+h-16
+rounded-2xl
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+text-white
+font-bold
+text-lg
+shadow-[0_18px_45px_rgba(24,179,104,.35)]
+transition-all
+duration-300
+hover:scale-[1.02]
+hover:shadow-[0_24px_60px_rgba(24,179,104,.45)]
+active:scale-[0.98]
+"
             >
               {
   loading
     ? "Submitting..."
-    : "Submit Partnership Application →"
+    : "Apply for EVUDDY Partnership →"
 }
             </button>
 

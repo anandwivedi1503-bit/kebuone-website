@@ -129,12 +129,16 @@ export default function ServiceCard({
         relative
         z-20
         grid
-        lg:grid-cols-2
-        gap-10
+grid-cols-1
+lg:grid-cols-2
+        gap-16
+lg:gap-10
         xl:gap-14
         items-center
-        px-8
-        py-12
+        px-5
+md:px-8
+py-10
+md:py-12
         lg:px-16
         lg:py-16
         "
@@ -161,7 +165,8 @@ export default function ServiceCard({
             >
               <span className="mr-2 h-2.5 w-2.5 rounded-full bg-[#18B368]" />
 
-              <span className="text-xs font-bold uppercase tracking-[0.20em] text-[#18B368]">
+              <span className="text-[10px]
+md:text-xs font-bold uppercase tracking-[0.20em] text-[#18B368]">
                 {badge}
               </span>
             </motion.div>
@@ -174,8 +179,10 @@ export default function ServiceCard({
             transition={{ duration: 0.6 }}
             className="
             mt-7
-            text-5xl
-            lg:text-7xl
+            text-4xl
+sm:text-5xl
+md:text-6xl
+lg:text-7xl
             font-black
             leading-[0.95]
             tracking-[-0.04em]
@@ -308,6 +315,8 @@ flex
 justify-center
 items-end
 pt-12
+lg:pl-12
+xl:pl-20
 "
 >
 
@@ -402,8 +411,12 @@ pt-12
 relative
 z-20
 w-full
-max-w-[560px]
-lg:max-w-[620px]
+max-w-[260px]
+sm:max-w-[320px]
+md:max-w-[420px]
+lg:max-w-[610px]
+xl:max-w-[690px]
+2xl:max-w-[740px]
 object-contain
 drop-shadow-[0_55px_90px_rgba(0,0,0,0.32)]
 transition-all
@@ -427,8 +440,14 @@ group-hover:-rotate-[0.5deg]
     }}
     className="
     absolute
-    top-8
-    right-0
+   top-2
+right-0
+sm:right-2
+md:top-2
+md:right-0
+lg:top-0
+lg:-right-8
+xl:-right-10
     z-30
     rounded-3xl
     bg-white/75
@@ -441,11 +460,13 @@ backdrop-blur-2xl
     "
   >
 
-    <p className="text-xs uppercase tracking-[0.22em] text-gray-500">
+    <p className="text-[10px]
+md:text-xs uppercase tracking-[0.22em] text-gray-500">
       Battery Range
     </p>
 
-    <h4 className="mt-2 text-3xl font-black text-[#18B368]">
+    <h4 className="mt-2 text-xl
+md:text-3xl font-black text-[#18B368]">
       120 KM
     </h4>
 
@@ -463,8 +484,14 @@ backdrop-blur-2xl
     }}
     className="
     absolute
-    bottom-8
-    left-0
+    bottom-2
+left-0
+sm:left-2
+md:bottom-4
+md:-left-6
+lg:bottom-8
+lg:-left-10
+xl:-left-12
     z-30
     rounded-3xl
     bg-white/75
@@ -477,11 +504,13 @@ backdrop-blur-2xl
     "
   >
 
-    <p className="text-xs uppercase tracking-[0.22em] text-gray-500">
+    <p className="text-[10px]
+md:text-xs uppercase tracking-[0.22em] text-gray-500">
       Charging
     </p>
 
-    <h4 className="mt-2 text-3xl font-black text-[#EC2A8C]">
+    <h4 className="mt-2 text-xl
+md:text-3xl font-black text-[#EC2A8C]">
       Fast
     </h4>
 </motion.div>
@@ -496,25 +525,34 @@ backdrop-blur-2xl
   }}
   className="
 absolute
-left-0
-top-[40%]
+-left-4
+sm:-left-6
+md:-left-10
+lg:-left-12
+top-[48%]
+md:top-[42%]
+lg:top-[38%]
 z-30
 rounded-3xl
 bg-white/75
 backdrop-blur-2xl
-px-6
-py-5
+px-4
+py-3
+md:px-6
+md:py-5
 shadow-[0_30px_70px_rgba(15,23,42,0.18)]
 border
 border-white/60
 "
 >
 
-  <p className="text-xs uppercase tracking-[0.22em] text-gray-500">
+  <p className="text-[10px]
+md:text-xs uppercase tracking-[0.22em] text-gray-500">
     Top Speed
   </p>
 
-  <h4 className="mt-2 text-3xl font-black text-[#18B368]">
+  <h4 className="mt-2 text-xl
+md:text-3xl font-black text-[#18B368]">
     45 km/h
   </h4>
 

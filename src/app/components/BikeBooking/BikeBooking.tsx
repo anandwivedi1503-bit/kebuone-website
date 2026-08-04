@@ -477,7 +477,7 @@ referenceBy,
       key: orderData.keyId,
       amount: orderData.amount,
       currency: orderData.currency,
-      name: "Kebu One",
+      name: "EVUDDY",
       description: `Booking Payment - ${bookingId}`,
       order_id: orderData.orderId,
       prefill: {
@@ -489,8 +489,8 @@ referenceBy,
         vehicleId: selectedBike,
       },
       theme: {
-        color: "#FF165E",
-      },
+  color: "#18B368",
+},
       handler: async (response) => {
         setPaymentMessage("Verifying payment...");
 
@@ -547,31 +547,169 @@ referenceBy,
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-[#FFF5F8] via-white to-[#F4F7FF] py-12 md:py-20">
+    <section
+className="
+relative
+overflow-hidden
+bg-gradient-to-br
+from-[#F6FFF9]
+via-white
+to-[#F3FFF8]
+py-20
+md:py-28
+"
+>
 
-<div className="absolute -top-40 -left-40 h-96 w-96 rounded-full bg-pink-200/30 blur-3xl" />
+<div
+className="
+absolute
+-top-44
+-left-44
+h-[34rem]
+w-[34rem]
+rounded-full
+bg-[#18B368]/12
+blur-[140px]
+"
+/>
 
-<div className="absolute -bottom-40 -right-40 h-[30rem] w-[30rem] rounded-full bg-blue-200/20 blur-3xl" />
+<div
+className="
+absolute
+-bottom-44
+-right-44
+h-[34rem]
+w-[34rem]
+rounded-full
+bg-[#22C55E]/10
+blur-[140px]
+"
+/>
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mb-8">
-          <span className="inline-flex items-center gap-2 rounded-full bg-pink-50 px-4 py-2 text-sm font-bold text-[#FF165E]">
-            <Bike size={16} />
-            Bike Booking
-          </span>
+        <div className="mb-16 text-center">
 
-          <h1 className="mt-6 text-4xl sm:text-5xl font-black tracking-tight text-[#0A1134] md:text-7xl">
-    Ride Smarter
+<div
+className="
+inline-flex
+items-center
+gap-3
+rounded-full
+border
+border-[#18B368]/20
+bg-white
+px-6
+py-3
+shadow-[0_10px_35px_rgba(15,23,42,.08)]
+"
+>
+
+<div className="h-3 w-3 rounded-full bg-[#18B368] animate-pulse" />
+
+<span
+className="
+text-sm
+font-bold
+tracking-[0.18em]
+uppercase
+text-[#18B368]
+"
+>
+
+EVUDDY ELECTRIC MOBILITY
+
+</span>
+
+</div>
+
+<h1
+className="
+mt-8
+text-5xl
+md:text-7xl
+font-black
+leading-[1.05]
+tracking-[-0.04em]
+text-[#0F172A]
+"
+>
+
+Book Your
+
+<br />
+
+<span
+className="
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+bg-clip-text
+text-transparent
+"
+>
+
+Electric Ride
+
+</span>
+
 </h1>
 
-<h2 className="mt-2 text-2xl sm:text-3xl  font-black text-[#FF165E] md:text-5xl">
-    Reserve Your Electric Scooter
-</h2>
+<p
+className="
+mx-auto
+mt-8
+max-w-3xl
+text-[19px]
+leading-9
+text-slate-600
+"
+>
 
-<p className="mt-6 max-w-3xl text-lg leading-8 text-gray-600">
-    Choose your pickup hub, select an available scooter, reserve it instantly,
-    and complete a secure payment through Razorpay.
+Reserve your EV in minutes, choose the nearest pickup hub,
+
+complete secure payment and start riding with India's next-generation
+
+electric mobility platform.
+
 </p>
-        </div>
+
+<div
+className="
+mt-10
+flex
+flex-wrap
+justify-center
+gap-4
+"
+>
+
+<div className="rounded-full bg-white px-5 py-3 shadow font-semibold text-[#16A34A]">
+
+⚡ Instant Booking
+
+</div>
+
+<div className="rounded-full bg-white px-5 py-3 shadow font-semibold text-[#16A34A]">
+
+🔋 Fully Charged Fleet
+
+</div>
+
+<div className="rounded-full bg-white px-5 py-3 shadow font-semibold text-[#16A34A]">
+
+🛡 Secure Payments
+
+</div>
+
+<div className="rounded-full bg-white px-5 py-3 shadow font-semibold text-[#16A34A]">
+
+📍 Smart Pickup Hubs
+
+</div>
+
+</div>
+
+</div>
 
         {error && (
           <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4 font-semibold text-red-700">
@@ -585,33 +723,130 @@ referenceBy,
           </div>
         )}
 
-        <div className="mb-10 grid grid-cols-2 sm:grid-cols-4 gap-3 rounded-3xl bg-white p-4 shadow-lg">
-          {["Details", "Bike", "Reserve", "Payment"].map((label, index) => (
+        <div className="mb-14">
+
+  <div className="overflow-x-auto">
+  <div className="flex min-w-[700px] items-center justify-between">
+
+    {[
+      {
+        title: "Details",
+        icon: "👤",
+      },
+      {
+        title: "Vehicle",
+        icon: "🛵",
+      },
+      {
+        title: "Reserve",
+        icon: "📋",
+      },
+      {
+        title: "Payment",
+        icon: "💳",
+      },
+    ].map((item, index) => {
+
+      const active = step >= index + 1;
+
+      return (
+
+        <div
+          key={item.title}
+          className="flex flex-1 items-center"
+        >
+
+          <div className="flex flex-col items-center">
+
             <div
-              key={label}
-              className={`rounded-2xl border py-4 transition-all duration-300 ${
-                step >= index + 1
-                  ? "border-[#FF165E] bg-pink-50 text-[#FF165E]"
-                  : "border-gray-200 bg-white"
-              }`}
+              className={`
+w-14
+h-14
+rounded-full
+flex
+items-center
+justify-center
+text-2xl
+transition-all
+duration-500
+shadow-lg
+${
+active
+? "bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white scale-110"
+: "bg-white border border-slate-200 text-slate-500"
+}
+`}
             >
-              {label}
+
+              {active ? "✓" : item.icon}
+
             </div>
-          ))}
+
+            <h3
+              className={`
+mt-4
+text-[15px]
+font-bold
+transition-all
+duration-300
+${
+active
+? "text-[#16A34A]"
+: "text-slate-500"
+}
+`}
+            >
+
+              {item.title}
+
+            </h3>
+
+          </div>
+
+          {index !== 3 && (
+
+            <div
+              className={`
+mx-4
+mb-8
+h-[4px]
+flex-1
+rounded-full
+transition-all
+duration-500
+${
+step > index + 1
+? "bg-gradient-to-r from-[#16A34A] to-[#22C55E]"
+: "bg-slate-200"
+}
+`}
+            />
+
+          )}
+
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr]">
+      );
+
+    })}
+
+  </div>
+
+</div>
+</div>
+          
+<div className="grid gap-10 lg:grid-cols-[1.38fr_0.62fr]">
           <form
             onSubmit={createBooking}
             className="
-rounded-[32px]
+rounded-[36px]
 bg-white/95
 backdrop-blur-xl
 border
 border-white
 p-6
 md:p-10
-shadow-[0_30px_100px_rgba(10,17,52,0.10)]
+shadow-[0_40px_120px_rgba(15,23,42,.12)]
 "
           >
             {step === 1 && (
@@ -621,7 +856,31 @@ shadow-[0_30px_100px_rgba(10,17,52,0.10)]
 disabled={!!riderName}
                     value={riderName}
                     onChange={(e) => setRiderName(e.target.value)}
-                    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none focus:border-[#FF165E] disabled:cursor-not-allowed"
+                    className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+disabled:bg-slate-100
+disabled:text-slate-500
+disabled:cursor-not-allowed
+"
                     placeholder="Full name"
                   />
                 </Field>
@@ -631,7 +890,31 @@ disabled={!!riderName}
 disabled={!!riderPhone}
                     value={riderPhone}
                     onChange={(e) => setRiderPhone(cleanDigits(e.target.value).slice(0, 10))}
-                    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none focus:border-[#FF165E] disabled:cursor-not-allowed"
+                    className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+disabled:bg-slate-100
+disabled:text-slate-500
+disabled:cursor-not-allowed
+"
                     placeholder="10 digit mobile"
                   />
                 </Field>
@@ -640,7 +923,31 @@ disabled={!!riderPhone}
   <input
     value={riderEmail}
     disabled
-    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none disabled:cursor-not-allowed"
+    className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+disabled:bg-slate-100
+disabled:text-slate-500
+disabled:cursor-not-allowed
+"
   />
 </Field>
 
@@ -648,7 +955,31 @@ disabled={!!riderPhone}
   <input
     value={riderId}
     disabled
-    className="h-14 w-full rounded-2xl border border-gray-200 bg-gray-50 px-4 outline-none disabled:cursor-not-allowed"
+    className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+disabled:bg-slate-100
+disabled:text-slate-500
+disabled:cursor-not-allowed
+"
   />
 </Field>
 
@@ -660,7 +991,28 @@ disabled={!!riderPhone}
                       setHub("");
                       setSelectedBike("");
                     }}
-                    className="h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
+                    className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+cursor-pointer
+"
                   >
                     <option value="">Select city</option>
                     {cityOptions.map((item) => (
@@ -679,7 +1031,30 @@ disabled={!!riderPhone}
     setHub(e.target.value);
     setSelectedBike("");
   }}
-  className="h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E] disabled:bg-gray-50 disabled:text-gray-400"
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+disabled:bg-slate-100
+disabled:text-slate-400
+cursor-pointer
+"
 >
   <option value="">{city ? "Select hub" : "Select city first"}</option>
   {filteredHubs.map((item, index) => (
@@ -694,7 +1069,28 @@ disabled={!!riderPhone}
                   <input
                     value={referenceBy}
                     onChange={(e) => setReferenceBy(e.target.value)}
-                    className="h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
+                   className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+"
                     placeholder="Optional"
                   />
                 </Field>
@@ -705,7 +1101,24 @@ disabled={!!riderPhone}
                   <button
   type="button"
   onClick={goToBikeStep}
-  className="min-h-[56px] w-full rounded-2xl bg-[#FF165E] font-black text-white"
+  className="
+w-full
+h-16
+rounded-2xl
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+font-bold
+tracking-wide
+text-white
+shadow-[0_18px_45px_rgba(24,179,104,.35)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-[0_26px_60px_rgba(24,179,104,.45)]
+active:scale-[0.98]
+"
 >
   Continue →
 </button>
@@ -722,17 +1135,27 @@ disabled={!!riderPhone}
     value={bikeSearch}
     onChange={(e) => setBikeSearch(e.target.value)}
     className="
-      h-14
-      w-full
-      rounded-2xl
-      border
-      border-gray-200
-      px-5
-      outline-none
-      focus:border-[#FF165E]
-      focus:ring-4
-      focus:ring-pink-100
-    "
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+placeholder:text-slate-400
+outline-none
+transition-all
+duration-300
+shadow-sm
+hover:border-[#22C55E]/40
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+"
   />
 </div>
 
@@ -744,8 +1167,8 @@ disabled={!!riderPhone}
                       onClick={() => setRentalMode(item as "Daily" | "Weekly" | "Monthly")}
                       className={`h-14 rounded-2xl border font-bold ${
                         rentalMode === item
-                          ? "border-[#FF165E] bg-pink-50 text-[#FF165E]"
-                          : "border-gray-200 text-[#0A1134]"
+? "border-[#18B368] bg-gradient-to-r from-[#16A34A] to-[#18B368] text-white shadow-lg"
+: "border-slate-200 bg-white text-slate-700 hover:border-[#22C55E]/40"
                       }`}
                     >
                       {item}
@@ -775,16 +1198,90 @@ disabled={!!riderPhone}
                           key={bike._id}
                           type="button"
                           onClick={() => setSelectedBike(bike.vehicleId)}
-                          className={`group rounded-[30px] border-2 bg-white p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${
-                            isSelected ? "border-[#FF165E] shadow-2xl scale-[1.02]" : "border-gray-100 hover:border-pink-200"
-                          }`}
+                          className={`
+group
+relative
+overflow-hidden
+rounded-[32px]
+border
+bg-white
+p-6
+text-left
+transition-all
+duration-500
+hover:-translate-y-2
+hover:shadow-[0_30px_70px_rgba(15,23,42,.12)]
+${
+isSelected
+? "border-[#18B368] shadow-[0_25px_60px_rgba(24,179,104,.20)] ring-2 ring-[#18B368]/10"
+: "border-slate-200 hover:border-[#18B368]/40"
+}
+`}
                         >
+                          <div
+className="
+absolute
+top-0
+left-0
+w-full
+h-1
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+opacity-0
+group-hover:opacity-100
+transition-all
+duration-500
+"
+/>
                           <div className="flex justify-between gap-3">
-                            <h4 className="text-2xl font-black text-[#0A1134]">{bike.vehicleId}</h4>
-                            {isSelected && <CheckCircle2 className="text-[#FF165E]" />}
+                            <h4
+className="
+text-[28px]
+font-black
+tracking-[-0.03em]
+text-[#0F172A]
+"
+>{bike.vehicleId}</h4>
+                            {isSelected && (
+
+<div
+className="
+rounded-full
+bg-[#18B368]
+p-2
+shadow-lg
+"
+>
+
+<CheckCircle2
+size={20}
+className="text-white"
+/>
+
+</div>
+
+)}
                           </div>
-                          <p className="mt-1 text-sm text-gray-500">{bike.vehicleModel || "Electric Scooter"}</p>
-                          <p className="mt-1 text-sm font-medium text-gray-500">
+                          <p
+className="
+mt-2
+text-[15px]
+font-medium
+text-slate-500
+"
+>{bike.vehicleModel || "Electric Scooter"}</p>
+                          <p
+className="
+mt-1
+text-[13px]
+font-semibold
+uppercase
+tracking-[0.08em]
+text-slate-400
+"
+>
     {bike.registrationNumber}
 </p>
                           <div className="mt-4 space-y-2 text-sm text-gray-600">
@@ -793,13 +1290,27 @@ disabled={!!riderPhone}
 <div className="flex justify-between mb-2">
 <span>Battery </span>
 
-<span className="font-bold">
+<span
+className="
+text-[15px]
+font-black
+text-[#16A34A]
+"
+>
 {amount(bike.batteryPercentage)}%
 </span>
 
 </div>
 
-<div className="h-3 rounded-full bg-gray-200 overflow-hidden">
+<div
+className="
+h-3
+overflow-hidden
+rounded-full
+bg-slate-200
+shadow-inner
+"
+>
 
 <div
   className={`h-full rounded-full transition-all duration-700 ${
@@ -824,18 +1335,50 @@ disabled={!!riderPhone}
         {bike.batteryType || "Chargeable"}
     </span>
 </div>
-                            <div className="mt-4 rounded-2xl bg-pink-50 p-3">
+                            <div
+className="
+mt-5
+rounded-[24px]
+border
+border-[#18B368]/10
+bg-gradient-to-br
+from-[#F6FFF9]
+to-white
+p-5
+"
+>
 
     <p className="text-xs uppercase tracking-wide text-gray-500">
         {rentalMode} Rent
     </p>
 
-    <p className="mt-1 text-2xl font-black text-[#FF165E]">
+    <p
+className="
+mt-2
+text-[34px]
+font-black
+tracking-[-0.03em]
+text-[#16A34A]
+"
+>
         {formatINR(price)}
     </p>
 
 </div>
-<p className="mt-4 text-sm text-gray-500">
+<p
+className="
+mt-5
+inline-flex
+items-center
+rounded-full
+bg-slate-100
+px-4
+py-2
+text-[13px]
+font-semibold
+text-slate-600
+"
+>
   📍 {bike.currentHub}
 </p>
                           </div>
@@ -851,16 +1394,126 @@ disabled={!!riderPhone}
 
             {step === 3 && (
               <div>
-                <h2 className="text-2xl font-black text-[#0A1134]">Reserve Scooter</h2>
-                <p className="mt-2 text-gray-600">Review your booking and reserve the scooter before payment.</p>
+                <div className="mb-8">
 
-                <div className="mt-6 rounded-3xl bg-pink-50 p-5 text-sm font-semibold text-[#0A1134]">
-                  Total payable: {formatINR(payableAmount)} including {formatINR(securityDeposit)} deposit.
+<div className="inline-flex items-center gap-3 rounded-full bg-[#F4FFF8] px-5 py-2">
+
+<div className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
+
+<span
+className="
+text-sm
+font-bold
+uppercase
+tracking-[0.15em]
+text-[#18B368]
+"
+>
+
+BOOKING REVIEW
+
+</span>
+
+</div>
+
+<h2
+className="
+mt-5
+text-4xl
+font-black
+tracking-[-0.03em]
+text-[#0F172A]
+"
+>
+
+Review Your Booking
+
+</h2>
+
+<p
+className="
+mt-3
+text-[17px]
+leading-8
+text-slate-500
+max-w-2xl
+"
+>
+
+Verify all booking details before reserving your EVUDDY scooter.
+
+</p>
+
+</div>
+
+                <div
+className="
+mt-8
+rounded-[30px]
+border
+border-[#18B368]/10
+bg-gradient-to-br
+from-[#F6FFF9]
+to-white
+p-7
+shadow-[0_15px_40px_rgba(24,179,104,.08)]
+"
+>
+                  <p className="text-xs uppercase tracking-[0.14em] text-slate-500">
+
+TOTAL PAYABLE
+
+</p>
+
+<p
+className="
+mt-3
+text-[42px]
+font-black
+tracking-[-0.03em]
+text-[#16A34A]
+"
+>
+
+{formatINR(payableAmount)}
+
+</p>
+
+<p className="mt-3 text-slate-500">
+
+Includes refundable security deposit of
+
+<strong className="text-[#16A34A]">
+
+{" "}
+{formatINR(securityDeposit)}
+
+</strong>
+
+</p>
                 </div>
 
-                <div className="mt-6 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                <div
+className="
+mt-8
+rounded-[32px]
+border
+border-slate-200
+bg-white
+p-8
+shadow-[0_25px_70px_rgba(15,23,42,.08)]
+"
+>
 
-  <h3 className="mb-5 text-xl font-black text-[#0A1134]">
+  <h3
+className="
+mb-8
+text-[30px]
+font-black
+tracking-[-0.03em]
+text-[#0F172A]
+"
+>
     Booking Review
   </h3>
 
@@ -912,7 +1565,21 @@ disabled={!!riderPhone}
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="min-h-[56px] flex-1 rounded-2xl border border-gray-200 font-bold"
+                    className="
+flex-1
+h-16
+rounded-2xl
+border
+border-slate-300
+bg-white
+font-bold
+text-slate-700
+transition-all
+duration-300
+hover:border-[#18B368]
+hover:text-[#18B368]
+hover:-translate-y-1
+"
                   >
                     Back
                   </button>
@@ -920,7 +1587,28 @@ disabled={!!riderPhone}
                   <button
                     type="submit"
                     disabled={bookingDone || saving}
-                    className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[#FF165E] font-black text-white disabled:opacity-60"
+                    className="
+flex
+h-16
+flex-1
+items-center
+justify-center
+gap-3
+rounded-2xl
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+font-bold
+tracking-wide
+text-white
+shadow-[0_18px_45px_rgba(24,179,104,.35)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-[0_24px_60px_rgba(24,179,104,.45)]
+disabled:opacity-60
+"
                   >
                     <ShieldCheck size={18} />
                     {saving ? "Reserving..." : bookingDone ? "Reserved" : "Reserve Scooter"}
@@ -931,7 +1619,20 @@ disabled={!!riderPhone}
                   <button
                     type="button"
                     onClick={() => setStep(4)}
-                    className="mt-4 min-h-[56px] w-full rounded-2xl bg-[#0A1134] font-black text-white"
+                    className="
+mt-5
+h-16
+w-full
+rounded-2xl
+bg-[#0F172A]
+font-bold
+tracking-wide
+text-white
+transition-all
+duration-300
+hover:bg-black
+hover:-translate-y-1
+"
                   >
                     Go To Payment
                   </button>
@@ -941,26 +1642,109 @@ disabled={!!riderPhone}
 
             {step === 4 && (
               <div>
-                <h2 className="text-3xl font-black text-[#0A1134]">
-  Complete Secure Payment
+                <div className="mb-8">
+
+<div className="inline-flex items-center gap-3 rounded-full bg-[#F4FFF8] px-5 py-2">
+
+<div className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
+
+<span
+className="
+text-sm
+font-bold
+uppercase
+tracking-[0.15em]
+text-[#18B368]
+"
+>
+
+SECURE PAYMENT
+
+</span>
+
+</div>
+
+<h2
+className="
+mt-5
+text-4xl
+font-black
+tracking-[-0.03em]
+text-[#0F172A]
+"
+>
+
+Complete Your Payment
+
 </h2>
 
-<p className="mt-2 text-gray-500">
-  Your scooter is reserved. Complete payment securely through Razorpay to confirm your booking.
+<p
+className="
+mt-3
+max-w-2xl
+text-[17px]
+leading-8
+text-slate-500
+"
+>
+
+Your scooter has been reserved successfully. Complete the payment securely to confirm your EVUDDY booking.
+
 </p>
 
-<div className="mt-6 rounded-3xl border border-pink-100 bg-pink-50 p-5">
+</div>
 
-<p className="text-sm font-semibold text-gray-500">
-Amount to Pay
+<div
+className="
+mt-8
+rounded-[32px]
+border
+border-[#18B368]/10
+bg-gradient-to-br
+from-[#F6FFF9]
+to-white
+p-7
+shadow-[0_15px_40px_rgba(24,179,104,.08)]
+"
+>
+
+<p
+className="
+text-xs
+font-bold
+tracking-[0.16em]
+uppercase
+text-slate-500
+"
+>
+
+PAYMENT AMOUNT
+
 </p>
-
 <input
   type="number"
   value={paymentAmount}
   disabled={!bookingDone || paymentSuccess}
   onChange={(e) => setPaymentAmount(e.target.value)}
-  className="mt-3 h-14 w-full rounded-2xl border border-gray-200 px-4 outline-none focus:border-[#FF165E]"
+  className="
+mt-4
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-white
+px-6
+text-[22px]
+font-black
+text-[#16A34A]
+outline-none
+transition-all
+duration-300
+focus:border-[#18B368]
+focus:ring-4
+focus:ring-[#18B368]/10
+"
   placeholder="Pay now amount"
 />
 
@@ -989,7 +1773,29 @@ Amount to Pay
    paymentLoading
 }
                   onClick={payWithRazorpay}
-                  className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#0A1134] font-black text-white disabled:opacity-60"
+                  className="
+mt-7
+flex
+h-16
+w-full
+items-center
+justify-center
+gap-3
+rounded-2xl
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+font-bold
+tracking-wide
+text-white
+shadow-[0_22px_55px_rgba(24,179,104,.35)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-[0_28px_70px_rgba(24,179,104,.45)]
+disabled:opacity-60
+"
                 >
                   <CreditCard size={18} />
 
@@ -1000,7 +1806,18 @@ Amount to Pay
 
                 {paymentMessage && (
 
-<div className="mt-5 rounded-3xl border border-blue-200 bg-blue-50 p-5">
+<div
+className="
+mt-7
+rounded-[30px]
+border
+border-sky-200
+bg-gradient-to-br
+from-sky-50
+to-white
+p-6
+"
+>
 
 <p className="font-bold text-blue-700">
 Payment Status
@@ -1016,15 +1833,33 @@ Payment Status
 
 {paymentSuccess && (
 
-<div className="mt-8 rounded-[32px] border border-green-200 bg-gradient-to-br from-green-50 to-white p-8 shadow-lg">
+<div
+className="
+mt-10
+rounded-[36px]
+border
+border-[#18B368]/20
+bg-gradient-to-br
+from-[#F6FFF9]
+via-white
+to-[#F1FFF7]
+p-10
+shadow-[0_35px_90px_rgba(24,179,104,.15)]
+"
+>
 
 <div className="text-center">
 
 <div className="text-7xl mb-5">
-🎉
+✅
 </div>
 
-<h2 className="text-4xl font-black text-green-700">
+<h2 className="
+text-5xl
+font-black
+tracking-[-0.03em]
+text-[#16A34A]
+">
 Booking Confirmed
 </h2>
 
@@ -1111,23 +1946,33 @@ Show this Booking ID while collecting your scooter from the selected hub.
           </form>
 
           <aside className="space-y-6 lg:sticky lg:top-24 xl:top-28 self-start">
-            <div className="
-rounded-[32px]
-bg-white
+            <div
+className="
+rounded-[36px]
 border
-border-gray-100
-p-6
-shadow-[0_25px_90px_rgba(10,17,52,0.08)]
-">
+border-slate-200
+bg-white/95
+backdrop-blur-xl
+p-8
+shadow-[0_35px_90px_rgba(15,23,42,.10)]
+"
+>
               <div className="mb-5 flex items-center justify-between">
-                <h2 className="text-2xl font-black text-[#0A1134]">
+                <h2
+className="
+text-[32px]
+font-black
+tracking-[-0.03em]
+text-[#0F172A]
+"
+>
     Booking Summary
 </h2>
 
 <p className="mt-1 text-sm text-gray-500">
     Review your reservation before completing payment.
 </p>
-                <ReceiptText className="text-[#FF165E]" />
+                <ReceiptText className="text-[#18B368]" />
               </div>
 
               <div className="space-y-3 text-sm">
@@ -1151,20 +1996,68 @@ shadow-[0_25px_90px_rgba(10,17,52,0.08)]
                 <Summary label="Rental" value={formatINR(rentalAmount)} />
                 <Summary label="Deposit" value={formatINR(securityDeposit)} />
                 <Summary label="Grand Total" value={formatINR(payableAmount)} strong />
-                <Summary
-  label="Payment"
-  value={
-    paymentSuccess
-      ? "Paid"
-      : bookingDone
-      ? "Pending"
-      : "-"
-  }
-/>
+                <div
+  className="
+  flex
+  items-center
+  justify-between
+  border-b
+  border-slate-100
+  py-4
+  "
+>
+  <span
+    className="
+    text-[13px]
+    font-semibold
+    uppercase
+    tracking-[0.08em]
+    text-slate-500
+    "
+  >
+    Payment
+  </span>
+
+  <span
+    className={`
+    rounded-full
+    px-3
+    py-1.5
+    text-xs
+    font-bold
+    ${
+      paymentSuccess
+        ? "bg-green-100 text-green-700"
+        : bookingDone
+        ? "bg-amber-100 text-amber-700"
+        : "bg-slate-100 text-slate-600"
+    }
+    `}
+  >
+    {
+      paymentSuccess
+        ? "PAID"
+        : bookingDone
+        ? "PENDING"
+        : "NOT STARTED"
+    }
+  </span>
+</div>
               </div>
 
               {bookingId && (
-  <div className="mt-6 rounded-3xl border border-green-200 bg-green-50 p-5">
+  <div
+className="
+mt-8
+rounded-[28px]
+border
+border-[#18B368]/10
+bg-gradient-to-br
+from-[#F6FFF9]
+to-white
+p-6
+"
+>
 
     <p className="text-xs uppercase tracking-wide text-green-600">
       Booking Reference
@@ -1179,9 +2072,23 @@ shadow-[0_25px_90px_rgba(10,17,52,0.08)]
             </div>
 
             {selectedHubData && (
-              <div className="rounded-3xl border border-blue-100 bg-blue-50 p-5">
+              <div
+className="
+rounded-[32px]
+border
+border-[#18B368]/10
+bg-gradient-to-br
+from-[#F6FFF9]
+to-white
+p-6
+shadow-sm
+"
+>
                 <div className="flex items-start gap-4">
-                  <MapPin className="mt-1 text-blue-700" />
+                  <MapPin
+size={26}
+className="mt-1 text-[#18B368]"
+/>
                   <div>
                     <h3 className="font-black text-[#0A1134]">{selectedHubData.hubName}</h3>
                     <p className="mt-1 text-sm text-gray-600">{selectedHubData.hubLocation}</p>
@@ -1194,7 +2101,24 @@ shadow-[0_25px_90px_rgba(10,17,52,0.08)]
     href={`https://www.google.com/maps?q=${selectedHubData.latitude},${selectedHubData.longitude}`}
     target="_blank"
     rel="noopener noreferrer"
-    className="mt-4 inline-flex rounded-xl bg-[#0A1134] px-4 py-2 text-sm font-bold text-white"
+    className="
+mt-5
+inline-flex
+items-center
+gap-2
+rounded-full
+bg-gradient-to-r
+from-[#16A34A]
+to-[#18B368]
+px-6
+py-3
+text-sm
+font-bold
+text-white
+transition-all
+duration-300
+hover:-translate-y-1
+"
   >
     Open in Google Maps
   </a>
@@ -1219,17 +2143,64 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-bold text-[#0A1134]">{label}</label>
+
+      <label
+        className="
+mb-3
+block
+text-[13px]
+font-semibold
+uppercase
+tracking-[0.12em]
+text-slate-500
+"
+      >
+        {label}
+      </label>
+
       {children}
+
     </div>
   );
 }
 
 function Empty({ text }: { text: string }) {
   return (
-    <div className="rounded-3xl bg-gray-50 p-8 text-center font-semibold text-gray-500">
-      {text}
-    </div>
+
+<div
+className="
+rounded-[30px]
+border
+border-dashed
+border-[#18B368]/20
+bg-gradient-to-br
+from-[#F6FFF9]
+to-white
+p-12
+text-center
+"
+>
+
+<div className="mb-5 text-6xl">
+
+🛵
+
+</div>
+
+<h3 className="text-2xl font-black text-[#0F172A]">
+
+No Scooters Found
+
+</h3>
+
+<p className="mt-4 leading-7 text-slate-500">
+
+{text}
+
+</p>
+
+</div>
+
   );
 }
 
@@ -1247,14 +2218,44 @@ function StepButtons({
       <button
         type="button"
         onClick={onBack}
-        className="min-h-[56px] flex-1 rounded-2xl border border-gray-200 font-bold"
+        className="
+flex-1
+h-16
+rounded-2xl
+border
+border-slate-300
+bg-white
+font-bold
+text-slate-700
+transition-all
+duration-300
+hover:border-[#18B368]
+hover:text-[#18B368]
+hover:-translate-y-1
+"
       >
         Back
       </button>
       <button
         type="button"
         onClick={onNext}
-        className="h-14 flex-1 rounded-2xl bg-[#FF165E] font-black text-white"
+        className="
+flex-1
+h-16
+rounded-2xl
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+font-bold
+tracking-wide
+text-white
+shadow-[0_18px_45px_rgba(24,179,104,.30)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-[0_25px_55px_rgba(24,179,104,.40)]
+"
       >
         {nextText}
       </button>
@@ -1274,9 +2275,31 @@ function AmountBox({
   const classes = tone === "green" ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700";
 
   return (
-    <div className={`rounded-2xl p-4 ${classes}`}>
-      <p className="text-xs font-bold">{label}</p>
-      <p className="text-lg font-black">{value}</p>
+    <div
+className={`
+rounded-[28px]
+p-6
+shadow-sm
+border
+${classes}
+`}
+>
+      <p
+className="
+text-xs
+uppercase
+tracking-[0.12em]
+font-bold
+"
+>{label}</p>
+      <p
+className="
+mt-2
+text-3xl
+font-black
+tracking-[-0.02em]
+"
+>{value}</p>
     </div>
   );
 }
@@ -1291,9 +2314,33 @@ function Summary({
   strong?: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-gray-100 py-3">
-      <span className="text-gray-500">{label}</span>
-      <span className={strong ? "font-black text-[#0A1134]" : "font-bold text-[#0A1134]"}>
+    <div
+className="
+flex
+items-center
+justify-between
+gap-4
+border-b
+border-slate-100
+py-4
+"
+>
+      <span
+className="
+text-[13px]
+font-semibold
+uppercase
+tracking-[0.08em]
+text-slate-500
+"
+>{label}</span>
+      <span
+className={
+strong
+? "text-lg font-black text-[#16A34A]"
+: "font-semibold text-[#0F172A]"
+}
+>
         {value}
       </span>
     </div>

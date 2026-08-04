@@ -203,7 +203,7 @@ export default function Footer() {
       className="inline-flex items-center"
     >
       <Image
-        src="/evuddy-logo.png"
+        src="/Evuddy-logo-dark-E.png"
         alt="EVUDDY"
         width={170}
         height={60}
@@ -250,7 +250,7 @@ export default function Footer() {
 
         <p className="text-gray-300">
 
-          Goa, India
+          Lucknow, India
 
         </p>
 
@@ -286,10 +286,10 @@ export default function Footer() {
         />
 
         <a
-          href="tel:+919151074229"
+          href="tel:+918726006516"
           className="transition hover:text-white"
         >
-          +91 9151074229
+          +91 8726006516
         </a>
 
       </div>
@@ -371,61 +371,6 @@ export default function Footer() {
 
   </div>
 
-  {/* ================= Services ================= */}
-
-  <div>
-
-    <h4
-      className="
-      mb-8
-      text-xl
-      font-bold
-      "
-    >
-      Services
-    </h4>
-
-    <div className="space-y-5">
-
-      <Link
-        href="/services"
-        className="block text-gray-400 transition hover:text-white"
-      >
-        EV Taxi
-      </Link>
-
-      <Link
-        href="/services"
-        className="block text-gray-400 transition hover:text-white"
-      >
-        EV Bike Rental
-      </Link>
-
-      <Link
-        href="/services"
-        className="block text-gray-400 transition hover:text-white"
-      >
-        EV Delivery
-      </Link>
-
-      <Link
-        href="/services"
-        className="block text-gray-400 transition hover:text-white"
-      >
-        House Help
-      </Link>
-
-      <Link
-        href="/services"
-        className="block text-gray-400 transition hover:text-white"
-      >
-        Corporate Mobility
-      </Link>
-
-    </div>
-
-    </div>
-
   {/* ================= Follow Us ================= */}
 
   <div>
@@ -444,7 +389,7 @@ export default function Footer() {
 
       <motion.a
         whileHover={{ x: 8 }}
-        href="https://www.instagram.com/kebuone/"
+        href="https://www.instagram.com/evuddy_bike?igsh=OXlhcXpnYnJqcXEx/"
         target="_blank"
         rel="noopener noreferrer"
         className="
@@ -546,7 +491,7 @@ export default function Footer() {
 
     <p className="text-gray-400">
 
-      © {new Date().getFullYear()} EVUDDY Technologies Pvt. Ltd.
+      © {new Date().getFullYear()} Shubhrax Mobility Ltd.
 
     </p>
 

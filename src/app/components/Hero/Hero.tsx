@@ -48,231 +48,310 @@ blur-[120px]
 "
 />
 
+ {/* Premium Grid */}
+
+<div
+className="
+absolute
+inset-0
+opacity-[0.03]
+bg-[linear-gradient(to_right,#0F172A_1px,transparent_1px),linear-gradient(to_bottom,#0F172A_1px,transparent_1px)]
+bg-[size:80px_80px]
+pointer-events-none
+"
+/>
+
+<motion.div
+animate={{
+y:[0,-20,0],
+x:[0,15,0]
+}}
+transition={{
+duration:9,
+repeat:Infinity,
+ease:"easeInOut"
+}}
+className="
+absolute
+top-40
+left-[12%]
+hidden
+lg:block
+h-3
+w-3
+rounded-full
+bg-[#18B368]
+opacity-70
+"
+/>
+
+<motion.div
+animate={{
+y:[0,20,0],
+x:[0,-12,0]
+}}
+transition={{
+duration:11,
+repeat:Infinity,
+ease:"easeInOut"
+}}
+className="
+absolute
+top-56
+right-[12%]
+hidden
+lg:block
+h-4
+w-4
+rounded-full
+bg-[#EC2A8C]
+opacity-60
+"
+/>
 
   <div className="max-w-[1480px] mx-auto px-6 lg:px-10">
 
-    <div className="pt-36 lg:pt-40 pb-12 text-center">
+    <div className="relative pt-36 lg:pt-44 pb-16 text-center">
 
-      {/* Badge */}
+  {/* Premium Badge */}
 
-      <motion.div
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  whileHover={{
-    scale: 1.04,
-    y: -2,
-  }}
-  transition={{
-    duration: 0.5,
-  }}
-  className="inline-flex items-center gap-3 rounded-full border border-[#18B368]/20 bg-white/90 backdrop-blur-md px-6 py-2.5 shadow-[0_12px_40px_rgba(0,0,0,0.08)]"
->
-  <motion.span
-    animate={{
-      scale: [1, 1.3, 1],
-    }}
+  <motion.div
+    initial={{ opacity: 0, y: 25 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+    className="
+    inline-flex
+    items-center
+    gap-3
+    rounded-full
+    border
+    border-[#18B368]/20
+    bg-white/70
+    backdrop-blur-2xl
+    px-7
+    py-3
+    shadow-[0_20px_50px_rgba(15,23,42,0.08)]
+    "
+  >
+
+    <span className="relative flex h-3 w-3">
+
+      <span className="absolute inline-flex h-full w-full rounded-full bg-[#18B368] opacity-75 animate-ping" />
+
+      <span className="relative inline-flex h-3 w-3 rounded-full bg-[#18B368]" />
+
+    </span>
+
+    <span className="text-sm font-bold tracking-wide text-slate-700">
+
+      INDIA'S SMART ELECTRIC MOBILITY PLATFORM
+
+    </span>
+
+  </motion.div>
+
+  {/* Main Heading */}
+
+  <motion.h1
+    initial={{ opacity: 0, y: 60 }}
+    animate={{ opacity: 1, y: 0 }}
     transition={{
-      duration: 2,
-      repeat: Infinity,
+duration:1.2,
+ease:[0.22,1,0.36,1]
+}}
+    className="
+    mt-10
+    text-5xl
+    md:text-7xl
+    lg:text-8xl
+    xl:text-[112px]
+    font-black
+    tracking-[-0.06em]
+    leading-[0.88]
+    "
+  >
+
+    <span
+      className="
+      bg-gradient-to-r
+      from-[#16C45B]
+      via-[#18B368]
+      to-[#EC2A8C]
+      bg-clip-text
+      text-transparent
+      "
+    >
+
+      Move Smarter.
+
+    </span>
+
+    <br />
+
+    <span className="text-[#0F172A]">
+
+      Ride
+
+    </span>
+
+    {" "}
+
+    <span
+      className="
+      bg-gradient-to-r
+      from-[#16C45B]
+      via-[#18B368]
+      to-[#EC2A8C]
+      bg-clip-text
+      text-transparent
+      "
+    >
+
+      Electric.
+
+    </span>
+
+  </motion.h1>
+
+  {/* Description */}
+
+  <motion.p
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{
+      delay: .35,
+      duration: .8,
     }}
-    className="h-2.5 w-2.5 rounded-full bg-[#18B368]"
-  />
+    className="
+    mx-auto
+    mt-10
+    max-w-3xl
+    text-lg
+    md:text-xl
+    leading-8
+    md:leading-9
+    text-slate-500
+    "
+  >
 
-  <span className="text-sm font-semibold text-gray-700">
-    India's Smart Electric Mobility Platform
-  </span>
-</motion.div>
+    Experience India's next-generation electric mobility ecosystem
+    designed for effortless city commuting, smart technology,
+    sustainable transportation and premium riding comfort.
 
-      {/* Heading */}
+  </motion.p>
 
-      <motion.h1
-  initial={{
-    opacity: 0,
-    y: 60,
-  }}
-  animate={{
-    opacity: 1,
-    y: 0,
-  }}
-  transition={{
-    duration: 0.9,
-    ease: "easeOut",
-  }}
-        className="
-        mt-6
-        text-6xl
-md:text-7xl
-lg:text-8xl
-xl:text-[110px]
-        font-black
-        tracking-[-0.035em]
-        leading-[0.92]
-        text-gray-900
-        "
-      >
+     {/* ================= Premium CTA ================= */}
 
-        <span
-className="
-bg-gradient-to-r
-from-[#16C45B]
-via-[#18B368]
-via-[#4ADE80]
-to-[#EC2A8C]
-bg-clip-text
-text-transparent
-"
->
-Electric Mobility
-</span>
-
-<br />
-
-<span
-className="
-bg-gradient-to-r
-from-[#16C45B]
-via-[#18B368]
-via-[#4ADE80]
-to-[#EC2A8C]
-bg-clip-text
-text-transparent
-"
->
-Made
-</span>
-
-<span
-className="
-bg-gradient-to-r
-from-[#16C45B]
-via-[#18B368]
-via-[#4ADE80]
-to-[#EC2A8C]
-bg-clip-text
-text-transparent
-"
->
-{" "}Effortless
-</span>
-
-      </motion.h1>
-
-      {/* Subtitle */}
-
-      <motion.p
-        initial={{ opacity:0 }}
-        animate={{ opacity:1 }}
-        transition={{ delay:.3 }}
-        className="
-        mt-8
-        mx-auto
-        max-w-3xl
-        text-xl
-        text-gray-500
-        leading-9
-        "
-      >
-
-        The smarter way to move across the city.
-
-        <br />
-
-        Electric rides, instant booking,
-and zero emissions.
-
-      </motion.p>
-
-      {/* Buttons */}
-
-      <motion.div
-  initial={{ opacity: 0, y: 20 }}
+<motion.div
+  initial={{ opacity: 0, y: 30 }}
   animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.45 }}
+  transition={{
+    delay: 0.45,
+    duration: 0.8,
+  }}
   className="
-mt-10
-flex
-justify-center
-items-center
-gap-5
-flex-wrap
-"
+  mt-14
+  flex
+  flex-wrap
+  items-center
+  justify-center
+  gap-5
+  "
 >
+
+  {/* Primary Button */}
 
   <Link href="/register">
 
     <button
       className="
-group
-flex
-items-center
-gap-2
-rounded-full
-bg-gradient-to-r
-from-[#18B368]
-via-[#16C45B]
-to-[#13A657]
-px-10
-py-4
-font-semibold
-text-lg
-text-white
-shadow-[0_14px_40px_rgba(24,179,104,0.35)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:shadow-[0_22px_55px_rgba(24,179,104,0.45)]
-active:scale-[0.98]
-"
+      group
+      relative
+      overflow-hidden
+      rounded-full
+      bg-gradient-to-r
+      from-[#18B368]
+      via-[#16C45B]
+      to-[#13A657]
+      px-10
+      py-4
+      text-lg
+      font-bold
+      text-white
+      shadow-[0_20px_60px_rgba(24,179,104,.35)]
+      transition-all
+      duration-500
+      hover:scale-[1.03]
+      hover:shadow-[0_30px_80px_rgba(24,179,104,.45)]
+      active:scale-[0.98]
+      "
     >
 
-      Book an EV
+      <span
+        className="
+        absolute
+        inset-0
+        translate-x-[-100%]
+        bg-gradient-to-r
+        from-transparent
+        via-white/30
+        to-transparent
+        transition-transform
+        duration-700
+        group-hover:translate-x-[100%]
+        "
+      />
 
-      <svg
-        width="18"
-        height="18"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        className="transition-transform duration-300 group-hover:translate-x-1"
-      >
-        <path
-          d="M5 12h14M13 5l7 7-7 7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      <span className="relative flex items-center gap-3">
+
+        Reserve Your EV
+
+        <svg
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="transition-transform duration-300 group-hover:translate-x-1"
+        >
+          <path
+            d="M5 12h14M13 5l7 7-7 7"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+
+      </span>
 
     </button>
 
   </Link>
 
+  {/* Secondary Button */}
+
   <Link href="/partners">
 
     <button
       className="
-flex
-items-center
-gap-2
-rounded-full
-border
-border-[#18B368]/20
-bg-white/90
-backdrop-blur-xl
-px-10
-py-4
-font-semibold
-text-lg
-text-[#18B368]
-shadow-[0_12px_35px_rgba(15,23,42,0.08)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:border-[#18B368]
-hover:bg-[#18B368]
-hover:text-white
-hover:shadow-[0_18px_45px_rgba(24,179,104,0.25)]
-"
+      rounded-full
+      border
+      border-white
+      bg-white/70
+      backdrop-blur-2xl
+      px-10
+      py-4
+      text-lg
+      font-bold
+      text-[#18B368]
+      shadow-[0_18px_55px_rgba(15,23,42,.08)]
+      transition-all
+      duration-500
+      hover:-translate-y-1
+      hover:bg-white
+      hover:scale-[1.03]
+      hover:shadow-[0_25px_70px_rgba(15,23,42,.12)]
+      "
     >
 
       Become a Partner
@@ -283,17 +362,72 @@ hover:shadow-[0_18px_45px_rgba(24,179,104,0.25)]
 
 </motion.div>
 
+<motion.div
+  initial={{ opacity: 0 }}
+  animate={{ opacity: 1 }}
+  transition={{
+    delay: .7,
+  }}
+  className="
+  mt-10
+  flex
+  flex-wrap
+  justify-center
+  gap-6
+  text-sm
+  md:text-base
+  font-semibold
+  text-slate-600
+  "
+>
+
+  <div className="flex items-center gap-2">
+
+    <span className="h-2 w-2 rounded-full bg-[#18B368]" />
+
+    Zero Emissions
+
+  </div>
+
+  <div className="flex items-center gap-2">
+
+    <span className="h-2 w-2 rounded-full bg-[#18B368]" />
+
+    120 KM Certified Range
+
+  </div>
+
+  <div className="flex items-center gap-2">
+
+    <span className="h-2 w-2 rounded-full bg-[#18B368]" />
+
+    Smart Connected Ride
+
+  </div>
+
+  <div className="flex items-center gap-2">
+
+    <span className="h-2 w-2 rounded-full bg-[#18B368]" />
+
+    Fast Charging
+
+  </div>
+
+</motion.div>
+
  <motion.div
   initial={{
-    opacity: 0,
-    y: 50,
-    scale: 0.96,
-  }}
+opacity:0,
+y:80,
+scale:0.92,
+rotate:-1
+}}
   animate={{
-    opacity: 1,
-    y: 0,
-    scale: 1,
-  }}
+opacity:1,
+y:0,
+scale:1,
+rotate:0
+}}
   transition={{
     duration: 0.9,
     delay: 0.55,
@@ -307,302 +441,336 @@ mx-auto
 "
 >
 
-  {/* Green Ambient Glow */}
+  {/* ================= Premium Lighting ================= */}
 
-  <div
-    className="
-absolute
-left-[-60px]
-bottom-8
-h-[300px]
-w-[300px]
-rounded-full
-bg-[#18B368]/15
-blur-[130px]
--z-10
-"
-  />
-
-  {/* Pink Ambient Glow */}
-
-  <div
-    className="
-absolute
-right-[-60px]
-top-10
-h-[260px]
-w-[260px]
-rounded-full
-bg-[#EC2A8C]/12
-blur-[120px]
--z-10
-"
-  />
-
-  {/* White Highlight */}
-
-  <div
-    className="
+<div
+className="
 absolute
 left-1/2
-top-0
+top-1/2
 -translate-x-1/2
-h-32
-w-[70%]
+-translate-y-1/2
+w-[900px]
+h-[900px]
 rounded-full
-bg-white/70
-blur-[80px]
--z-10
+bg-[#18B368]/10
+blur-[170px]
 "
-  />
+/>
 
-  {/* Poster Card */}
+<div
+className="
+absolute
+right-[-120px]
+top-12
+w-[420px]
+h-[420px]
+rounded-full
+bg-[#EC2A8C]/10
+blur-[150px]
+"
+/>
 
-  <div
-    className="
+<div
+className="
+absolute
+left-[-120px]
+bottom-0
+w-[420px]
+h-[420px]
+rounded-full
+bg-[#18B368]/10
+blur-[150px]
+"
+/>
+
+{/* ================= Glass Container ================= */}
+
+<div
+className="
 group
 relative
 overflow-hidden
-rounded-[40px]
+rounded-[48px]
 border
-border-white/80
-bg-white/85
-backdrop-blur-2xl
-shadow-[0_35px_90px_rgba(15,23,42,0.14)]
+border-white/60
+bg-white/55
+backdrop-blur-3xl
+shadow-[0_45px_140px_rgba(15,23,42,.16)]
+hover:shadow-[0_70px_170px_rgba(15,23,42,.20)]
 transition-all
 duration-700
-hover:-translate-y-2
-hover:shadow-[0_50px_120px_rgba(15,23,42,0.18)]
 "
-  >
+>
 
-    {/* Top Shine */}
+{/* Premium Shine */}
 
-    <div
-      className="
+<div
+className="
 absolute
-top-0
-left-0
-h-px
-w-full
-bg-gradient-to-r
-from-transparent
-via-white
-to-transparent
-z-20
+inset-0
+pointer-events-none
+opacity-20
+bg-[linear-gradient(120deg,transparent_15%,white_50%,transparent_85%)]
+translate-x-[-120%]
+group-hover:translate-x-[120%]
+transition-transform
+duration-[1800ms]
 "
-    />
+/>
 
-    {/* Poster */}
-
-    <Image
-      src="/poster.png"
-      alt="EVUDDY"
-      width={2400}
-      height={1200}
-      priority
-      className="
+<Image
+src="/poster.png"
+alt="EVUDDY"
+width={2400}
+height={1400}
+priority
+className="
 w-full
 h-auto
-object-cover
+object-contain
 transition-all
 duration-700
-group-hover:scale-[1.02]
-group-hover:brightness-105
+group-hover:scale-[1.015]
 "
-    />
+/>
+
+{/* Soft Bottom Fade */}
+
+<div
+className="
+absolute
+bottom-0
+left-0
+w-full
+h-36
+bg-gradient-to-t
+from-white/40
+to-transparent
+pointer-events-none
+"
+/>
+
+</div>
 
     {/* Bottom Gradient */}
 
     <div
-      className="
+className="
 absolute
-bottom-0
-left-0
-h-28
-w-full
-bg-gradient-to-t
-from-black/5
-via-transparent
-to-transparent
-pointer-events-none
+left-1/2
+-bottom-16
+-translate-x-1/2
+w-[78%]
+h-24
+rounded-full
+bg-gradient-to-r
+from-[#18B368]/15
+via-white/50
+to-[#EC2A8C]/15
+blur-[90px]
+-z-10
 "
-    />
+/>
 
-  </div>
+
 
   {/* ================= Floating Cards ================= */}
 
-{/* Battery */}
+{/* ================= PREMIUM FLOATING WIDGETS ================= */}
+
+{/* Top Left */}
 
 <motion.div
-animate={{ y: [0, -10, 0] }}
+animate={{ y:[0,-8,0] }}
 transition={{
-duration: 5,
-repeat: Infinity,
-ease: "easeInOut",
+duration:5,
+repeat:Infinity,
+ease:"easeInOut"
+}}
+className="
+absolute
+top-10
+left-6
+hidden
+xl:flex
+rounded-[28px]
+bg-white/75
+backdrop-blur-3xl
+border
+border-white/60
+px-6
+py-5
+shadow-[0_25px_70px_rgba(15,23,42,.12)]
+"
+>
+
+<div>
+
+<p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+
+Battery Range
+
+</p>
+
+<h3 className="mt-2 text-4xl font-black text-[#18B368]">
+
+120 KM
+
+</h3>
+
+<p className="mt-1 text-sm text-slate-500">
+
+Single Charge
+
+</p>
+
+</div>
+
+</motion.div>
+
+{/* Top Right */}
+
+<motion.div
+animate={{ y:[0,8,0] }}
+transition={{
+duration:6,
+repeat:Infinity,
+ease:"easeInOut"
 }}
 className="
 absolute
 top-12
--left-8
+right-6
 hidden
-lg:flex
-items-center
-gap-3
-rounded-2xl
+xl:flex
+rounded-[28px]
+bg-white/75
+backdrop-blur-3xl
 border
-border-white/70
-bg-white/90
-backdrop-blur-xl
-px-5
-py-4
-shadow-[0_20px_45px_rgba(15,23,42,0.10)]
+border-white/60
+px-6
+py-5
+shadow-[0_25px_70px_rgba(15,23,42,.12)]
 "
 >
 
-<div className="text-2xl">🔋</div>
-
 <div>
 
-<p className="text-sm font-semibold text-gray-900">
-120 KM Range
+<p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+
+Charging
+
 </p>
 
-<p className="text-xs text-gray-500">
-Single Charge
+<h3 className="mt-2 text-4xl font-black text-[#EC2A8C]">
+
+Fast
+
+</h3>
+
+<p className="mt-1 text-sm text-slate-500">
+
+Quick Recharge
+
 </p>
 
 </div>
 
 </motion.div>
 
-{/* Charging */}
+{/* Bottom Left */}
 
 <motion.div
-animate={{ y: [0, 8, 0] }}
+animate={{ y:[0,-6,0] }}
 transition={{
-duration: 6,
-repeat: Infinity,
-ease: "easeInOut",
-}}
-className="
-absolute
-top-16
--right-8
-hidden
-lg:flex
-items-center
-gap-3
-rounded-2xl
-border
-border-white/70
-bg-white/90
-backdrop-blur-xl
-px-5
-py-4
-shadow-[0_20px_45px_rgba(15,23,42,0.10)]
-"
->
-
-<div className="text-2xl">⚡</div>
-
-<div>
-
-<p className="text-sm font-semibold text-gray-900">
-Fast Charging
-</p>
-
-<p className="text-xs text-gray-500">
-Ready in Minutes
-</p>
-
-</div>
-
-</motion.div>
-
-{/* Tracking */}
-
-<motion.div
-animate={{ y: [0, -8, 0] }}
-transition={{
-duration: 5.5,
-repeat: Infinity,
-ease: "easeInOut",
+duration:5.5,
+repeat:Infinity
 }}
 className="
 absolute
 bottom-20
--left-10
+left-10
 hidden
-lg:flex
-items-center
-gap-3
-rounded-2xl
+xl:flex
+rounded-[28px]
+bg-white/75
+backdrop-blur-3xl
 border
-border-white/70
-bg-white/90
-backdrop-blur-xl
-px-5
-py-4
-shadow-[0_20px_45px_rgba(15,23,42,0.10)]
+border-white/60
+px-6
+py-5
+shadow-[0_25px_70px_rgba(15,23,42,.12)]
 "
 >
 
-<div className="text-2xl">📍</div>
-
 <div>
 
-<p className="text-sm font-semibold text-gray-900">
-Live Tracking
+<p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+
+Tracking
+
 </p>
 
-<p className="text-xs text-gray-500">
-Real-time Location
+<h3 className="mt-2 text-3xl font-black text-[#18B368]">
+
+GPS Live
+
+</h3>
+
+<p className="mt-1 text-sm text-slate-500">
+
+Always Connected
+
 </p>
 
 </div>
 
 </motion.div>
 
-{/* Safety */}
+{/* Bottom Right */}
 
 <motion.div
-animate={{ y: [0, 10, 0] }}
+animate={{ y:[0,6,0] }}
 transition={{
-duration: 6.5,
-repeat: Infinity,
-ease: "easeInOut",
+duration:6,
+repeat:Infinity
 }}
 className="
 absolute
 bottom-16
--right-10
+right-10
 hidden
-lg:flex
-items-center
-gap-3
-rounded-2xl
+xl:flex
+rounded-[28px]
+bg-white/75
+backdrop-blur-3xl
 border
-border-white/70
-bg-white/90
-backdrop-blur-xl
-px-5
-py-4
-shadow-[0_20px_45px_rgba(15,23,42,0.10)]
+border-white/60
+px-6
+py-5
+shadow-[0_25px_70px_rgba(15,23,42,.12)]
 "
 >
 
-<div className="text-2xl">🛡</div>
-
 <div>
 
-<p className="text-sm font-semibold text-gray-900">
-Safe & Reliable
+<p className="text-xs uppercase tracking-[0.25em] text-slate-400">
+
+Ride Mode
+
 </p>
 
-<p className="text-xs text-gray-500">
-Verified Rides
+<h3 className="mt-2 text-3xl font-black text-[#18B368]">
+
+Smart EV
+
+</h3>
+
+<p className="mt-1 text-sm text-slate-500">
+
+Premium Experience
+
 </p>
 
 </div>
@@ -611,22 +779,31 @@ Verified Rides
 
   {/* Bottom Platform Glow */}
 
-  <div
-    className="
-absolute
-left-1/2
--bottom-14
--translate-x-1/2
-h-24
-w-[75%]
-rounded-full
-bg-[#18B368]/12
-blur-[90px]
--z-10
-"
-  />
+ </motion.div>
 
-</motion.div>
+ <div className="mt-24 text-center">
+
+<p className="text-xs uppercase tracking-[0.35em] text-slate-400">
+
+BUILT FOR
+
+</p>
+
+<div className="mt-8 flex flex-wrap justify-center gap-8 text-base font-semibold text-slate-500">
+
+<span>Daily Commuters</span>
+
+<span>Businesses</span>
+
+<span>Fleet Operators</span>
+
+<span>Delivery Partners</span>
+
+<span>Gig Workers</span>
+
+</div>
+
+</div>
 
 </div>
 

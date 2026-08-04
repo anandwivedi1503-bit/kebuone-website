@@ -90,7 +90,8 @@ blur-[120px]
     viewport={{ once: true }}
     className="
     mt-8
-    text-5xl
+    text-3xl
+md:text-5xl
     md:text-6xl
     lg:text-7xl
     font-black
@@ -142,8 +143,11 @@ blur-[120px]
     mt-8
     mx-auto
     max-w-3xl
-    text-xl
-    leading-9
+   text-base
+md:text-lg
+lg:text-xl
+leading-7
+md:leading-9
     text-gray-500
     "
   >
@@ -186,16 +190,20 @@ blur-[120px]
   viewport={{ once: true }}
   className="mt-16"
 >
-  <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+  <div className="grid grid-cols-2
+md:grid-cols-2
+lg:grid-cols-4 gap-6">
 
-   <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+   <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-5
+md:p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
 
   <BatteryCharging
     size={36}
     className="mx-auto mb-4 text-[#18B368]"
   />
 
-  <h3 className="text-5xl font-black text-[#18B368]">
+  <h3 className="text-3xl
+md:text-5xl font-black text-[#18B368]">
     120
   </h3>
 
@@ -205,14 +213,16 @@ blur-[120px]
 
 </div>
 
-    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-5
+md:p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
 
   <Gauge
     size={36}
     className="mx-auto mb-4 text-[#EC2A8C]"
   />
 
-  <h3 className="text-5xl font-black text-[#EC2A8C]">
+  <h3 className="text-3xl
+md:text-5xl font-black text-[#EC2A8C]">
     45
   </h3>
 
@@ -222,14 +232,16 @@ blur-[120px]
 
 </div>
 
-    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-5
+md:p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
 
   <Zap
     size={36}
     className="mx-auto mb-4 text-[#18B368]"
   />
 
-  <h3 className="text-5xl font-black text-[#18B368]">
+  <h3 className="text-3xl
+md:text-5xl font-black text-[#18B368]">
     4h
   </h3>
 
@@ -239,14 +251,16 @@ blur-[120px]
 
 </div>
 
-    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
+    <div className="rounded-[28px] bg-white/90 backdrop-blur-xl p-5
+md:p-8 text-center border border-white shadow-[0_25px_60px_rgba(15,23,42,0.08)] transition-all duration-300 hover:-translate-y-2 hover:scale-[1.03] hover:shadow-[0_35px_80px_rgba(15,23,42,0.12)]">
 
   <MapPinned
     size={36}
     className="mx-auto mb-4 text-[#EC2A8C]"
   />
 
-  <h3 className="text-5xl font-black text-[#EC2A8C]">
+  <h3 className="text-3xl
+md:text-5xl font-black text-[#EC2A8C]">
     GPS
   </h3>
 

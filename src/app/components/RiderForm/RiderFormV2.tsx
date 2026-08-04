@@ -1123,78 +1123,365 @@ Waiting For Admin Approval
   return (
    <section
   id="rider-registration"
-  className="py-32 bg-gradient-to-b from-white via-[#FFF7FA] to-white"
+  className="
+pt-44
+pb-24
+bg-gradient-to-br
+from-white
+via-[#F7FFFB]
+to-[#F2FFF7]
+overflow-hidden
+"
 >
       <div className="max-w-7xl mx-auto px-6">
 
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-[1fr_0.95fr] gap-10 items-start">
 
-          {/* LEFT VIDEO */}
+          {/* ================= LEFT PREMIUM SECTION ================= */}
 
-          <div className="relative hidden lg:block">
+<div className="relative hidden lg:block">
 
-            <div className="overflow-hidden rounded-[40px] shadow-[0_30px_100px_rgba(0,0,0,0.18)]">
+  <div
+className="
+relative
+overflow-hidden
+rounded-[42px]
+h-[720px]
+shadow-[0_40px_120px_rgba(0,0,0,0.18)]
+"
+>
 
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-[620px] object-cover"
-              >
-                <source src="/kebu-final.mp4" type="video/mp4" />
-              </video>
+    <img
+      src="/trans.png"
+      alt="EVUDDY Bike"
+      className="
+w-full
+h-full
+object-cover
+object-[48%_center]
+scale-[1.02]
+transition-all
+duration-700
+"
+    />
 
-            </div>
+    <div className="absolute inset-0 bg-gradient-to-br from-[#081C15]/82
+via-[#0B2A20]/58
+to-[#18B368]/22" />
 
-            <div className="absolute bottom-6 left-6 bg-white/90 backdrop-blur-xl rounded-2xl px-6 py-4 shadow-xl">
-              <h3 className="font-bold text-[#0A1134]">
-                🚲 Kebu Bike On Rent
-              </h3>
+  </div>
 
-              <p className="text-sm text-gray-500">
-                Smart mobility for Tier-2 India
-              </p>
-            </div>
+  {/* Premium Logo */}
 
-            <div className="absolute top-6 right-6 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-xl">
-  <p className="text-[#0A1134] font-bold">
-    🚲 Smart Fleet
-  </p>
+<div className="absolute top-10 left-8 z-20">
+
+  <span
+    className="
+    inline-flex
+    items-center
+    rounded-full
+    bg-white/10
+    backdrop-blur-xl
+    border
+    border-white/15
+    px-4
+    py-2
+    text-[11px]
+    uppercase
+    tracking-[0.22em]
+    text-green-300
+    "
+  >
+    Smart Electric Mobility
+  </span>
+
+  <h2
+    className="
+    mt-6
+    text-[42px]
+    font-black
+    tracking-tight
+    leading-none
+    text-white
+    "
+  >
+    EVUDDY
+  </h2>
+
+  <p
+className="
+mt-3
+max-w-[240px]
+text-[15px]
+leading-8
+text-white/80
+"
+>
+India's premium electric mobility ecosystem built for riders,
+rentals and smart commuting.
+</p>
+
+</div>
+  
+  {/* Reserved for future hero content */}
+  {/* Floating Card */}
+
+  <div
+className="
+absolute
+top-16
+right-2
+w-[170px]
+rounded-[28px]
+bg-white/10
+backdrop-blur-2xl
+border
+border-white/20
+shadow-[0_25px_60px_rgba(0,0,0,.25)]
+p-6
+z-20
+"
+>
+
+<div className="flex items-center gap-3">
+
+<div
+className="
+w-10
+h-10
+rounded-2xl
+bg-gradient-to-br
+from-[#22C55E]
+to-[#16A34A]
+flex
+items-center
+justify-center
+text-white
+text-xl
+"
+>
+
+⚡
+
 </div>
 
-<div className="absolute top-28 right-6 bg-white/90 backdrop-blur-xl rounded-2xl px-5 py-3 shadow-xl">
-  <p className="text-[#0A1134] font-bold">
-    📍 Hub-Based Operations
-  </p>
+<div>
+
+<p className="text-white text-[24px] font-black leading-none">
+
+24 hrs
+
+</p>
+
+<p className="text-white/70 text-xs uppercase tracking-[0.15em] mt-2">
+
+Average Approval
+
+</p>
+
 </div>
 
-          </div>
+</div>
+
+<div className="mt-5 border-t border-white/10 pt-4">
+
+<p className="text-green-300 text-sm font-medium">
+
+Fast Digital Verification
+
+</p>
+
+</div>
+
+</div>
+
+  <div
+className="
+absolute
+bottom-10
+left-6
+w-[170px]
+rounded-[28px]
+bg-white/10
+backdrop-blur-2xl
+border
+border-white/20
+shadow-[0_25px_60px_rgba(0,0,0,.25)]
+p-5
+z-20
+"
+>
+
+<div className="flex items-center gap-3">
+
+<div
+className="
+w-10
+h-10
+rounded-2xl
+bg-gradient-to-br
+from-[#22C55E]
+to-[#16A34A]
+flex
+items-center
+justify-center
+text-white
+text-lg
+"
+>
+
+🛡
+
+</div>
+
+<div>
+
+<p className="text-white text-[24px] font-black">
+
+100%
+
+</p>
+
+<p className="text-white/70 text-xs uppercase tracking-[0.15em]">
+
+Secure Registration
+
+</p>
+
+</div>
+
+</div>
+
+<div className="mt-5 border-t border-white/10 pt-4">
+
+<p className="text-green-300 text-sm">
+
+Aadhaar Protected
+
+</p>
+
+</div>
+
+</div>
+
+</div>
 
           {/* RIGHT FORM */}
 
           <div>
+ <span
+  className="
+inline-flex
+items-center
+gap-2
+px-5
+py-2.5
+rounded-full
+bg-[#F4FFF8]
+border
+border-[#22C55E]/20
+text-[#16A34A]
+font-semibold
+shadow-sm
+mb-6
+"
+>
+  <span
+    className="
+w-2.5
+h-2.5
+rounded-full
+bg-[#22C55E]
+animate-pulse
+"
+  />
 
-            <span className="inline-flex items-center px-5 py-2 rounded-full bg-pink-50 border border-pink-100 text-[#FF165E] font-semibold mb-6">
-              Rider Registration
-            </span>
+  Rider Registration
+</span>
 
-            <h2 className="text-4xl md:text-6xl font-black text-[#0A1134] leading-tight">
-  Start Your Journey
+            <h2
+className="
+text-[50px]
+md:text-[64px]
+leading-[0.95]
+font-black
+tracking-tight
+text-[#0F172A]
+"
+>
+Start Your Journey
 </h2>
 
-<h3 className="text-3xl md:text-5xl font-black text-[#FF165E] mt-2">
-  With Kebu One
+<h3
+className="
+mt-3
+text-[38px]
+md:text-[52px]
+font-black
+tracking-tight
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+bg-clip-text
+text-transparent
+"
+>
+With EVUDDY
 </h3>
 
-<p className="text-gray-600 text-lg mt-6 mb-10 max-w-xl">
-  Complete your registration, verify your identity and unlock smart mobility designed for Tier-2 India.p-12
+<p
+className="
+mt-6
+mb-10
+max-w-xl
+text-[18px]
+leading-8
+text-slate-600
+"
+>
+Complete your registration, verify your identity and unlock secure electric mobility powered by EVUDDY's intelligent rider platform.
 </p>
 
-            <div className="flex items-center justify-between mb-8 mt-8 overflow-x-auto pb-2">
+            <div
+className="
+flex
+items-center
+justify-between
+mb-10
+mt-8
+overflow-x-auto
+rounded-[24px]
+bg-white
+border
+border-slate-200
+shadow-sm
+px-6
+py-5
+"
+>
 
   <div className="flex flex-col items-center">
-  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${step >= 1 ? "bg-[#FF165E] text-white" : "bg-gray-200"}`}>
+  <div
+className={`
+w-14
+h-14
+rounded-full
+flex
+items-center
+justify-center
+font-black
+text-lg
+transition-all
+duration-300
+shadow-lg
+${
+step >= 1
+? "bg-gradient-to-br from-[#16A34A] via-[#22C55E] to-[#18B368] text-white scale-110 shadow-[0_12px_35px_rgba(34,197,94,.35)]"
+: "bg-slate-200 text-slate-500"
+}
+`}
+>
     1
   </div>
 
@@ -1203,12 +1490,49 @@ Waiting For Admin Approval
   </span>
 </div>
 
-  <div className="flex-1 h-1 bg-gray-200 mx-2">
-    <div className={`${step >= 2 ? "w-full" : "w-0"} h-full bg-[#FF165E] transition-all duration-500`} />
+  <div className="
+flex-1
+h-[4px]
+rounded-full
+bg-slate-200
+mx-3
+overflow-hidden
+">
+    <div
+className={`
+${step >= 2 ? "w-full" : "w-0"}
+h-full
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+transition-all
+duration-500
+`}
+/>
   </div>
 
   <div className="flex flex-col items-center">
-  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${step >= 2 ? "bg-[#FF165E] text-white" : "bg-gray-200"}`}>
+  <div
+className={`
+w-14
+h-14
+rounded-full
+flex
+items-center
+justify-center
+font-black
+text-lg
+transition-all
+duration-300
+shadow-lg
+${
+step >= 2
+? "bg-gradient-to-br from-[#16A34A] via-[#22C55E] to-[#18B368] text-white scale-110"
+: "bg-slate-200 text-slate-500"
+}
+`}
+>
     2
   </div>
 
@@ -1217,12 +1541,38 @@ Waiting For Admin Approval
   </span>
 </div>
 
-  <div className="flex-1 h-1 bg-gray-200 mx-2">
-    <div className={`${step >= 3 ? "w-full" : "w-0"} h-full bg-[#FF165E] transition-all duration-500`} />
+  <div className="
+flex-1
+h-[4px]
+rounded-full
+bg-slate-200
+mx-3
+overflow-hidden
+">
+    <div className={`${step >= 3 ? "w-full" : "w-0"} h-full bg-[#22C55E] transition-all duration-500`} />
   </div>
 
   <div className="flex flex-col items-center">
-  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${step >= 3 ? "bg-[#FF165E] text-white" : "bg-gray-200"}`}>
+  <div
+className={`
+w-14
+h-14
+rounded-full
+flex
+items-center
+justify-center
+font-black
+text-lg
+transition-all
+duration-300
+shadow-lg
+${
+step >= 3
+? "bg-gradient-to-br from-[#16A34A] via-[#22C55E] to-[#18B368] text-white scale-110"
+: "bg-slate-200 text-slate-500"
+}
+`}
+>
     3
   </div>
 
@@ -1231,12 +1581,38 @@ Waiting For Admin Approval
   </span>
 </div>
 
-  <div className="flex-1 h-1 bg-gray-200 mx-2">
-    <div className={`${step >= 4 ? "w-full" : "w-0"} h-full bg-[#FF165E] transition-all duration-500`} />
+  <div className="
+flex-1
+h-[4px]
+rounded-full
+bg-slate-200
+mx-3
+overflow-hidden
+">
+    <div className={`${step >= 4 ? "w-full" : "w-0"} h-full bg-[#22C55E] transition-all duration-500`} />
   </div>
 
   <div className="flex flex-col items-center">
-  <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${step >= 4 ? "bg-[#FF165E] text-white" : "bg-gray-200"}`}>
+  <div
+className={`
+w-14
+h-14
+rounded-full
+flex
+items-center
+justify-center
+font-black
+text-lg
+transition-all
+duration-300
+shadow-lg
+${
+step >= 4
+? "bg-gradient-to-br from-[#16A34A] via-[#22C55E] to-[#18B368] text-white scale-110"
+: "bg-slate-200 text-slate-500"
+}
+`}
+>
     4
   </div>
 
@@ -1249,21 +1625,44 @@ Waiting For Admin Approval
 
             {/* FORM CARD */}
 
-            <div className="
-bg-white/90
-backdrop-blur-xl
-rounded-[36px]
-p-6 sm:p-8 md:p-12
-border
-border-white
-shadow-[0_30px_100px_rgba(255,22,94,0.12)]
+           <div className="
 relative
 overflow-hidden
-">
+rounded-[40px]
+bg-white/95
+backdrop-blur-xl
+ border
+border-white
+p-6
+sm:p-10
+md:p-12
+shadow-[0_35px_90px_rgba(15,23,42,0.10)]
+hover:shadow-[0_45px_120px_rgba(15,23,42,0.16)]
+transition-all
+duration-500
+before:absolute
+before:top-0
+before:left-0
+before:w-full
+before:h-1
+before:bg-gradient-to-r
+before:from-[#16A34A]
+before:via-[#22C55E]
+before:to-[#18B368]
+"
+>
 
               {step === 1 && (
                 <>
-                  <h3 className="text-2xl font-bold text-[#0A1134] mb-6">
+                  <h3
+className="
+text-[36px]
+font-black
+tracking-tight
+text-[#0F172A]
+mb-3
+"
+>
                     Personal Information
                   </h3>
 
@@ -1275,7 +1674,7 @@ Step 1 of 4
   Fields marked <span className="text-red-500">*</span> are required
 </p>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
 
                     <input
   type="text"
@@ -1285,7 +1684,25 @@ Step 1 of 4
   setFullName(e.target.value);
   setError("");
 }}
- className="w-full h-14 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100"
+ className="
+w-full
+h-14
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
                     <input
@@ -1314,18 +1731,18 @@ h-16
 px-5
 rounded-2xl
 border
-border-gray-200
-bg-white
-text-[#0A1134]
-placeholder:text-gray-500
-placeholder:opacity-100
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
 shadow-sm
-outline-none
-focus:border-[#FF165E]
-focus:ring-4
-focus:ring-pink-100
-transition-all
+ transition-all
 duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
 "
 />
 
@@ -1337,7 +1754,25 @@ duration-300
   setEmail(e.target.value);
   setError("");
 }}
-  className="w-full h-14 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100"
+  className="
+w-full
+h-14
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
                   </div>
@@ -1347,15 +1782,30 @@ duration-300
               {step === 2 && (
   <>
   
-    <h3 className="text-2xl font-bold text-[#0A1134] mb-6">
+    <h3
+className="
+text-[36px]
+font-black
+tracking-tight
+text-[#0F172A]
+mb-3
+"
+>
       OTP Verification
     </h3>
 
-    <p className="text-gray-500 mt-2 mb-8">
+    <p
+className="
+text-[16px]
+text-slate-500
+mb-8
+leading-7
+"
+>
 Step 2 of 4
 </p>
 
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div id="recaptcha-container"></div>
 
       <input
@@ -1464,15 +1914,30 @@ Step 2 of 4
 
               {step === 3 && (
                 <>
-                  <h3 className="text-2xl font-bold text-[#0A1134] mb-6">
+                  <h3
+className="
+text-[36px]
+font-black
+tracking-tight
+text-[#0F172A]
+mb-3
+"
+>
                     KYC Details
                   </h3>
 
-                  <p className="text-gray-500 mt-2 mb-8">
+                  <p
+className="
+text-[16px]
+text-slate-500
+mb-8
+leading-7
+"
+>
                     Step 3 of 4
                   </p>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
 
                     <input
   type="text"
@@ -1493,7 +1958,25 @@ Step 2 of 4
     setLicense(e.target.value);
     setError("");
   }}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+  className="
+w-full
+h-16
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
 <input
@@ -1501,7 +1984,25 @@ Step 2 of 4
   placeholder="Instagram ID (Optional)"
   value={instagramId}
   onChange={(e) => setInstagramId(e.target.value)}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+  className="
+w-full
+h-16
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
 <input
@@ -1509,7 +2010,25 @@ Step 2 of 4
   placeholder="Facebook ID (Optional)"
   value={facebookId}
   onChange={(e) => setFacebookId(e.target.value)}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+  className="
+w-full
+h-16
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
 <input
@@ -1517,7 +2036,25 @@ Step 2 of 4
   placeholder="Reference Person 1 Name (Optional)"
   value={reference1Name}
   onChange={(e) => setReference1Name(e.target.value)}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+  className="
+w-full
+h-16
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
 <input
@@ -1525,7 +2062,25 @@ Step 2 of 4
   placeholder="Reference Person 1 Phone (Optional)"
   value={reference1Phone}
   onChange={(e) => setReference1Phone(e.target.value)}
- className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+ className="
+w-full
+h-16
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
 <input
@@ -1533,7 +2088,25 @@ Step 2 of 4
   placeholder="Reference Person 2 Name (Optional)"
   value={reference2Name}
   onChange={(e) => setReference2Name(e.target.value)}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+  className="
+w-full
+h-16
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
 <input
@@ -1541,7 +2114,25 @@ Step 2 of 4
   placeholder="Reference Person 2 Phone (Optional)"
   value={reference2Phone}
   onChange={(e) => setReference2Phone(e.target.value)}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
+  className="
+w-full
+h-16
+px-5
+rounded-3xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+placeholder:text-slate-500
+shadow-md
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
 />
 
                   </div>
@@ -1550,11 +2141,26 @@ Step 2 of 4
 
               {step === 4 && (
                 <>
-                  <h3 className="text-2xl font-bold text-[#0A1134] mb-6">
+                  <h3
+className="
+text-[34px]
+font-black
+tracking-tight
+text-[#0F172A]
+mb-5
+"
+>
                     Upload Documents
                   </h3>
 
-                  <p className="text-gray-500 mt-2 mb-8">
+                  <p
+className="
+text-[16px]
+text-slate-500
+mb-8
+leading-7
+"
+>
 Step 4 of 4
 </p>
 
@@ -2012,20 +2618,26 @@ transition
     }
   }}
   className={`
-px-8
-py-3
-rounded-xl
-text-white
-font-bold
-shadow-lg
-${isContinueDisabled ? "bg-gray-300 cursor-not-allowed shadow-none" : "bg-gradient-to-r from-[#FF165E] to-[#FF5A8B]"}
-`}
+    px-8
+    py-3
+    rounded-xl
+    text-white
+    font-bold
+    shadow-lg
+    transition-all
+    duration-300
+    ${
+      isContinueDisabled
+        ? "bg-gray-300 cursor-not-allowed shadow-none"
+        : "bg-gradient-to-r from-[#16A34A] via-[#22C55E] to-[#18B368] hover:scale-[1.03] hover:shadow-[0_18px_45px_rgba(34,197,94,.35)]"
+    }
+  `}
 >
   {step === 1
-  ? "Continue to Verification →"
-  : step === 2
-  ? "Continue to KYC →"
-  : "Continue to Documents →"}
+    ? "Continue to Verification →"
+    : step === 2
+    ? "Continue to KYC →"
+    : "Continue to Documents →"}
 </button>
                 ) : (
                   <button
@@ -2042,8 +2654,9 @@ px-8
 py-3
 rounded-xl
 bg-gradient-to-r
-from-[#FF165E]
-to-[#FF5A8B]
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
 text-white
 font-bold
 shadow-lg
@@ -2052,7 +2665,8 @@ duration-300
 disabled:opacity-50
 disabled:cursor-not-allowed
 disabled:scale-100
-hover:scale-105
+hover:scale-[1.03]
+hover:shadow-[0_20px_50px_rgba(34,197,94,.35)]
 "
 >
   {submitting ? "Creating Rider Account..." : "Submit Registration"}
@@ -2063,17 +2677,62 @@ hover:scale-105
 
             </div>
 
-            <div className="flex flex-wrap gap-3 mt-8">
+            <div className="flex flex-wrap gap-4 mt-8">
 
-  <div className="px-4 py-2 rounded-full bg-pink-50 border border-pink-200 text-[#FF165E] text-sm font-semibold">
+  <div className="
+px-6
+py-3
+rounded-full
+bg-white
+border
+border-[#DCFCE7]
+text-[#16A34A]
+text-sm
+font-semibold
+shadow-sm
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-lg
+">
     ✓ Aadhaar Protected
   </div>
 
-  <div className="px-4 py-2 rounded-full bg-pink-50 border border-pink-200 text-[#FF165E] text-sm font-semibold">
+  <div className="
+px-6
+py-3
+rounded-full
+bg-white
+border
+border-[#DCFCE7]
+text-[#16A34A]
+text-sm
+font-semibold
+shadow-sm
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-lg
+">
     ✓ Secure Registration
   </div>
 
-  <div className="px-4 py-2 rounded-full bg-pink-50 border border-pink-200 text-[#FF165E] text-sm font-semibold">
+  <div className="
+px-6
+py-3
+rounded-full
+bg-white
+border
+border-[#DCFCE7]
+text-[#16A34A]
+text-sm
+font-semibold
+shadow-sm
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-lg
+">
     ✓ Verified Platform
   </div>
 

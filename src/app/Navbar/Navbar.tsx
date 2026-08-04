@@ -26,16 +26,16 @@ const navLinks = [
     href: "/",
   },
   {
-    title: "Fleet",
-    href: "#fleet",
+    title: "Careers",
+    href: "/careers",
   },
   {
-    title: "Corporate",
-    href: "#corporate",
+    title: "Leadership",
+    href: "/Leadership",
   },
   {
-    title: "How It Works",
-    href: "#how-it-works",
+    title: "Vision",
+    href: "/vision",
   },
   {
     title: "About",
@@ -98,19 +98,19 @@ export default function Navbar() {
 <nav
 className={`
 fixed
-top-4
+top-3
+lg:top-4
 left-1/2
 -translate-x-1/2
 z-[999]
 w-[calc(100%-24px)]
-max-w-[1620px]
+max-w-[1700px]
 transition-all
 duration-500
 ${
 isScrolled
-? "bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_25px_70px_rgba(15,23,42,0.10)] rounded-2xl"
-: "bg-white/55 backdrop-blur-2xl border border-white/40 rounded-2xl"
-}
+? "bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_18px_60px_rgba(2,12,27,0.10)]rounded-xl lg:rounded-2xl"
+: "bg-white/55 backdrop-blur-2xl border border-white/40 rounded-xl lg:rounded-2xl"}
 `}
 >
 
@@ -139,9 +139,11 @@ mx-auto
 flex
 items-center
 justify-between
-h-[82px]
-px-8
-xl:px-12
+h-[74px]
+lg:h-[90px]
+px-5
+lg:px-6
+xl:px-8
 "
 >
 {/* ================= Logo ================= */}
@@ -151,8 +153,10 @@ href="/"
 className="
 flex
 items-center
+justify-start
 shrink-0
-w-[290px]
+w-[175px]
+xl:w-[190px]
 group
 "
 >
@@ -164,12 +168,14 @@ width={320}
 height={95}
 priority
 className="
-h-14
+h-[52px]
+lg:h-[58px]
+xl:h-[60px]
 w-auto
 object-contain
-transition-transform
+transition-all
 duration-500
-group-hover:scale-[1.02]
+group-hover:scale-[1.04]
 "
 />
 
@@ -178,7 +184,7 @@ group-hover:scale-[1.02]
 
 {/* ================= Desktop Menu ================= */}
 
-<div className="hidden lg:flex flex-1 items-center justify-center gap-12">
+<div className="hidden lg:flex flex-1 items-center justify-center gap-8 xl:gap-10">
 
 {navLinks.map((item)=>(
 
@@ -188,18 +194,26 @@ href={item.href}
 className="
 group
 relative
-py-2
-text-[16px]
-font-medium
-tracking-[0.01em]
-text-gray-800
-transition-colors
+inline-flex
+items-center
+justify-center
+h-12
+px-1
+text-[17px]
+font-semibold
+tracking-[-0.01em]
+whitespace-nowrap
+text-[#0F172A]
+transition-all
 duration-300
 hover:text-[#18B368]
+hover:-translate-y-[1px]
 "
 >
 
-{item.title}
+<span className="whitespace-nowrap">
+  {item.title}
+</span>
 
 <span
 className="
@@ -227,7 +241,7 @@ group-hover:w-full
 
 {/* ================= Right Buttons ================= */}
 
-<div className="hidden lg:flex items-center gap-5 shrink-0 ml-10">
+<div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-3 xl:ml-5">
 
 <Link href="/partners">
 
@@ -241,9 +255,11 @@ border
 border-[#18B368]/20
 bg-white/80
 backdrop-blur-xl
-px-7
-py-3
-font-semibold
+px-4
+xl:px-5
+h-12
+xl:h-13
+font-bold
 text-[#18B368]
 shadow-[0_12px_35px_rgba(15,23,42,0.08)]
 transition-all
@@ -278,9 +294,11 @@ bg-gradient-to-r
 from-[#18B368]
 via-[#16C45B]
 to-[#13A657]
-px-7
-py-3
-font-semibold
+px-4
+xl:px-5
+h-12
+xl:h-13
+font-bold
 text-white
 shadow-[0_14px_40px_rgba(24,179,104,0.35)]
 transition-all
@@ -375,7 +393,8 @@ className="fixed top-0 left-0 h-screen w-[88%] max-w-[360px] bg-white shadow-2xl
 
 {/* ================= Header ================= */}
 
-<div className="flex items-center justify-between px-6 py-6 border-b">
+<div className="flex items-center justify-between px-4
+lg:px-6 py-6 border-b">
 
 <Image
 src="/Evuddy-logo-dark-E.png"
@@ -401,7 +420,8 @@ className="rounded-full p-2 hover:bg-gray-100 transition"
 
 {/* ================= Links ================= */}
 
-<div className="px-6 py-8 space-y-1">
+<div className="px-4
+lg:px-6 py-8 space-y-1">
 
 {navLinks.map((item)=>(
 
@@ -429,10 +449,11 @@ className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold 
 
 {/* ================= CTA Section ================= */}
 
-<div className="px-6 pb-10 space-y-4">
+<div className="px-4
+lg:px-6 pb-10 space-y-4">
 
 <Link
-href="/franchise"
+href="/partners"
 onClick={()=>setMenuOpen(false)}
 >
 
@@ -461,7 +482,7 @@ gap-2
 
 <Building2 size={20}/>
 
-Become a Partner
+Become a Partner 
 
 </button>
 
