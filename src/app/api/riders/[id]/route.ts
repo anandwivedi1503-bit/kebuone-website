@@ -17,19 +17,90 @@ import {
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 
-function riderLookupFilter(id: string) {
-  const cleanedId = String(id || "").trim();
+/* =========================================================
+   TYPES
+========================================================= */
 
-  const filters: Record<string, unknown>[] = [
+type RiderLookup = {
+  $or: Array<Record<string, unknown>>;
+};
+
+type RiderForResponse = {
+  _id?: unknown;
+
+  riderId?: string;
+
+  fullName?: string;
+
+  phone?: string;
+
+  email?: string;
+
+  approvalStatus?: string;
+
+  kycStatus?: string;
+
+  status?: string;
+
+  bookingEnabled?: boolean;
+
+  activeRide?: boolean;
+
+  blacklisted?: boolean;
+
+  approvedAt?: Date;
+
+  rejectedReason?: string;
+
+  createdAt?: Date;
+
+  updatedAt?: Date;
+
+  firebaseUid?: string;
+};
+
+/* =========================================================
+   RIDER LOOKUP
+========================================================= */
+
+function riderLookupFilter(
+  id: string
+): RiderLookup {
+  const cleanedId =
+    String(id || "").trim();
+
+  const filters: Array<
+    Record<string, unknown>
+  > = [
     {
-      riderId: cleanedId.toUpperCase(),
+      riderId:
+        cleanedId.toUpperCase(),
+
       isDeleted: false,
     },
   ];
 
-  if (mongoose.Types.ObjectId.isValid(cleanedId)) {
+  /*
+   * Also support MongoDB ObjectId.
+   *
+   * This allows the endpoint to work whether the
+   * dashboard sends:
+   *
+   * /api/riders/RDR-000001
+   *
+   * or:
+   *
+   * /api/riders/<mongo-id>
+   */
+
+  if (
+    mongoose.Types.ObjectId.isValid(
+      cleanedId
+    )
+  ) {
     filters.push({
       _id: cleanedId,
+
       isDeleted: false,
     });
   }
@@ -39,30 +110,65 @@ function riderLookupFilter(id: string) {
   };
 }
 
-function safeRiderResponse(rider: any) {
+/* =========================================================
+   SAFE RIDER RESPONSE
+========================================================= */
+
+function safeRiderResponse(
+  rider: RiderForResponse
+) {
   return {
-    _id: rider._id,
-    riderId: rider.riderId,
-    fullName: rider.fullName,
-    phone: rider.phone,
-    email: rider.email,
+    _id:
+      rider._id,
 
-    approvalStatus: rider.approvalStatus,
-    kycStatus: rider.kycStatus,
+    riderId:
+      rider.riderId ?? "",
 
-    status: rider.status,
-    bookingEnabled: rider.bookingEnabled,
+    fullName:
+      rider.fullName ?? "",
 
-    activeRide: rider.activeRide,
+    phone:
+      rider.phone ?? "",
 
-    blacklisted: rider.blacklisted,
+    email:
+      rider.email ?? "",
 
-    approvedAt: rider.approvedAt,
+    approvalStatus:
+      rider.approvalStatus ??
+      "Under Review",
 
-    rejectedReason: rider.rejectedReason,
+    kycStatus:
+      rider.kycStatus ??
+      "Pending",
 
-    createdAt: rider.createdAt,
-    updatedAt: rider.updatedAt,
+    status:
+      rider.status ??
+      "Blocked",
+
+    bookingEnabled:
+      rider.bookingEnabled ??
+      false,
+
+    activeRide:
+      rider.activeRide ??
+      false,
+
+    blacklisted:
+      rider.blacklisted ??
+      false,
+
+    approvedAt:
+      rider.approvedAt,
+
+    rejectedReason:
+      rider.rejectedReason ??
+      "",
+
+    createdAt:
+      rider.createdAt,
+
+    updatedAt:
+      rider.updatedAt,
   };
 }
 
@@ -72,92 +178,116 @@ function safeRiderResponse(rider: any) {
 
 export async function GET(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  {
+    params,
+  }: {
+    params: Promise<{
+      id: string;
+    }>;
+  }
 ) {
   try {
     await connectDB();
 
-    const { id } = await params;
+    const { id } =
+      await params;
 
     if (!id?.trim()) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rider ID is required.",
+
+          errorCode:
+            "RIDER_ID_REQUIRED",
+
+          message:
+            "Rider ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /*
+     * Use a simple lean object here.
+     *
+     * We do not expose sensitive information such
+     * as Firebase UID in the response.
+     */
+
     const rider =
-  await Rider.findOne(
-    riderLookupFilter(id)
-  )
-    .select(
-      [
-        "riderId",
-        "fullName",
-        "phone",
-        "email",
-        "firebaseUid",
-        "bookingEnabled",
-        "approvalStatus",
-        "kycStatus",
-        "activeRide",
-        "status",
-        "blacklisted",
-        "approvedAt",
-        "rejectedReason",
-        "createdAt",
-        "updatedAt",
-      ].join(" ")
-    )
-    .lean<{
-      riderId: string;
-      fullName: string;
-      phone: string;
-      email?: string;
-      firebaseUid?: string;
-      bookingEnabled: boolean;
-      approvalStatus: string;
-      kycStatus: string;
-      activeRide: boolean;
-      status: string;
-      blacklisted: boolean;
-      approvedAt?: Date;
-      rejectedReason?: string;
-      createdAt?: Date;
-      updatedAt?: Date;
-    } | null>();
+      await Rider.findOne(
+        riderLookupFilter(id)
+      )
+        .select(
+          [
+            "_id",
+            "riderId",
+            "fullName",
+            "phone",
+            "email",
+
+            "firebaseUid",
+
+            "bookingEnabled",
+            "approvalStatus",
+            "kycStatus",
+
+            "activeRide",
+            "status",
+            "blacklisted",
+
+            "approvedAt",
+            "rejectedReason",
+
+            "createdAt",
+            "updatedAt",
+          ].join(" ")
+        )
+        .lean();
 
     if (!rider) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rider not found.",
+
+          errorCode:
+            "RIDER_NOT_FOUND",
+
+          message:
+            "Rider not found.",
         },
-        { status: 404 }
+        {
+          status: 404,
+        }
       );
     }
 
     /*
-     * Admin requests are authenticated using the
-     * secure admin session cookie.
+     * Admin requests are authenticated using
+     * the admin session cookie.
      */
+
     const isAdmin =
-      await isAdminAuthenticated().catch(() => false);
+      await isAdminAuthenticated()
+        .catch(() => false);
 
     /*
-     * Non-admin requests must prove ownership.
+     * Normal rider requests must prove ownership
+     * using the Firebase ID token.
      */
+
     if (!isAdmin) {
       const firebaseUser =
-        await getVerifiedFirebaseUser(req);
+        await getVerifiedFirebaseUser(
+          req
+        );
 
       if (
         !firebaseUserOwnsRider(
           firebaseUser,
-          rider
+          rider as any
         )
       ) {
         return unauthorizedResponse();
@@ -165,11 +295,16 @@ export async function GET(
     }
 
     /*
-     * Never expose Firebase UID to the browser.
+     * Never expose Firebase UID to browser.
      */
+
     return NextResponse.json({
       success: true,
-      data: safeRiderResponse(rider),
+
+      data:
+        safeRiderResponse(
+          rider as RiderForResponse
+        ),
     });
   } catch (error: unknown) {
     console.error(
@@ -180,9 +315,16 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        message: "Unable to fetch rider.",
+
+        errorCode:
+          "RIDER_FETCH_ERROR",
+
+        message:
+          "Unable to fetch rider.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
@@ -193,52 +335,100 @@ export async function GET(
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  {
+    params,
+  }: {
+    params: Promise<{
+      id: string;
+    }>;
+  }
 ) {
-  let session: mongoose.ClientSession | null = null;
-
   try {
-    /*
-     * Only authenticated administrators can modify
-     * rider approval/status information.
-     */
-    if (!(await isAdminAuthenticated())) {
+    /* =====================================================
+       ADMIN AUTHENTICATION
+    ===================================================== */
+
+    if (
+      !(await isAdminAuthenticated())
+    ) {
       return unauthorizedResponse();
     }
 
     await connectDB();
 
-    const { id } = await params;
+    const { id } =
+      await params;
 
     if (!id?.trim()) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rider ID is required.",
+
+          errorCode:
+            "RIDER_ID_REQUIRED",
+
+          message:
+            "Rider ID is required.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    const body = await req.json();
+    /* =====================================================
+       REQUEST BODY
+    ===================================================== */
 
-    if (!body || typeof body !== "object") {
+    let body: Record<
+      string,
+      unknown
+    >;
+
+    try {
+      body =
+        await req.json();
+    } catch {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid request body.",
+
+          errorCode:
+            "INVALID_JSON",
+
+          message:
+            "Invalid request body.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    /*
-     * Only these fields are accepted from the admin
-     * approval/status request.
-     *
-     * activeRide, wallet balance, Firebase UID, etc.
-     * are intentionally NOT accepted here.
-     */
+    if (
+      !body ||
+      typeof body !== "object" ||
+      Array.isArray(body)
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+
+          errorCode:
+            "INVALID_BODY",
+
+          message:
+            "Invalid request body.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /* =====================================================
+       ADMIN INPUT
+    ===================================================== */
 
     const requestedApprovalStatus =
       body.approvalStatus;
@@ -252,393 +442,852 @@ export async function PATCH(
     const requestedRejectedReason =
       body.rejectedReason;
 
-    /*
- * AUDIT ACTOR
- *
- * The browser is NOT allowed to decide
- * who approved or updated a rider.
- *
- * The current admin authentication helper
- * confirms administrator access, but does not
- * expose an administrator identity.
- *
- * Therefore the server uses a fixed
- * server-controlled audit actor for now.
- */
-const auditActor = "Admin";
+    const requestedBlacklisted =
+      body.blacklisted;
 
-    const validApprovalStatus = [
-      "Under Review",
-      "Approved",
-      "Rejected",
-      "Suspended",
-    ] as const;
+    const requestedBlacklistReason =
+      body.blacklistReason;
 
-    const validKycStatus = [
-      "Pending",
-      "Approved",
-      "Rejected",
-    ] as const;
+    /* =====================================================
+       VALID VALUES
+    ===================================================== */
 
-    const validStatus = [
-      "Active",
-      "Blocked",
-      "Suspended",
-    ] as const;
+    const validApprovalStatuses =
+      [
+        "Under Review",
+        "Approved",
+        "Rejected",
+        "Suspended",
+      ] as const;
+
+    const validKycStatuses =
+      [
+        "Pending",
+        "Approved",
+        "Rejected",
+      ] as const;
+
+    const validRiderStatuses =
+      [
+        "Active",
+        "Inactive",
+        "Blocked",
+        "Suspended",
+      ] as const;
+
+    /* =====================================================
+       VALIDATE APPROVAL STATUS
+    ===================================================== */
 
     if (
-      requestedApprovalStatus !== undefined &&
-      !validApprovalStatus.includes(
-        requestedApprovalStatus
+      requestedApprovalStatus !==
+        undefined &&
+      (
+        typeof requestedApprovalStatus !==
+          "string" ||
+        !(
+          validApprovalStatuses as readonly string[]
+        ).includes(
+          requestedApprovalStatus
+        )
       )
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid approval status.",
+
+          errorCode:
+            "INVALID_APPROVAL_STATUS",
+
+          message:
+            "Invalid approval status.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /* =====================================================
+       VALIDATE KYC STATUS
+    ===================================================== */
+
     if (
-      requestedKycStatus !== undefined &&
-      !validKycStatus.includes(
-        requestedKycStatus
+      requestedKycStatus !==
+        undefined &&
+      (
+        typeof requestedKycStatus !==
+          "string" ||
+        !(
+          validKycStatuses as readonly string[]
+        ).includes(
+          requestedKycStatus
+        )
       )
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid KYC status.",
+
+          errorCode:
+            "INVALID_KYC_STATUS",
+
+          message:
+            "Invalid KYC status.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /* =====================================================
+       VALIDATE RIDER STATUS
+    ===================================================== */
+
     if (
-      requestedStatus !== undefined &&
-      !validStatus.includes(
-        requestedStatus
+      requestedStatus !==
+        undefined &&
+      (
+        typeof requestedStatus !==
+          "string" ||
+        !(
+          validRiderStatuses as readonly string[]
+        ).includes(
+          requestedStatus
+        )
       )
     ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Invalid rider status.",
+
+          errorCode:
+            "INVALID_RIDER_STATUS",
+
+          message:
+            "Invalid rider status.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /* =====================================================
+       VALIDATE REJECTION REASON
+    ===================================================== */
+
     if (
-      requestedRejectedReason !== undefined &&
-      typeof requestedRejectedReason !== "string"
+      requestedRejectedReason !==
+        undefined &&
+      typeof requestedRejectedReason !==
+        "string"
     ) {
       return NextResponse.json(
         {
           success: false,
+
+          errorCode:
+            "INVALID_REJECTION_REASON",
+
           message:
             "Invalid rejection reason.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
+    /* =====================================================
+       VALIDATE BLACKLIST
+    ===================================================== */
 
-    session = await mongoose.startSession();
+    if (
+      requestedBlacklisted !==
+        undefined &&
+      typeof requestedBlacklisted !==
+        "boolean"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
 
-    session.startTransaction();
+          errorCode:
+            "INVALID_BLACKLIST_VALUE",
 
-    try {
-      const rider = await Rider.findOne(
+          message:
+            "Invalid blacklist value.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    if (
+      requestedBlacklistReason !==
+        undefined &&
+      typeof requestedBlacklistReason !==
+        "string"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+
+          errorCode:
+            "INVALID_BLACKLIST_REASON",
+
+          message:
+            "Invalid blacklist reason.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /* =====================================================
+       LOAD RIDER
+    ===================================================== */
+
+    const rider =
+      await Rider.findOne(
         riderLookupFilter(id)
-      ).session(session);
+      );
 
-      if (!rider) {
-        await session.abortTransaction();
+    if (!rider) {
+      return NextResponse.json(
+        {
+          success: false,
 
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Rider not found.",
-          },
-          { status: 404 }
-        );
-      }
+          errorCode:
+            "RIDER_NOT_FOUND",
 
-      /*
-       * Soft-deleted riders must never be modified.
-       */
-      if (rider.isDeleted) {
-        await session.abortTransaction();
+          message:
+            "Rider not found.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
 
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              "Rider no longer exists.",
-          },
-          { status: 404 }
-        );
-      }
+    /* =====================================================
+       SOFT-DELETED RIDER
+    ===================================================== */
 
-      /*
-       * A rider currently on a ride cannot be
-       * rejected/suspended/blocked.
-       */
-      const attemptingRestriction =
-        requestedStatus === "Blocked" ||
-        requestedStatus === "Suspended" ||
-        requestedApprovalStatus === "Rejected" ||
-        requestedApprovalStatus === "Suspended";
+    if (rider.isDeleted) {
+      return NextResponse.json(
+        {
+          success: false,
 
-      if (
-        rider.activeRide &&
-        attemptingRestriction
-      ) {
-        await session.abortTransaction();
+          errorCode:
+            "RIDER_DELETED",
 
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              "Rider cannot be blocked, suspended, or rejected while an active ride is in progress.",
-          },
-          { status: 409 }
-        );
-      }
+          message:
+            "This rider has been deleted.",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
 
-      /*
-       * IMPORTANT:
-       *
-       * activeRide is NOT modified here.
-       *
-       * Ride APIs own activeRide.
-       */
+    /* =====================================================
+       ACTIVE RIDE SAFETY
+    ===================================================== */
 
-      if (
-        requestedApprovalStatus !== undefined
-      ) {
-        rider.approvalStatus =
-          requestedApprovalStatus;
-      }
+    const attemptingRestriction =
+      requestedStatus ===
+        "Blocked" ||
+      requestedStatus ===
+        "Suspended" ||
+      requestedApprovalStatus ===
+        "Rejected" ||
+      requestedApprovalStatus ===
+        "Suspended" ||
+      requestedBlacklisted ===
+        true;
 
-      if (
-        requestedKycStatus !== undefined
-      ) {
-        rider.kycStatus =
-          requestedKycStatus;
-      }
+    if (
+      rider.activeRide &&
+      attemptingRestriction
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
 
-      /*
-       * Rejection reason.
-       */
-      if (
-        requestedRejectedReason !==
+          errorCode:
+            "RIDER_HAS_ACTIVE_RIDE",
+
+          message:
+            "Rider cannot be blocked, suspended, rejected, or blacklisted while an active ride is in progress.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    /* =====================================================
+       AUDIT ACTOR
+    ===================================================== */
+
+    const auditActor =
+      "Admin";
+
+    /* =====================================================
+       UPDATE APPROVAL STATUS
+    ===================================================== */
+
+    if (
+      requestedApprovalStatus !==
         undefined
-      ) {
-        rider.rejectedReason =
+    ) {
+      rider.approvalStatus =
+        requestedApprovalStatus as
+          | "Under Review"
+          | "Approved"
+          | "Rejected"
+          | "Suspended";
+    }
+
+    /* =====================================================
+       UPDATE KYC STATUS
+    ===================================================== */
+
+    if (
+      requestedKycStatus !==
+        undefined
+    ) {
+      rider.kycStatus =
+        requestedKycStatus as
+          | "Pending"
+          | "Approved"
+          | "Rejected";
+    }
+
+    /* =====================================================
+       UPDATE RIDER STATUS
+    ===================================================== */
+
+    if (
+      requestedStatus !==
+        undefined
+    ) {
+      rider.status =
+        requestedStatus as
+          | "Active"
+          | "Inactive"
+          | "Blocked"
+          | "Suspended";
+    }
+
+    /* =====================================================
+       REJECTION REASON
+    ===================================================== */
+
+    if (
+      requestedRejectedReason !==
+        undefined
+    ) {
+      rider.rejectedReason =
+        String(
           requestedRejectedReason
+        )
+          .trim()
+          .slice(0, 500);
+    }
+
+    /* =====================================================
+       BLACKLIST
+    ===================================================== */
+
+    if (
+      requestedBlacklisted !==
+        undefined
+    ) {
+      rider.blacklisted =
+        requestedBlacklisted;
+
+      if (
+        requestedBlacklisted
+      ) {
+        rider.blacklistReason =
+          String(
+            requestedBlacklistReason ??
+              ""
+          )
             .trim()
             .slice(0, 500);
-      }
-
-      /*
- * SERVER-CONTROLLED AUDIT INFORMATION
- *
- * Never trust approvedBy / updatedBy from
- * the browser.
- *
- * Every admin modification is recorded as
- * performed by the authenticated admin layer.
- */
-rider.updatedBy = auditActor;
-
-/*
- * approvedBy is written only when the rider
- * reaches the fully approved state.
- */
-if (
-  rider.approvalStatus === "Approved" &&
-  rider.kycStatus === "Approved" &&
-  !rider.approvedAt
-) {
-  rider.approvedBy = auditActor;
-}
-
-      /*
-       * ===================================================
-       * DETERMINE FINAL RIDER STATE
-       * ===================================================
-       *
-       * Booking is enabled ONLY when:
-       *
-       * approvalStatus === Approved
-       * AND
-       * kycStatus === Approved
-       * AND
-       * status === Active
-       * AND
-       * blacklisted === false
-       *
-       * This becomes the single authoritative rule.
-       */
-
-      const fullyApproved =
-        rider.approvalStatus === "Approved" &&
-        rider.kycStatus === "Approved";
-
-      /*
-       * Explicit admin suspension/block takes priority.
-       */
-      if (
-        requestedStatus === "Suspended"
-      ) {
-        rider.status = "Suspended";
-        rider.bookingEnabled = false;
-        rider.blockedAt = new Date();
-      } else if (
-        requestedStatus === "Blocked"
-      ) {
-        rider.status = "Blocked";
-        rider.bookingEnabled = false;
-        rider.blockedAt = new Date();
-      } else if (
-        rider.approvalStatus ===
-          "Rejected" ||
-        rider.kycStatus === "Rejected"
-      ) {
-        rider.status = "Blocked";
-        rider.bookingEnabled = false;
-      } else if (fullyApproved) {
-        rider.status = "Active";
-        rider.bookingEnabled = true;
-
-        rider.rejectedReason = "";
-
-        /*
-         * Only now is the rider genuinely approved.
-         */
-        if (!rider.approvedAt) {
-          rider.approvedAt = new Date();
-        }
       } else {
-        /*
-         * Under Review / Pending combinations.
-         */
-        rider.status = "Blocked";
-        rider.bookingEnabled = false;
+        rider.blacklistReason =
+          "";
+      }
+    }
+
+    /* =====================================================
+       AUDIT
+    ===================================================== */
+
+    rider.updatedBy =
+      auditActor;
+
+    /* =====================================================
+       APPROVAL STATE
+    ===================================================== */
+
+    const fullyApproved =
+      rider.approvalStatus ===
+        "Approved" &&
+      rider.kycStatus ===
+        "Approved";
+
+    /* =====================================================
+       EXPLICIT SUSPENSION
+    ===================================================== */
+
+    if (
+      rider.status ===
+      "Suspended"
+    ) {
+      rider.bookingEnabled =
+        false;
+
+      rider.blockedAt =
+        new Date();
+
+      rider.blockedBy =
+        auditActor;
+    }
+
+    /* =====================================================
+       EXPLICIT BLOCK
+    ===================================================== */
+
+    else if (
+      rider.status ===
+      "Blocked"
+    ) {
+      rider.bookingEnabled =
+        false;
+
+      rider.blockedAt =
+        new Date();
+
+      rider.blockedBy =
+        auditActor;
+    }
+
+    /* =====================================================
+       REJECTED
+    ===================================================== */
+
+    else if (
+      rider.approvalStatus ===
+        "Rejected" ||
+      rider.kycStatus ===
+        "Rejected"
+    ) {
+      rider.status =
+        "Blocked";
+
+      rider.bookingEnabled =
+        false;
+
+      rider.blockedAt =
+        new Date();
+
+      rider.blockedBy =
+        auditActor;
+    }
+
+    /* =====================================================
+       FULLY APPROVED
+       
+       This is the ONLY condition under which booking
+       becomes enabled automatically.
+    ===================================================== */
+
+    else if (
+      fullyApproved
+    ) {
+      rider.status =
+        "Active";
+
+      rider.bookingEnabled =
+        true;
+
+      rider.rejectedReason =
+        "";
+
+      rider.blockedAt =
+        undefined;
+
+      rider.blockedBy =
+        "";
+
+      if (!rider.approvedAt) {
+        rider.approvedAt =
+          new Date();
       }
 
-      /*
-       * If rider is blacklisted, booking can NEVER be enabled.
-       */
-      if (rider.blacklisted) {
-        rider.bookingEnabled = false;
+      rider.approvedBy =
+        auditActor;
+    }
 
-        if (
-          rider.status === "Active"
-        ) {
-          rider.status = "Blocked";
-        }
-      }
+    /* =====================================================
+       UNDER REVIEW / PENDING
+    ===================================================== */
 
-      /*
-       * Never allow an unapproved rider to book.
-       */
+    else {
+      rider.status =
+        "Blocked";
+
+      rider.bookingEnabled =
+        false;
+    }
+
+    /* =====================================================
+       BLACKLIST OVERRIDES EVERYTHING
+    ===================================================== */
+
+    if (
+      rider.blacklisted
+    ) {
+      rider.bookingEnabled =
+        false;
+
       if (
-        rider.approvalStatus !==
-          "Approved" ||
-        rider.kycStatus !== "Approved"
+        rider.status ===
+        "Active"
       ) {
-        rider.bookingEnabled = false;
+        rider.status =
+          "Blocked";
       }
+    }
 
-      /*
-       * Increment application version.
-       */
-      rider.version =
-        Number(rider.version || 1) + 1;
+    /* =====================================================
+       FINAL BOOKING SAFETY
+    ===================================================== */
 
-      await rider.save({
-        session,
-        validateModifiedOnly: true,
+    if (
+      rider.approvalStatus !==
+        "Approved" ||
+      rider.kycStatus !==
+        "Approved" ||
+      rider.status !==
+        "Active" ||
+      rider.blacklisted
+    ) {
+      rider.bookingEnabled =
+        false;
+    }
+
+    /* =====================================================
+       VERSION
+    ===================================================== */
+
+    rider.version =
+      Number(
+        rider.version || 1
+      ) + 1;
+
+    /* =====================================================
+       SAVE RIDER
+       
+       NO MongoDB TRANSACTION.
+       
+       This avoids deployment failures when MongoDB is
+       not running as a replica set.
+    ===================================================== */
+
+    await rider.save({
+      validateModifiedOnly:
+        true,
+    });
+
+    /* =====================================================
+       WALLET SYNCHRONIZATION
+    ===================================================== */
+
+    let wallet: any =
+      await Wallet.findOne({
+        riderId:
+          rider.riderId,
+
+        isDeleted:
+          false,
       });
 
-      /*
-       * ===================================================
-       * WALLET SYNCHRONIZATION
-       * ===================================================
-       */
+    const desiredWalletStatus =
+      rider.bookingEnabled
+        ? "Active"
+        : "Blocked";
 
-      const wallet =
-        await Wallet.findOneAndUpdate(
+    /* =====================================================
+       OLD RIDER WITHOUT WALLET
+       
+       Legacy riders are repaired automatically.
+    ===================================================== */
+
+    if (!wallet) {
+      try {
+        wallet =
+          await Wallet.create({
+            riderId:
+              rider.riderId,
+
+            userId:
+              rider._id,
+
+            userName:
+              rider.fullName,
+
+            phone:
+              rider.phone,
+
+            balance:
+              0,
+
+            securityDepositHold:
+              0,
+
+            freezeAmount:
+              0,
+
+            totalRecharge:
+              0,
+
+            totalSpent:
+              0,
+
+            totalRefund:
+              0,
+
+            status:
+              desiredWalletStatus,
+
+            adminBlocked:
+              false,
+
+            isDeleted:
+              false,
+
+            updatedBy:
+              auditActor,
+          });
+      } catch (walletError) {
+        console.error(
+          "WALLET CREATION FAILED:",
+          walletError
+        );
+
+        return NextResponse.json(
           {
-            riderId: rider.riderId,
-            isDeleted: false,
+            success: false,
+
+            errorCode:
+              "WALLET_SYNC_FAILED",
+
+            message:
+              "Rider was updated, but the rider wallet could not be synchronized.",
           },
           {
-            $set: {
-              status:
-                rider.bookingEnabled
-                  ? "Active"
-                  : "Blocked",
-
-              updatedBy:
-                rider.updatedBy || "",
-            },
-
-            $inc: {
-              version: 1,
-            },
-          },
-          {
-            new: true,
-            session,
-            runValidators: true,
+            status: 500,
           }
         );
-
-      if (!wallet) {
-        throw new Error(
-          "Wallet not found for rider."
-        );
       }
-
-      /*
-       * Everything succeeded.
-       */
-      await session.commitTransaction();
-
-      return NextResponse.json({
-        success: true,
-        message:
-          "Rider updated successfully.",
-        data: safeRiderResponse(rider),
-      });
-    } catch (transactionError) {
-      try {
-        await session.abortTransaction();
-      } catch {}
-
-      throw transactionError;
-    } finally {
-      await session.endSession();
-      session = null;
     }
+
+    /* =====================================================
+       EXISTING WALLET
+       
+       IMPORTANT:
+       Do NOT modify balance or financial totals here.
+    ===================================================== */
+
+    else {
+      wallet.status =
+        desiredWalletStatus;
+
+      wallet.updatedBy =
+        auditActor;
+
+      wallet.version =
+        Number(
+          wallet.version || 1
+        ) + 1;
+
+      await wallet.save();
+    }
+
+    /* =====================================================
+       RESPONSE
+    ===================================================== */
+
+    return NextResponse.json({
+      success: true,
+
+      message:
+        "Rider updated successfully.",
+
+      data: {
+        ...safeRiderResponse(
+          rider as RiderForResponse
+        ),
+
+        walletBalance:
+          Number(
+            wallet?.balance ??
+              0
+          ),
+
+        walletStatus:
+          wallet?.status ??
+          desiredWalletStatus,
+
+        walletSecurityDepositHold:
+          Number(
+            wallet?.securityDepositHold ??
+              0
+          ),
+
+        walletFreezeAmount:
+          Number(
+            wallet?.freezeAmount ??
+              0
+          ),
+
+        walletTotalRecharge:
+          Number(
+            wallet?.totalRecharge ??
+              0
+          ),
+
+        walletTotalSpent:
+          Number(
+            wallet?.totalSpent ??
+              0
+          ),
+
+        walletTotalRefund:
+          Number(
+            wallet?.totalRefund ??
+              0
+          ),
+
+        walletAdminBlocked:
+          Boolean(
+            wallet?.adminBlocked ??
+              false
+          ),
+      },
+    });
   } catch (error: unknown) {
-    console.error("PATCH RIDER ERROR:", error);
+    console.error(
+      "PATCH RIDER ERROR:",
+      error
+    );
+
+    /* =====================================================
+       MONGOOSE VALIDATION ERROR
+    ===================================================== */
+
+    if (
+      error instanceof
+      mongoose.Error.ValidationError
+    ) {
+      const validationErrors =
+        Object.values(
+          error.errors
+        ).map(
+          (item) =>
+            item.message
+        );
+
+      return NextResponse.json(
+        {
+          success: false,
+
+          errorCode:
+            "VALIDATION_ERROR",
+
+          message:
+            validationErrors.join(
+              " "
+            ) ||
+            "Rider validation failed.",
+
+          errors:
+            validationErrors,
+        },
+        {
+          status: 400,
+        }
+      );
+    }
+
+    /* =====================================================
+       DUPLICATE KEY ERROR
+    ===================================================== */
+
+    if (
+      typeof error ===
+        "object" &&
+      error !== null &&
+      "code" in error &&
+      Number(
+        (
+          error as {
+            code?: unknown;
+          }
+        ).code
+      ) === 11000
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+
+          errorCode:
+            "DUPLICATE_RECORD",
+
+          message:
+            "A duplicate rider or wallet record already exists.",
+        },
+        {
+          status: 409,
+        }
+      );
+    }
+
+    /* =====================================================
+       GENERIC ERROR
+    ===================================================== */
+
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : String(error);
 
     return NextResponse.json(
       {
         success: false,
+
+        errorCode:
+          "RIDER_UPDATE_ERROR",
+
         message:
-          error instanceof Error
-            ? error.message
+          process.env.NODE_ENV ===
+          "development"
+            ? errorMessage
             : "Unable to update rider.",
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
