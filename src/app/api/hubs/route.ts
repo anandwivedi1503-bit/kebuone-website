@@ -1,94 +1,346 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import {
+  isAdminAuthenticated,
+  unauthorizedResponse,
+} from "@/lib/adminAuth";
+
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-import Hub from "@/models/Hub";
+
+import Hub, {
+  IHub,
+} from "@/models/Hub";
 import Vehicle from "@/models/Vehicle";
 
-export async function POST(req: Request) {
-  try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
+const hubTypes = [
+  "Main Hub",
+  "Mini Hub",
+  "Charging Hub",
+  "Battery Swap Hub",
+];
+
+const hubStatuses = [
+  "Active",
+  "Inactive",
+  "Maintenance",
+  "Closed",
+];
+
+function clean(value: unknown) {
+  return String(value ?? "").trim();
 }
+
+function upper(value: unknown) {
+  return clean(value).toUpperCase();
+}
+
+function numberValue(
+  value: unknown,
+  defaultValue = 0
+) {
+  if (
+    value === undefined ||
+    value === null ||
+    value === ""
+  ) {
+    return defaultValue;
+  }
+
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : NaN;
+}
+
+export async function POST(
+  req: Request
+) {
+  try {
+    if (
+      !(await isAdminAuthenticated())
+    ) {
+      return unauthorizedResponse();
+    }
+
     await connectDB();
 
-    const body = await req.json();
-    if (!body.hubName?.trim()) {
-  return NextResponse.json(
-    {
-      success: false,
-      errors: ["Hub name is required."],
-    },
-    { status: 400 }
-  );
-}
+    const body =
+      await req.json();
 
-if (!body.hubCode?.trim()) {
-  return NextResponse.json(
-    {
-      success: false,
-      errors: ["Hub code is required."],
-    },
-    { status: 400 }
-  );
-}
+    const hubName =
+      clean(body.hubName);
 
-if (Number(body.capacity) < 0) {
-  return NextResponse.json(
-    {
-      success: false,
-      errors: ["Capacity cannot be negative."],
-    },
-    { status: 400 }
-  );
-}
+    const hubCode =
+      upper(body.hubCode);
 
+    const hubLocation =
+      clean(body.hubLocation);
 
-const existingHub = await Hub.findOne({
-  $or: [
-    { hubName: body.hubName },
-    { hubCode: body.hubCode },
-  ],
-});
+    const city =
+      clean(body.city);
 
-if (existingHub) {
-  return NextResponse.json(
-    {
-      success: false,
-      errors: ["Hub already exists."],
-    },
-    { status: 409 }
-  );
-}
+    const hubType =
+      clean(
+        body.hubType ||
+          "Main Hub"
+      );
 
-const hub = await Hub.create({
-  hubName: String(body.hubName).trim(),
-  hubCode: String(body.hubCode).trim().toUpperCase(),
-  hubLocation: String(body.hubLocation).trim(),
-  city: String(body.city || "").trim(),
+    const hubManager =
+      clean(body.hubManager);
 
-  latitude: Number(body.latitude || 0),
-  longitude: Number(body.longitude || 0),
+    const managerPhone =
+      clean(body.managerPhone);
 
-  geofenceRadius: Number(body.geofenceRadius || 20),
+    const latitude =
+      numberValue(
+        body.latitude,
+        NaN
+      );
 
-  capacity: Number(body.capacity || 0),
+    const longitude =
+      numberValue(
+        body.longitude,
+        NaN
+      );
 
-  availableBikes: 0,
+    const geofenceRadius =
+      numberValue(
+        body.geofenceRadius,
+        20
+      );
 
-  readyBatteries: Number(body.readyBatteries || 0),
+    const capacity =
+      numberValue(
+        body.capacity,
+        0
+      );
 
-  status: body.status || "Active",
-});
+    const readyBatteries =
+      numberValue(
+        body.readyBatteries,
+        0
+      );
 
-    return NextResponse.json({
-      success: true,
-      data: hub,
-    });
+    const status =
+      clean(
+        body.status ||
+          "Active"
+      );
+
+    const errors: string[] = [];
+
+    if (hubName.length < 2) {
+      errors.push(
+        "Hub name is required."
+      );
+    }
+
+    if (hubCode.length < 2) {
+      errors.push(
+        "Hub code is required."
+      );
+    }
+
+    if (hubLocation.length < 2) {
+      errors.push(
+        "Hub location is required."
+      );
+    }
+
+    if (city.length < 2) {
+      errors.push(
+        "City is required."
+      );
+    }
+
+    if (
+      !hubTypes.includes(
+        hubType
+      )
+    ) {
+      errors.push(
+        "Invalid hub type."
+      );
+    }
+
+    if (
+      !hubStatuses.includes(
+        status
+      )
+    ) {
+      errors.push(
+        "Invalid hub status."
+      );
+    }
+
+    if (
+      !Number.isFinite(latitude) ||
+      latitude < -90 ||
+      latitude > 90
+    ) {
+      errors.push(
+        "Latitude must be between -90 and 90."
+      );
+    }
+
+    if (
+      !Number.isFinite(longitude) ||
+      longitude < -180 ||
+      longitude > 180
+    ) {
+      errors.push(
+        "Longitude must be between -180 and 180."
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        geofenceRadius
+      ) ||
+      geofenceRadius < 1
+    ) {
+      errors.push(
+        "Geofence radius must be greater than 0."
+      );
+    }
+
+    if (
+      !Number.isFinite(capacity) ||
+      capacity < 0
+    ) {
+      errors.push(
+        "Capacity cannot be negative."
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        readyBatteries
+      ) ||
+      readyBatteries < 0
+    ) {
+      errors.push(
+        "Ready batteries cannot be negative."
+      );
+    }
+
+    if (
+      managerPhone &&
+      !/^[6-9]\d{9}$/.test(
+        managerPhone
+      )
+    ) {
+      errors.push(
+        "Manager phone number is invalid."
+      );
+    }
+
+    if (errors.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          errors,
+        },
+        { status: 400 }
+      );
+    }
+
+    const existingHub =
+      await Hub.findOne({
+        isDeleted: false,
+        $or: [
+          { hubName },
+          { hubCode },
+        ],
+      }).lean();
+
+    if (existingHub) {
+      return NextResponse.json(
+        {
+          success: false,
+          errors: [
+            "Hub name or hub code already exists.",
+          ],
+        },
+        { status: 409 }
+      );
+    }
+
+    /*
+     * availableBikes is intentionally NOT
+     * accepted from the frontend.
+     */
+    const hub =
+      await Hub.create({
+        hubName,
+
+        hubCode,
+
+        hubLocation,
+
+        hubType,
+
+        city,
+
+        hubManager,
+
+        managerPhone,
+
+        latitude,
+
+        longitude,
+
+        geofenceRadius,
+
+        capacity,
+
+        readyBatteries,
+
+        chargingBatteries:
+          0,
+
+        damagedBatteries:
+          0,
+
+        vehiclesInRide:
+          0,
+
+        vehiclesUnderMaintenance:
+          0,
+
+        availableBikes:
+          0,
+
+        status,
+
+        updatedBy:
+          "Admin",
+
+        isDeleted:
+          false,
+      });
+
+    return NextResponse.json(
+      {
+        success: true,
+        message:
+          "Hub created successfully.",
+        data: hub,
+      },
+      { status: 201 }
+    );
   } catch (error) {
+    console.error(
+      "HUB CREATE ERROR:",
+      error
+    );
+
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        message:
+          "Failed to create hub.",
       },
       { status: 500 }
     );
@@ -97,46 +349,254 @@ const hub = await Hub.create({
 
 export async function GET() {
   try {
-    
     await connectDB();
 
-    const hubs = await Hub.find().lean();
+    const isAdmin =
+      await isAdminAuthenticated().catch(
+        () => false
+      );
 
-const vehicles = await Vehicle.find({
-    vehicleStatus: "Available",
-}).lean();
+    /*
+     * Never return deleted hubs.
+     */
+    const hubs =
+  await Hub.find({
+        isDeleted: false,
 
-const updated = hubs.map((hub) => {
+        ...(isAdmin
+          ? {}
+          : {
+              status:
+                "Active",
+            }),
+      })
+        .sort({
+          createdAt: -1,
+        })
+        .lean<IHub[]>();
 
-    const count = vehicles.filter(vehicle => {
+    /*
+     * Calculate actual vehicle inventory
+     * from Vehicle collection.
+     *
+     * This removes the need for the admin
+     * to manually maintain availableBikes.
+     */
+    const vehicleCounts =
+      await Vehicle.aggregate([
+        {
+          $match: {
+            isDeleted: false,
+            isActive: true,
+          },
+        },
 
-        const hubName = String(hub.hubName).toLowerCase();
-        const hubCode = String(hub.hubCode).toLowerCase();
-        const currentHub = String(vehicle.currentHub).toLowerCase();
+        {
+          $group: {
+            _id: "$currentHub",
 
-        return (
-            currentHub === hubName ||
-            currentHub === hubCode
-        );
+            totalVehicles: {
+              $sum: 1,
+            },
 
-    }).length;
+            availableBikes: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: [
+                      "$vehicleStatus",
+                      "Available",
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
 
-    return {
-        ...hub,
-        availableBikes: count,
-    };
+            vehiclesInRide: {
+              $sum: {
+                $cond: [
+                  {
+                    $eq: [
+                      "$vehicleStatus",
+                      "In Ride",
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
 
-});
+            vehiclesUnderMaintenance:
+              {
+                $sum: {
+                  $cond: [
+                    {
+                      $eq: [
+                        "$vehicleStatus",
+                        "Maintenance",
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+          },
+        },
+      ]);
+
+    const countsMap =
+      new Map<
+        string,
+        {
+          totalVehicles: number;
+          availableBikes: number;
+          vehiclesInRide: number;
+          vehiclesUnderMaintenance: number;
+        }
+      >();
+
+    for (
+      const item of vehicleCounts
+    ) {
+      countsMap.set(
+        String(item._id)
+          .trim()
+          .toUpperCase(),
+        {
+          totalVehicles:
+            Number(
+              item.totalVehicles
+            ) || 0,
+
+          availableBikes:
+            Number(
+              item.availableBikes
+            ) || 0,
+
+          vehiclesInRide:
+            Number(
+              item.vehiclesInRide
+            ) || 0,
+
+          vehiclesUnderMaintenance:
+            Number(
+              item.vehiclesUnderMaintenance
+            ) || 0,
+        }
+      );
+    }
+
+    const data =
+  hubs.map((hub: IHub) => {
+        /*
+         * New records use hubCode.
+         *
+         * hubName fallback supports older
+         * vehicles created before this change.
+         */
+        const codeKey =
+          String(
+            hub.hubCode
+          )
+            .trim()
+            .toUpperCase();
+
+        const nameKey =
+          String(
+            hub.hubName
+          )
+            .trim()
+            .toUpperCase();
+
+        const counts =
+          countsMap.get(
+            codeKey
+          ) ||
+          countsMap.get(
+            nameKey
+          ) || {
+            totalVehicles: 0,
+            availableBikes: 0,
+            vehiclesInRide: 0,
+            vehiclesUnderMaintenance: 0,
+          };
+
+        return {
+          ...hub,
+
+          availableBikes:
+            counts.availableBikes,
+
+          vehiclesInRide:
+            counts.vehiclesInRide,
+
+          vehiclesUnderMaintenance:
+            counts.vehiclesUnderMaintenance,
+
+          totalVehicles:
+            counts.totalVehicles,
+
+          occupiedVehicles:
+            Math.max(
+              0,
+              counts.totalVehicles
+            ),
+        };
+      });
+
+    if (isAdmin) {
+      return NextResponse.json({
+        success: true,
+        data,
+      });
+    }
+
+    /*
+     * Public response.
+     */
+    const publicData =
+      data.map((hub) => ({
+        _id: hub._id,
+        hubName:
+          hub.hubName,
+        hubCode:
+          hub.hubCode,
+        hubLocation:
+          hub.hubLocation,
+        city: hub.city,
+        latitude:
+          hub.latitude,
+        longitude:
+          hub.longitude,
+        availableBikes:
+          hub.availableBikes,
+        openingTime:
+          hub.openingTime,
+        closingTime:
+          hub.closingTime,
+        status:
+          hub.status,
+      }));
 
     return NextResponse.json({
       success: true,
-      data: updated,
+      data: publicData,
     });
   } catch (error) {
+    console.error(
+      "HUB GET ERROR:",
+      error
+    );
+
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        message:
+          "Failed to fetch hubs.",
       },
       { status: 500 }
     );

@@ -120,7 +120,7 @@ if (battery.vehicleId) {
   );
 }
 
-    await Battery.deleteOne();
+    await Battery.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,

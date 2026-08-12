@@ -27,6 +27,7 @@ const transactionTypes = [
 const statuses = [
   "Pending",
   "Success",
+  "Pending Verification",
   "Failed",
   "Refunded",
 ];
@@ -181,9 +182,42 @@ export async function PATCH(
       );
     }
 
-    Object.assign(transaction, body);
+    if (body.status) {
+  transaction.status = clean(body.status);
+}
 
-    await transaction.save();
+if (body.refundStatus) {
+  transaction.refundStatus = clean(body.refundStatus);
+}
+
+if (body.refundAmount !== undefined) {
+  transaction.refundAmount = Number(body.refundAmount);
+}
+
+if (body.refundReason !== undefined) {
+  transaction.refundReason = clean(body.refundReason);
+}
+
+if (body.refundDate) {
+  transaction.refundDate = new Date(body.refundDate);
+}
+
+if (body.invoiceGenerated !== undefined) {
+  transaction.invoiceGenerated =
+    Boolean(body.invoiceGenerated);
+}
+
+if (body.invoiceNumber !== undefined) {
+  transaction.invoiceNumber =
+    clean(body.invoiceNumber);
+}
+
+if (body.remarks !== undefined) {
+  transaction.remarks =
+    clean(body.remarks);
+}
+
+await transaction.save();
 
     return NextResponse.json({
       success: true,
@@ -238,12 +272,16 @@ export async function DELETE(
 
     }
 
-    await Transaction.findByIdAndDelete(id);
-
-    return NextResponse.json({
-      success: true,
-      message: "Transaction deleted successfully.",
-    });
+    return NextResponse.json(
+  {
+    success: false,
+    message:
+      "Transactions cannot be deleted. Financial records are permanent.",
+  },
+  {
+    status: 403,
+  }
+);
 
   } catch (error) {
 

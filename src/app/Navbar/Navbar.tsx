@@ -325,21 +325,16 @@ className="transition-transform duration-300 group-hover:translate-x-1"
 {/* ================= Mobile Button ================= */}
 
 <button
-
-onClick={()=>setMenuOpen(!menuOpen)}
-
-className={`lg:hidden transition
-
-${
-
-isScrolled
-
-? "text-gray-900"
-
-: "text-white"
-
-}`}
-
+onClick={() => setMenuOpen(!menuOpen)}
+className="
+lg:hidden
+relative
+z-[1001]
+p-2
+text-[#0F172A]
+transition-all
+duration-300
+"
 >
 
 {menuOpen ? (

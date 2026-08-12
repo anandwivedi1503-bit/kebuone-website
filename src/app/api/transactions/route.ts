@@ -2,6 +2,7 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
+import Booking from "@/models/Booking";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -122,6 +123,24 @@ export async function POST(req: Request) {
       errors.push("Valid transaction status is required.");
     }
 
+    if (
+  body.remarks &&
+  String(body.remarks).trim().length > 500
+) {
+  errors.push(
+    "Remarks cannot exceed 500 characters."
+  );
+}
+
+if (
+  body.refundAmount !== undefined &&
+  !isValidAmount(body.refundAmount)
+) {
+  errors.push(
+    "Invalid refund amount."
+  );
+}
+
     if (errors.length > 0) {
       return NextResponse.json(
         {
@@ -135,6 +154,26 @@ export async function POST(req: Request) {
     const existingTransaction = await Transaction.findOne({
       transactionId,
     });
+
+    const booking = await Booking.findOne({
+  bookingId,
+});
+
+if (!booking) {
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "Booking not found.",
+      ],
+    },
+    {
+      status: 404,
+    }
+  );
+
+}
 
     if (body.razorpayPaymentId) {
 

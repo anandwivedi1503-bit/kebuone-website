@@ -95,6 +95,19 @@ if (booking.rideEndOTP !== rideEndOTP) {
       );
     }
 
+    if (
+  booking.actualRideEnd ||
+  booking.completedAt
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Ride has already been completed.",
+    },
+    { status: 400 }
+  );
+}
+
     booking.actualRideEnd = new Date();
     booking.completedAt = new Date();
 
@@ -176,15 +189,44 @@ if (vehicle.currentBookingId !== booking.bookingId) {
       }
     );
     
-    await Rider.findOneAndUpdate(
-      {
-        riderId: booking.riderId,
-      },
-      {
-        activeRide: false,
-        currentBookingId: "",
-      }
-    );
+    const rider = await Rider.findOne({
+  riderId: booking.riderId,
+});
+
+if (!rider) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider not found.",
+    },
+    { status: 404 }
+  );
+}
+
+if (
+  rider.currentBookingId &&
+  rider.currentBookingId !== booking.bookingId
+) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider booking mismatch.",
+    },
+    { status: 400 }
+  );
+}
+
+await Rider.findOneAndUpdate(
+  {
+    riderId: booking.riderId,
+  },
+  {
+  activeRide: false,
+  currentBookingId: "",
+  currentTripId: "",
+  lastRideCompletedAt: new Date(),
+}
+);
 
     /*
 |--------------------------------------------------------------------------
@@ -278,6 +320,9 @@ if (
         "Security deposit refund pending admin approval",
 
     });
+
+    booking.refundAmount = Number(booking.securityDeposit || 0);
+booking.securityDepositRefunded = false;
 
   }
 

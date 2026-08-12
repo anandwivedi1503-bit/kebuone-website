@@ -6,14 +6,23 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import Booking from "@/models/Booking";
 import Wallet from "@/models/Wallet";
-import WalletTransaction from "@/models/WalletTransaction";
+import {
+  firebaseUserOwnsRider,
+  getVerifiedFirebaseUser,
+} from "@/lib/requestAuth";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const idRegex = /^[A-Za-z0-9_-]{3,60}$/;
 
-const rentalModes = ["Daily", "Weekly", "Monthly"];
+const rentalModes = [
+  "Hourly",
+  "Daily",
+  "Weekly",
+  "Monthly",
+  "Rent To Own",
+];
  function clean(value: unknown) {
   return String(value || "").trim();
 }
@@ -48,21 +57,14 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  let session: mongoose.ClientSession | null = null;
+   let booking: any = null;
+   let lockedVehicleId = "";
 
-  const session = await mongoose.startSession();
-
-  let booking: any = null;
-
-  let lockedVehicleId = "";
-
-  try {
-
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
-
+   try {
     await connectDB();
 
+    session = await mongoose.startSession();
     session.startTransaction();
 
     const body = await req.json();
@@ -81,6 +83,12 @@ const hubAliases = Array.from(
 );
     const rentalMode = clean(body.rentalMode);
     const referenceBy = clean(body.referenceBy).slice(0, 80);
+    const isAdminRequest = await isAdminAuthenticated().catch(
+      () => false
+    );
+    const firebaseUser = isAdminRequest
+      ? null
+      : await getVerifiedFirebaseUser(req, body.firebaseIdToken);
 
     const errors: string[] = [];
     const existingBooking = await Booking.findOne(
@@ -104,8 +112,18 @@ if (existingBooking) {
 }
 
     if (!idRegex.test(bookingId)) errors.push("Valid booking ID is required.");
+    if (
+      !isAdminRequest &&
+      (!firebaseUser || firebaseUser.phone !== userPhone)
+    ) {
+      await session.abortTransaction();
+      await session.endSession();
+
+      return unauthorizedResponse();
+    }
+
     const rider = await Rider.findOne(
-  { phone: userPhone },
+  { phone: userPhone, isDeleted: false },
   null,
   { session }
     );
@@ -120,6 +138,13 @@ await session.endSession();
     },
     { status: 404 }
   );
+}
+
+if (!isAdminRequest && !firebaseUserOwnsRider(firebaseUser, rider)) {
+  await session.abortTransaction();
+  await session.endSession();
+
+  return unauthorizedResponse();
 }
 
 if (!rider.phoneVerified) {
@@ -189,7 +214,10 @@ await session.endSession();
 |--------------------------------------------------------------------------
 */
 
-if (rider.fullName !== userName) {
+if (
+  rider.fullName.trim().toLowerCase() !==
+  userName.trim().toLowerCase()
+) { 
   await session.abortTransaction();
   await session.endSession();
 
@@ -247,14 +275,7 @@ await session.endSession();
       return NextResponse.json({ success: false, errors }, { status: 400 });
     }
 
-    const vehicle = await Vehicle.findOne({
-  vehicleId,
-  vehicleStatus: "Available",
-  isActive: true,
-},
-null,
-{ session }
-);
+    
 
 const existingRide = await Booking.findOne({
   riderId: rider.riderId,
@@ -286,6 +307,96 @@ await session.endSession();
   );
 }
 
+const existingPendingBooking = await Booking.findOne(
+{
+    riderId: rider.riderId,
+    paymentStatus: {
+        $in: ["Pending", "Partial"],
+    },
+    rideStatus: {
+        $nin: ["Cancelled", "Completed"],
+    },
+},
+null,
+{ session }
+);
+
+if (existingPendingBooking) {
+
+    await session.abortTransaction();
+    await session.endSession();
+
+    return NextResponse.json(
+    {
+        success:false,
+        errors:[
+            "Previous booking payment is still pending."
+        ]
+    },
+    {status:409}
+    );
+}
+
+/*
+|--------------------------------------------------------------------------
+| Duplicate Booking Request Protection
+|--------------------------------------------------------------------------
+*/
+
+if (body.bookingRequestId) {
+
+    const duplicateRequest = await Booking.findOne(
+        {
+            bookingRequestId: body.bookingRequestId,
+        },
+        null,
+        { session }
+    );
+
+    if (duplicateRequest) {
+
+        await session.abortTransaction();
+        await session.endSession();
+
+        return NextResponse.json(
+            {
+                success: true,
+                duplicate: true,
+                bookingId: duplicateRequest.bookingId,
+                message: "Booking request already processed.",
+            },
+            {
+                status: 200,
+            }
+        );
+    }
+
+}
+
+const vehicle = await Vehicle.findOneAndUpdate(
+  {
+    vehicleId,
+    vehicleStatus: "Available",
+    isActive: true,
+    currentBookingId: "",
+    assignedRider: "",
+    batteryPercentage: { $gte: 20 },
+  },
+  {
+    $set: {
+      vehicleStatus: "Booked",
+      assignedRider: rider.riderId,
+      currentBookingId: bookingId,
+      currentRiderId: rider.riderId,
+      lockStatus: "Locked",
+    },
+  },
+  {
+    new: true,
+    session,
+  }
+);
+
 if (!vehicle) {
   await session.abortTransaction();
 await session.endSession();
@@ -297,22 +408,7 @@ await session.endSession();
     { status: 404 }
   );
 }
-
-if (vehicle.batteryPercentage < 20) {
-  await session.abortTransaction();
-  await session.endSession();
-
-  return NextResponse.json(
-    {
-      success: false,
-      errors: [
-        "Vehicle battery is too low for booking.",
-      ],
-    },
-    { status: 400 }
-  );
-}
-
+ 
 const vehicleHub = clean(vehicle.currentHub).toLowerCase();
 
 const matched = hubAliases.some(
@@ -331,15 +427,9 @@ await session.endSession();
   );
 }
 
-vehicle.vehicleStatus = "Booked";
-vehicle.assignedRider = rider.riderId;
-vehicle.currentBookingId = bookingId;
-vehicle.currentRiderId = rider.riderId;
-vehicle.lockStatus = "Locked";
+  
 
-await vehicle.save({ session });
-
-    if (!vehicle.isActive) {
+     if (!vehicle.isActive) {
       await session.abortTransaction();
 await session.endSession();
   return NextResponse.json(
@@ -353,15 +443,114 @@ await session.endSession();
 
     lockedVehicleId = String(vehicle._id);
 
-    const rentalAmount =
-      rentalMode === "Daily"
-        ? Number(vehicle.dailyRate || 0)
-        : rentalMode === "Weekly"
-        ? Number(vehicle.weeklyRate || 0)
-        : Number(vehicle.monthlyRate || 0);
+    const rentalStartDate = new Date();
 
-    const securityDeposit = Number(vehicle.securityDeposit || 2500);
-    const payableAmount = rentalAmount + securityDeposit;
+const rentalAmount =
+  rentalMode === "Hourly"
+    ? Number(vehicle.hourlyRate || 0)
+    : rentalMode === "Daily"
+    ? Number(vehicle.dailyRate || 0)
+    : rentalMode === "Weekly"
+    ? Number(vehicle.weeklyRate || 0)
+    : rentalMode === "Monthly"
+    ? Number(vehicle.monthlyRate || 0)
+    : rentalMode === "Rent To Own"
+    ? Number(vehicle.rentToOwnDailyRate || 0)
+    : 0;
+
+const rentalEndDate = new Date(rentalStartDate);
+
+switch (rentalMode) {
+  case "Hourly":
+    rentalEndDate.setHours(
+      rentalEndDate.getHours() + 1
+    );
+    break;
+
+  case "Daily":
+    rentalEndDate.setDate(
+      rentalEndDate.getDate() + 1
+    );
+    break;
+
+  case "Weekly":
+    rentalEndDate.setDate(
+      rentalEndDate.getDate() + 7
+    );
+    break;
+
+  case "Monthly":
+    rentalEndDate.setMonth(
+      rentalEndDate.getMonth() + 1
+    );
+    break;
+
+  case "Rent To Own": {
+    const months = Number(
+      vehicle.rentToOwnMonths || 0
+    );
+
+    if (!Number.isInteger(months) || months <= 0) {
+      await session.abortTransaction();
+      await session.endSession();
+
+      return NextResponse.json(
+        {
+          success: false,
+          errors: [
+            "Rent To Own duration is not configured for this vehicle.",
+          ],
+        },
+        { status: 400 }
+      );
+    }
+
+    rentalEndDate.setMonth(
+      rentalEndDate.getMonth() + months
+    );
+
+    break;
+  }
+
+  default:
+    await session.abortTransaction();
+    await session.endSession();
+
+    return NextResponse.json(
+      {
+        success: false,
+        errors: ["Invalid rental mode."],
+      },
+      { status: 400 }
+    );
+}
+
+const securityDeposit = Number(
+  vehicle.securityDeposit || 2500
+);
+
+const payableAmount = Number(
+  (rentalAmount + securityDeposit).toFixed(2)
+);
+
+if (
+  rentalAmount <= 0 ||
+  payableAmount <= 0 ||
+  rentalEndDate <= rentalStartDate
+) {
+  await session.abortTransaction();
+  await session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "Selected rental plan does not have a valid server configuration.",
+      ],
+    },
+    { status: 400 }
+  );
+}
 
     if (rentalAmount <= 0 || payableAmount <= 0) {
       await Vehicle.findByIdAndUpdate(
@@ -398,6 +587,9 @@ return NextResponse.json(
   [
     {
       bookingId,
+      bookingRequestId:
+body.bookingRequestId ||
+new mongoose.Types.ObjectId().toString(),
       riderId: rider.riderId,
       userId: rider._id,
       userEmail: rider.email,
@@ -436,20 +628,33 @@ return NextResponse.json(
       rentalMode,
 
       dailyRate:
-        Number(vehicle.dailyRate || 0),
+  Number(vehicle.dailyRate || 0),
 
-      weeklyRate:
-        Number(vehicle.weeklyRate || 0),
+weeklyRate:
+  Number(vehicle.weeklyRate || 0),
 
-      monthlyRate:
-        Number(vehicle.monthlyRate || 0),
+monthlyRate:
+  Number(vehicle.monthlyRate || 0),
 
-      rentalStartDate: new Date(),
+hourlyRate:
+  Number(vehicle.hourlyRate || 0),
 
-      startHub:
-        pickupHubName ||
-        startHub ||
-        vehicle.currentHub,
+rentToOwnDailyRate:
+  Number(vehicle.rentToOwnDailyRate || 0),
+
+rentToOwnMonths:
+  Number(vehicle.rentToOwnMonths || 0),
+
+rentalStartDate,
+
+rentalEndDate,
+
+rateApplied: rentalAmount,
+
+startHub:
+  pickupHubName ||
+  startHub ||
+  vehicle.currentHub,
 
       pickupCity:
         clean(body.city),
@@ -485,6 +690,42 @@ return NextResponse.json(
 
  booking = bookingArray[0];
 
+ let wallet = await Wallet.findOne(
+  {
+    riderId: rider.riderId,
+    isDeleted: false,
+  },
+  null,
+  { session }
+);
+
+if (!wallet) {
+  const walletArray = await Wallet.create(
+    [
+      {
+        riderId: rider.riderId,
+        userId: rider._id,
+        userName: rider.fullName,
+        phone: rider.phone,
+        balance: 0,
+        securityDepositHold: 0,
+        freezeAmount: 0,
+        totalRecharge: 0,
+        totalSpent: 0,
+        totalRefund: 0,
+        status: "Active",
+        isDeleted: false,
+        updatedBy: "Booking System",
+      },
+    ],
+    {
+      session,
+    }
+  );
+
+  wallet = walletArray[0];
+}
+
   await Rider.findByIdAndUpdate(
   rider._id,
    {
@@ -494,16 +735,14 @@ return NextResponse.json(
     session,
   }
 );
-await Vehicle.findByIdAndUpdate(vehicle._id, {
-  currentBookingId: booking.bookingId,
-  currentRiderId: rider.riderId,
-  vehicleStatus: "Booked",
-  assignedRider: rider.riderId,
-  lockStatus: "Locked",
-},
-{
-  session,
-}
+await Vehicle.findByIdAndUpdate(
+  vehicle._id,
+  {
+    currentBookingId: booking.bookingId,
+  },
+  {
+    session,
+  }
 );
 await booking.populate("userId");
 
@@ -518,35 +757,38 @@ await session.endSession();
   pendingAmount: booking.pendingAmount,
   data: booking,
 });
-  } catch (error) {
-    /*
-|--------------------------------------------------------------------------
-| Rollback Transaction
-|--------------------------------------------------------------------------
-*/
+    } catch (error) {
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch (rollbackError) {
+        console.error(
+          "Transaction rollback failed:",
+          rollbackError
+        );
+      }
 
-try {
-  await session.abortTransaction();
-} catch (rollbackError) {
-  console.error("Transaction rollback failed:", rollbackError);
-}
+      await session.endSession();
+      session = null;
+    }
 
-await session.endSession();
+    console.error(
+      "BOOKING API ERROR:",
+      error
+    );
 
-console.error("BOOKING API ERROR:", error);
-
-return NextResponse.json(
-  {
-    success: false,
-    message: "Failed to create booking.",
-    error:
-      process.env.NODE_ENV === "development"
-        ? String(error)
-        : undefined,
-  },
-  {
-    status: 500,
-  }
-);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to create booking.",
+        error:
+          process.env.NODE_ENV === "development"
+            ? String(error)
+            : undefined,
+      },
+      {
+        status: 500,
+      }
+    );
   }
 }

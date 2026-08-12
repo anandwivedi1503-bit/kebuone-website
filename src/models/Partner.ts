@@ -3,21 +3,35 @@ import mongoose from "mongoose";
 const PartnerSchema = new mongoose.Schema(
   {
     fullName: {
-      type: String,
-      required: true,
-    },
+  type: String,
+  required: true,
+  trim: true,
+  maxlength: 80,
+},
 
     phone: {
-      type: String,
-      required: true,
-    },
+  type: String,
+  required: true,
+  trim: true,
+  minlength: 10,
+  maxlength: 10,
+  match: /^[6-9]\d{9}$/,
+},
 
     email: {
-      type: String,
-      required: true,
-    },
+  type: String,
+  required: true,
+  trim: true,
+  lowercase: true,
+  maxlength: 120,
+},
 
-    organizationName: String,
+    organizationName: {
+  type: String,
+  trim: true,
+  maxlength: 150,
+  default: "",
+},
 
     state: {
       type: String,
@@ -29,7 +43,12 @@ const PartnerSchema = new mongoose.Schema(
       required: true,
     },
 
-    territory: String,
+    territory: {
+  type: String,
+  trim: true,
+  maxlength: 150,
+  default: "",
+},
 
     partnerType: {
       type: String,
@@ -46,7 +65,12 @@ const PartnerSchema = new mongoose.Schema(
 
     plannedFleetSize: String,
 
-    message: String,
+    message: {
+  type: String,
+  trim: true,
+  maxlength: 1000,
+  default: "",
+},
 
     consentAccepted: {
       type: Boolean,
@@ -118,6 +142,7 @@ adminRemarks: {
 },
 
 reviewedDate: Date,
+approvedDate: Date,
   },
   {
     timestamps: true,
@@ -137,6 +162,54 @@ PartnerSchema.index({ city: 1 });
 PartnerSchema.index({ state: 1 });
 
 PartnerSchema.index({ partnerType: 1 });
+
+PartnerSchema.index({
+  phone: 1,
+});
+
+PartnerSchema.index({
+  email: 1,
+});
+
+PartnerSchema.index({
+  reviewedDate: -1,
+});
+
+PartnerSchema.index({
+  followUpDate: 1,
+});
+
+PartnerSchema.index({
+  meetingDate: 1,
+});
+
+PartnerSchema.index({
+  phone: 1,
+  applicationStatus: 1,
+});
+
+PartnerSchema.pre("save", function (next) {
+
+  if (this.email) {
+    this.email = this.email.trim().toLowerCase();
+  }
+
+  if (this.phone) {
+    this.phone = this.phone.trim();
+  }
+
+  if (this.fullName) {
+    this.fullName = this.fullName.trim();
+  }
+
+  if (this.organizationName) {
+    this.organizationName =
+      this.organizationName.trim();
+  }
+
+  next();
+
+});
 
 export default mongoose.models.Partner ||
   mongoose.model("Partner", PartnerSchema);

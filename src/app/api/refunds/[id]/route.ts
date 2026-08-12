@@ -7,6 +7,7 @@ import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import Transaction from "@/models/Transaction";
 import Rider from "@/models/Rider";
+import mongoose from "mongoose";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -40,123 +41,246 @@ function normalizeStatus(value: unknown) {
 
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> }
+  {
+    params,
+  }: {
+    params: Promise<{
+      id: string;
+    }>;
+  }
 ) {
+
+  let session: mongoose.ClientSession | null = null;
+
   try {
+
     if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+      return unauthorizedResponse();
+    }
+
     await connectDB();
 
+    session = await mongoose.startSession();
+
+    session.startTransaction();
+
     const { id } = await params;
+
     const body = await req.json();
 
     const updateData: Record<string, unknown> = {};
+
     const errors: string[] = [];
 
-    for (const field of allowedUpdateFields) {
-      if (body[field] !== undefined) {
-        updateData[field] = body[field];
-      }
+  for (const field of allowedUpdateFields) {
+  if (body[field] !== undefined) {
+    updateData[field] = body[field];
+  }
+}
+
+if (Object.keys(updateData).length === 0) {
+
+  await session.abortTransaction();
+  session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "No valid refund update fields received.",
+      ],
+    },
+    {
+      status: 400,
     }
-
-    if (Object.keys(updateData).length === 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          errors: ["No valid refund update fields received."],
-        },
-        { status: 400 }
-      );
-    }
-
-    if (updateData.amount !== undefined) {
-      if (!isValidAmount(updateData.amount)) {
-        errors.push("Refund amount must be greater than zero.");
-      }
-
-      updateData.amount = Number(updateData.amount);
-    }
-
-    if (updateData.gatewayTxnId !== undefined) {
-      const gatewayTxnId = clean(updateData.gatewayTxnId);
-
-      if (gatewayTxnId && !idRegex.test(gatewayTxnId)) {
-        errors.push("Gateway transaction ID is invalid.");
-      }
-
-      updateData.gatewayTxnId = gatewayTxnId;
-    }
-
-    if (updateData.refundStatus !== undefined) {
-      const refundStatus = normalizeStatus(updateData.refundStatus);
-
-      if (!refundStatuses.includes(refundStatus)) {
-        errors.push("Invalid refund status.");
-      }
-
-      updateData.refundStatus = refundStatus;
-      if (refundStatus === "REFUNDED") {
-
-    updateData.processedAt = new Date();
-
-    updateData.processedBy = "Admin";
+  );
 
 }
+
+if (updateData.amount !== undefined) {
+
+  if (!isValidAmount(updateData.amount)) {
+    errors.push(
+      "Refund amount must be greater than zero."
+    );
+  }
+
+  updateData.amount =
+    Number(updateData.amount);
+
+}
+
+if (updateData.gatewayTxnId !== undefined) {
+
+  const gatewayTxnId =
+    clean(updateData.gatewayTxnId);
+
+  if (
+    gatewayTxnId &&
+    !idRegex.test(gatewayTxnId)
+  ) {
+    errors.push(
+      "Gateway transaction ID is invalid."
+    );
+  }
+
+  updateData.gatewayTxnId =
+    gatewayTxnId;
+
+}
+
+if (updateData.refundStatus !== undefined) {
+
+  const refundStatus =
+    normalizeStatus(updateData.refundStatus);
+
+  if (
+    !refundStatuses.includes(refundStatus)
+  ) {
+    errors.push(
+      "Invalid refund status."
+    );
+  }
+
+  updateData.refundStatus =
+    refundStatus;
+
+  if (refundStatus === "REFUNDED") {
+
+    updateData.processedAt =
+      new Date();
+
+    updateData.processedBy =
+      "Admin";
+
+  }
+
+}
+
+if (errors.length > 0) {
+
+  await session.abortTransaction();
+  session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors,
+    },
+    {
+      status: 400,
     }
+  );
+
+}
 
     if (updateData.refundStatus === "REFUNDED") {
 
-  const refund = await Refund.findById(id);
+  const refund = await Refund.findById(id).session(session);
 
 if (!refund) {
+
+  await session.abortTransaction();
+  session.endSession();
+
   return NextResponse.json(
     {
       success: false,
       errors: ["Refund not found."],
     },
-    { status: 404 }
+    {
+      status: 404,
+    }
   );
+
 }
 
 if (refund.refundStatus === "REFUNDED") {
+
+  await session.abortTransaction();
+  session.endSession();
+
   return NextResponse.json(
     {
       success: false,
-      message: "This refund has already been processed.",
+      message:
+        "This refund has already been processed.",
     },
-    { status: 400 }
+    {
+      status: 400,
+    }
   );
+
+ }
+
+const booking = await Booking.findOne({
+  bookingId: refund.bookingId,
+}).session(session);
+
+if (!booking) {
+
+  await session.abortTransaction();
+  session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Booking not found.",
+    },
+    {
+      status: 404,
+    }
+  );
+
 }
 
-{
-
-    const booking = await Booking.findOne({
-  bookingId: refund.bookingId,
-});
-
 if (
-  booking &&
   Number(refund.amount) >
-    Number(booking.securityDeposit || 0)
+  Number(booking.securityDeposit || 0)
 ) {
+
+  await session.abortTransaction();
+  session.endSession();
+
   return NextResponse.json(
     {
       success: false,
       message:
         "Refund amount exceeds security deposit.",
     },
-    { status: 400 }
+    {
+      status: 400,
+    }
   );
+
 }
 
-    if (booking) {
+const rider = await Rider.findOne({
+  riderId: booking.riderId,
+}).session(session);
 
-      booking.refundAmount = Number(refund.amount);
+if (!rider) {
 
-      booking.securityDepositRefunded = true;
+  await session.abortTransaction();
+  session.endSession();
 
-      booking.remarks = `${booking.remarks || ""}
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Rider not found.",
+    },
+    {
+      status: 404,
+    }
+  );
+
+}
+
+booking.refundAmount = Number(refund.amount);
+
+booking.securityDepositRefunded = true;
+
+booking.remarks = `${booking.remarks || ""}
 
 Refund Completed
 
@@ -165,27 +289,46 @@ Refund ID : ${refund.refundId}
 Amount : ₹${refund.amount}
 
 Date : ${new Date().toLocaleString("en-IN")}
+ `;
 
-`;
+await booking.save({
+  session,
+});
 
-      await booking.save();
-
-      await Rider.findOneAndUpdate(
+await Rider.findOneAndUpdate(
   {
     riderId: booking.riderId,
   },
   {
     securityDeposit: 0,
+  },
+  {
+    session,
   }
 );
 
-      const wallet = await Wallet.findOne({
-        riderId: booking.riderId,
-      });
+const wallet = await Wallet.findOne({
+  riderId: booking.riderId,
+}).session(session);
 
-      if (wallet) {
+if (!wallet) {
 
-        wallet.balance += Number(refund.amount);
+  await session.abortTransaction();
+  session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Wallet not found.",
+    },
+    {
+      status: 404,
+    }
+  );
+
+}
+
+      wallet.balance += Number(refund.amount);
 
 wallet.totalRefund += Number(refund.amount);
 
@@ -194,48 +337,69 @@ wallet.totalSpent = Math.max(
   wallet.totalSpent - Number(refund.amount)
 );
 
-        wallet.securityDepositHold = Math.max(
-          0,
-          wallet.securityDepositHold - Number(refund.amount)
-        );
+wallet.securityDepositHold = Math.max(
+  0,
+  wallet.securityDepositHold - Number(refund.amount)
+);
 
-        await wallet.save();
+await wallet.save({
+  session,
+});
 
-        await WalletTransaction.create({
+const existingWalletRefund =
+  await WalletTransaction.findOne({
+    bookingId: booking.bookingId,
+    transactionType: "Refund",
+  }).session(session);
 
-          transactionId:
-            "WR-" +
-            Date.now(),
+if (!existingWalletRefund) {
 
-          riderId: booking.riderId,
+  await WalletTransaction.create(
+    [
+      {
+        transactionId: "WR-" + Date.now(),
 
-          userId: booking.userId,
+        riderId: booking.riderId,
 
-          userName: booking.userName,
+        userId: booking.userId,
 
-          amount: refund.amount,
+        userName: booking.userName,
 
-          transactionType: "Refund",
+        amount: refund.amount,
 
-          paymentMethod: "Wallet",
+        transactionType: "Refund",
 
-          bookingId: booking.bookingId,
+        paymentMethod: "Wallet",
 
-          balanceAfter: wallet.balance,
+        bookingId: booking.bookingId,
 
-          remarks: "Security Deposit Refunded",
+        balanceAfter: wallet.balance,
 
-          status: "Success",
+        remarks: "Security Deposit Refunded",
 
-        });
+        status: "Success",
+      },
+    ],
+    {
+      session,
+    }
+  );
 
-      }
+}
 
-      await Transaction.create({
+const existingRefundTransaction =
+  await Transaction.findOne({
+    bookingId: booking.bookingId,
+    transactionType: "Refund",
+  }).session(session);
 
+if (!existingRefundTransaction) {
+
+  await Transaction.create(
+    [
+      {
         transactionId:
-          "RF-" +
-          Date.now(),
+          "RF-" + Date.now(),
 
         bookingId: booking.bookingId,
 
@@ -252,54 +416,73 @@ wallet.totalSpent = Math.max(
         status: "Success",
 
         refundStatus: "Completed",
-
-      });
-
+      },
+    ],
+    {
+      session,
     }
-
-  }
-
+  );
 }
-
-    if (errors.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          errors,
-        },
-        { status: 400 }
-      );
     }
 
-    const refund = await Refund.findByIdAndUpdate(id, updateData, {
+    const updatedRefund =
+  await Refund.findByIdAndUpdate(
+    id,
+    updateData,
+    {
       new: true,
       runValidators: true,
-    });
-
-    if (!refund) {
-      return NextResponse.json(
-        {
-          success: false,
-          errors: ["Refund not found."],
-        },
-        { status: 404 }
-      );
+      session,
     }
+  );
 
-    return NextResponse.json({
-      success: true,
-      data: refund,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: String(error),
-      },
-      { status: 500 }
-    );
-  }
+if (!updatedRefund) {
+
+  await session.abortTransaction();
+  session.endSession();
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Refund not found."],
+    },
+    {
+      status: 404,
+    }
+  );
+
 }
+
+await session.commitTransaction();
+session.endSession();
+
+return NextResponse.json({
+  success: true,
+  data: updatedRefund,
+});
+
+} catch (error) {
+
+  if (session) {
+    try {
+      await session.abortTransaction();
+    } catch {}
+
+    session.endSession();
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: String(error),
+    },
+    {
+      status: 500,
+    }
+  );
+
+}
+    }
 
 export async function DELETE(
   req: Request,

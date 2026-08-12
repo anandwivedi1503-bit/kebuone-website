@@ -1,110 +1,508 @@
+import crypto from "crypto";
+import mongoose from "mongoose";
 import { NextResponse } from "next/server";
+
 import { connectDB } from "@/lib/mongodb";
+
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+
+import {
+  isAdminAuthenticated,
+  unauthorizedResponse,
+} from "@/lib/adminAuth";
+
+function normalizeRiderId(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
+}
+
+function parseAmount(value: unknown): number | null {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    return null;
+  }
+
+  return Math.round(amount * 100) / 100;
+}
+
+function createTransactionId(
+  riderId: string,
+  idempotencyKey: string
+) {
+  return (
+    "WTX-" +
+    crypto
+      .createHash("sha256")
+      .update(
+        `ADMIN-CREDIT:${riderId}:${idempotencyKey}`
+      )
+      .digest("hex")
+      .slice(0, 32)
+      .toUpperCase()
+  );
+}
+
+function isDuplicateKeyError(
+  error: unknown
+): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: number }).code === 11000
+  );
+}
 
 export async function POST(req: Request) {
+  let session: mongoose.ClientSession | null = null;
+
+  /*
+   * These values are needed by the duplicate-key
+   * recovery logic inside catch().
+   *
+   * They must exist outside the try block.
+   */
+  let transactionId: string | null = null;
+  let rechargeAmount: number | null = null;
+
   try {
+    /*
+     * ADMIN AUTHENTICATION
+     */
     if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
 
     await connectDB();
 
-    const { walletId, amount, remarks } = await req.json();
-
-    const rechargeAmount = Number(amount);
+    /*
+     * IDEMPOTENCY KEY
+     *
+     * Prevents accidental duplicate recharge
+     * when the same request is submitted twice.
+     */
+    const idempotencyKey =
+      req.headers
+        .get("Idempotency-Key")
+        ?.trim();
 
     if (
-  !walletId ||
-  rechargeAmount < 1 ||
-  rechargeAmount > 50000
-) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Amount must be between ₹1 and ₹50,000.",
-    },
-    { status: 400 }
-  );
-}
+      !idempotencyKey ||
+      idempotencyKey.length < 16 ||
+      idempotencyKey.length > 100
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Idempotency-Key header is required.",
+        },
+        { status: 400 }
+      );
+    }
 
-    const wallet = await Wallet.findById(walletId);
+    /*
+     * REQUEST BODY
+     */
+    const body = await req.json();
 
-if (!wallet) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Wallet not found.",
-    },
-    { status: 404 }
-  );
-}
+    /*
+     * RIDER ID
+     */
+    const normalizedRiderId =
+      normalizeRiderId(body.riderId);
 
-if (wallet.status === "Blocked") {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "This wallet is blocked. Recharge is not allowed.",
-    },
-    { status: 403 }
-  );
-}
+    if (
+      !/^RDR-\d{6,}$/.test(
+        normalizedRiderId
+      )
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Valid Rider ID is required.",
+        },
+        { status: 400 }
+      );
+    }
 
-    wallet.balance += rechargeAmount;
-wallet.totalRecharge += rechargeAmount;
+    /*
+     * AMOUNT
+     */
+    rechargeAmount =
+      parseAmount(body.amount);
 
-wallet.balance = Number(wallet.balance.toFixed(2));
-wallet.totalRecharge = Number(wallet.totalRecharge.toFixed(2));
+    if (
+      rechargeAmount === null ||
+      rechargeAmount < 1 ||
+      rechargeAmount > 50000
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Amount must be between ₹1 and ₹50,000.",
+        },
+        { status: 400 }
+      );
+    }
 
-    await wallet.save();
+    /*
+     * REMARKS
+     */
+    const rawRemarks =
+      body.remarks === undefined ||
+      body.remarks === null
+        ? ""
+        : String(body.remarks);
 
-    const transactionId =
-  "WTX-" + Date.now() + "-" + Math.floor(Math.random() * 1000);
+    if (rawRemarks.length > 200) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Remarks cannot exceed 200 characters.",
+        },
+        { status: 400 }
+      );
+    }
 
-    await WalletTransaction.create({
+    const remarks =
+      rawRemarks.trim();
 
-  transactionId,
+    /*
+     * CREATE DETERMINISTIC TRANSACTION ID
+     *
+     * Same Rider + same Idempotency-Key
+     * always produces the same transaction ID.
+     */
+    transactionId =
+      createTransactionId(
+        normalizedRiderId,
+        idempotencyKey
+      );
 
-  riderId: wallet.riderId,
+    /*
+     * START ATOMIC TRANSACTION
+     */
+    session =
+      await mongoose.startSession();
 
-  userId: wallet.userId,
+    session.startTransaction();
 
-  userName: wallet.userName,
+    /*
+     * CHECK FOR PREVIOUSLY COMPLETED OPERATION
+     */
+    const existingTransaction =
+      await WalletTransaction.findOne({
+        transactionId,
+      })
+        .select(
+          "transactionId amount"
+        )
+        .session(session)
+        .lean<{
+          transactionId: string;
+          amount: number;
+        } | null>();
 
-  amount: rechargeAmount,
+    if (existingTransaction) {
+      await session.commitTransaction();
+      session.endSession();
+      session = null;
 
-  transactionType: "Admin Credit",
+      /*
+       * Same idempotency key cannot be reused
+       * for another amount.
+       */
+      if (
+        Number(
+          existingTransaction.amount
+        ) !== rechargeAmount
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "This Idempotency-Key was already used with a different amount.",
+          },
+          { status: 409 }
+        );
+      }
 
-  paymentMethod: "Wallet",
+      return NextResponse.json({
+        success: true,
+        duplicate: true,
+        message:
+          "Recharge was already processed.",
+        transactionId:
+          existingTransaction.transactionId,
+      });
+    }
 
-  bookingId: "",
+    /*
+     * ATOMIC WALLET UPDATE
+     *
+     * The balance is increased only if:
+     *
+     * - Rider ID matches
+     * - Wallet is Active
+     * - Wallet is not deleted
+     */
+    const now = new Date();
 
-  razorpayPaymentId: "",
+    const wallet =
+      await Wallet.findOneAndUpdate(
+        {
+          riderId:
+            normalizedRiderId,
 
-  razorpayOrderId: "",
+          status: "Active",
 
-  balanceAfter: wallet.balance,
+          isDeleted: false,
+        },
+        {
+          $inc: {
+            balance:
+              rechargeAmount,
+            totalRecharge:
+              rechargeAmount,
+          },
 
-  remarks: String(remarks || "").trim().slice(0, 200),
+          $set: {
+            lastRechargeAt: now,
+            lastTransactionAt: now,
+            updatedBy: "Admin",
+          },
+        },
+        {
+          new: true,
+          session,
+          runValidators: true,
+        }
+      );
 
-  status: "Success",
+    /*
+     * Wallet doesn't exist,
+     * is blocked, or is deleted.
+     */
+    if (!wallet) {
+      await session.abortTransaction();
+      session.endSession();
+      session = null;
 
-});
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Active wallet not found for this rider.",
+        },
+        { status: 404 }
+      );
+    }
+
+    /*
+     * CREATE IMMUTABLE TRANSACTION RECORD
+     */
+    await WalletTransaction.create(
+      [
+        {
+          transactionId,
+
+          riderId:
+            wallet.riderId,
+
+          userId:
+            wallet.userId,
+
+          userName:
+            wallet.userName,
+
+          amount:
+            rechargeAmount as number,
+
+          transactionType:
+            "Admin Credit",
+
+          paymentMethod:
+            "Wallet",
+
+          transactionSource:
+            "Admin Panel",
+
+          bookingId: "",
+
+          razorpayPaymentId: "",
+
+          razorpayOrderId: "",
+
+          balanceAfter:
+            wallet.balance,
+
+          remarks,
+
+          status:
+            "Success",
+
+          updatedBy:
+            "Admin",
+        },
+      ],
+      {
+        session,
+      }
+    );
+
+    /*
+     * COMMIT EVERYTHING TOGETHER
+     *
+     * If transaction creation fails,
+     * wallet balance update is rolled back.
+     */
+    await session.commitTransaction();
+
+    session.endSession();
+    session = null;
 
     return NextResponse.json({
       success: true,
-      data: wallet,
+      message:
+        "Wallet recharged successfully.",
+      data: {
+        wallet,
+        transactionId,
+      },
     });
+  } catch (error: unknown) {
+    /*
+     * ROLLBACK ON FAILURE
+     */
+    if (session) {
+      try {
+        await session.abortTransaction();
+      } catch {}
 
-  } catch (error) {
-    console.error(error);
+      session.endSession();
+      session = null;
+    }
+
+    console.error(
+      "WALLET RECHARGE ERROR:",
+      error
+    );
+
+    /*
+     * CONCURRENT DUPLICATE TRANSACTION
+     *
+     * Two identical requests can reach the API
+     * at almost exactly the same time.
+     *
+     * If MongoDB rejects the second transaction
+     * because transactionId is already unique,
+     * retrieve the committed transaction and
+     * verify that the amount is identical.
+     */
+    if (
+      isDuplicateKeyError(error)
+    ) {
+      /*
+       * Duplicate recovery is only safe if
+       * transactionId and rechargeAmount were
+       * successfully created before the failure.
+       */
+      if (
+        !transactionId ||
+        rechargeAmount === null
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Recharge duplicate could not be safely verified.",
+          },
+          { status: 500 }
+        );
+      }
+
+      try {
+        const existingTransaction =
+          await WalletTransaction.findOne({
+            transactionId,
+          })
+            .select(
+              "transactionId amount"
+            )
+            .lean<{
+              transactionId: string;
+              amount: number;
+            } | null>();
+
+        if (!existingTransaction) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "Recharge could not be verified after a duplicate transaction conflict.",
+            },
+            { status: 500 }
+          );
+        }
+
+        /*
+         * Never allow the same idempotency key
+         * to represent a different amount.
+         */
+        if (
+          Number(
+            existingTransaction.amount
+          ) !== rechargeAmount
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              message:
+                "This Idempotency-Key was already used with a different amount.",
+            },
+            { status: 409 }
+          );
+        }
+
+        return NextResponse.json({
+          success: true,
+          duplicate: true,
+          message:
+            "Recharge was already processed.",
+          transactionId:
+            existingTransaction.transactionId,
+        });
+      } catch (
+        duplicateLookupError
+      ) {
+        console.error(
+          "RECHARGE DUPLICATE LOOKUP ERROR:",
+          duplicateLookupError
+        );
+
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Unable to verify duplicate recharge.",
+          },
+          { status: 500 }
+        );
+      }
+    }
 
     return NextResponse.json(
       {
         success: false,
-        message: "Recharge failed.",
+        message:
+          "Recharge failed.",
       },
       { status: 500 }
     );

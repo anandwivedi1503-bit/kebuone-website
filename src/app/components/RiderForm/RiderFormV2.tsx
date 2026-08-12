@@ -81,9 +81,16 @@ useEffect(() => {
   const interval = setInterval(async () => {
 
     try {
+      const token = await auth.currentUser?.getIdToken();
+
+      if (!token) return;
 
       const response =
-        await fetch(`/api/riders/${riderId}`);
+        await fetch(`/api/riders/${riderId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
       const data =
         await response.json();
@@ -627,7 +634,12 @@ const verifyOtp = async () => {
     try {
 
   const response = await fetch(
-    `/api/riders?phone=${phone}`
+    `/api/riders?phone=${phone}`,
+    {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    }
   );
 
   const data = await response.json();

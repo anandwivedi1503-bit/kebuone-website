@@ -59,91 +59,104 @@ const rejectedApplications=riders.filter(
 ).length;
 
 const approveRider = async (id: string) => {
+  if (processingId) return;
 
-if (processingId) return;
+  setProcessingId(id);
 
-setProcessingId(id);
+  try {
+    const response = await fetch(`/api/riders/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        kycStatus: "Approved",
+      }),
+    });
 
-try {
+    const result = await response.json();
 
-await fetch(`/api/riders/${id}`, {
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to approve KYC."
+      );
+    }
 
-method: "PATCH",
+    const refreshed = await fetch("/api/riders");
 
-headers: {
-"Content-Type": "application/json",
-},
+    const refreshedData = await refreshed.json();
 
-body: JSON.stringify({
-kycStatus: "Approved",
-approvalStatus: "Approved",
-approvedAt: new Date(),
-approvedBy: "Admin",
-activeRide: false,
-}),
+    setRiders(refreshedData.data || []);
+  } catch (error) {
+    console.error("KYC APPROVAL ERROR:", error);
 
-});
-
-const refreshed = await fetch("/api/riders");
-const refreshedData = await refreshed.json();
-
-setRiders(refreshedData.data || []);
-
-} finally {
-
-setProcessingId("");
-
-}
-
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Failed to approve KYC."
+    );
+  } finally {
+    setProcessingId("");
+  }
 };
 
 const rejectRider = async (id: string) => {
+  if (processingId) return;
 
-if (processingId) return;
+  const reason = prompt(
+    "Enter KYC rejection reason"
+  );
 
-const reason = prompt("Enter rejection reason");
+  if (!reason?.trim()) return;
 
-if (!reason) return;
+  setProcessingId(id);
 
-setProcessingId(id);
+  try {
+    const response = await fetch(
+      `/api/riders/${id}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          kycStatus: "Rejected",
+          rejectedReason: reason.trim(),
+        }),
+      }
+    );
 
-try {
+    const result = await response.json();
 
-await fetch(`/api/riders/${id}`, {
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Failed to reject KYC."
+      );
+    }
 
-method: "PATCH",
+    const refreshed =
+      await fetch("/api/riders");
 
-headers: {
-"Content-Type":"application/json",
-},
+    const refreshedData =
+      await refreshed.json();
 
-body: JSON.stringify({
+    setRiders(
+      refreshedData.data || []
+    );
+  } catch (error) {
+    console.error(
+      "KYC REJECTION ERROR:",
+      error
+    );
 
-kycStatus:"Rejected",
-
-approvalStatus:"Rejected",
-
-activeRide:false,
-
-rejectedReason:reason,
-
-approvedBy:"",
-
-}),
-
-});
-
-const refreshed = await fetch("/api/riders");
-const refreshedData = await refreshed.json();
-
-setRiders(refreshedData.data || []);
-
-} finally {
-
-setProcessingId("");
-
-}
-
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Failed to reject KYC."
+    );
+  } finally {
+    setProcessingId("");
+  }
 };
 
 if (loading) {
@@ -286,7 +299,7 @@ Reject
   {riders.length === 0 && (
   <tr>
     <td
-      colSpan={11}
+      colSpan={12}
       className="text-center py-12 text-gray-500"
     >
       No KYC applications found.
@@ -297,237 +310,209 @@ Reject
 {riders.map((rider)=>(
 
 <tr
-key={rider._id}
-className="
-border-b
-border-pink-50
-hover:bg-pink-50/40
-transition
-"
+  key={rider._id}
+  className="
+    border-b
+    border-pink-50
+    hover:bg-pink-50/40
+    transition
+  "
 >
-<td className="px-6 py-5 font-semibold text-[#FF165E]">
-{rider.riderId}
-</td>
+  {/* Rider ID */}
+  <td className="px-6 py-5 font-semibold text-[#FF165E]">
+    {rider.riderId}
+  </td>
 
-<td className="px-6 py-5 font-semibold">
-{rider.fullName}
-</td>
+  {/* Rider */}
+  <td className="px-6 py-5 font-semibold">
+    {rider.fullName}
+  </td>
 
-<td className="px-6 py-5">
-{rider.phone}
-</td>
+  {/* Phone */}
+  <td className="px-6 py-5">
+    {rider.phone}
+  </td>
 
-<td className="px-6 py-5 text-center">
+  {/* Aadhaar Front */}
+  <td className="px-6 py-5 text-center">
+    {rider.aadhaarFrontUrl ? (
+      <a
+        href={rider.aadhaarFrontUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[#FF165E] font-semibold hover:underline"
+      >
+        View
+      </a>
+    ) : (
+      <span className="text-gray-400">
+        Not Uploaded
+      </span>
+    )}
+  </td>
 
-{rider.aadhaarFrontUrl ? (
+  {/* Aadhaar Back */}
+  <td className="px-6 py-5 text-center">
+    {rider.aadhaarBackUrl ? (
+      <a
+        href={rider.aadhaarBackUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[#FF165E] font-semibold hover:underline"
+      >
+        View
+      </a>
+    ) : (
+      <span className="text-gray-400">
+        Not Uploaded
+      </span>
+    )}
+  </td>
 
-<a
-href={rider.aadhaarFrontUrl}
-target="_blank"
-rel="noopener noreferrer"
-className="text-[#FF165E] font-semibold hover:underline"
->
-View
-</a>
+  {/* DL Front */}
+  <td className="px-6 py-5 text-center">
+    {rider.licenseFrontUrl ? (
+      <a
+        href={rider.licenseFrontUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[#FF165E] font-semibold hover:underline"
+      >
+        View
+      </a>
+    ) : (
+      <span className="text-gray-400">
+        Not Uploaded
+      </span>
+    )}
+  </td>
 
-) : (
+  {/* DL Back */}
+  <td className="px-6 py-5 text-center">
+    {rider.licenseBackUrl ? (
+      <a
+        href={rider.licenseBackUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[#FF165E] font-semibold hover:underline"
+      >
+        View
+      </a>
+    ) : (
+      <span className="text-gray-400">
+        Not Uploaded
+      </span>
+    )}
+  </td>
 
-<span className="text-gray-400">
-Not Uploaded
-</span>
+  {/* Profile Photo */}
+  <td className="px-6 py-5 text-center">
+    {rider.profilePhotoUrl ? (
+      <a
+        href={rider.profilePhotoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-[#FF165E] font-semibold hover:underline"
+      >
+        View
+      </a>
+    ) : (
+      <span className="text-gray-400">
+        Not Uploaded
+      </span>
+    )}
+  </td>
 
-)}
+  {/* Submitted On */}
+  <td className="px-6 py-5 text-center text-sm">
+    {rider.createdAt
+      ? new Date(rider.createdAt).toLocaleString(
+          "en-IN",
+          {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        )
+      : "-"}
+  </td>
 
-</td>
+  {/* KYC Status */}
+  <td className="px-6 py-5 text-center">
+    {rider.kycStatus === "Approved" && (
+      <StatusBadge status="active" />
+    )}
 
-<td className="px-6 py-5 text-center text-sm">
+    {rider.kycStatus === "Pending" && (
+      <StatusBadge status="warning" />
+    )}
 
-{rider.createdAt
-? new Date(rider.createdAt).toLocaleString("en-IN",{
-day:"2-digit",
-month:"short",
-year:"numeric",
-hour:"2-digit",
-minute:"2-digit",
-})
-: "-"}
+    {rider.kycStatus === "Rejected" && (
+      <StatusBadge status="inactive" />
+    )}
+  </td>
 
-</td>
+  {/* Approve */}
+  <td className="px-6 py-5 text-center">
+    {rider.kycStatus === "Approved" ? (
+      <span className="text-green-600 font-bold">
+        Approved
+      </span>
+    ) : (
+      <button
+        disabled={processingId === rider._id}
+        onClick={() => approveRider(rider._id)}
+        className="
+          px-5
+          py-2
+          rounded-xl
+          bg-green-600
+          text-white
+          font-semibold
+          hover:bg-green-700
+          transition
+          disabled:opacity-50
+          disabled:cursor-not-allowed
+        "
+      >
+        {processingId === rider._id
+          ? "Approving..."
+          : "Approve"}
+      </button>
+    )}
+  </td>
 
-<td className="px-6 py-5 text-center">
-
-{rider.aadhaarBackUrl ? (
-
-<a
-href={rider.aadhaarBackUrl}
-target="_blank"
-rel="noopener noreferrer"
-className="text-[#FF165E] font-semibold hover:underline"
->
-View
-</a>
-
-) : (
-
-<span className="text-gray-400">
-Not Uploaded
-</span>
-
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{rider.licenseFrontUrl ? (
-
-<a
-href={rider.licenseFrontUrl}
-target="_blank"
-rel="noopener noreferrer"
-className="text-[#FF165E] font-semibold hover:underline"
->
-View
-</a>
-
-) : (
-
-<span className="text-gray-400">
-Not Uploaded
-</span>
-
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{rider.licenseBackUrl ? (
-
-<a
-href={rider.licenseBackUrl}
-target="_blank"
-rel="noopener noreferrer"
-className="text-[#FF165E] font-semibold hover:underline"
->
-View
-</a>
-
-) : (
-
-<span className="text-gray-400">
-Not Uploaded
-</span>
-
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{rider.profilePhotoUrl ? (
-
-<a
-href={rider.profilePhotoUrl}
-target="_blank"
-rel="noopener noreferrer"
-className="
-text-[#FF165E]
-font-semibold
-hover:underline
-"
->
-View
-</a>
-
-) : (
-
-<span className="text-gray-400">
-Not Uploaded
-</span>
-
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{rider.kycStatus==="Approved"&&(
-<StatusBadge status="active"/>
-)}
-
-{rider.kycStatus==="Pending"&&(
-<StatusBadge status="warning"/>
-)}
-
-{rider.kycStatus==="Rejected"&&(
-<StatusBadge status="inactive"/>
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{rider.approvalStatus==="Approved"?(
-
-<span className="text-green-600 font-bold">
-Approved
-</span>
-
-):(
-
-<button
-disabled={processingId===rider._id}
-onClick={()=>approveRider(rider._id)}
-className="
-px-5
-py-2
-rounded-xl
-bg-green-600
-text-white
-font-semibold
-hover:bg-green-700
-transition
-"
->
-{processingId===rider._id ? "Approving..." : "Approve"}
-</button>
-
-)}
-
-</td>
-
-<td className="px-6 py-5 text-center">
-
-{rider.approvalStatus==="Rejected"?(
-
-<span className="text-red-600 font-bold">
-Rejected
-</span>
-
-):(
-
-<button
-disabled={processingId===rider._id}
-onClick={()=>rejectRider(rider._id)}
-className="
-px-5
-py-2
-rounded-xl
-bg-red-600
-text-white
-font-semibold
-hover:bg-red-700
-transition
-"
->
-{processingId===rider._id ? "Rejecting..." : "Reject"}
-</button>
-
-)}
-
-</td>
-
+  {/* Reject */}
+  <td className="px-6 py-5 text-center">
+    {rider.kycStatus === "Rejected" ? (
+      <span className="text-red-600 font-bold">
+        Rejected
+      </span>
+    ) : (
+      <button
+        disabled={processingId === rider._id}
+        onClick={() => rejectRider(rider._id)}
+        className="
+          px-5
+          py-2
+          rounded-xl
+          bg-red-600
+          text-white
+          font-semibold
+          hover:bg-red-700
+          transition
+          disabled:opacity-50
+          disabled:cursor-not-allowed
+        "
+      >
+        {processingId === rider._id
+          ? "Rejecting..."
+          : "Reject"}
+      </button>
+    )}
+  </td>
 </tr>
 
 ))}

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 
+import { auth } from "@/lib/firebase";
 import Navbar from "../Navbar/Navbar";
 import BikeBooking from "../components/BikeBooking/BikeBooking";
 import Footer from "../components/Footer/Footer";
@@ -13,20 +15,25 @@ const [checking, setChecking] = useState(true);
 
 useEffect(() => {
 
-  const verifyRider = async () => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const phone = user?.phoneNumber?.replace(/\D/g, "").slice(-10) || "";
 
-    const phone = localStorage.getItem("kebu_rider_phone");
-
-    if (!phone) {
+    if (!user || !phone) {
       setAllowed(false);
       setChecking(false);
       return;
     }
 
     try {
+      const idToken = await user.getIdToken();
 
       const response = await fetch(
-        `/api/riders?phone=${phone}`
+        `/api/riders?phone=${phone}`,
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
       );
 
       const data = await response.json();
@@ -54,9 +61,9 @@ useEffect(() => {
 
     setChecking(false);
 
-  };
+  });
 
-  verifyRider();
+  return () => unsubscribe();
 
 }, []);
 

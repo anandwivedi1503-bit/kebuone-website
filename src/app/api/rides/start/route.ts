@@ -1,24 +1,48 @@
+import mongoose from "mongoose";
+import { NextResponse } from "next/server";
+
 import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
-import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
-
 import Booking from "@/models/Booking";
-import Vehicle from "@/models/Vehicle";
 import Rider from "@/models/Rider";
+import Vehicle from "@/models/Vehicle";
 
-export async function POST(req: Request) {
-  try {
-    await connectDB();
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
+function clean(value: unknown) {
+  return String(value || "").trim();
 }
 
-    const { bookingId, pickupOTP } = await req.json();
+function generateRideEndOTP() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
-    if (!bookingId) {
+async function rollback(session: mongoose.ClientSession | null) {
+  if (!session) return;
+
+  try {
+    await session.abortTransaction();
+  } catch {}
+
+  await session.endSession();
+}
+
+export async function POST(req: Request) {
+  let session: mongoose.ClientSession | null = null;
+
+  try {
+    if (!(await isAdminAuthenticated())) {
+      return unauthorizedResponse();
+    }
+
+    await connectDB();
+
+    const { bookingId, pickupOTP } = await req.json();
+    const normalizedBookingId = clean(bookingId).toUpperCase();
+    const normalizedPickupOTP = clean(pickupOTP);
+
+    if (!normalizedBookingId) {
       return NextResponse.json(
         {
           success: false,
@@ -28,11 +52,28 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!normalizedPickupOTP) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Pickup OTP is required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    session = await mongoose.startSession();
+    session.startTransaction();
+
     const booking = await Booking.findOne({
-      bookingId,
-    });
+      bookingId: normalizedBookingId,
+      isDeleted: false,
+    }).session(session);
 
     if (!booking) {
+      await rollback(session);
+      session = null;
+
       return NextResponse.json(
         {
           success: false,
@@ -43,6 +84,9 @@ export async function POST(req: Request) {
     }
 
     if (booking.paymentStatus !== "Paid") {
+      await rollback(session);
+      session = null;
+
       return NextResponse.json(
         {
           success: false,
@@ -53,160 +97,209 @@ export async function POST(req: Request) {
     }
 
     if (booking.pickupOTPVerified) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Pickup OTP already used.",
-    },
-    { status: 400 }
-  );
-}
+      await rollback(session);
+      session = null;
 
-if (!pickupOTP) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Pickup OTP is required.",
-    },
-    { status: 400 }
-  );
-}
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Pickup OTP already used.",
+        },
+        { status: 400 }
+      );
+    }
 
-if (booking.pickupOTP !== pickupOTP) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Invalid Pickup OTP.",
-    },
-    { status: 400 }
-  );
-}
+    if (booking.pickupOTP !== normalizedPickupOTP) {
+      await rollback(session);
+      session = null;
 
-
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Invalid Pickup OTP.",
+        },
+        { status: 400 }
+      );
+    }
 
     if (booking.rideStatus !== "Ready For Pickup") {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Booking is not ready for pickup.",
-    },
-    { status: 400 }
-  );
-}
-      
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Booking is not ready for pickup.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const vehicle = await Vehicle.findOne({
+      vehicleId: booking.vehicleId,
+    }).session(session);
+
+    if (!vehicle) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Vehicle not found.",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (
+      !["Ready For Pickup", "Booked"].includes(
+        String(vehicle.vehicleStatus || "")
+      )
+    ) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Vehicle is not ready for pickup.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (vehicle.currentBookingId !== booking.bookingId) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Vehicle booking mismatch.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const rider = await Rider.findOne({
+      riderId: booking.riderId,
+      isDeleted: false,
+    }).session(session);
+
+    if (!rider) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rider not found.",
+        },
+        { status: 404 }
+      );
+    }
+
+    if (
+      rider.currentBookingId &&
+      rider.currentBookingId !== booking.bookingId
+    ) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rider booking mismatch.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (rider.activeRide) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rider already has an active ride.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const rideEndOTP = generateRideEndOTP();
 
     booking.rideStatus = "In Ride";
-booking.actualRideStart = new Date();
-booking.completedAt = undefined;
+    booking.actualRideStart = new Date();
+    booking.completedAt = undefined;
+    booking.pickupOTPVerified = true;
+    booking.pickupOTPVerifiedAt = new Date();
+    booking.pickupOTP = "";
+    booking.pickupOTPExpiry = null;
+    booking.rideEndOTP = rideEndOTP;
+    booking.rideEndOTPExpiry = new Date(
+      Date.now() + 24 * 60 * 60 * 1000
+    );
+    booking.rideEndOTPVerified = false;
+    booking.rideEndOTPVerifiedAt = null;
 
- booking.pickupOTPVerified = true;
- booking.pickupOTPVerifiedAt = new Date();
- booking.pickupOTP = "";
- booking.pickupOTPExpiry = null;
-
-  
-
-  booking.rideEndOTP = Math.floor(
-   100000 + Math.random() * 900000
- ).toString();
-
-booking.rideEndOTPExpiry = new Date(
-  Date.now() + 24 * 60 * 60 * 1000
-);
-
-     const vehicle = await Vehicle.findOne({
-  vehicleId: booking.vehicleId,
-});
-
-if (!vehicle) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Vehicle not found.",
-    },
-    { status: 404 }
-  );
-}
-
-if (vehicle.vehicleStatus !== "Booked") {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Vehicle is not ready for pickup.",
-    },
-    { status: 400 }
-  );
-}
-
-if (vehicle.currentBookingId !== booking.bookingId) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Vehicle booking mismatch.",
-    },
-    { status: 400 }
-  );
-}
-
-    await Vehicle.findOneAndUpdate(
+    await Vehicle.updateOne(
       {
         vehicleId: booking.vehicleId,
       },
       {
-  vehicleStatus: "In Ride",
-  lockStatus: "Unlocked",
-  assignedRider: booking.riderId,
-  currentBookingId: booking.bookingId,
-  currentRiderId: booking.riderId,
-  rideStartedAt: new Date(),
-}
+        $set: {
+          vehicleStatus: "In Ride",
+          lockStatus: "Unlocked",
+          assignedRider: booking.riderId,
+          currentBookingId: booking.bookingId,
+          currentRiderId: booking.riderId,
+          rideStartedAt: new Date(),
+        },
+      },
+      {
+        session,
+      }
     );
 
-    const rider = await Rider.findOne({
-  riderId: booking.riderId,
-});
-
-if (!rider) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Rider not found.",
-    },
-    { status: 404 }
-  );
-}
-
-if (rider.activeRide) {
-  return NextResponse.json(
-    {
-      success: false,
-      message: "Rider already has an active ride.",
-    },
-    { status: 400 }
-  );
-}
-
-    await Rider.findOneAndUpdate(
+    await Rider.updateOne(
       {
         riderId: booking.riderId,
       },
       {
-        activeRide: true,
-        currentBookingId: booking.bookingId,
+        $set: {
+          activeRide: true,
+          currentBookingId: booking.bookingId,
+        },
+      },
+      {
+        session,
       }
     );
 
-    await booking.save();
+    await booking.save({
+      session,
+    });
+
+    await session.commitTransaction();
+    await session.endSession();
+    session = null;
 
     return NextResponse.json({
-  success: true,
-  message: "Ride started successfully.",
-  rideEndOTP: booking.rideEndOTP,
-  data: booking,
-});
-
+      success: true,
+      message: "Ride started successfully.",
+      rideEndOTP,
+      data: booking,
+    });
   } catch (error) {
-    console.error(error);
+    console.error("START RIDE ERROR:", error);
+
+    if (session) {
+      await rollback(session);
+      session = null;
+    }
 
     return NextResponse.json(
       {

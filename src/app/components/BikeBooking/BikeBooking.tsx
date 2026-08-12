@@ -131,6 +131,7 @@ export default function BikeBooking() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [riderId, setRiderId] = useState("");
+  const [firebaseIdToken, setFirebaseIdToken] = useState("");
 
   const loadData = async () => {
     try {
@@ -159,9 +160,13 @@ export default function BikeBooking() {
   }, []);
 
  useEffect(() => {
-  const loadRider = async (phone: string) => {
+  const loadRider = async (phone: string, token: string) => {
     try {
-      const res = await fetch(`/api/riders?phone=${phone}`);
+      const res = await fetch(`/api/riders?phone=${phone}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = await res.json();
 
       if (!data.success) return;
@@ -179,15 +184,16 @@ export default function BikeBooking() {
 
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (user?.phoneNumber) {
-      await loadRider(user.phoneNumber.replace("+91", ""));
+      const token = await user.getIdToken();
+      const phone = user.phoneNumber.replace(/\D/g, "").slice(-10);
+
+      setFirebaseIdToken(token);
+      localStorage.setItem("kebu_rider_phone", phone);
+      await loadRider(phone, token);
       return;
     }
 
-    const savedPhone = localStorage.getItem("kebu_rider_phone");
-
-    if (savedPhone) {
-      await loadRider(savedPhone);
-    }
+    setFirebaseIdToken("");
   });
 
   return () => unsubscribe();
@@ -300,7 +306,21 @@ const amountDue = bookingDone ? pendingAmount : payableAmount;
   }
 
   try {
-    const res = await fetch(`/api/riders?phone=${validPhone}`);
+    const user = auth.currentUser;
+
+    if (!user) {
+      setError("Please verify your phone number before booking.");
+      return;
+    }
+
+    const token = await user.getIdToken();
+    setFirebaseIdToken(token);
+
+    const res = await fetch(`/api/riders?phone=${validPhone}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 const data = await res.json();
 
 if (!data.success) {
@@ -373,12 +393,23 @@ setStep(2);
       setError("");
       setMessage("");
 
+      const user = auth.currentUser;
+      const token = firebaseIdToken || (await user?.getIdToken());
+
+      if (!token) {
+        setError("Please verify your phone number before booking.");
+        return;
+      }
+
+      setFirebaseIdToken(token);
+
       const newBookingId = "BK-" + Date.now();
 
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           bookingId: newBookingId,
@@ -398,6 +429,7 @@ hubAliases: [
 city,
 rentalMode,
 referenceBy,
+          firebaseIdToken: token,
           paymentMode: "Razorpay",
           paymentStatus: "Pending",
         }),
@@ -451,16 +483,29 @@ referenceBy,
       return;
     }
 
+    const user = auth.currentUser;
+    const token = firebaseIdToken || (await user?.getIdToken());
+
+    if (!token) {
+      setError("Please verify your phone number before payment.");
+      setPaymentLoading(false);
+      return;
+    }
+
+    setFirebaseIdToken(token);
+
     setPaymentMessage("Creating Razorpay order...");
 
     const orderRes = await fetch("/api/razorpay/create-order", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         bookingMongoId,
         amount: payNow,
+        firebaseIdToken: token,
       }),
     });
 
@@ -498,12 +543,14 @@ referenceBy,
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             bookingMongoId,
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
+            firebaseIdToken: token,
           }),
         });
 

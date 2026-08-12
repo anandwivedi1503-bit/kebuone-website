@@ -4,10 +4,18 @@ const BookingSchema = new mongoose.Schema(
   {
     // Booking Details
     bookingId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+  type: String,
+  required: true,
+  unique: true,
+  trim: true,
+  uppercase: true,
+},
+
+bookingRequestId: {
+    type: String,
+    unique: true,
+    sparse: true,
+},
 
     bookingDate: {
       type: Date,
@@ -30,19 +38,51 @@ userId: {
   ref: "Rider",
 },
 
-userName: String,
+userName: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
 
-userPhone: String,
+userPhone: {
+  type: String,
+  trim: true,
+  minlength: 10,
+  maxlength: 10,
+  match: /^[6-9]\d{9}$/,
+  default: "",
+},
 
 userEmail: {
   type: String,
+  trim: true,
+  lowercase: true,
+  maxlength: 120,
   default: "",
 },
 
     // Vehicle Details
-    vehicleId: String,
-    vehicleNumber: String,
-    chassisNumber: String,
+   vehicleId: {
+  type: String,
+  required: true,
+  trim: true,
+  index: true,
+},
+
+vehicleNumber: {
+  type: String,
+  trim: true,
+  uppercase: true,
+  default: "",
+},
+
+chassisNumber: {
+  type: String,
+  trim: true,
+  uppercase: true,
+  default: "",
+},
 
     vehicleType: {
       type: String,
@@ -61,8 +101,10 @@ userEmail: {
     },
 
     batteryPercentage: {
-  type: Number,
-  default: 100,
+    type: Number,
+    default: 100,
+    min: 0,
+    max: 100,
 },
 
     registrationType: {
@@ -74,28 +116,80 @@ userEmail: {
     // Rental Details
     rentalMode: {
       type: String,
-      enum: ["Daily", "Weekly", "Monthly"],
+      enum: [
+  "Hourly",
+  "Daily",
+  "Weekly",
+  "Monthly",
+  "Rent To Own",
+],
       default: "Daily",
     },
 
     dailyRate: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     weeklyRate: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     monthlyRate: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
-    rentalStartDate: Date,
+    hourlyRate: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
 
-    rentalEndDate: Date,
+rentToOwnDailyRate: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
+rentToOwnMonths: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
+rentToOwnCompletedDays: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
+remainingRentToOwnDays: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
+ownershipTransferred: {
+  type: Boolean,
+  default: false,
+},
+
+ownershipTransferredAt: Date,
+
+    rentalStartDate: {
+  type: Date,
+  required: true,
+},
+
+rentalEndDate: {
+  type: Date,
+  required: true,
+},
 
     actualRideStart: Date,
 
@@ -108,76 +202,124 @@ expectedReturnDate: Date,
 totalRideMinutes: {
   type: Number,
   default: 0,
+  min: 0,
 },
 
 rideDistanceKm: {
   type: Number,
   default: 0,
+  min: 0,
 },
 
 startOdometer: {
   type: Number,
   default: 0,
+  min: 0,
 },
 
 endOdometer: {
   type: Number,
   default: 0,
+  min: 0,
 },
 
     // Hub Details
-    startHub: String,
-    currentHub: String,
-pickupCity: String,
-    endHub: String,
-   pickupLatitude: Number,
+    startHub: {
+  type: String,
+  trim: true,
+  default: "",
+},
 
-pickupLongitude: Number,
+currentHub: {
+  type: String,
+  trim: true,
+  default: "",
+},
 
-dropLatitude: Number,
+pickupCity: {
+  type: String,
+  trim: true,
+  default: "",
+},
 
-dropLongitude: Number,
+endHub: {
+  type: String,
+  trim: true,
+  default: "",
+},
+   pickupLatitude: {
+  type: Number,
+  default: 0,
+},
+
+pickupLongitude: {
+  type: Number,
+  default: 0,
+},
+
+dropLatitude: {
+  type: Number,
+  default: 0,
+},
+
+dropLongitude: {
+  type: Number,
+  default: 0,
+},
 
     // Financial Details
     securityDeposit: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     advancePaid: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     totalAmount: {
       type: Number,
       default: 0,
+      min: 0,
     },
+
+    rateApplied: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
 
     receivedAmount: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     pendingAmount: {
       type: Number,
       default: 0,
+      min: 0,
     },
 
     paymentDue: {
   type: Number,
   default: 0,
+  min: 0,
 },
 
    refundAmount: {
   type: Number,
   default: 0,
+  min: 0,
 },
 
 securityDepositRefunded: {
   type: Boolean,
   default: false,
-}, 
+},
 
     // Payment
     paymentMode: {
@@ -189,11 +331,13 @@ securityDepositRefunded: {
 
     razorpayOrderId: {
   type: String,
+  trim: true,
   default: "",
 },
 
 razorpayPaymentId: {
   type: String,
+  trim: true,
   default: "",
 },
 
@@ -220,22 +364,31 @@ razorpayPaymentId: {
 
     // Reference
     referenceBy: {
-      type: String,
-      default: "",
-    },
-
-    remarks: {
-      type: String,
-      default: "",
-    },
-
-    cancelledBy: {
   type: String,
+  trim: true,
+  maxlength: 100,
   default: "",
 },
 
-cancellationReason: {
+    
+  cancellationReason: {
   type: String,
+  trim: true,
+  maxlength: 500,
+  default: "",
+},
+
+    cancelledBy: {
+  type: String,
+  trim: true,
+  maxlength: 100,
+  default: "",
+},
+
+remarks: {
+  type: String,
+  trim: true,
+  maxlength: 500,
   default: "",
 },
 
@@ -246,11 +399,15 @@ invoiceGenerated: {
 
 invoiceNumber: {
   type: String,
+  trim: true,
   default: "",
 },
 
 pickupOTP: {
   type: String,
+  trim: true,
+  minlength: 6,
+  maxlength: 6,
   default: "",
 },
 
@@ -269,6 +426,9 @@ pickupOTPVerifiedAt: {
 
 rideStartOTP: {
   type: String,
+  trim: true,
+  minlength: 6,
+  maxlength: 6,
   default: "",
 },
 
@@ -283,6 +443,9 @@ rideStartOTPVerified: {
 
 rideEndOTP: {
   type: String,
+  trim: true,
+  minlength: 6,
+  maxlength: 6,
   default: "",
 },
 
@@ -300,6 +463,35 @@ rideEndOTPVerifiedAt: {
 },
 
 paymentVerifiedAt: Date,
+
+bookingSource: {
+  type: String,
+  enum: [
+    "Mobile App",
+    "Admin Panel",
+    "Partner",
+  ],
+  default: "Mobile App",
+},
+
+version: {
+  type: Number,
+  default: 1,
+},
+
+updatedBy: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+isDeleted: {
+  type: Boolean,
+  default: false,
+},
+
+deletedAt: Date,
   },
   {
     timestamps: true,
@@ -326,6 +518,109 @@ BookingSchema.index({
 
 BookingSchema.index({
   paymentStatus: 1,
+});
+
+BookingSchema.index({
+  vehicleId: 1,
+  rideStatus: 1,
+});
+
+BookingSchema.index({
+  riderId: 1,
+  rideStatus: 1,
+});
+
+BookingSchema.index({
+  paymentStatus: 1,
+  rideStatus: 1,
+});
+
+BookingSchema.index({
+  rentalStartDate: 1,
+});
+
+BookingSchema.index({
+  rentalEndDate: 1,
+});
+
+BookingSchema.index({
+  razorpayOrderId: 1,
+});
+
+BookingSchema.index({
+  razorpayPaymentId: 1,
+});
+
+BookingSchema.index({
+    bookingId:1
+});
+
+BookingSchema.index({
+    userId:1
+});
+
+BookingSchema.index({
+    currentHub:1
+});
+
+BookingSchema.index({
+    pickupCity:1
+});
+
+BookingSchema.index({
+  rideStatus: 1,
+  currentHub: 1,
+});
+
+BookingSchema.index({
+  riderId: 1,
+  bookingDate: -1,
+});
+
+BookingSchema.index({
+  vehicleId: 1,
+  bookingDate: -1,
+});
+
+BookingSchema.index({
+  bookingId: 1,
+  version: 1,
+});
+
+BookingSchema.index({
+  riderId: 1,
+  rideStatus: 1,
+  paymentStatus: 1,
+});
+
+BookingSchema.index({
+  razorpayPaymentId: 1,
+  paymentStatus: 1,
+});
+
+BookingSchema.index({
+  pickupOTP: 1,
+});
+
+BookingSchema.index({
+  rideEndOTP: 1,
+});
+
+BookingSchema.pre("save", function (next) {
+
+    if (this.userEmail) {
+        this.userEmail = this.userEmail.trim().toLowerCase();
+    }
+
+    if (this.vehicleNumber) {
+        this.vehicleNumber = this.vehicleNumber.trim().toUpperCase();
+    }
+
+    if (this.chassisNumber) {
+        this.chassisNumber = this.chassisNumber.trim().toUpperCase();
+    }
+
+    next();
 });
 
 export default mongoose.models.Booking ||

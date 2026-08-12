@@ -13,10 +13,24 @@ const TransactionSchema = new mongoose.Schema(
   default: "",
 },
 
-    userId: String,
-    userName: String,
+    userId: {
+  type: String,
+  trim: true,
+  default: "",
+},
 
-    amount: Number,
+userName: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+amount: {
+  type: Number,
+  required: true,
+  min: 0,
+},
 
     gstAmount: {
       type: Number,
@@ -25,8 +39,27 @@ const TransactionSchema = new mongoose.Schema(
 
     paymentMethod: {
   type: String,
-  enum: ["Razorpay"],
+  enum: [
+    "Wallet",
+    "Cash",
+    "UPI",
+    "Card",
+    "Bank Transfer",
+    "Razorpay",
+    "Razorpay Payment Link",
+  ],
   default: "Razorpay",
+},
+
+transactionSource: {
+  type: String,
+  enum: [
+    "Mobile App",
+    "Admin Panel",
+    "Razorpay Webhook",
+    "System",
+  ],
+  default: "Mobile App",
 },
 
     razorpayOrderId: {
@@ -38,6 +71,11 @@ razorpayPaymentId: {
   type: String,
   unique:true,
   sparse:true,
+  default: "",
+},
+
+gatewayResponseCode: {
+  type: String,
   default: "",
 },
 
@@ -73,7 +111,11 @@ refundReason: {
     transactionType: {
   type: String,
   enum: [
+    "Ride Payment",
     "Booking Payment",
+    "Booking Payment - Pending Verification",
+    "Security Deposit",
+    "Wallet Recharge",
     "Refund",
     "Penalty",
     "Extension Payment",
@@ -86,6 +128,7 @@ refundReason: {
   enum: [
     "Pending",
     "Success",
+    "Pending Verification",
     "Failed",
     "Refunded",
   ],
@@ -94,7 +137,28 @@ refundReason: {
 
 remarks: {
   type: String,
+  trim: true,
+  maxlength: 500,
   default: "",
+},
+
+updatedBy: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+isDeleted: {
+  type: Boolean,
+  default: false,
+},
+
+deletedAt: Date,
+
+version: {
+  type: Number,
+  default: 1,
 },
   },
   {
@@ -126,6 +190,65 @@ TransactionSchema.index({
 
 TransactionSchema.index({
   transactionType: 1,
+});
+
+TransactionSchema.index({
+  bookingId: 1,
+  status: 1,
+});
+
+TransactionSchema.index({
+  userId: 1,
+  createdAt: -1,
+});
+
+TransactionSchema.index({
+  paymentMethod: 1,
+  status: 1,
+});
+
+TransactionSchema.index({
+  transactionId: 1,
+  version: 1,
+});
+
+TransactionSchema.pre("save", function (next) {
+
+  if (this.transactionId) {
+    this.transactionId =
+      this.transactionId.trim().toUpperCase();
+  }
+
+  if (this.bookingId) {
+    this.bookingId =
+      this.bookingId.trim().toUpperCase();
+  }
+
+  if (this.userName) {
+    this.userName =
+      this.userName.trim();
+  }
+
+  if (this.razorpayOrderId) {
+    this.razorpayOrderId =
+      this.razorpayOrderId.trim();
+  }
+
+  if (this.razorpayPaymentId) {
+    this.razorpayPaymentId =
+      this.razorpayPaymentId.trim();
+  }
+
+  if (this.remarks) {
+    this.remarks =
+      this.remarks.trim();
+  }
+
+  this.amount = Math.max(0, this.amount || 0);
+  this.gstAmount = Math.max(0, this.gstAmount || 0);
+  this.refundAmount = Math.max(0, this.refundAmount || 0);
+
+  next();
 });
 
 export default mongoose.models.Transaction ||

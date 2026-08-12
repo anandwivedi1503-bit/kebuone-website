@@ -33,6 +33,14 @@ const [loading,setLoading]=useState(false);
 const [history,setHistory]=useState<any[]>([]);
 const [pageLoading, setPageLoading] = useState(true);
 
+const createIdempotencyKey = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return `wallet-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+};
+
 useEffect(() => {
 
     loadWallets();
@@ -50,153 +58,208 @@ useEffect(() => {
 }, []);
 
 const loadWallets = async () => {
+  setPageLoading(true);
 
-    setPageLoading(true);
+  try {
+    const res = await fetch("/api/wallets?limit=100", {
+      cache: "no-store",
+    });
 
-    try {
+    const data = await res.json();
 
-        const res = await fetch("/api/wallet");
-
-        const data = await res.json();
-
-        if (data.success) {
-
-            setWallets(data.data || []);
-
-        }
-
-    } finally {
-
-        setPageLoading(false);
-
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Unable to load wallets."
+      );
     }
 
+    setWallets(data.data || []);
+  } catch (error) {
+    console.error("LOAD WALLETS ERROR:", error);
+  } finally {
+    setPageLoading(false);
+  }
 };
 
 
 
-const loadTransactions=async()=>{
+const loadTransactions = async () => {
+  try {
+    const res = await fetch(
+      "/api/wallet-transactions?limit=100",
+      {
+        cache: "no-store",
+      }
+    );
 
-const res=await fetch("/api/wallet-transactions");
+    const data = await res.json();
 
-const data=await res.json();
-if (!data.success) {
-  alert(data.message || "Unable to load transactions.");
-  return;
-}
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message ||
+          "Unable to load transactions."
+      );
+    }
 
-if(data.success){
-
-setTransactions(data.data);
-
-}
-
+    setTransactions(data.data || []);
+  } catch (error) {
+    console.error(
+      "LOAD TRANSACTIONS ERROR:",
+      error
+    );
+  }
 };
 
-const rechargeWallet=async()=>{
+const rechargeWallet = async () => {
+  if (!selectedWallet) return;
 
-if(!selectedWallet) return;
+  const rechargeAmount = Number(amount);
 
-setLoading(true);
+  if (
+    !Number.isFinite(rechargeAmount) ||
+    rechargeAmount < 1 ||
+    rechargeAmount > 50000
+  ) {
+    alert("Amount must be between ₹1 and ₹50,000.");
+    return;
+  }
 
-const res=await fetch("/api/wallet/recharge",{
+  if (remarks.length > 200) {
+    alert("Remarks cannot exceed 200 characters.");
+    return;
+  }
 
-method:"POST",
+  setLoading(true);
 
-headers:{
-"Content-Type":"application/json",
-},
+  try {
+    const res = await fetch("/api/wallet/recharge", {
+      method: "POST",
 
-body:JSON.stringify({
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": createIdempotencyKey(),
+      },
 
-walletId:selectedWallet._id,
+      body: JSON.stringify({
+        riderId: selectedWallet.riderId,
+        amount: rechargeAmount,
+        remarks: remarks.trim(),
+      }),
+    });
 
-amount,
+    const data = await res.json();
 
-remarks,
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Recharge failed."
+      );
+    }
 
-})
+    setShowRecharge(false);
+    setAmount(0);
+    setRemarks("");
 
-});
+    await Promise.all([
+      loadWallets(),
+      loadTransactions(),
+    ]);
 
-const data=await res.json();
+    alert(
+      data.duplicate
+        ? "This recharge was already processed."
+        : "Wallet Recharged Successfully"
+    );
+  } catch (error) {
+    console.error("RECHARGE ERROR:", error);
 
-setLoading(false);
-
-if(data.success){
-
-setShowRecharge(false);
-
-setAmount(0);
-
-setRemarks("");
-
-loadWallets();
-
-loadTransactions();
-
-alert("Wallet Recharged Successfully");
-
-}else{
-
-alert(data.message||"Recharge Failed");
-
-}
-
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Unable to recharge wallet."
+    );
+  } finally {
+    setLoading(false);
+  }
 };
 
-const debitWallet=async()=>{
+const debitWallet = async () => {
+  if (!selectedWallet) return;
 
-if(!selectedWallet) return;
+  const debitAmount = Number(amount);
 
-setLoading(true);
+  if (
+    !Number.isFinite(debitAmount) ||
+    debitAmount < 1 ||
+    debitAmount > 50000
+  ) {
+    alert("Amount must be between ₹1 and ₹50,000.");
+    return;
+  }
 
-const res=await fetch("/api/wallet/debit",{
+  if (remarks.length > 200) {
+    alert("Remarks cannot exceed 200 characters.");
+    return;
+  }
 
-method:"POST",
+  if (
+    debitAmount >
+    Number(selectedWallet.balance || 0)
+  ) {
+    alert("Insufficient wallet balance.");
+    return;
+  }
 
-headers:{
-"Content-Type":"application/json",
-},
+  setLoading(true);
 
-body:JSON.stringify({
+  try {
+    const res = await fetch("/api/wallet/debit", {
+      method: "POST",
 
-walletId:selectedWallet._id,
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": createIdempotencyKey(),
+      },
 
-amount,
+      body: JSON.stringify({
+        riderId: selectedWallet.riderId,
+        amount: debitAmount,
+        remarks: remarks.trim(),
+      }),
+    });
 
-remarks,
+    const data = await res.json();
 
-})
+    if (!res.ok || !data.success) {
+      throw new Error(
+        data.message || "Debit failed."
+      );
+    }
 
-});
+    setShowDebit(false);
+    setAmount(0);
+    setRemarks("");
 
+    await Promise.all([
+      loadWallets(),
+      loadTransactions(),
+    ]);
 
+    alert(
+      data.duplicate
+        ? "This debit was already processed."
+        : "Wallet Debited Successfully"
+    );
+  } catch (error) {
+    console.error("DEBIT ERROR:", error);
 
-const data=await res.json();
-
-setLoading(false);
-
-if(data.success){
-
-setShowDebit(false);
-
-setAmount(0);
-
-setRemarks("");
-
-loadWallets();
-
-loadTransactions();
-
-alert("Wallet Debited Successfully");
-
-}else{
-
-alert(data.message||"Debit Failed");
-
-}
-
+    alert(
+      error instanceof Error
+        ? error.message
+        : "Unable to debit wallet."
+    );
+  } finally {
+    setLoading(false);
+  }
 };
 
 const loadHistory = async (riderId: string) => {
@@ -900,18 +963,28 @@ Recharge Wallet
 </h2>
 
 <input
-type="number"
-placeholder="Amount"
-value={amount}
-onChange={(e)=>setAmount(Number(e.target.value))}
-className="w-full border rounded-xl p-3 mb-4"
+  type="number"
+  min="1"
+  max="50000"
+  step="0.01"
+  placeholder="Amount"
+  value={amount || ""}
+  onChange={(e) =>
+    setAmount(Number(e.target.value))
+  }
+  className="w-full border rounded-xl p-3 mb-4"
+  disabled={loading}
 />
 
 <textarea
-placeholder="Remarks"
-value={remarks}
-onChange={(e)=>setRemarks(e.target.value)}
-className="w-full border rounded-xl p-3 mb-6"
+  placeholder="Remarks"
+  value={remarks}
+  maxLength={200}
+  onChange={(e) =>
+    setRemarks(e.target.value)
+  }
+  className="w-full border rounded-xl p-3 mb-6"
+  disabled={loading}
 />
 
 <div className="flex gap-4">
@@ -963,18 +1036,28 @@ Debit Wallet
 </h2>
 
 <input
-type="number"
-placeholder="Amount"
-value={amount}
-onChange={(e)=>setAmount(Number(e.target.value))}
-className="w-full border rounded-xl p-3 mb-4"
+  type="number"
+  min="1"
+  max="50000"
+  step="0.01"
+  placeholder="Amount"
+  value={amount || ""}
+  onChange={(e) =>
+    setAmount(Number(e.target.value))
+  }
+  className="w-full border rounded-xl p-3 mb-4"
+  disabled={loading}
 />
 
 <textarea
-placeholder="Remarks"
-value={remarks}
-onChange={(e)=>setRemarks(e.target.value)}
-className="w-full border rounded-xl p-3 mb-6"
+  placeholder="Remarks"
+  value={remarks}
+  maxLength={200}
+  onChange={(e) =>
+    setRemarks(e.target.value)
+  }
+  className="w-full border rounded-xl p-3 mb-6"
+  disabled={loading}
 />
 
 <div className="flex gap-4">

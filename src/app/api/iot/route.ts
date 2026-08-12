@@ -6,7 +6,14 @@ import Vehicle from "@/models/Vehicle";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
-const vehicleStatuses = ["Available", "Booked", "In Ride", "Maintenance", "Low Battery"];
+const vehicleStatuses = [
+  "Available",
+  "Booked",
+  "Ready For Pickup",
+  "In Ride",
+  "Maintenance",
+  "Low Battery",
+];
 
 function clean(value: unknown) {
   return String(value || "").trim();

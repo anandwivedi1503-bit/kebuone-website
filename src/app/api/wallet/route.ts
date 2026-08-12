@@ -1,50 +1,210 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import {
+  isAdminAuthenticated,
+  unauthorizedResponse,
+} from "@/lib/adminAuth";
+
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+
 import Wallet from "@/models/Wallet";
+import Rider from "@/models/Rider";
 
-function clean(value: unknown) {
-  return String(value || "").trim();
+import mongoose from "mongoose";
+
+function normalizeRiderId(value: unknown) {
+  return String(value || "")
+    .trim()
+    .toUpperCase();
 }
 
-function isValidAmount(value: unknown) {
-  const amount = Number(value);
-  return Number.isFinite(amount) && amount >= 0;
+function isValidRiderId(riderId: string) {
+  return /^RDR-\d{6,}$/.test(riderId);
 }
 
-export async function GET() {
+type RiderWalletRecoveryRecord = {
+  _id: mongoose.Types.ObjectId;
+  riderId: string;
+  fullName: string;
+  phone: string;
+  approvalStatus: string;
+  kycStatus: string;
+  status: string;
+  blacklisted: boolean;
+  isDeleted: boolean;
+};
+
+/*
+ * GET
+ *
+ * Returns active wallet records for the admin wallet
+ * management module.
+ *
+ * Supports:
+ *
+ * ?page=1
+ * ?limit=25
+ * ?status=Active
+ * ?status=Blocked
+ * ?riderId=RDR-000001
+ */
+export async function GET(req: Request) {
   try {
+    /*
+     * ADMIN AUTHENTICATION
+     */
     if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
 
     await connectDB();
 
-    const wallets = await Wallet.find().sort({
-      createdAt: -1,
-    });
+    const { searchParams } = new URL(req.url);
 
+    /*
+     * Pagination
+     */
+    const rawPage = Number(
+      searchParams.get("page") || 1
+    );
+
+    const rawLimit = Number(
+      searchParams.get("limit") || 25
+    );
+
+    const page = Number.isFinite(rawPage)
+      ? Math.max(1, Math.floor(rawPage))
+      : 1;
+
+    const limit = Number.isFinite(rawLimit)
+      ? Math.min(
+          100,
+          Math.max(1, Math.floor(rawLimit))
+        )
+      : 25;
+
+    const skip = (page - 1) * limit;
+
+    /*
+     * Filters
+     */
+    const status =
+      searchParams.get("status")?.trim();
+
+    const riderId = normalizeRiderId(
+      searchParams.get("riderId")
+    );
+
+    const filter: Record<string, unknown> = {
+      isDeleted: false,
+    };
+
+    /*
+     * Wallet status filter
+     */
+    if (status) {
+      if (
+        !["Active", "Blocked"].includes(status)
+      ) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Invalid wallet status.",
+          },
+          { status: 400 }
+        );
+      }
+
+      filter.status = status;
+    }
+
+    /*
+     * Rider ID filter
+     */
+    if (riderId) {
+      if (!isValidRiderId(riderId)) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Invalid Rider ID.",
+          },
+          { status: 400 }
+        );
+      }
+
+      filter.riderId = riderId;
+    }
+
+    /*
+     * Fetch wallets and total count in parallel.
+     */
+    const [wallets, total] =
+      await Promise.all([
+        Wallet.find(filter)
+          .sort({
+            createdAt: -1,
+            _id: -1,
+          })
+          .skip(skip)
+          .limit(limit)
+          .lean(),
+
+        Wallet.countDocuments(filter),
+      ]);
+
+    /*
+     * Return paginated wallet data.
+     */
     return NextResponse.json({
       success: true,
-      data: wallets,
-    });
 
+      data: wallets,
+
+      pagination: {
+        page,
+        limit,
+        total,
+
+        totalPages:
+          Math.ceil(total / limit),
+
+        hasNextPage:
+          skip + wallets.length < total,
+      },
+    });
   } catch (error) {
+    console.error(
+      "GET WALLETS ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        message: "Failed to fetch wallets.",
       },
       { status: 500 }
     );
   }
 }
 
+/*
+ * POST
+ *
+ * Controlled wallet recovery endpoint.
+ *
+ * IMPORTANT:
+ *
+ * Normal rider registration should create the
+ * wallet automatically.
+ *
+ * This endpoint exists only for an administrator
+ * to recover a missing wallet.
+ */
 export async function POST(req: Request) {
-
   try {
-
+    /*
+     * ADMIN AUTHENTICATION
+     */
     if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
@@ -53,72 +213,102 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
-    const riderId = clean(body.riderId);
-    const userName = clean(body.userName);
-    const phone = clean(body.phone);
+    const riderId = normalizeRiderId(body.riderId);
 
-    const errors: string[] = [];
-
-    if (riderId.length < 3) {
-      errors.push("Invalid rider ID.");
-    }
-
-    if (userName.length < 2) {
-      errors.push("Invalid user name.");
-    }
-
-    if (!/^[6-9]\d{9}$/.test(phone)) {
-      errors.push("Invalid phone number.");
-    }
-
-    if (
-      body.balance !== undefined &&
-      !isValidAmount(body.balance)
-    ) {
-      errors.push("Invalid wallet balance.");
-    }
-
-    if (errors.length > 0) {
-
+    /*
+     * Validate Rider ID.
+     */
+    if (!isValidRiderId(riderId)) {
       return NextResponse.json(
         {
           success: false,
-          errors,
+          message: "Valid Rider ID is required.",
         },
         { status: 400 }
       );
-
     }
 
-    const existing = await Wallet.findOne({
-      riderId,
-    });
+    /*
+     * The client is NOT allowed to control:
+     *
+     * - balance
+     * - userId
+     * - userName
+     * - phone
+     * - wallet status
+     *
+     * These values come from the Rider record.
+     */
 
-    if (existing) {
+    const rider =
+      await Rider.findOne({
+        riderId,
+        isDeleted: false,
+      }).lean<RiderWalletRecoveryRecord | null>();
 
+    if (!rider) {
       return NextResponse.json(
         {
           success: false,
-          errors: ["Wallet already exists."],
+          message: "Rider not found.",
         },
-        { status: 409 }
+        { status: 404 }
       );
-
     }
 
+    /*
+     * Check whether a wallet already exists.
+     *
+     * We check both active and soft-deleted wallets.
+     */
+    const existingWallet =
+  await Wallet.findOne({
+    riderId,
+  })
+    .select("isDeleted")
+    .lean<{ isDeleted: boolean } | null>();
+
+if (existingWallet) {
+  return NextResponse.json(
+    {
+      success: false,
+      message: existingWallet.isDeleted
+        ? "A closed wallet already exists for this rider."
+        : "Wallet already exists for this rider.",
+    },
+    { status: 409 }
+  );
+}
+
+    /*
+     * Determine initial wallet status strictly
+     * from the rider's current eligibility.
+     */
+    const walletStatus =
+      rider.approvalStatus === "Approved" &&
+      rider.kycStatus === "Approved" &&
+      rider.status === "Active" &&
+      !rider.blacklisted
+        ? "Active"
+        : "Blocked";
+
+    /*
+     * Create wallet using server-controlled data.
+     */
     const wallet = await Wallet.create({
+      riderId: rider.riderId,
 
-      riderId,
+      userId: rider._id,
 
-      userId: body.userId,
+      userName: rider.fullName,
 
-      userName,
+      phone: rider.phone,
 
-      phone,
-
-      balance: Number(body.balance || 0),
+      balance: 0,
 
       securityDepositHold: 0,
+
+      freezeAmount: 0,
 
       totalRecharge: 0,
 
@@ -126,28 +316,53 @@ export async function POST(req: Request) {
 
       totalRefund: 0,
 
-      status: "Active",
+      status: walletStatus,
 
+      isDeleted: false,
+
+      updatedBy: "Admin",
     });
 
-    return NextResponse.json({
+    return NextResponse.json(
+      {
+        success: true,
+        message: "Wallet created successfully.",
+        data: wallet,
+      },
+      { status: 201 }
+    );
+  } catch (error: unknown) {
+    console.error(
+      "CREATE WALLET ERROR:",
+      error
+    );
 
-      success: true,
-
-      data: wallet,
-
-    });
-
-  } catch (error) {
+    /*
+     * Duplicate wallet protection.
+     */
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: number }).code === 11000
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Wallet already exists for this rider.",
+        },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        message:
+          "Failed to create wallet.",
       },
       { status: 500 }
     );
-
-  }
-
-}
+   }
+ }

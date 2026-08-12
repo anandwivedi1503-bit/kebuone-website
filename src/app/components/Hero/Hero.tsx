@@ -23,6 +23,7 @@ bg-[radial-gradient(circle_at_top,#F8FFF9_0%,#FFFFFF_40%,#FFF8FC_100%)]
 <div
 className="
 absolute
+pointer-events-none
 -top-32
 -left-32
 h-[500px]
@@ -38,6 +39,7 @@ blur-[140px]
 <div
 className="
 absolute
+pointer-events-none
 top-10
 -right-20
 h-[420px]
@@ -250,8 +252,10 @@ ease:[0.22,1,0.36,1]
     duration: 0.8,
   }}
   className="
-  mt-14
-  flex
+  relative
+z-40
+mt-14
+flex
   flex-wrap
   items-center
   justify-center
@@ -273,12 +277,12 @@ ease:[0.22,1,0.36,1]
       from-[#18B368]
       via-[#16C45B]
       to-[#13A657]
-      px-10
-      py-4
-      text-lg
+      px-12
+      py-5
+      text-xl
       font-bold
       text-white
-      shadow-[0_20px_60px_rgba(24,179,104,.35)]
+      shadow-[0_30px_90px_rgba(24,179,104,.45)]
       transition-all
       duration-500
       hover:scale-[1.03]
@@ -339,12 +343,12 @@ ease:[0.22,1,0.36,1]
       border-white
       bg-white/70
       backdrop-blur-2xl
-      px-10
-      py-4
-      text-lg
+      px-12
+      py-5
+      text-xl
       font-bold
       text-[#18B368]
-      shadow-[0_18px_55px_rgba(15,23,42,.08)]
+      shadow-[0_30px_90px_rgba(24,179,104,.45)]
       transition-all
       duration-500
       hover:-translate-y-1
@@ -435,8 +439,9 @@ rotate:0
   }}
   className="
 relative
-mt-16
-max-w-[1480px]
+z-20
+mt-20
+max-w-[1700px]
 mx-auto
 "
 >
@@ -446,6 +451,7 @@ mx-auto
 <div
 className="
 absolute
+pointer-events-none
 left-1/2
 top-1/2
 -translate-x-1/2
@@ -461,6 +467,7 @@ blur-[170px]
 <div
 className="
 absolute
+pointer-events-none
 right-[-120px]
 top-12
 w-[420px]
@@ -474,6 +481,7 @@ blur-[150px]
 <div
 className="
 absolute
+pointer-events-none
 left-[-120px]
 bottom-0
 w-[420px]
@@ -490,13 +498,14 @@ blur-[150px]
 className="
 group
 relative
+z-20
 overflow-hidden
-rounded-[48px]
+rounded-[56px]
 border
 border-white/60
-bg-white/55
+bg-white/72
 backdrop-blur-3xl
-shadow-[0_45px_140px_rgba(15,23,42,.16)]
+shadow-[0_70px_170px_rgba(15,23,42,.18)]
 hover:shadow-[0_70px_170px_rgba(15,23,42,.20)]
 transition-all
 duration-700
@@ -527,11 +536,13 @@ height={1400}
 priority
 className="
 w-full
-h-auto
-object-contain
+min-h-[340px]
+md:min-h-[600px]
+object-cover
+md:object-contain
 transition-all
 duration-700
-group-hover:scale-[1.015]
+group-hover:scale-[1.02]
 "
 />
 
@@ -789,17 +800,27 @@ BUILT FOR
 
 </p>
 
-<div className="mt-8 flex flex-wrap justify-center gap-8 text-base font-semibold text-slate-500">
+<div className="mt-10 flex flex-wrap justify-center gap-5 text-base font-semibold text-slate-500">
 
-<span>Daily Commuters</span>
+<div className="rounded-full border border-gray-200 bg-white/80 backdrop-blur-xl px-6 py-3 font-semibold shadow-lg hover:shadow-xl transition">
+🚲 Daily Commuters
+</div>
 
-<span>Businesses</span>
+<div className="rounded-full border border-gray-200 bg-white/80 backdrop-blur-xl px-6 py-3 font-semibold shadow-lg">
+🏢 Businesses
+</div>
 
-<span>Fleet Operators</span>
+<div className="rounded-full border border-gray-200 bg-white/80 backdrop-blur-xl px-6 py-3 font-semibold shadow-lg">
+🚛 Fleet Operators
+</div>
 
-<span>Delivery Partners</span>
+<div className="rounded-full border border-gray-200 bg-white/80 backdrop-blur-xl px-6 py-3 font-semibold shadow-lg">
+📦 Delivery Partners
+</div>
 
-<span>Gig Workers</span>
+<div className="rounded-full border border-gray-200 bg-white/80 backdrop-blur-xl px-6 py-3 font-semibold shadow-lg">
+⚡ Gig Workers
+</div>
 
 </div>
 

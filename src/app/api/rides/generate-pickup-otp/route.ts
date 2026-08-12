@@ -77,6 +77,7 @@ if (!otp) {
 
     // Temporary: keep generated time for audit
     booking.pickupOTPVerified = false;
+    booking.pickupOTPVerifiedAt = null;
 
     await booking.save();
 

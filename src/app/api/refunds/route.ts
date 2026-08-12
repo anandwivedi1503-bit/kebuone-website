@@ -2,6 +2,7 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
+import Booking from "@/models/Booking";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -87,6 +88,50 @@ export async function POST(req: Request) {
         { status: 409 }
       );
     }
+
+    const booking = await Booking.findOne({
+  bookingId: clean(body.bookingId),
+});
+
+if (!booking) {
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "Booking not found.",
+      ],
+    },
+    {
+      status: 404,
+    }
+  );
+
+}
+
+const existingBookingRefund =
+  await Refund.findOne({
+    bookingId: clean(body.bookingId),
+    refundStatus: {
+      $ne: "REJECTED",
+    },
+  });
+
+if (existingBookingRefund) {
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "A refund already exists for this booking.",
+      ],
+    },
+    {
+      status: 409,
+    }
+  );
+
+}
 
     const refund = await Refund.create({
   ...body,
