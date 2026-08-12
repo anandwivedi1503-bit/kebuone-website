@@ -74,9 +74,15 @@ const RiderSchema = new mongoose.Schema(
   sparse: true,
   uppercase: true,
   trim: true,
-  minlength: 15,
-  maxlength: 15,
-  match: /^[A-Z]{2}\d{2}\d{11}$/,
+  default: undefined,
+
+  validate: {
+    validator: function (value: string | undefined) {
+      if (!value) return true;
+      return /^[A-Z]{2}\d{2}\d{11}$/.test(value);
+    },
+    message: "Invalid driving license number.",
+  },
 },
 
     aadhaarFrontUrl: {
@@ -290,11 +296,15 @@ updatedBy: {
 
     emergencyContactPhone: {
   type: String,
-  trim: true,
-  default: "",
-  minlength: 10,
-  maxlength: 10,
-  match: /^$|^[6-9]\d{9}$/,
+  default: undefined,
+
+  validate: {
+    validator: function (value: string | undefined) {
+      if (!value) return true;
+      return /^[6-9]\d{9}$/.test(value);
+    },
+    message: "Invalid emergency contact phone number.",
+  },
 },
 
     // Optional Social
@@ -322,11 +332,15 @@ default: "",
 
     reference1Phone: {
   type: String,
-  trim: true,
-  default: "",
-  minlength: 10,
-  maxlength: 10,
-  match: /^$|^[6-9]\d{9}$/,
+  default: undefined,
+
+  validate: {
+    validator: function (value: string | undefined) {
+      if (!value) return true;
+      return /^[6-9]\d{9}$/.test(value);
+    },
+    message: "Invalid reference 1 phone number.",
+  },
 },
 
     reference2Name: {
@@ -338,11 +352,15 @@ default: "",
 
    reference2Phone: {
   type: String,
-  trim: true,
-  default: "",
-  minlength: 10,
-  maxlength: 10,
-  match: /^$|^[6-9]\d{9}$/,
+  default: undefined,
+
+  validate: {
+    validator: function (value: string | undefined) {
+      if (!value) return true;
+      return /^[6-9]\d{9}$/.test(value);
+    },
+    message: "Invalid reference 2 phone number.",
+  },
 },
 
     // Login

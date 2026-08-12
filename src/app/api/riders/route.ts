@@ -78,6 +78,12 @@ export async function POST(req: Request) {
 
     const body = await req.json();
 
+    /*
+     * =========================================================
+     * NORMALIZE INPUT
+     * =========================================================
+     */
+
     const fullName = clean(body.fullName);
     const phone = normalizePhone(body.phone);
     const email = clean(body.email).toLowerCase();
@@ -88,37 +94,92 @@ export async function POST(req: Request) {
       body.drivingLicense
     );
 
-    /*
-     * IMPORTANT:
-     * We intentionally do NOT trust firebaseUid from the client.
-     * The Firebase UID comes from the verified ID token.
-     */
-    const firebaseIdToken = clean(body.firebaseIdToken);
+    const firebaseIdToken = clean(
+      body.firebaseIdToken
+    );
 
-    const aadhaarFrontUrl = clean(body.aadhaarFrontUrl);
-    const aadhaarBackUrl = clean(body.aadhaarBackUrl);
-    const licenseFrontUrl = clean(body.licenseFrontUrl);
-    const licenseBackUrl = clean(body.licenseBackUrl);
-    const profilePhotoUrl = clean(body.profilePhotoUrl);
+    /*
+     * Optional fields.
+     *
+     * IMPORTANT:
+     * Empty optional values become undefined rather than "".
+     * This prevents Mongoose minlength validation from
+     * rejecting optional phone fields.
+     */
+
+    const emergencyContactName =
+      clean(body.emergencyContactName) || undefined;
+
+    const emergencyContactPhone =
+      normalizePhone(body.emergencyContactPhone) || undefined;
+
+    const reference1Name =
+      clean(body.reference1Name) || undefined;
+
+    const reference1Phone =
+      normalizePhone(body.reference1Phone) || undefined;
+
+    const reference2Name =
+      clean(body.reference2Name) || undefined;
+
+    const reference2Phone =
+      normalizePhone(body.reference2Phone) || undefined;
+
+    const instagramId =
+      clean(body.instagramId) || undefined;
+
+    const facebookId =
+      clean(body.facebookId) || undefined;
+
+    /*
+     * Documents
+     */
+
+    const aadhaarFrontUrl =
+      clean(body.aadhaarFrontUrl);
+
+    const aadhaarBackUrl =
+      clean(body.aadhaarBackUrl);
+
+    const licenseFrontUrl =
+      clean(body.licenseFrontUrl);
+
+    const licenseBackUrl =
+      clean(body.licenseBackUrl);
+
+    const profilePhotoUrl =
+      clean(body.profilePhotoUrl);
+
+    /*
+     * =========================================================
+     * BASIC VALIDATION
+     * =========================================================
+     */
 
     const errors: string[] = [];
 
-    /* ---------- Basic validation ---------- */
-
     if (!firebaseIdToken) {
-      errors.push("Phone OTP verification is required.");
+      errors.push(
+        "Phone OTP verification is required."
+      );
     }
 
     if (!nameRegex.test(fullName)) {
-      errors.push("Enter a valid full name.");
+      errors.push(
+        "Enter a valid full name."
+      );
     }
 
     if (!phoneRegex.test(phone)) {
-      errors.push("Enter a valid Indian mobile number.");
+      errors.push(
+        "Enter a valid Indian mobile number."
+      );
     }
 
     if (!emailRegex.test(email)) {
-      errors.push("Enter a valid email address.");
+      errors.push(
+        "Enter a valid email address."
+      );
     }
 
     if (!aadhaarRegex.test(aadhaarNumber)) {
@@ -128,9 +189,9 @@ export async function POST(req: Request) {
     }
 
     /*
-     * Driving licence remains optional because your existing
-     * frontend currently allows registration without it.
+     * Driving licence is optional.
      */
+
     if (
       drivingLicense &&
       !drivingLicenseRegex.test(drivingLicense)
@@ -140,42 +201,127 @@ export async function POST(req: Request) {
       );
     }
 
-    /* ---------- Required documents ---------- */
+    /*
+     * =========================================================
+     * OPTIONAL PHONE VALIDATION
+     * =========================================================
+     */
 
-    if (!aadhaarFrontUrl) {
-      errors.push("Aadhaar Front is required.");
+    if (
+      emergencyContactPhone &&
+      !phoneRegex.test(
+        emergencyContactPhone
+      )
+    ) {
+      errors.push(
+        "Emergency contact phone number is invalid."
+      );
     }
 
-    if (!aadhaarBackUrl) {
-      errors.push("Aadhaar Back is required.");
+    if (
+      reference1Phone &&
+      !phoneRegex.test(
+        reference1Phone
+      )
+    ) {
+      errors.push(
+        "Reference 1 phone number is invalid."
+      );
     }
 
-    if (!profilePhotoUrl) {
-      errors.push("Profile photo is required.");
+    if (
+      reference2Phone &&
+      !phoneRegex.test(
+        reference2Phone
+      )
+    ) {
+      errors.push(
+        "Reference 2 phone number is invalid."
+      );
     }
 
     /*
-     * Documents must originate from our Cloudinary upload flow.
+     * =========================================================
+     * REQUIRED DOCUMENTS
+     * =========================================================
      */
-    const documentUrls: Array<[string, string, boolean]> = [
-      ["Aadhaar Front", aadhaarFrontUrl, true],
-      ["Aadhaar Back", aadhaarBackUrl, true],
-      ["Driving License Front", licenseFrontUrl, false],
-      ["Driving License Back", licenseBackUrl, false],
-      ["Profile Photo", profilePhotoUrl, true],
+
+    if (!aadhaarFrontUrl) {
+      errors.push(
+        "Aadhaar Front is required."
+      );
+    }
+
+    if (!aadhaarBackUrl) {
+      errors.push(
+        "Aadhaar Back is required."
+      );
+    }
+
+    if (!profilePhotoUrl) {
+      errors.push(
+        "Profile photo is required."
+      );
+    }
+
+    /*
+     * =========================================================
+     * CLOUDINARY URL VALIDATION
+     * =========================================================
+     */
+
+    const documentUrls: Array<
+      [string, string, boolean]
+    > = [
+      [
+        "Aadhaar Front",
+        aadhaarFrontUrl,
+        true,
+      ],
+      [
+        "Aadhaar Back",
+        aadhaarBackUrl,
+        true,
+      ],
+      [
+        "Driving License Front",
+        licenseFrontUrl,
+        false,
+      ],
+      [
+        "Driving License Back",
+        licenseBackUrl,
+        false,
+      ],
+      [
+        "Profile Photo",
+        profilePhotoUrl,
+        true,
+      ],
     ];
 
-    for (const [label, url, required] of documentUrls) {
-      if (!url && !required) continue;
+    for (
+      const [label, url, required] of documentUrls
+    ) {
+      if (!url && !required) {
+        continue;
+      }
 
-      if (url && !isSafeCloudinaryUrl(url)) {
+      if (
+        url &&
+        !isSafeCloudinaryUrl(url)
+      ) {
         errors.push(
           `${label} must be uploaded through the approved document upload service.`
         );
       }
     }
 
-    /* ---------- Prevent duplicate files ---------- */
+    /*
+     * =========================================================
+     * DUPLICATE DOCUMENT PROTECTION
+     * =========================================================
+     */
 
     if (
       aadhaarFrontUrl &&
@@ -193,7 +339,7 @@ export async function POST(req: Request) {
       licenseFrontUrl === licenseBackUrl
     ) {
       errors.push(
-        "Driving License Front and Back cannot be the same file."
+        "Driving License Front and Driving License Back cannot be the same file."
       );
     }
 
@@ -221,31 +367,27 @@ export async function POST(req: Request) {
       );
     }
 
-    /* ---------- Reference phone validation ---------- */
-
-    const reference1Phone = normalizePhone(
-      body.reference1Phone
-    );
-
-    const reference2Phone = normalizePhone(
-      body.reference2Phone
-    );
+    /*
+     * =========================================================
+     * REFERENCE NAME VALIDATION
+     * =========================================================
+     */
 
     if (
-      body.reference1Phone &&
-      !phoneRegex.test(reference1Phone)
+      reference1Name &&
+      !nameRegex.test(reference1Name)
     ) {
       errors.push(
-        "Reference 1 phone number is invalid."
+        "Reference Person 1 name is invalid."
       );
     }
 
     if (
-      body.reference2Phone &&
-      !phoneRegex.test(reference2Phone)
+      reference2Name &&
+      !nameRegex.test(reference2Name)
     ) {
       errors.push(
-        "Reference 2 phone number is invalid."
+        "Reference Person 2 name is invalid."
       );
     }
 
@@ -253,26 +395,34 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
+          errorCode: "VALIDATION_ERROR",
           errors,
+          message: errors.join(" "),
         },
         { status: 400 }
       );
     }
 
-    /* =====================================================
-       VERIFY FIREBASE TOKEN
-    ===================================================== */
+    /*
+     * =========================================================
+     * VERIFY FIREBASE ID TOKEN
+     * =========================================================
+     */
 
     let decodedToken;
 
     try {
       decodedToken =
-        await adminAuth.verifyIdToken(firebaseIdToken);
+        await adminAuth.verifyIdToken(
+          firebaseIdToken
+        );
     } catch {
       return NextResponse.json(
         {
           success: false,
-          errors: ["Invalid or expired Firebase token."],
+          errorCode: "INVALID_FIREBASE_TOKEN",
+          message:
+            "Invalid or expired Firebase verification. Please verify OTP again.",
         },
         { status: 401 }
       );
@@ -282,14 +432,23 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          errors: ["Invalid Firebase account."],
+          errorCode: "INVALID_FIREBASE_ACCOUNT",
+          message:
+            "Invalid Firebase account.",
         },
         { status: 401 }
       );
     }
 
+    /*
+     * Firebase Phone Auth gives us the authoritative
+     * verified phone number.
+     */
+
     const verifiedPhone =
-      normalizePhone(decodedToken.phone_number);
+      normalizePhone(
+        decodedToken.phone_number
+      );
 
     if (
       !verifiedPhone ||
@@ -298,30 +457,52 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          errors: [
-            "Verified phone number does not match registration phone.",
-          ],
+          errorCode: "PHONE_MISMATCH",
+          message:
+            "The verified phone number does not match the registration phone number.",
         },
         { status: 400 }
       );
     }
 
-    /* =====================================================
-       DUPLICATE CHECK + RIDER + WALLET
-       ALL IN ONE TRANSACTION
-    ===================================================== */
+    /*
+     * =========================================================
+     * START TRANSACTION
+     *
+     * Rider + Counter + Wallet are one unit.
+     * =========================================================
+     */
 
-    session = await mongoose.startSession();
+    session =
+      await mongoose.startSession();
 
     session.startTransaction();
 
     try {
-      const duplicateChecks: Record<string, string>[] = [
+      /*
+       * =======================================================
+       * DUPLICATE RIDER CHECK
+       * =======================================================
+       */
+
+      const duplicateChecks: Record<
+        string,
+        string
+      >[] = [
         { phone },
         { email },
         { aadhaarNumber },
-        { firebaseUid: decodedToken.uid },
+        {
+          firebaseUid:
+            decodedToken.uid,
+        },
       ];
+
+      /*
+       * IMPORTANT:
+       * Do NOT put an empty drivingLicense
+       * into the duplicate query.
+       */
 
       if (drivingLicense) {
         duplicateChecks.push({
@@ -338,19 +519,29 @@ export async function POST(req: Request) {
       if (existingRider) {
         await session.abortTransaction();
 
+        /*
+         * Already fully approved.
+         */
+
         if (
-          existingRider.approvalStatus === "Approved" &&
-          existingRider.kycStatus === "Approved" &&
-          existingRider.status === "Active" &&
-          existingRider.bookingEnabled === true &&
-          existingRider.blacklisted !== true
+          existingRider.approvalStatus ===
+            "Approved" &&
+          existingRider.kycStatus ===
+            "Approved" &&
+          existingRider.status ===
+            "Active" &&
+          existingRider.bookingEnabled ===
+            true &&
+          existingRider.blacklisted !==
+            true
         ) {
           return NextResponse.json(
             {
               success: false,
               riderExists: true,
               riderStatus: "Approved",
-              riderId: existingRider.riderId,
+              riderId:
+                existingRider.riderId,
               message:
                 "Your account is already approved. Please continue to Book Bike.",
             },
@@ -358,16 +549,24 @@ export async function POST(req: Request) {
           );
         }
 
+        /*
+         * Under review.
+         */
+
         if (
           existingRider.approvalStatus ===
-          "Under Review"
+            "Under Review" ||
+          existingRider.kycStatus ===
+            "Pending"
         ) {
           return NextResponse.json(
             {
               success: false,
               riderExists: true,
-              riderStatus: "Under Review",
-              riderId: existingRider.riderId,
+              riderStatus:
+                "Under Review",
+              riderId:
+                existingRider.riderId,
               message:
                 "Your KYC verification is under review.",
             },
@@ -375,36 +574,55 @@ export async function POST(req: Request) {
           );
         }
 
+        /*
+         * Rejected.
+         */
+
         if (
           existingRider.approvalStatus ===
-          "Rejected"
+            "Rejected" ||
+          existingRider.kycStatus ===
+            "Rejected"
         ) {
           return NextResponse.json(
             {
               success: false,
               riderExists: true,
               riderStatus: "Rejected",
-              riderId: existingRider.riderId,
+              riderId:
+                existingRider.riderId,
               message:
+                existingRider.rejectedReason ||
                 "Your previous registration was rejected. Please contact support.",
             },
             { status: 409 }
           );
         }
 
+        /*
+         * Suspended / blocked / other existing state.
+         */
+
         return NextResponse.json(
           {
             success: false,
             riderExists: true,
-            riderId: existingRider.riderId,
+            riderId:
+              existingRider.riderId,
+            riderStatus:
+              existingRider.approvalStatus,
             message:
-              "A rider with this information already exists.",
+              "A rider account with this information already exists.",
           },
           { status: 409 }
         );
       }
 
-      /* ---------- Generate Rider ID ---------- */
+      /*
+       * =======================================================
+       * GENERATE RIDER ID
+       * =======================================================
+       */
 
       const counter =
         await Counter.findByIdAndUpdate(
@@ -428,101 +646,123 @@ export async function POST(req: Request) {
       }
 
       const riderId =
-        `RDR-${String(counter.seq).padStart(6, "0")}`;
+        `RDR-${String(
+          counter.seq
+        ).padStart(6, "0")}`;
 
-      /* ---------- Create Rider ---------- */
+      /*
+       * =======================================================
+       * CREATE RIDER
+       * =======================================================
+       */
 
-      const riderDocs = await Rider.create(
-        [
+      const riderDocs =
+        await Rider.create(
+          [
+            {
+              riderId,
+
+              fullName,
+              phone,
+              email,
+
+              aadhaarNumber,
+
+              /*
+               * Undefined means the optional field
+               * is not stored as an empty string.
+               */
+              drivingLicense:
+                drivingLicense ||
+                undefined,
+
+              aadhaarFrontUrl,
+              aadhaarBackUrl,
+
+              licenseFrontUrl:
+                licenseFrontUrl ||
+                undefined,
+
+              licenseBackUrl:
+                licenseBackUrl ||
+                undefined,
+
+              profilePhotoUrl,
+
+              emergencyContactName,
+              emergencyContactPhone,
+
+              reference1Name,
+              reference1Phone,
+
+              reference2Name,
+              reference2Phone,
+
+              instagramId,
+              facebookId,
+
+              /*
+               * SERVER AUTHORITATIVE
+               */
+
+              firebaseUid:
+                decodedToken.uid,
+
+              verifiedPhoneNumber:
+                decodedToken.phone_number ||
+                `+91${phone}`,
+
+              phoneVerified: true,
+
+              lastOtpVerifiedAt:
+                new Date(),
+
+              /*
+               * Initial onboarding state.
+               */
+
+              approvalStatus:
+                "Under Review",
+
+              kycStatus:
+                "Pending",
+
+              status:
+                "Blocked",
+
+              bookingEnabled:
+                false,
+
+              activeRide:
+                false,
+
+              securityDeposit: 0,
+
+              blacklisted:
+                false,
+
+              notificationsEnabled:
+                true,
+            },
+          ],
           {
-            riderId,
+            session,
+          }
+        );
 
-            fullName,
-            phone,
-            email,
+      const rider =
+        riderDocs[0];
 
-            aadhaarNumber,
-
-            drivingLicense:
-              drivingLicense || undefined,
-
-            aadhaarFrontUrl,
-            aadhaarBackUrl,
-
-            licenseFrontUrl:
-              licenseFrontUrl || "",
-
-            licenseBackUrl:
-              licenseBackUrl || "",
-
-            profilePhotoUrl,
-
-            emergencyContactName:
-              clean(body.emergencyContactName),
-
-            emergencyContactPhone:
-              normalizePhone(
-                body.emergencyContactPhone
-              ),
-
-            reference1Name:
-              clean(body.reference1Name),
-
-            reference1Phone,
-
-            reference2Name:
-              clean(body.reference2Name),
-
-            reference2Phone,
-
-            instagramId:
-              clean(body.instagramId),
-
-            facebookId:
-              clean(body.facebookId),
-
-            /*
-             * SERVER-AUTHORITATIVE FIREBASE ID
-             */
-            firebaseUid:
-              decodedToken.uid,
-
-            verifiedPhoneNumber:
-              decodedToken.phone_number || `+91${phone}`,
-
-            phoneVerified: true,
-
-            approvalStatus: "Under Review",
-
-            kycStatus: "Pending",
-
-            status: "Blocked",
-
-            bookingEnabled: false,
-
-            activeRide: false,
-
-            securityDeposit: 0,
-
-            blacklisted: false,
-
-            notificationsEnabled: true,
-
-            lastOtpVerifiedAt: new Date(),
-          },
-        ],
-        {
-          session,
-        }
-      );
-
-      const rider = riderDocs[0];
-
-      /* ---------- Create Wallet ---------- */
+      /*
+       * =======================================================
+       * CREATE WALLET
+       * =======================================================
+       */
 
       const existingWallet =
         await Wallet.findOne({
-          riderId: rider.riderId,
+          riderId:
+            rider.riderId,
         }).session(session);
 
       if (existingWallet) {
@@ -534,29 +774,45 @@ export async function POST(req: Request) {
       await Wallet.create(
         [
           {
-            riderId: rider.riderId,
+            riderId:
+              rider.riderId,
 
-            userId: rider._id,
+            userId:
+              rider._id,
 
-            userName: rider.fullName,
+            userName:
+              rider.fullName,
 
-            phone: rider.phone,
+            phone:
+              rider.phone,
 
             balance: 0,
 
-            securityDepositHold: 0,
+            securityDepositHold:
+              0,
 
-            freezeAmount: 0,
+            freezeAmount:
+              0,
 
-            totalRecharge: 0,
+            totalRecharge:
+              0,
 
-            totalSpent: 0,
+            totalSpent:
+              0,
 
-            totalRefund: 0,
+            totalRefund:
+              0,
 
-            status: "Blocked",
+            /*
+             * New rider cannot book until
+             * admin approval.
+             */
 
-            isDeleted: false,
+            status:
+              "Blocked",
+
+            isDeleted:
+              false,
           },
         ],
         {
@@ -564,14 +820,20 @@ export async function POST(req: Request) {
         }
       );
 
+      /*
+       * =======================================================
+       * COMMIT
+       * =======================================================
+       */
+
       await session.commitTransaction();
 
       /*
-       * IMPORTANT:
-       * Do NOT return the complete Rider document.
-       * It contains sensitive information such as Aadhaar
-       * and Firebase UID.
+       * =======================================================
+       * SAFE RESPONSE
+       * =======================================================
        */
+
       return NextResponse.json(
         {
           success: true,
@@ -579,44 +841,101 @@ export async function POST(req: Request) {
           message:
             "Rider Registered Successfully",
 
-          data: safeRiderResponse({
-            riderId: rider.riderId,
-            fullName: rider.fullName,
-            phone: rider.phone,
-            approvalStatus:
-              rider.approvalStatus,
-            kycStatus: rider.kycStatus,
-            status: rider.status,
-            bookingEnabled:
-              rider.bookingEnabled,
-          }),
+          data:
+            safeRiderResponse({
+              riderId:
+                rider.riderId,
+
+              fullName:
+                rider.fullName,
+
+              phone:
+                rider.phone,
+
+              approvalStatus:
+                rider.approvalStatus,
+
+              kycStatus:
+                rider.kycStatus,
+
+              status:
+                rider.status,
+
+              bookingEnabled:
+                rider.bookingEnabled,
+            }),
         },
         { status: 201 }
       );
+
     } catch (transactionError) {
       try {
         await session.abortTransaction();
       } catch {}
 
       throw transactionError;
+
     } finally {
       await session.endSession();
       session = null;
     }
+
   } catch (error: unknown) {
-    console.error("========== RIDER REGISTRATION ERROR ==========");
-    console.error(error);
+
+    console.error(
+      "RIDER REGISTRATION ERROR:",
+      error
+    );
+
+    /*
+     * =========================================================
+     * MONGOOSE VALIDATION ERROR
+     * =========================================================
+     */
+
+    if (
+      error instanceof mongoose.Error.ValidationError
+    ) {
+      const errors =
+        Object.values(
+          error.errors
+        ).map(
+          (item) =>
+            item.message
+        );
+
+      return NextResponse.json(
+        {
+          success: false,
+          errorCode:
+            "VALIDATION_ERROR",
+          errors,
+          message:
+            errors.join(" "),
+        },
+        { status: 400 }
+      );
+    }
+
+    /*
+     * =========================================================
+     * DUPLICATE KEY
+     * =========================================================
+     */
 
     if (
       typeof error === "object" &&
       error !== null &&
       "code" in error &&
-      (error as { code?: number }).code === 11000
+      Number(
+        (error as { code?: unknown }).code
+      ) === 11000
     ) {
       return NextResponse.json(
         {
           success: false,
-          errorCode: "DUPLICATE_RIDER",
+          errorCode:
+            "DUPLICATE_RIDER",
           message:
             "A rider with the same phone, email, Aadhaar, driving license or Firebase account already exists.",
         },
@@ -624,38 +943,24 @@ export async function POST(req: Request) {
       );
     }
 
-    if (error instanceof mongoose.Error.ValidationError) {
-      const errors = Object.values(error.errors).map(
-        (item) => item.message
-      );
-
-      return NextResponse.json(
-        {
-          success: false,
-          errorCode: "VALIDATION_ERROR",
-          errors,
-          message: errors.join(" "),
-        },
-        { status: 400 }
-      );
-    }
+    /*
+     * =========================================================
+     * GENERIC SERVER ERROR
+     * =========================================================
+     */
 
     return NextResponse.json(
       {
         success: false,
-        errorCode: "RIDER_REGISTRATION_ERROR",
+        errorCode:
+          "REGISTRATION_ERROR",
         message:
           "Unable to complete rider registration. Please try again.",
       },
       { status: 500 }
     );
   }
-}
-
-/* =========================================================
-   GET — RIDER LOOKUP / ADMIN RIDER DIRECTORY
-========================================================= */
-
+ }
 export async function GET(req: Request) {
   try {
     await connectDB();
