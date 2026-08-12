@@ -70,6 +70,7 @@ const approveRider = async (id: string) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        approvalStatus: "Approved",
         kycStatus: "Approved",
       }),
     });
@@ -120,6 +121,7 @@ const rejectRider = async (id: string) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          approvalStatus: "Rejected",
           kycStatus: "Rejected",
           rejectedReason: reason.trim(),
         }),

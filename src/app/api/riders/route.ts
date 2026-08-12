@@ -340,7 +340,10 @@ export async function POST(req: Request) {
 
         if (
           existingRider.approvalStatus === "Approved" &&
-          existingRider.bookingEnabled
+          existingRider.kycStatus === "Approved" &&
+          existingRider.status === "Active" &&
+          existingRider.bookingEnabled === true &&
+          existingRider.blacklisted !== true
         ) {
           return NextResponse.json(
             {
@@ -601,22 +604,19 @@ export async function POST(req: Request) {
       session = null;
     }
   } catch (error: unknown) {
-    console.error(
-      "RIDER REGISTRATION ERROR:",
-      error
-    );
+    console.error("========== RIDER REGISTRATION ERROR ==========");
+    console.error(error);
 
-    /*
-     * Duplicate-key race condition protection.
-     * MongoDB remains the final authority for unique indexes.
-     */
     if (
-      error instanceof Error &&
-      error.message.includes("E11000")
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      (error as { code?: number }).code === 11000
     ) {
       return NextResponse.json(
         {
           success: false,
+          errorCode: "DUPLICATE_RIDER",
           message:
             "A rider with the same phone, email, Aadhaar, driving license or Firebase account already exists.",
         },
@@ -624,9 +624,26 @@ export async function POST(req: Request) {
       );
     }
 
+    if (error instanceof mongoose.Error.ValidationError) {
+      const errors = Object.values(error.errors).map(
+        (item) => item.message
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          errorCode: "VALIDATION_ERROR",
+          errors,
+          message: errors.join(" "),
+        },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,
+        errorCode: "RIDER_REGISTRATION_ERROR",
         message:
           "Unable to complete rider registration. Please try again.",
       },

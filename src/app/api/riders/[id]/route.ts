@@ -4,6 +4,7 @@ import {
 } from "@/lib/adminAuth";
 
 import { NextResponse } from "next/server";
+
 import { connectDB } from "@/lib/mongodb";
 
 import Rider from "@/models/Rider";
@@ -88,46 +89,46 @@ export async function GET(
       );
     }
 
-    const rider = await Rider.findOne(
-      riderLookupFilter(id)
+    const rider =
+  await Rider.findOne(
+    riderLookupFilter(id)
+  )
+    .select(
+      [
+        "riderId",
+        "fullName",
+        "phone",
+        "email",
+        "firebaseUid",
+        "bookingEnabled",
+        "approvalStatus",
+        "kycStatus",
+        "activeRide",
+        "status",
+        "blacklisted",
+        "approvedAt",
+        "rejectedReason",
+        "createdAt",
+        "updatedAt",
+      ].join(" ")
     )
-      .select(
-        [
-          "riderId",
-          "fullName",
-          "phone",
-          "email",
-          "firebaseUid",
-          "bookingEnabled",
-          "approvalStatus",
-          "kycStatus",
-          "activeRide",
-          "status",
-          "blacklisted",
-          "approvedAt",
-          "rejectedReason",
-          "createdAt",
-          "updatedAt",
-        ].join(" ")
-      )
-      .lean<{
-        _id: mongoose.Types.ObjectId;
-        riderId: string;
-        fullName: string;
-        phone: string;
-        email?: string;
-        firebaseUid?: string;
-        bookingEnabled: boolean;
-        approvalStatus: string;
-        kycStatus: string;
-        activeRide: boolean;
-        status: string;
-        blacklisted: boolean;
-        approvedAt?: Date;
-        rejectedReason?: string;
-        createdAt?: Date;
-        updatedAt?: Date;
-      } | null>();
+    .lean<{
+      riderId: string;
+      fullName: string;
+      phone: string;
+      email?: string;
+      firebaseUid?: string;
+      bookingEnabled: boolean;
+      approvalStatus: string;
+      kycStatus: string;
+      activeRide: boolean;
+      status: string;
+      blacklisted: boolean;
+      approvedAt?: Date;
+      rejectedReason?: string;
+      createdAt?: Date;
+      updatedAt?: Date;
+    } | null>();
 
     if (!rider) {
       return NextResponse.json(
@@ -238,6 +239,7 @@ export async function PATCH(
      * activeRide, wallet balance, Firebase UID, etc.
      * are intentionally NOT accepted here.
      */
+
     const requestedApprovalStatus =
       body.approvalStatus;
 
@@ -251,19 +253,19 @@ export async function PATCH(
       body.rejectedReason;
 
     /*
-     * AUDIT ACTOR
-     *
-     * The browser is NOT allowed to decide
-     * who approved or updated a rider.
-     *
-     * The current admin authentication helper
-     * confirms administrator access, but does not
-     * expose an administrator identity.
-     *
-     * Therefore the server uses a fixed
-     * server-controlled audit actor for now.
-     */
-    const auditActor = "Admin";
+ * AUDIT ACTOR
+ *
+ * The browser is NOT allowed to decide
+ * who approved or updated a rider.
+ *
+ * The current admin authentication helper
+ * confirms administrator access, but does not
+ * expose an administrator identity.
+ *
+ * Therefore the server uses a fixed
+ * server-controlled audit actor for now.
+ */
+const auditActor = "Admin";
 
     const validApprovalStatus = [
       "Under Review",
@@ -343,8 +345,8 @@ export async function PATCH(
       );
     }
 
-    session =
-      await mongoose.startSession();
+
+    session = await mongoose.startSession();
 
     session.startTransaction();
 
@@ -443,24 +445,27 @@ export async function PATCH(
       }
 
       /*
-       * SERVER-CONTROLLED AUDIT INFORMATION
-       *
-       * Never trust approvedBy / updatedBy from
-       * the browser.
-       */
-      rider.updatedBy = auditActor;
+ * SERVER-CONTROLLED AUDIT INFORMATION
+ *
+ * Never trust approvedBy / updatedBy from
+ * the browser.
+ *
+ * Every admin modification is recorded as
+ * performed by the authenticated admin layer.
+ */
+rider.updatedBy = auditActor;
 
-      /*
-       * approvedBy is written only when the rider
-       * reaches the fully approved state.
-       */
-      if (
-        rider.approvalStatus === "Approved" &&
-        rider.kycStatus === "Approved" &&
-        !rider.approvedAt
-      ) {
-        rider.approvedBy = auditActor;
-      }
+/*
+ * approvedBy is written only when the rider
+ * reaches the fully approved state.
+ */
+if (
+  rider.approvalStatus === "Approved" &&
+  rider.kycStatus === "Approved" &&
+  !rider.approvedAt
+) {
+  rider.approvedBy = auditActor;
+}
 
       /*
        * ===================================================
@@ -527,8 +532,7 @@ export async function PATCH(
       }
 
       /*
-       * If rider is blacklisted, booking can NEVER
-       * be enabled.
+       * If rider is blacklisted, booking can NEVER be enabled.
        */
       if (rider.blacklisted) {
         rider.bookingEnabled = false;
@@ -566,47 +570,41 @@ export async function PATCH(
        * ===================================================
        * WALLET SYNCHRONIZATION
        * ===================================================
-       *
-       * Rider eligibility controls wallet activation,
-       * EXCEPT when an administrator has explicitly
-       * blocked the wallet.
        */
 
       const wallet =
-        await Wallet.findOne({
-          riderId: rider.riderId,
-          isDeleted: false,
-        }).session(session);
+        await Wallet.findOneAndUpdate(
+          {
+            riderId: rider.riderId,
+            isDeleted: false,
+          },
+          {
+            $set: {
+              status:
+                rider.bookingEnabled
+                  ? "Active"
+                  : "Blocked",
+
+              updatedBy:
+                rider.updatedBy || "",
+            },
+
+            $inc: {
+              version: 1,
+            },
+          },
+          {
+            new: true,
+            session,
+            runValidators: true,
+          }
+        );
 
       if (!wallet) {
         throw new Error(
           "Wallet not found for rider."
         );
       }
-
-      /*
-       * A manually blocked wallet remains blocked
-       * even if rider KYC/approval changes later.
-       */
-      if (wallet.adminBlocked) {
-        wallet.status = "Blocked";
-      } else {
-        wallet.status =
-          rider.bookingEnabled
-            ? "Active"
-            : "Blocked";
-      }
-
-      wallet.updatedBy =
-        rider.updatedBy || "";
-
-      wallet.version =
-        Number(wallet.version || 1) + 1;
-
-      await wallet.save({
-        session,
-        validateBeforeSave: true,
-      });
 
       /*
        * Everything succeeded.
@@ -630,16 +628,15 @@ export async function PATCH(
       session = null;
     }
   } catch (error: unknown) {
-    console.error(
-      "PATCH RIDER ERROR:",
-      error
-    );
+    console.error("PATCH RIDER ERROR:", error);
 
     return NextResponse.json(
       {
         success: false,
         message:
-          "Unable to update rider.",
+          error instanceof Error
+            ? error.message
+            : "Unable to update rider.",
       },
       { status: 500 }
     );

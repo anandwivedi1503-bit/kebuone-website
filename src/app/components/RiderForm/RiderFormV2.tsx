@@ -106,9 +106,12 @@ useEffect(() => {
       );
 
       if (
-  data.data.bookingEnabled &&
-  data.data.approvalStatus === "Approved"
- ) {
+        data.data.bookingEnabled === true &&
+        data.data.approvalStatus === "Approved" &&
+        data.data.kycStatus === "Approved" &&
+        data.data.status === "Active" &&
+        data.data.blacklisted !== true
+      ) {
   localStorage.setItem(
     "kebu_rider_id",
     data.data.riderId
@@ -499,8 +502,12 @@ setFirebaseUid("");
  setFirebaseIdToken("");
 
   } catch (error) {
-  console.error(error);
-  setError("Registration failed. Please try again.");
+  console.error("RIDER FORM SUBMISSION ERROR:", error);
+  setError(
+    error instanceof Error
+      ? error.message
+      : "Unable to complete registration. Please try again."
+  );
 } finally {
   setSubmitting(false);
 }
@@ -628,87 +635,98 @@ const verifyOtp = async () => {
     setOtpVerified(true);
     setOtpCooldown(0);
     setOtpVerifyAttempts(0);
-    // Check whether this phone number is already registered
-
-
+    // Check whether this phone number is already registered.
+    // Firebase OTP/reCAPTCHA above remains unchanged.
     try {
-
-  const response = await fetch(
-    `/api/riders?phone=${phone}`,
-    {
-      headers: {
-        Authorization: `Bearer ${idToken}`,
-      },
-    }
-  );
-
-  const data = await response.json();
-
-  if (data.success) {
-
-    localStorage.setItem(
-      "kebu_rider_phone",
-      phone
-    );
-
-    if (data.data.riderId) {
-
-      localStorage.setItem(
-        "kebu_rider_id",
-        data.data.riderId
+      const normalizedPhone = cleanDigits(phone).slice(-10);
+      const response = await fetch(
+        `/api/riders?phone=${encodeURIComponent(normalizedPhone)}`,
+        {
+          method: "GET",
+          cache: "no-store",
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
       );
+      const data = await response.json();
 
-      setRegisteredRiderId(
-        data.data.riderId
+      if (response.status === 404) {
+        showOtpMessage("Phone verified successfully.");
+        return;
+      }
+
+      if (!response.ok || !data.success) {
+        throw new Error(
+          data.message || data.error ||
+          "Unable to check existing rider account."
+        );
+      }
+
+      const rider = data.data;
+      localStorage.setItem("kebu_rider_phone", normalizedPhone);
+
+      if (rider.riderId) {
+        localStorage.setItem("kebu_rider_id", rider.riderId);
+        setRegisteredRiderId(rider.riderId);
+      }
+
+      const fullyApproved =
+        rider.approvalStatus === "Approved" &&
+        rider.kycStatus === "Approved" &&
+        rider.status === "Active" &&
+        rider.bookingEnabled === true &&
+        rider.blacklisted !== true;
+
+      if (fullyApproved) {
+        setApprovalStatus("Approved");
+        setBookingEnabled(true);
+        window.location.href = "/book-bike";
+        return;
+      }
+
+      if (
+        rider.approvalStatus === "Under Review" ||
+        rider.kycStatus === "Pending"
+      ) {
+        setApprovalStatus("Under Review");
+        setBookingEnabled(false);
+        setSubmitted(true);
+        return;
+      }
+
+      if (
+        rider.approvalStatus === "Rejected" ||
+        rider.kycStatus === "Rejected"
+      ) {
+        setApprovalStatus("Rejected");
+        setBookingEnabled(false);
+        setError(
+          rider.rejectedReason ||
+          "Your previous registration was rejected. Please contact support."
+        );
+        return;
+      }
+
+      if (
+        rider.status === "Blocked" ||
+        rider.status === "Suspended"
+      ) {
+        setApprovalStatus(rider.approvalStatus);
+        setBookingEnabled(false);
+        setError(
+          "Your rider account is currently restricted. Please contact support."
+        );
+        return;
+      }
+
+      showOtpMessage("Phone verified successfully.");
+    } catch (error) {
+      console.error("EXISTING RIDER LOOKUP ERROR:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to check your rider account."
       );
-
     }
-
-    if (
-      data.data.approvalStatus === "Approved" &&
-      data.data.bookingEnabled
-    ) {
-
-      window.location.href = "/book-bike";
-      return;
-
-    }
-
-    if (
-      data.data.approvalStatus === "Under Review"
-    ) {
-
-      setApprovalStatus("Under Review");
-
-      setBookingEnabled(false);
-
-      setSubmitted(true);
-
-      return;
-
-    }
-
-    if (
-      data.data.approvalStatus === "Rejected"
-    ) {
-
-      alert(
-        "Your previous registration was rejected. Please contact support."
-      );
-
-      return;
-
-    }
-
-  }
-
-} catch (error) {
-
-  console.error(error);
-
-}
-
-showOtpMessage("Phone verified successfully.");
   } catch (error) {
     console.error(error);
 
@@ -2758,4 +2776,4 @@ hover:shadow-lg
 
     </section>
   );
-}
+ }
