@@ -266,7 +266,11 @@ if (rider.status !== "Active") {
     if (!nameRegex.test(userName)) errors.push("Valid rider name is required.");
     if (!phoneRegex.test(userPhone)) errors.push("Valid Indian mobile number is required.");
     if (!idRegex.test(vehicleId)) errors.push("Valid vehicle ID is required.");
-    if (hubAliases.length === 0 || hubAliases[0].length < 3) {
+    const hasValidHub = hubAliases.some(
+  (alias) => alias.trim().length >= 1
+);
+
+if (!hasValidHub) {
   errors.push("Pickup hub is required.");
 }
     if (!rentalModes.includes(rentalMode)) errors.push("Valid rental mode is required.");

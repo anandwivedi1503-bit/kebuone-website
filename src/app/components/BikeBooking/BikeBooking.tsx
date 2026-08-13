@@ -451,11 +451,16 @@ setStep(2);
           riderId,
           vehicleId: currentBike.vehicleId,
 startHub: selectedHubData?.hubCode || currentBike.currentHub || hub,
-pickupHubName: selectedHubData?.hubName || hub,
+pickupHubName:
+  selectedHubData?.hubName ||
+  selectedHubData?.hubLocation ||
+  hub,
 hubAliases: [
-  selectedHubData?.hubCode,
   selectedHubData?.hubName,
+  selectedHubData?.hubCode,
+  selectedHubData?.hubLocation,
   currentBike.currentHub,
+  hub,
 ].filter(Boolean),
 city,
 pickupCity: city,
@@ -479,8 +484,9 @@ referenceBy,
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
       setPaymentAmount(String(bookingData.data.pendingAmount || payableAmount));
       setBookingDone(true);
-      setMessage("🎉 Your scooter has been reserved successfully. Complete the secure payment below to confirm your booking.");
-      await loadData();
+setMessage("🎉 Your scooter has been reserved successfully. Complete the secure payment below to confirm your booking.");
+setStep(4);
+await loadData();
     } catch {
       setError("Booking failed. Please try again.");
     } finally {
@@ -1624,7 +1630,14 @@ text-[#0F172A]
 
     <Summary label="Pickup City" value={city} />
 
-    <Summary label="Pickup Hub" value={hub} />
+    <Summary
+  label="Pickup Hub"
+  value={
+    selectedHubData?.hubName
+      ? `${selectedHubData.hubName} (${hub})`
+      : hub
+  }
+/>
 
     <Summary label="Rental Mode" value={rentalMode} />
 
