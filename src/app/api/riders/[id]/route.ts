@@ -17,6 +17,11 @@ import {
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 
+import {
+  ensureRiderWallet,
+  RiderWalletError,
+} from "@/lib/ensureRiderWallet";
+
 /* =========================================================
    TYPES
 ========================================================= */
@@ -1036,64 +1041,47 @@ export async function PATCH(
     if (!wallet) {
       try {
         wallet =
-          await Wallet.create({
-            riderId:
-              rider.riderId,
-
-            userId:
-              rider._id,
-
-            userName:
-              rider.fullName,
-
-            phone:
-              rider.phone,
-
-            balance:
-              0,
-
-            securityDepositHold:
-              0,
-
-            freezeAmount:
-              0,
-
-            totalRecharge:
-              0,
-
-            totalSpent:
-              0,
-
-            totalRefund:
-              0,
-
-            status:
-              desiredWalletStatus,
-
-            adminBlocked:
-              false,
-
-            isDeleted:
-              false,
-
-            updatedBy:
-              auditActor,
-          });
+          await ensureRiderWallet(
+            {
+              _id: rider._id,
+              riderId: rider.riderId,
+              fullName: rider.fullName,
+              phone: rider.phone,
+              approvalStatus:
+                rider.approvalStatus,
+              kycStatus:
+                rider.kycStatus,
+              status: rider.status,
+              bookingEnabled:
+                rider.bookingEnabled,
+              blacklisted:
+                rider.blacklisted,
+            },
+            auditActor
+          );
       } catch (walletError) {
         console.error(
           "WALLET CREATION FAILED:",
           walletError
         );
 
+        const message =
+          walletError instanceof
+          RiderWalletError
+            ? walletError.message
+            : "Rider was updated, but the rider wallet could not be synchronized.";
+
         return NextResponse.json(
           {
             success: false,
 
             errorCode:
-              "WALLET_SYNC_FAILED",
+              walletError instanceof
+              RiderWalletError
+                ? walletError.code
+                : "WALLET_SYNC_FAILED",
 
-            message:
-              "Rider was updated, but the rider wallet could not be synchronized.",
+            message,
           },
           {
             status: 500,

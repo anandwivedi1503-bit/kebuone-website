@@ -13,9 +13,20 @@ const MAX_BASE64_LENGTH =
 const ALLOWED_TYPES = [
   "application/pdf",
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
 ];
+
+function normalizeMimeType(value: string): string {
+  const mimeType = value.toLowerCase();
+
+  if (mimeType === "image/jpg") {
+    return "image/jpeg";
+  }
+
+  return mimeType;
+}
 
 function detectFileType(
   buffer: Buffer
@@ -126,7 +137,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const mimeType = matches[1].toLowerCase();
+    const mimeType = normalizeMimeType(matches[1]);
     const base64Data = matches[2];
 
     if (!ALLOWED_TYPES.includes(mimeType)) {

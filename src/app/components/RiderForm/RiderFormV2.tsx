@@ -285,7 +285,10 @@ const convertToBase64 = (file: File) => {
   });
 };
 
-const uploadFile = async (file: File) => {
+const uploadFile = async (
+  file: File,
+  token: string
+) => {
   const base64 = await convertToBase64(file);
   showOtpMessage("Uploading document...");
   const response = await fetch("/api/upload", {
@@ -295,7 +298,7 @@ const uploadFile = async (file: File) => {
     },
     body: JSON.stringify({
   file: base64,
-  firebaseIdToken,
+  firebaseIdToken: token,
 }),
   });
 
@@ -318,7 +321,16 @@ const submitForm = async () => {
   try {
 setError("");
 showOtpMessage("Preparing your registration...");
-    if (!firebaseIdToken) {
+
+    let activeFirebaseIdToken = firebaseIdToken;
+
+    if (auth.currentUser) {
+      activeFirebaseIdToken =
+        await auth.currentUser.getIdToken(true);
+      setFirebaseIdToken(activeFirebaseIdToken);
+    }
+
+    if (!activeFirebaseIdToken) {
   setError("Please verify OTP again before uploading documents.");
   return;
 }
@@ -332,23 +344,38 @@ let licenseBackUrl = "";
 let profileUrl = "";
 
 if (aadhaarFrontFile) {
-    aadhaarFrontUrl = await uploadFile(aadhaarFrontFile);
+    aadhaarFrontUrl = await uploadFile(
+      aadhaarFrontFile,
+      activeFirebaseIdToken
+    );
 }
 
 if (aadhaarBackFile) {
-    aadhaarBackUrl = await uploadFile(aadhaarBackFile);
+    aadhaarBackUrl = await uploadFile(
+      aadhaarBackFile,
+      activeFirebaseIdToken
+    );
 }
 
 if (licenseFrontFile) {
-    licenseFrontUrl = await uploadFile(licenseFrontFile);
+    licenseFrontUrl = await uploadFile(
+      licenseFrontFile,
+      activeFirebaseIdToken
+    );
 }
 
 if (licenseBackFile) {
-    licenseBackUrl = await uploadFile(licenseBackFile);
+    licenseBackUrl = await uploadFile(
+      licenseBackFile,
+      activeFirebaseIdToken
+    );
 }
 
 if (profilePhoto) {
-    profileUrl = await uploadFile(profilePhoto);
+    profileUrl = await uploadFile(
+      profilePhoto,
+      activeFirebaseIdToken
+    );
 }
 
     const response = await fetch("/api/riders", {
@@ -362,8 +389,8 @@ if (profilePhoto) {
         phone,
         email,
         phoneVerified: otpVerified,
-        firebaseUid,
-firebaseIdToken,
+        firebaseUid: auth.currentUser?.uid || firebaseUid,
+firebaseIdToken: activeFirebaseIdToken,
 
         aadhaarNumber: aadhaar,
         drivingLicense: license,

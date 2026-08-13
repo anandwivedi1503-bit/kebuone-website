@@ -8,80 +8,108 @@ export type VerifiedFirebaseUser = {
   decodedToken: DecodedIdToken;
 };
 
- export type RiderOwnershipRecord = {
+export type RiderOwnershipRecord = {
   firebaseUid?: string;
   phone?: string;
 };
 
-/**
- * Normalize an Indian phone number to its last 10 digits.
- *
- * Examples:
- *
- * +91 9876543210 -> 9876543210
- * 919876543210  -> 9876543210
- * 9876543210    -> 9876543210
+/*
+ * =========================================================
+ * NORMALIZE INDIAN PHONE
+ * =========================================================
  */
-export function normalizeIndianPhone(value: unknown): string {
-  const digits = String(value ?? "").replace(/\D/g, "");
+
+export function normalizeIndianPhone(
+  value: unknown
+): string {
+  const digits = String(value ?? "").replace(
+    /\D/g,
+    ""
+  );
 
   if (!digits) {
     return "";
   }
 
-  if (digits.length === 12 && digits.startsWith("91")) {
+  /*
+   * +91XXXXXXXXXX
+   */
+  if (
+    digits.length === 12 &&
+    digits.startsWith("91")
+  ) {
     return digits.slice(2);
   }
 
+  /*
+   * 10-digit Indian number.
+   */
   if (digits.length === 10) {
     return digits;
   }
 
-  return digits.slice(-10);
+  /*
+   * IMPORTANT:
+   *
+   * Do not silently accept arbitrary long numbers
+   * by taking the last 10 digits.
+   */
+  return "";
 }
 
-/**
- * Extract Firebase ID token from:
- *
- * Authorization: Bearer <token>
+/*
+ * =========================================================
+ * GET BEARER TOKEN
+ * =========================================================
  */
-function getBearerToken(req: Request): string {
+
+function getBearerToken(
+  req: Request
+): string {
   const authorization =
-    req.headers.get("authorization")?.trim() ?? "";
+    req.headers
+      .get("authorization")
+      ?.trim() || "";
 
   if (!authorization) {
     return "";
   }
 
-  const [scheme, token] = authorization.split(/\s+/);
+  const parts =
+    authorization.split(/\s+/);
 
-  if (!scheme || !token) {
+  if (parts.length !== 2) {
     return "";
   }
 
-  if (scheme.toLowerCase() !== "bearer") {
+  const [
+    scheme,
+    token,
+  ] = parts;
+
+  if (
+    scheme.toLowerCase() !==
+    "bearer"
+  ) {
     return "";
   }
 
   return token.trim();
 }
 
-/**
- * Verify Firebase ID token server-side.
- *
- * Returns null when:
- * - token is missing
- * - token is malformed
- * - token is invalid
- * - token is expired
- * - Firebase verification fails
+/*
+ * =========================================================
+ * VERIFY FIREBASE TOKEN
+ * =========================================================
  */
+
 export async function getVerifiedFirebaseUser(
   req: Request,
   explicitToken?: unknown
 ): Promise<VerifiedFirebaseUser | null> {
   const token =
-    typeof explicitToken === "string" &&
+    typeof explicitToken ===
+      "string" &&
     explicitToken.trim()
       ? explicitToken.trim()
       : getBearerToken(req);
@@ -92,22 +120,24 @@ export async function getVerifiedFirebaseUser(
 
   try {
     const decodedToken =
-      await adminAuth.verifyIdToken(token);
+      await adminAuth.verifyIdToken(
+        token
+      );
+
+    if (!decodedToken.uid) {
+      return null;
+    }
 
     const rawPhone =
-      typeof decodedToken.phone_number === "string"
+      typeof decodedToken.phone_number ===
+      "string"
         ? decodedToken.phone_number.trim()
         : "";
 
     const phone =
-      normalizeIndianPhone(rawPhone);
-
-    /*
-     * Firebase UID is mandatory.
-     */
-    if (!decodedToken.uid) {
-      return null;
-    }
+      normalizeIndianPhone(
+        rawPhone
+      );
 
     return {
       uid: decodedToken.uid,
@@ -125,54 +155,73 @@ export async function getVerifiedFirebaseUser(
   }
 }
 
-/**
- * Verify that the authenticated Firebase user owns
- * the requested rider account.
- *
- * Ownership is accepted when either:
- *
- * 1. Firebase UID matches rider.firebaseUid
- * OR
- * 2. Verified Firebase phone matches rider.phone
+/*
+ * =========================================================
+ * RIDER OWNERSHIP
+ * =========================================================
  */
+
 export function firebaseUserOwnsRider(
-  firebaseUser: VerifiedFirebaseUser | null,
-  rider: RiderOwnershipRecord | null
+  firebaseUser:
+    | VerifiedFirebaseUser
+    | null,
+  rider:
+    | RiderOwnershipRecord
+    | null
 ): boolean {
-  if (!firebaseUser || !rider) {
+  if (
+    !firebaseUser ||
+    !rider
+  ) {
     return false;
   }
 
-  const uidMatches =
-    Boolean(firebaseUser.uid) &&
-    Boolean(rider.firebaseUid) &&
-    firebaseUser.uid === rider.firebaseUid;
+  /*
+   * Firebase UID is the strongest ownership match.
+   */
 
-  if (uidMatches) {
+  if (
+    firebaseUser.uid &&
+    rider.firebaseUid &&
+    firebaseUser.uid ===
+      rider.firebaseUid
+  ) {
     return true;
   }
 
+  /*
+   * Verified Firebase phone is the
+   * fallback ownership match.
+   */
+
   const firebasePhone =
-    normalizeIndianPhone(firebaseUser.phone);
+    normalizeIndianPhone(
+      firebaseUser.phone
+    );
 
   const riderPhone =
-    normalizeIndianPhone(rider.phone);
+    normalizeIndianPhone(
+      rider.phone
+    );
 
   return Boolean(
     firebasePhone &&
       riderPhone &&
-      firebasePhone === riderPhone
+      firebasePhone ===
+        riderPhone
   );
 }
 
-/**
- * Strictly verify that the Firebase phone matches
- * the phone submitted during registration.
- *
- * This should be used by registration.
+/*
+ * =========================================================
+ * REGISTRATION PHONE MATCH
+ * =========================================================
  */
+
 export function firebasePhoneMatches(
-  firebaseUser: VerifiedFirebaseUser | null,
+  firebaseUser:
+    | VerifiedFirebaseUser
+    | null,
   submittedPhone: unknown
 ): boolean {
   if (!firebaseUser) {
@@ -180,14 +229,24 @@ export function firebasePhoneMatches(
   }
 
   const firebasePhone =
-    normalizeIndianPhone(firebaseUser.phone);
+    normalizeIndianPhone(
+      firebaseUser.phone
+    );
 
   const submitted =
-    normalizeIndianPhone(submittedPhone);
+    normalizeIndianPhone(
+      submittedPhone
+    );
 
-  if (!firebasePhone || !submitted) {
+  if (
+    !firebasePhone ||
+    !submitted
+  ) {
     return false;
   }
 
-  return firebasePhone === submitted;
+  return (
+    firebasePhone ===
+    submitted
+  );
 }

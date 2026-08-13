@@ -18,6 +18,11 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 
+import {
+  ensureRiderWallet,
+  RiderWalletError,
+} from "@/lib/ensureRiderWallet";
+
 export const runtime = "nodejs";
 
 /* =========================================================
@@ -749,6 +754,60 @@ export async function POST(req: Request) {
         .lean<ExistingRiderRecord | null>();
 
     if (existingByFirebase) {
+      try {
+        await ensureRiderWallet(
+          {
+            _id: existingByFirebase._id,
+            riderId: existingByFirebase.riderId,
+            fullName: existingByFirebase.fullName,
+            phone: existingByFirebase.phone,
+            approvalStatus:
+              existingByFirebase.approvalStatus,
+            kycStatus:
+              existingByFirebase.kycStatus,
+            status:
+              existingByFirebase.status,
+            bookingEnabled:
+              existingByFirebase.bookingEnabled,
+            blacklisted:
+              existingByFirebase.blacklisted,
+          },
+          "System"
+        );
+      } catch (walletError) {
+        console.error(
+          "WALLET REPAIR FAILED FOR EXISTING RIDER:",
+          walletError
+        );
+
+        if (
+          walletError instanceof
+          RiderWalletError
+        ) {
+          return NextResponse.json(
+            {
+              success: false,
+              errorCode:
+                walletError.code,
+              message:
+                walletError.message,
+            },
+            { status: 409 }
+          );
+        }
+
+        return NextResponse.json(
+          {
+            success: false,
+            errorCode:
+              "WALLET_CREATION_FAILED",
+            message:
+              "Rider account exists, but the wallet could not be synchronized.",
+          },
+          { status: 500 }
+        );
+      }
+
       return buildExistingRiderResponse(
         existingByFirebase,
         "firebaseUid"
@@ -1106,49 +1165,23 @@ if (drivingLicense) {
     ===================================================== */
 
     try {
-      await Wallet.create({
-        riderId:
-          rider.riderId,
-
-        userId:
-          rider._id,
-
-        userName:
-          rider.fullName,
-
-        phone:
-          rider.phone,
-
-        balance:
-          0,
-
-        securityDepositHold:
-          0,
-
-        freezeAmount:
-          0,
-
-        totalRecharge:
-          0,
-
-        totalSpent:
-          0,
-
-        totalRefund:
-          0,
-
-        status:
-          "Blocked",
-
-        adminBlocked:
-          false,
-
-        isDeleted:
-          false,
-
-        updatedBy:
-          "System",
-      });
+      await ensureRiderWallet(
+        {
+          _id: rider._id,
+          riderId: rider.riderId,
+          fullName: rider.fullName,
+          phone: rider.phone,
+          approvalStatus:
+            rider.approvalStatus,
+          kycStatus: rider.kycStatus,
+          status: rider.status,
+          bookingEnabled:
+            rider.bookingEnabled,
+          blacklisted:
+            rider.blacklisted,
+        },
+        "System"
+      );
     } catch (walletError) {
       console.error(
         "WALLET CREATION FAILED — ROLLING BACK RIDER:",
@@ -1172,17 +1205,16 @@ if (drivingLicense) {
       }
 
       if (
-        isDuplicateKeyError(
-          walletError
-        )
+        walletError instanceof
+        RiderWalletError
       ) {
         return NextResponse.json(
           {
             success: false,
             errorCode:
-              "WALLET_ALREADY_EXISTS",
+              walletError.code,
             message:
-              "Wallet creation conflict occurred. Rider registration was not completed.",
+              walletError.message,
           },
           { status: 409 }
         );
@@ -1715,9 +1747,10 @@ export async function GET(req: Request) {
             riderId: {
               $in: riderIds,
             },
-
-            isDeleted:
-              false,
+            $or: [
+              { isDeleted: false },
+              { isDeleted: { $exists: false } },
+            ],
           })
             .select(
               "riderId balance status"
