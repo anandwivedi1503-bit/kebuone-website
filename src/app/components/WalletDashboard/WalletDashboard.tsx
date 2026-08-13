@@ -61,7 +61,7 @@ const loadWallets = async () => {
   setPageLoading(true);
 
   try {
-    const res = await fetch("/api/wallets?limit=100", {
+    const res = await fetch("/api/wallet?limit=100", {
       cache: "no-store",
     });
 

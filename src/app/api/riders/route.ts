@@ -723,11 +723,13 @@ export async function POST(req: Request) {
     ===================================================== */
 
     const existingByFirebase =
-      await Rider.findOne({
-        firebaseUid:
-          decodedToken.uid,
-        isDeleted: false,
-      })
+  await Rider.findOne({
+    firebaseUid: decodedToken.uid,
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  })
         .select(
           [
             "_id",
@@ -760,50 +762,62 @@ export async function POST(req: Request) {
        Now protect phone/email/Aadhaar/license.
     ===================================================== */
 
-    const duplicateChecks: Array<{
-      field: string;
-      value: string;
-      query: Record<
-        string,
-        string | boolean
-      >;
-    }> = [
-      {
-        field: "phone",
-        value: phone,
-        query: {
-          phone,
-          isDeleted: false,
-        },
-      },
-      {
-        field: "email",
-        value: email,
-        query: {
-          email,
-          isDeleted: false,
-        },
-      },
-      {
-        field: "aadhaarNumber",
-        value: aadhaarNumber,
-        query: {
-          aadhaarNumber,
-          isDeleted: false,
-        },
-      },
-    ];
+    const activeRiderFilter = {
+  $or: [
+    { isDeleted: false },
+    { isDeleted: { $exists: false } },
+  ],
+};
 
-    if (drivingLicense) {
-      duplicateChecks.push({
-        field: "drivingLicense",
-        value: drivingLicense,
-        query: {
-          drivingLicense,
-          isDeleted: false,
-        },
-      });
-    }
+const duplicateChecks: Array<{
+  field: string;
+  value: string;
+  query: Record<string, unknown>;
+}> = [
+  {
+    field: "phone",
+    value: phone,
+    query: {
+      $and: [
+        activeRiderFilter,
+        { phone },
+      ],
+    },
+  },
+  {
+    field: "email",
+    value: email,
+    query: {
+      $and: [
+        activeRiderFilter,
+        { email },
+      ],
+    },
+  },
+  {
+    field: "aadhaarNumber",
+    value: aadhaarNumber,
+    query: {
+      $and: [
+        activeRiderFilter,
+        { aadhaarNumber },
+      ],
+    },
+  },
+];
+
+if (drivingLicense) {
+  duplicateChecks.push({
+    field: "drivingLicense",
+    value: drivingLicense,
+    query: {
+      $and: [
+        activeRiderFilter,
+        { drivingLicense },
+      ],
+    },
+  });
+}
 
     for (const check of duplicateChecks) {
       if (!check.value) {
@@ -1524,12 +1538,13 @@ export async function GET(req: Request) {
       }
 
       const rider =
-        await Rider.findOne({
-          phone,
-
-          isDeleted:
-            false,
-        })
+  await Rider.findOne({
+    phone,
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  })
           .select(
             [
               "riderId",
@@ -1651,10 +1666,12 @@ export async function GET(req: Request) {
     ===================================================== */
 
     const riders =
-      await Rider.find({
-        isDeleted:
-          false,
-      })
+  await Rider.find({
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  })
         .select(
           [
             "riderId",
