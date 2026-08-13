@@ -431,23 +431,36 @@ export async function POST(req: Request) {
       }
     );
 
-    const wallet = await Wallet.findOne({
-      riderId: rider.riderId,
-      isDeleted: false,
-    }).session(session);
+    let wallet = await Wallet.findOne({
+  riderId: rider.riderId,
+  isDeleted: false,
+}).session(session);
 
-    if (!wallet) {
-      await rollback(session);
-      session = null;
+if (!wallet) {
+  const [createdWallet] = await Wallet.create(
+    [
+      {
+        riderId: rider.riderId,
+        userId: rider._id,
+        userName: rider.fullName,
+        phone: rider.phone,
+        balance: 0,
+        securityDepositHold: 0,
+        freezeAmount: 0,
+        totalRecharge: 0,
+        totalSpent: 0,
+        totalRefund: 0,
+        status: rider.bookingEnabled ? "Active" : "Blocked",
+        adminBlocked: false,
+        isDeleted: false,
+        updatedBy: "System",
+      },
+    ],
+    { session }
+  );
 
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Wallet not found.",
-        },
-        { status: 404 }
-      );
-    }
+  wallet = createdWallet;
+}
 
     const existingDepositHold = await WalletTransaction.findOne({
       bookingId: booking.bookingId,

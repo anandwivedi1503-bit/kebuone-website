@@ -133,6 +133,7 @@ const [loading, setLoading] = useState(true);
   const [paidAmount, setPaidAmount] = useState(0);
   const [pendingAmount, setPendingAmount] = useState(0);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+const [pickupOtp, setPickupOtp] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
 
@@ -608,7 +609,15 @@ referenceBy,
 } else {
   setPaymentSuccess(true);
 
-  setPaymentMessage("Payment successful. Booking confirmed.");
+  if (verifyData.pickupOTP) {
+    setPickupOtp(String(verifyData.pickupOTP));
+  }
+
+  setPaymentMessage(
+    verifyData.pickupOTP
+      ? `Payment successful. Your pickup OTP is ${verifyData.pickupOTP}.`
+      : "Payment successful. Booking confirmed."
+  );
 
   setPaymentLoading(false);
 }
@@ -1945,6 +1954,20 @@ Booking Confirmed
 Payment completed successfully.
 Your scooter has been reserved.
 </p>
+
+{pickupOtp && (
+  <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 px-6 py-4">
+    <p className="text-sm font-semibold text-green-800">
+      Pickup OTP
+    </p>
+    <p className="mt-2 text-4xl font-black tracking-[0.3em] text-green-700">
+      {pickupOtp}
+    </p>
+    <p className="mt-2 text-sm text-green-700">
+      Show this OTP at the hub to collect your scooter.
+    </p>
+  </div>
+)}
 
 </div>
 
