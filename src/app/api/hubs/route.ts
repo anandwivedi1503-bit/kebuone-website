@@ -347,7 +347,7 @@ export async function POST(
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
 
@@ -357,23 +357,31 @@ export async function GET() {
       );
 
     /*
-     * Never return deleted hubs.
-     */
-    const hubs =
-  await Hub.find({
-        isDeleted: false,
+ * Never return deleted hubs.
+ */
+const { searchParams } = new URL(req.url);
+const cityFilter = clean(searchParams.get("city"));
 
-        ...(isAdmin
-          ? {}
-          : {
-              status:
-                "Active",
-            }),
-      })
-        .sort({
-          createdAt: -1,
-        })
-        .lean<IHub[]>();
+const hubQuery: Record<string, unknown> = {
+  isDeleted: false,
+};
+
+if (!isAdmin) {
+  hubQuery.status = "Active";
+}
+
+if (cityFilter) {
+  hubQuery.city = new RegExp(
+    `^${cityFilter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+    "i"
+  );
+}
+
+const hubs = await Hub.find(hubQuery)
+  .sort({
+    createdAt: -1,
+  })
+  .lean<IHub[]>();
 
     /*
      * Calculate actual vehicle inventory

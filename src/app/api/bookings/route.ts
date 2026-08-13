@@ -36,9 +36,11 @@ export async function GET() {
     }
     await connectDB();
 
-    const bookings = await Booking.find().sort({
-      createdAt: -1,
-    });
+    const bookings = await Booking.find({
+  isDeleted: false,
+}).sort({
+  createdAt: -1,
+});
 
     return NextResponse.json({
       success: true,

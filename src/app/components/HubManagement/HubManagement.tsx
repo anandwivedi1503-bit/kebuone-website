@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -13,6 +13,25 @@ import ActionButton from "../DashboardUI/ActionButton";
 export default function HubManagement() {
 
 const [saving, setSaving] = useState(false);
+
+const [cities, setCities] = useState<Array<{ cityName: string }>>([]);
+
+useEffect(() => {
+  const loadCities = async () => {
+    try {
+      const res = await fetch("/api/cities", { cache: "no-store" });
+      const data = await res.json();
+
+      if (data.success) {
+        setCities(data.data || []);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  void loadCities();
+}, []);
 
 const [formData,setFormData]=useState({
 
@@ -299,22 +318,21 @@ transition
 City
 </label>
 
-<input
-type="text"
-value={formData.city}
-onChange={(e)=>
-setFormData({
-...formData,
-city:e.target.value,
-})
-}
-className="
+<select
+  value={formData.city}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      city: e.target.value,
+    })
+  }
+  className="
 w-full
 h-14
 rounded-2xl
 border
 border-pink-100
-bg-pink-50/40
+bg-white
 px-5
 focus:outline-none
 focus:ring-2
@@ -322,7 +340,14 @@ focus:ring-pink-200
 focus:border-[#FF165E]
 transition
 "
-/>
+>
+  <option value="">Select city</option>
+  {cities.map((item) => (
+    <option key={item.cityName} value={item.cityName}>
+      {item.cityName}
+    </option>
+  ))}
+</select>
 
 </div>
 

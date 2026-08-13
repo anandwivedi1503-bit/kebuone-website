@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -12,7 +12,28 @@ import ActionButton from "../DashboardUI/ActionButton";
 
 export default function VehicleManagement() {
 
-    const [saving, setSaving] = useState(false);
+        const [saving, setSaving] = useState(false);
+
+const [hubs, setHubs] = useState<
+  Array<{ hubCode: string; hubName: string; city?: string }>
+>([]);
+
+useEffect(() => {
+  const loadHubs = async () => {
+    try {
+      const res = await fetch("/api/hubs", { cache: "no-store" });
+      const data = await res.json();
+
+      if (data.success) {
+        setHubs(data.data || []);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  void loadHubs();
+}, []);
 
 const [formData, setFormData] = useState({
 vehicleId: "",
@@ -461,22 +482,21 @@ transition
 Current Hub
 </label>
 
-<input
-type="text"
-value={formData.currentHub}
-onChange={(e)=>
-setFormData({
-...formData,
-currentHub:e.target.value,
-})
-}
-className="
+<select
+  value={formData.currentHub}
+  onChange={(e) =>
+    setFormData({
+      ...formData,
+      currentHub: e.target.value,
+    })
+  }
+  className="
 w-full
 h-14
 rounded-2xl
 border
 border-pink-100
-bg-pink-50/40
+bg-white
 px-5
 focus:outline-none
 focus:ring-2
@@ -484,7 +504,14 @@ focus:ring-pink-200
 focus:border-[#FF165E]
 transition
 "
-/>
+>
+  <option value="">Select hub</option>
+  {hubs.map((hub) => (
+    <option key={hub.hubCode} value={hub.hubCode}>
+      {hub.hubName} ({hub.hubCode}) - {hub.city}
+    </option>
+  ))}
+</select>
 
 </div>
 

@@ -18,6 +18,7 @@ import KYCDashboard from "../KYCDashboard/KYCDashboard";
 import UserManagement from "../UserManagement/UserManagement";
 import VehicleManagement from "../VehicleManagement/VehicleManagement";
 import HubManagement from "../HubManagement/HubManagement";
+import CityManagement from "../CityManagement/CityManagement";
 import BookingDashboard from "../BookingDashboard/BookingDashboard";
 import TransactionDashboard from "../TransactionDashboard/TransactionDashboard";
 import AnalyticsDashboard from "../AnalyticsDashboard/AnalyticsDashboard";
@@ -42,7 +43,8 @@ export default function DashboardContainer() {
           {activeDashboard === "fleet" && <FleetDashboard />}
           {activeDashboard === "hub" && <HubDashboard />}
           {activeDashboard === "hubmanagement" && <HubManagement />}
-          {activeDashboard === "battery" && <BatteryDashboard />}
+{activeDashboard === "citymanagement" && <CityManagement />}
+{activeDashboard === "battery" && <BatteryDashboard />}
           {activeDashboard === "swap" && <BatterySwapDashboard />}
           {activeDashboard === "iot" && <IoTDashboard />}
           {activeDashboard === "wallet" && <WalletDashboard />}

@@ -77,6 +77,13 @@ type Hub = {
   longitude?: number;
 };
 
+type CityRecord = {
+  _id?: string;
+  cityName: string;
+  state?: string;
+  status?: string;
+};
+
 const COMPANY_SECURITY_DEPOSIT = 2500;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -104,7 +111,8 @@ export default function BikeBooking() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [hubs, setHubs] = useState<Hub[]>([]);
-  const [loading, setLoading] = useState(true);
+const [cities, setCities] = useState<CityRecord[]>([]);
+const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   const [riderName, setRiderName] = useState("");
@@ -133,31 +141,65 @@ export default function BikeBooking() {
   const [riderId, setRiderId] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
+  const loadData = async (selectedCity = "") => {
+  try {
+    setLoading(true);
+    setError("");
 
-             const [vehicleRes, hubRes] = await Promise.all([
-  fetch("/api/vehicles"),
-  fetch("/api/hubs"),
-]);
+    const hubUrl = selectedCity
+      ? `/api/hubs?city=${encodeURIComponent(selectedCity)}`
+      : "/api/hubs";
 
-      const vehicleData = await vehicleRes.json();
-      const hubData = await hubRes.json();
-      
+    const [vehicleRes, cityRes, hubRes] = await Promise.all([
+      fetch("/api/vehicles"),
+      fetch("/api/cities"),
+      fetch(hubUrl),
+    ]);
 
-      if (vehicleData.success) setVehicles(vehicleData.data || []);
-      if (hubData.success) setHubs(hubData.data || []);
-    } catch {
-      setError("Unable to load vehicles and hubs. Please refresh.");
-    } finally {
-      setLoading(false);
+    const vehicleData = await vehicleRes.json();
+    const cityData = await cityRes.json();
+    const hubData = await hubRes.json();
+
+    if (vehicleData.success) {
+      setVehicles(vehicleData.data || []);
+    } else {
+      throw new Error(vehicleData.message || "Unable to load vehicles.");
     }
-  };
 
-  useEffect(() => {
-    loadData();
-  }, []);
+    if (cityData.success) {
+      setCities(cityData.data || []);
+    } else {
+      throw new Error(cityData.message || "Unable to load cities.");
+    }
+
+    if (hubData.success) {
+      setHubs(hubData.data || []);
+    } else {
+      throw new Error(hubData.message || "Unable to load hubs.");
+    }
+
+    if ((cityData.data || []).length === 0) {
+      setError("No cities available. Admin must add cities and active hubs first.");
+    }
+  } catch (loadError) {
+    setError(
+      loadError instanceof Error
+        ? loadError.message
+        : "Unable to load booking data. Please refresh."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(() => {
+  void loadData();
+}, []);
+
+useEffect(() => {
+  if (!city) return;
+  void loadData(city);
+}, [city]);
 
  useEffect(() => {
   const loadRider = async (phone: string, token: string) => {
@@ -202,40 +244,30 @@ export default function BikeBooking() {
   const currentBike = vehicles.find((bike) => bike.vehicleId === selectedBike);
 
   const cityOptions = useMemo(() => {
-  const fromHubs = hubs
-    .map((item) => item.city || item.hubLocation || "")
-    .map((item) => item.trim())
+  return cities
+    .map((item) => item.cityName?.trim())
     .filter(Boolean);
-
-  return Array.from(new Set(fromHubs));
-}, [hubs]);
+}, [cities]);
 
 const hubOptions = useMemo(() => hubs, [hubs]);
 
 const filteredHubs = useMemo(() => {
   if (!city) return [];
 
-  return hubOptions.filter((item) => {
-    const selectedCity = normalizeText(city);
-    const hubCity = normalizeText(item.city || item.hubLocation);
-    const hubName = normalizeText(item.hubName);
+  const selectedCity = normalizeText(city);
 
-    return (
-      hubCity === selectedCity ||
-      hubCity.includes(selectedCity) ||
-      hubName.includes(selectedCity)
-    );
-  });
+  return hubOptions.filter(
+    (item) => normalizeText(item.city) === selectedCity
+  );
 }, [city, hubOptions]);
 
 const selectedHubData = hubOptions.find(
-  (item) => normalizeText(item.hubName) === normalizeText(hub)
+  (item) => normalizeText(item.hubCode) === normalizeText(hub)
 );
 
-const selectedHubKeys = [
-  selectedHubData?.hubName,
+ const selectedHubKeys = [
   selectedHubData?.hubCode,
-  selectedHubData?.hubLocation,
+  selectedHubData?.hubName,
 ]
   .map(normalizeText)
   .filter(Boolean);
@@ -417,16 +449,15 @@ setStep(2);
           userPhone: riderPhone,
           riderId,
           vehicleId: currentBike.vehicleId,
-startHub: currentBike.currentHub || hub,
-pickupHubName: hub,
+startHub: selectedHubData?.hubCode || currentBike.currentHub || hub,
+pickupHubName: selectedHubData?.hubName || hub,
 hubAliases: [
-  hub,
-  selectedHubData?.hubName,
   selectedHubData?.hubCode,
-  selectedHubData?.hubLocation,
+  selectedHubData?.hubName,
   currentBike.currentHub,
 ].filter(Boolean),
 city,
+pickupCity: city,
 rentalMode,
 referenceBy,
           firebaseIdToken: token,
@@ -1105,10 +1136,10 @@ cursor-pointer
 >
   <option value="">{city ? "Select hub" : "Select city first"}</option>
   {filteredHubs.map((item, index) => (
-    <option key={item._id || index} value={item.hubName}>
-      {item.hubName}
-    </option>
-  ))}
+  <option key={item._id || index} value={item.hubCode}>
+    {item.hubName} ({item.hubCode})
+  </option>
+))}
 </select>
                 </Field>
 

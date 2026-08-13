@@ -21,7 +21,8 @@ import {
   CreditCard,
   BarChart3,
   RefreshCcw,
-  Wallet,
+    Wallet,
+  MapPin,
 } from "lucide-react";
 
 type Props = {
@@ -51,15 +52,20 @@ const menus = [
     icon: MapPinned,
   },
   {
-    id: "hubmanagement",
-    name: "Hub Management",
-    icon: Building2,
-  },
-  {
-    id: "battery",
-    name: "Battery Dashboard",
-    icon: BatteryCharging,
-  },
+  id: "hubmanagement",
+  name: "Hub Management",
+  icon: Building2,
+},
+{
+  id: "citymanagement",
+  name: "City Management",
+  icon: MapPin,
+},
+{
+  id: "battery",
+  name: "Battery Dashboard",
+  icon: BatteryCharging,
+},
   {
     id: "swap",
     name: "Battery Swap",
