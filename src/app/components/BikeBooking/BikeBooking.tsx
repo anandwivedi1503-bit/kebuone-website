@@ -61,6 +61,7 @@ type Vehicle = {
   dailyRate?: number;
   weeklyRate?: number;
   monthlyRate?: number;
+  hourlyRate?: number;
   securityDeposit?: number;
   batteryPercentage?: number;
   currentHub?: string;
@@ -141,7 +142,9 @@ const [loading, setLoading] = useState(true);
   const [hub, setHub] = useState("");
   const [selectedBike, setSelectedBike] = useState("");
   const [bikeSearch, setBikeSearch] = useState("");
-  const [rentalMode, setRentalMode] = useState<"Daily" | "Weekly" | "Monthly">("Daily");
+  const [rentalMode, setRentalMode] = useState<
+    "Hourly" | "Daily" | "Weekly" | "Monthly"
+  >("Daily");
   const [referenceBy, setReferenceBy] = useState("");
 
   const [bookingId, setBookingId] = useState("");
@@ -285,12 +288,23 @@ const selectedHubData = hubOptions.find(
   (item) => normalizeText(item.hubCode) === normalizeText(hub)
 );
 
- const selectedHubKeys = [
+const selectedHubKeys = [
   selectedHubData?.hubCode,
   selectedHubData?.hubName,
+  selectedHubData?.hubLocation,
+  hub,
 ]
   .map(normalizeText)
   .filter(Boolean);
+
+const hubValuesMatch = (bikeHub: string, hubKey: string) => {
+  if (!bikeHub || !hubKey) return false;
+  if (bikeHub === hubKey) return true;
+  if (/^\d+$/.test(bikeHub) && /^\d+$/.test(hubKey)) {
+    return Number(bikeHub) === Number(hubKey);
+  }
+  return bikeHub.includes(hubKey) || hubKey.includes(bikeHub);
+};
 
 const filteredBikes =
   selectedHubKeys.length === 0
@@ -298,12 +312,11 @@ const filteredBikes =
     : vehicles
         .filter((bike) => {
           const bikeHub = normalizeText(bike.currentHub);
+          const status = normalizeText(bike.vehicleStatus);
 
           return (
-            normalizeText(bike.vehicleStatus) === "available" &&
-            selectedHubKeys.some(
-              (hub) => normalizeText(hub) === bikeHub
-            )
+            (status === "available" || !status) &&
+            selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey))
           );
         })
         .filter((bike) => {
@@ -321,12 +334,15 @@ const filteredBikes =
             amount(b.batteryPercentage) -
             amount(a.batteryPercentage)
         );
-const rentalAmount =
-  rentalMode === "Daily"
-    ? amount(currentBike?.dailyRate)
-    : rentalMode === "Weekly"
-    ? amount(currentBike?.weeklyRate)
-    : amount(currentBike?.monthlyRate);
+const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
+  if (!bike) return 0;
+  if (mode === "Hourly") return amount(bike.hourlyRate);
+  if (mode === "Daily") return amount(bike.dailyRate);
+  if (mode === "Weekly") return amount(bike.weeklyRate);
+  return amount(bike.monthlyRate);
+};
+
+const rentalAmount = getPlanRate(currentBike, rentalMode);
 
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
 const payableAmount = rentalAmount + securityDeposit;
@@ -1292,12 +1308,12 @@ focus:ring-[#22C55E]/10
   />
 </div>
 
-                <div className="mb-5 grid grid-cols-3 gap-2">
-                  {["Daily", "Weekly", "Monthly"].map((item) => (
+                <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {(["Hourly", "Daily", "Weekly", "Monthly"] as const).map((item) => (
                     <button
                       key={item}
                       type="button"
-                      onClick={() => setRentalMode(item as "Daily" | "Weekly" | "Monthly")}
+                      onClick={() => setRentalMode(item)}
                       className={`h-14 rounded-2xl border font-bold ${
                         rentalMode === item
 ? "border-[#18B368] bg-gradient-to-r from-[#16A34A] to-[#18B368] text-white shadow-lg"
@@ -1314,17 +1330,12 @@ focus:ring-[#22C55E]/10
 ) : !hub ? (
   <Empty text="Choose your pickup hub to view available scooters." />
 ) : filteredBikes.length === 0 ? (
-  <Empty text="No available scooters found for this hub. In Vehicle Management, keep vehicleStatus as Available and currentHub equal to this hub name or hub code." />
+  <Empty text="No available scooters found for this hub. In Vehicle Management set vehicleStatus to Available, clear currentBookingId, and set currentHub to this hub code (for example 01)." />
 ) : (              
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 ">
                     {filteredBikes.map((bike) => {
                       const isSelected = selectedBike === bike.vehicleId;
-                      const price =
-                        rentalMode === "Daily"
-                          ? amount(bike.dailyRate)
-                          : rentalMode === "Weekly"
-                          ? amount(bike.weeklyRate)
-                          : amount(bike.monthlyRate);
+                      const price = getPlanRate(bike, rentalMode);
 
                       return (
                         <button
@@ -2499,4 +2510,4 @@ strong
       </span>
     </div>
   );
-}
+ }
