@@ -61,7 +61,7 @@ useEffect(() => {
 }, []);
 
 const processingRefunds=refunds.filter(
-(r)=>r.refundStatus==="PROCESSING"
+(r)=>r.refundStatus==="PROCESSING" || r.refundStatus==="PENDING"
 ).length;
 
 const approvedRefunds = refunds.filter(
