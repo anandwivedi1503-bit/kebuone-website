@@ -174,7 +174,7 @@ const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
   loadDashboard();
 
-  const timer = setInterval(loadDashboard, 10000);
+  const timer = setInterval(loadDashboard, 30000);
 
   return () => clearInterval(timer);
 }, []);

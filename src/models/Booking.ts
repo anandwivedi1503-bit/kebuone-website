@@ -286,6 +286,36 @@ dropLongitude: {
       min: 0,
     },
 
+    gstAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    cgstAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    sgstAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    cgstRate: {
+      type: Number,
+      default: 0.05,
+      min: 0,
+    },
+
+    sgstRate: {
+      type: Number,
+      default: 0.05,
+      min: 0,
+    },
+
     rateApplied: {
   type: Number,
   default: 0,

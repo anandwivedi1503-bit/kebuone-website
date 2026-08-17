@@ -12,6 +12,9 @@ import {
 } from "@/lib/requestAuth";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
+import {
+  getBookingPayableAmount,
+} from "@/lib/gst";
 
 function clean(value: unknown) {
   return String(value || "").trim();
@@ -168,9 +171,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const payableAmount =
-      Number(booking.securityDeposit || 0) +
-      Number(booking.totalAmount || 0);
+    const payableAmount = getBookingPayableAmount(booking);
 
     const receivedAmount = Number(booking.receivedAmount || 0);
     const remainingAmount = Number(

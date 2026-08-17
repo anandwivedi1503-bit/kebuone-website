@@ -16,6 +16,7 @@ import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import Refund from "@/models/Refund";
+import { getBookingPayableAmount } from "@/lib/gst";
 
 const allowedPaymentModes = [
   "Cash",
@@ -411,8 +412,7 @@ export async function PATCH(
     /* ---------------------------------------------------------------------- */
 
     const payableAmount = normalizeAmount(
-      Number(booking.totalAmount || 0) +
-        Number(booking.securityDeposit || 0)
+      getBookingPayableAmount(booking)
     );
 
     let finalReceivedAmount = normalizeAmount(

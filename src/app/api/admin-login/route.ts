@@ -5,6 +5,7 @@ import {
   getAdminSessionCookieOptions,
   SESSION_COOKIE_NAME,
 } from "@/lib/adminAuth";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 function safeCompare(left: string, right: string) {
   const leftBuffer = Buffer.from(left);
@@ -19,6 +20,15 @@ function safeCompare(left: string, right: string) {
 }
 
 export async function POST(req: Request) {
+  const ip = clientIp(req);
+
+  if (!rateLimitAllowed(`admin-login:${ip}`, 8, 10 * 60 * 1000)) {
+    return NextResponse.json(
+      { success: false, message: "Too many login attempts. Try again later." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => ({}));
   const forwardedFor =
   req.headers.get("x-forwarded-for") ||

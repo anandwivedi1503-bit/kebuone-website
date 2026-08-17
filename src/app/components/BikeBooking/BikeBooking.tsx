@@ -11,6 +11,7 @@ import {
   ReceiptText,
   ShieldCheck,
 } from "lucide-react";
+import { gstBreakdown } from "@/lib/gst";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -344,9 +345,9 @@ const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
 };
 
 const rentalAmount = getPlanRate(currentBike, rentalMode);
-
+const tax = gstBreakdown(rentalAmount);
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
-const payableAmount = rentalAmount + securityDeposit;
+const payableAmount = tax.totalWithGst + securityDeposit;
 const amountDue = bookingDone ? pendingAmount : payableAmount;
 
   useEffect(() => {
@@ -1564,7 +1565,8 @@ BOOKING REVIEW
 <h2
 className="
 mt-5
-text-4xl
+text-3xl
+sm:text-4xl
 font-black
 tracking-[-0.03em]
 text-[#0F172A]
@@ -1613,7 +1615,8 @@ TOTAL PAYABLE
 <p
 className="
 mt-3
-text-[42px]
+text-3xl
+sm:text-[42px]
 font-black
 tracking-[-0.03em]
 text-[#16A34A]
@@ -1626,7 +1629,7 @@ text-[#16A34A]
 
 <p className="mt-3 text-slate-500">
 
-Includes refundable security deposit of
+Includes CGST 5% + SGST 5% on rental, plus a refundable security deposit of
 
 <strong className="text-[#16A34A]">
 
@@ -1696,6 +1699,21 @@ text-[#0F172A]
     <Summary
       label="Rental Amount"
       value={formatINR(rentalAmount)}
+    />
+
+    <Summary
+      label="CGST 5%"
+      value={formatINR(tax.cgstAmount)}
+    />
+
+    <Summary
+      label="SGST 5%"
+      value={formatINR(tax.sgstAmount)}
+    />
+
+    <Summary
+      label="GST Total (10%)"
+      value={formatINR(tax.gstAmount)}
     />
 
     <Summary
@@ -2160,7 +2178,9 @@ text-[#0F172A]
   value={`${amount(currentBike?.batteryPercentage)}%`}
 />
                 <Summary label="Rental" value={formatINR(rentalAmount)} />
-                <Summary label="Deposit" value={formatINR(securityDeposit)} />
+                <Summary label="CGST 5%" value={formatINR(tax.cgstAmount)} />
+                <Summary label="SGST 5%" value={formatINR(tax.sgstAmount)} />
+                <Summary label="Deposit (no GST)" value={formatINR(securityDeposit)} />
                 <Summary label="Grand Total" value={formatINR(payableAmount)} strong />
                 <div
   className="

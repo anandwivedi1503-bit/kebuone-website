@@ -9,6 +9,7 @@ import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import { getBookingPayableAmount, money } from "@/lib/gst";
 
 export default function BookingDashboard(){
 
@@ -1417,20 +1418,27 @@ Payment Details
 
 <p>
 <b>Rental Amount :</b>
-₹{Number(selectedBooking.totalAmount || 0).toLocaleString("en-IN")}
+₹{money(selectedBooking.rateApplied || selectedBooking.totalAmount).toLocaleString("en-IN")}
+</p>
+
+<p>
+<b>CGST 5% :</b>
+₹{money(selectedBooking.cgstAmount).toLocaleString("en-IN")}
+</p>
+
+<p>
+<b>SGST 5% :</b>
+₹{money(selectedBooking.sgstAmount).toLocaleString("en-IN")}
 </p>
 
 <p>
 <b>Security Deposit :</b>
-₹{Number(selectedBooking.securityDeposit || 0).toLocaleString("en-IN")}
+₹{money(selectedBooking.securityDeposit).toLocaleString("en-IN")}
 </p>
 
 <p>
 <b>Total Payable :</b>
-₹{(
-Number(selectedBooking.totalAmount || 0)+
-Number(selectedBooking.securityDeposit || 0)
-).toLocaleString("en-IN")}
+₹{getBookingPayableAmount(selectedBooking).toLocaleString("en-IN")}
 </p>
 
 <hr className="my-3"/>

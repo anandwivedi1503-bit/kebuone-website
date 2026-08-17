@@ -214,6 +214,12 @@ errors:["This Razorpay payment already exists."]
       userName,
       amount: Number(body.amount),
       gstAmount: Number(body.gstAmount || 0),
+      cgstAmount: Number(
+        body.cgstAmount ?? Number(body.gstAmount || 0) / 2
+      ),
+      sgstAmount: Number(
+        body.sgstAmount ?? Number(body.gstAmount || 0) / 2
+      ),
       paymentMethod,
       transactionType,
       status,

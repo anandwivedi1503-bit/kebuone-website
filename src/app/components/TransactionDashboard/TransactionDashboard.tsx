@@ -18,6 +18,7 @@ import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
+import { transactionCgst, transactionSgst } from "@/lib/gst";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 
@@ -764,6 +765,22 @@ Payment
 <b>GST :</b>
 
 ₹{Number(selectedTransaction.gstAmount || 0).toLocaleString("en-IN")}
+
+</p>
+
+<p>
+
+<b>CGST 5% :</b>
+
+₹{transactionCgst(selectedTransaction).toLocaleString("en-IN")}
+
+</p>
+
+<p>
+
+<b>SGST 5% :</b>
+
+₹{transactionSgst(selectedTransaction).toLocaleString("en-IN")}
 
 </p>
 

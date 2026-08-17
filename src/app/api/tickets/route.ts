@@ -6,6 +6,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
+import { publicApiError } from "@/lib/publicError";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
@@ -303,7 +304,7 @@ export async function POST(req: Request) {
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        error: publicApiError(error, "Ticket request failed"),
       },
       { status: 500 }
     );
@@ -330,7 +331,7 @@ export async function GET() {
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        error: publicApiError(error, "Ticket request failed"),
       },
       { status: 500 }
     );

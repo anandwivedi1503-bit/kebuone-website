@@ -13,6 +13,8 @@ import {
   normalizeIndianPhone,
 } from "@/lib/requestAuth";
 import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
+import { gstBreakdown, money } from "@/lib/gst";
+import { publicApiError } from "@/lib/publicError";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -86,7 +88,7 @@ export async function GET() {
       {
         success: false,
         message: "Failed to fetch bookings",
-        error: String(error),
+        error: publicApiError(error, "Failed to fetch bookings"),
       },
       { status: 500 }
     );
@@ -590,13 +592,9 @@ switch (rentalMode) {
     );
 }
 
-const securityDeposit = Number(
-  vehicle.securityDeposit || 2500
-);
-
-const payableAmount = Number(
-  (rentalAmount + securityDeposit).toFixed(2)
-);
+const securityDeposit = money(vehicle.securityDeposit || 2500);
+const tax = gstBreakdown(rentalAmount);
+const payableAmount = money(tax.totalWithGst + securityDeposit);
 
 if (
   rentalAmount <= 0 ||
@@ -725,6 +723,12 @@ startHub:
         clean(body.city),
 
       securityDeposit,
+
+      gstAmount: tax.gstAmount,
+      cgstAmount: tax.cgstAmount,
+      sgstAmount: tax.sgstAmount,
+      cgstRate: tax.cgstRate,
+      sgstRate: tax.sgstRate,
 
       paymentDue:
         payableAmount,

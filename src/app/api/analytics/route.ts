@@ -11,6 +11,7 @@ import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { publicApiError } from "@/lib/publicError";
 
 export async function GET(req: Request) {
   try {
@@ -304,7 +305,7 @@ paymentDistribution: paymentDistribution || [],
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        error: publicApiError(error, "Failed to load analytics"),
       },
       {
         status: 500,
