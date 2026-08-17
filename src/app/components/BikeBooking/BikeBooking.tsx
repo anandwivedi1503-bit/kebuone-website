@@ -285,12 +285,23 @@ const selectedHubData = hubOptions.find(
   (item) => normalizeText(item.hubCode) === normalizeText(hub)
 );
 
- const selectedHubKeys = [
+const selectedHubKeys = [
   selectedHubData?.hubCode,
   selectedHubData?.hubName,
+  selectedHubData?.hubLocation,
+  hub,
 ]
   .map(normalizeText)
   .filter(Boolean);
+
+const hubValuesMatch = (bikeHub: string, hubKey: string) => {
+  if (!bikeHub || !hubKey) return false;
+  if (bikeHub === hubKey) return true;
+  if (/^\d+$/.test(bikeHub) && /^\d+$/.test(hubKey)) {
+    return Number(bikeHub) === Number(hubKey);
+  }
+  return bikeHub.includes(hubKey) || hubKey.includes(bikeHub);
+};
 
 const filteredBikes =
   selectedHubKeys.length === 0
@@ -298,12 +309,11 @@ const filteredBikes =
     : vehicles
         .filter((bike) => {
           const bikeHub = normalizeText(bike.currentHub);
+          const status = normalizeText(bike.vehicleStatus);
 
           return (
-            normalizeText(bike.vehicleStatus) === "available" &&
-            selectedHubKeys.some(
-              (hub) => normalizeText(hub) === bikeHub
-            )
+            (status === "available" || !status) &&
+            selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey))
           );
         })
         .filter((bike) => {
@@ -1314,7 +1324,7 @@ focus:ring-[#22C55E]/10
 ) : !hub ? (
   <Empty text="Choose your pickup hub to view available scooters." />
 ) : filteredBikes.length === 0 ? (
-  <Empty text="No available scooters found for this hub. In Vehicle Management, keep vehicleStatus as Available and currentHub equal to this hub name or hub code." />
+  <Empty text="No available scooters found for this hub. In Vehicle Management set vehicleStatus to Available, clear currentBookingId, and set currentHub to this hub code (for example 01)." />
 ) : (              
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 ">
                     {filteredBikes.map((bike) => {

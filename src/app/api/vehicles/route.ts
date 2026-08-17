@@ -567,12 +567,21 @@ export async function GET() {
      */
     const vehicles =
       await Vehicle.find({
-        $or: [
-          { isDeleted: false },
-          { isDeleted: { $exists: false } },
+        $and: [
+          {
+            $or: [
+              { isDeleted: false },
+              { isDeleted: { $exists: false } },
+            ],
+          },
+          {
+            $or: [
+              { isActive: true },
+              { isActive: { $exists: false } },
+            ],
+          },
+          { vehicleStatus: "Available" },
         ],
-        isActive: true,
-        vehicleStatus: "Available",
       })
         .select(
           [
