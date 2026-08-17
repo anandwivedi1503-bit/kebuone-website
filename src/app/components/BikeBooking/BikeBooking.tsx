@@ -475,9 +475,14 @@ referenceBy,
       const bookingData = await bookingRes.json();
 
       if (!bookingData.success) {
-        setError(bookingData.errors?.join(" ") || bookingData.message || "Booking failed.");
-        return;
-      }
+  setError(
+    bookingData.errors?.join(" ") ||
+      bookingData.details ||
+      bookingData.message ||
+      "Booking failed."
+  );
+  return;
+}
 
       setBookingId(newBookingId);
       setBookingMongoId(bookingData.data._id);
@@ -487,9 +492,10 @@ referenceBy,
 setMessage("🎉 Your scooter has been reserved successfully. Complete the secure payment below to confirm your booking.");
 setStep(4);
 await loadData();
-    } catch {
-      setError("Booking failed. Please try again.");
-    } finally {
+    } catch (error) {
+  console.error("CREATE BOOKING ERROR:", error);
+  setError("Booking failed. Please check your connection and try again.");
+} finally {
       setSaving(false);
     }
   };

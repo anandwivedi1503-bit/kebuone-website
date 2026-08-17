@@ -10,6 +10,7 @@ import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
+import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -263,6 +264,37 @@ if (rider.status !== "Active") {
     { status: 403 }
   );
 }
+
+try {
+  await ensureRiderWallet(
+    {
+      riderId: rider.riderId,
+      _id: rider._id,
+      fullName: rider.fullName,
+      phone: rider.phone,
+      bookingEnabled: rider.bookingEnabled,
+      status: rider.status,
+    },
+    "Booking System"
+  );
+} catch (walletError) {
+  await session.abortTransaction();
+  await session.endSession();
+  session = null;
+
+  console.error("BOOKING WALLET SYNC ERROR:", walletError);
+
+  return NextResponse.json(
+    {
+      success: false,
+      errors: [
+        "Your wallet could not be prepared for booking. Please contact support.",
+      ],
+    },
+    { status: 500 }
+  );
+}
+
     if (!nameRegex.test(userName)) errors.push("Valid rider name is required.");
     if (!phoneRegex.test(userPhone)) errors.push("Valid Indian mobile number is required.");
     if (!idRegex.test(vehicleId)) errors.push("Valid vehicle ID is required.");
@@ -696,41 +728,7 @@ startHub:
 
  booking = bookingArray[0];
 
- let wallet = await Wallet.findOne(
-  {
-    riderId: rider.riderId,
-    isDeleted: false,
-  },
-  null,
-  { session }
-);
 
-if (!wallet) {
-  const walletArray = await Wallet.create(
-    [
-      {
-        riderId: rider.riderId,
-        userId: rider._id,
-        userName: rider.fullName,
-        phone: rider.phone,
-        balance: 0,
-        securityDepositHold: 0,
-        freezeAmount: 0,
-        totalRecharge: 0,
-        totalSpent: 0,
-        totalRefund: 0,
-        status: "Active",
-        isDeleted: false,
-        updatedBy: "Booking System",
-      },
-    ],
-    {
-      session,
-    }
-  );
-
-  wallet = walletArray[0];
-}
 
   await Rider.findByIdAndUpdate(
   rider._id,
@@ -750,8 +748,6 @@ await Vehicle.findByIdAndUpdate(
     session,
   }
 );
-await booking.populate("userId");
-
 booking = booking.toObject();
 
 await session.commitTransaction();
@@ -763,38 +759,60 @@ await session.endSession();
   pendingAmount: booking.pendingAmount,
   data: booking,
 });
-    } catch (error) {
-    if (session) {
-      try {
-        await session.abortTransaction();
-      } catch (rollbackError) {
-        console.error(
-          "Transaction rollback failed:",
-          rollbackError
-        );
-      }
-
-      await session.endSession();
-      session = null;
+      } catch (error) {
+  if (session) {
+    try {
+      await session.abortTransaction();
+    } catch (rollbackError) {
+      console.error(
+        "Transaction rollback failed:",
+        rollbackError
+      );
     }
 
-    console.error(
-      "BOOKING API ERROR:",
-      error
-    );
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Failed to create booking.",
-        error:
-          process.env.NODE_ENV === "development"
-            ? String(error)
-            : undefined,
-      },
-      {
-        status: 500,
-      }
-    );
+    await session.endSession();
+    session = null;
   }
+
+  if (lockedVehicleId) {
+    try {
+      await Vehicle.findByIdAndUpdate(lockedVehicleId, {
+        vehicleStatus: "Available",
+        assignedRider: "",
+        currentBookingId: "",
+        currentRiderId: "",
+        lockStatus: "Unlocked",
+      });
+    } catch (unlockError) {
+      console.error("VEHICLE UNLOCK ERROR:", unlockError);
+    }
+  }
+
+  const errorMessage =
+    error instanceof Error
+      ? error.message
+      : String(error);
+
+  console.error(
+    "BOOKING API ERROR:",
+    error
+  );
+
+  const isReplicaSetError =
+    errorMessage.includes("replica set") ||
+    errorMessage.includes("Transaction numbers");
+
+  return NextResponse.json(
+    {
+      success: false,
+      message: isReplicaSetError
+        ? "Database is not configured for booking transactions. Use MongoDB Atlas or a replica set."
+        : "Failed to create booking.",
+      details: errorMessage,
+    },
+    {
+      status: 500,
+    }
+  );
+}
 }
