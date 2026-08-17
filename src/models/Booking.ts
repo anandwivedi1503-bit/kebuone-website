@@ -406,9 +406,14 @@ invoiceNumber: {
 pickupOTP: {
   type: String,
   trim: true,
-  minlength: 6,
   maxlength: 6,
   default: "",
+  validate: {
+    validator(value: string) {
+      return !value || /^\d{6}$/.test(value);
+    },
+    message: "Pickup OTP must be 6 digits when generated.",
+  },
 },
 
 pickupOTPExpiry: {
@@ -427,9 +432,14 @@ pickupOTPVerifiedAt: {
 rideStartOTP: {
   type: String,
   trim: true,
-  minlength: 6,
   maxlength: 6,
   default: "",
+  validate: {
+    validator(value: string) {
+      return !value || /^\d{6}$/.test(value);
+    },
+    message: "Ride start OTP must be 6 digits when generated.",
+  },
 },
 
 rideStartOTPExpiry: {
@@ -444,9 +454,14 @@ rideStartOTPVerified: {
 rideEndOTP: {
   type: String,
   trim: true,
-  minlength: 6,
   maxlength: 6,
   default: "",
+  validate: {
+    validator(value: string) {
+      return !value || /^\d{6}$/.test(value);
+    },
+    message: "Ride end OTP must be 6 digits when generated.",
+  },
 },
 
 rideEndOTPExpiry: {

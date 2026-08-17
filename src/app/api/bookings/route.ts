@@ -8,7 +8,9 @@ import Booking from "@/models/Booking";
 import Wallet from "@/models/Wallet";
 import {
   firebaseUserOwnsRider,
+  firebasePhoneMatches,
   getVerifiedFirebaseUser,
+  normalizeIndianPhone,
 } from "@/lib/requestAuth";
 import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
 
@@ -28,6 +30,35 @@ const rentalModes = [
   return String(value || "").trim();
 }
 
+const NOT_DELETED_FILTER = {
+  $or: [
+    { isDeleted: false },
+    { isDeleted: { $exists: false } },
+  ],
+};
+
+async function findActiveRider(
+  filters: Record<string, unknown>[],
+  session: mongoose.ClientSession
+) {
+  for (const filter of filters) {
+    const rider = await Rider.findOne(
+      {
+        ...filter,
+        ...NOT_DELETED_FILTER,
+      },
+      null,
+      { session }
+    );
+
+    if (rider) {
+      return rider;
+    }
+  }
+
+  return null;
+}
+
 
 
 export async function GET() {
@@ -38,7 +69,10 @@ export async function GET() {
     await connectDB();
 
     const bookings = await Booking.find({
-  isDeleted: false,
+  $or: [
+    { isDeleted: false },
+    { isDeleted: { $exists: false } },
+  ],
 }).sort({
   createdAt: -1,
 });
@@ -73,7 +107,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const bookingId = clean(body.bookingId);
     const userName = clean(body.userName);
-    const userPhone = clean(body.userPhone).replace(/\D/g, "");
+    const userPhone = normalizeIndianPhone(body.userPhone);
+    const bodyRiderId = clean(body.riderId);
     const vehicleId = clean(body.vehicleId);
     const startHub = clean(body.startHub);
     const pickupHubName = clean(body.pickupHubName);
@@ -117,7 +152,7 @@ if (existingBooking) {
     if (!idRegex.test(bookingId)) errors.push("Valid booking ID is required.");
     if (
       !isAdminRequest &&
-      (!firebaseUser || firebaseUser.phone !== userPhone)
+      !firebasePhoneMatches(firebaseUser, userPhone)
     ) {
       await session.abortTransaction();
       await session.endSession();
@@ -125,10 +160,23 @@ if (existingBooking) {
       return unauthorizedResponse();
     }
 
-    const rider = await Rider.findOne(
-  { phone: userPhone, isDeleted: false },
-  null,
-  { session }
+    const riderLookupFilters: Record<string, unknown>[] = [];
+
+    if (firebaseUser?.uid) {
+      riderLookupFilters.push({ firebaseUid: firebaseUser.uid });
+    }
+
+    if (bodyRiderId) {
+      riderLookupFilters.push({ riderId: bodyRiderId });
+    }
+
+    if (userPhone) {
+      riderLookupFilters.push({ phone: userPhone });
+    }
+
+    const rider = await findActiveRider(
+      riderLookupFilters,
+      session
     );
 
 if (!rider) {

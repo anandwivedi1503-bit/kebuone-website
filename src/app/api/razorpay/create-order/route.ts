@@ -81,7 +81,10 @@ export async function POST(req: Request) {
 
     const rider = await Rider.findOne({
       riderId: booking.riderId,
-      isDeleted: false,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
     });
 
     if (!rider) {
