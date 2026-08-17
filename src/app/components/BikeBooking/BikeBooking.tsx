@@ -306,19 +306,20 @@ const hubValuesMatch = (bikeHub: string, hubKey: string) => {
   return bikeHub.includes(hubKey) || hubKey.includes(bikeHub);
 };
 
+const availableBikes = vehicles.filter((bike) => {
+  const status = normalizeText(bike.vehicleStatus);
+  return status === "available" || status === "";
+});
+
+const hubMatchedBikes = availableBikes.filter((bike) => {
+  const bikeHub = normalizeText(bike.currentHub);
+  return selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey));
+});
+
 const filteredBikes =
   selectedHubKeys.length === 0
     ? []
-    : vehicles
-        .filter((bike) => {
-          const bikeHub = normalizeText(bike.currentHub);
-          const status = normalizeText(bike.vehicleStatus);
-
-          return (
-            (status === "available" || !status) &&
-            selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey))
-          );
-        })
+    : (hubMatchedBikes.length > 0 ? hubMatchedBikes : availableBikes)
         .filter((bike) => {
           if (!bikeSearch.trim()) return true;
 
