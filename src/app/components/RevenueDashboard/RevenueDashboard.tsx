@@ -32,7 +32,7 @@ const fetchRevenue = async () => {
       await Promise.all([
         fetch("/api/transactions"),
         fetch("/api/refunds"),
-        fetch("/api/wallet"),
+        fetch("/api/wallet?limit=500"),
       ]);
 
     const transactionData = await transactionRes.json();
@@ -62,6 +62,10 @@ const fetchRevenue = async () => {
 useEffect(() => {
 
   fetchRevenue();
+
+  const interval = setInterval(fetchRevenue, 15000);
+
+  return () => clearInterval(interval);
 
 }, []);
 

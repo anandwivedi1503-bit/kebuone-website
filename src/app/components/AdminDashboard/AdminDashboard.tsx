@@ -187,7 +187,12 @@ const [refreshing, setRefreshing] = useState(false);
   );
 
   const activeRides = bookings.filter(
-    (item: any) => item.rideStatus === "Booked" || item.rideStatus === "In Ride"
+    (item: any) =>
+      item.rideStatus === "Booked" ||
+      item.rideStatus === "Reserved" ||
+      item.rideStatus === "Payment Pending" ||
+      item.rideStatus === "Ready For Pickup" ||
+      item.rideStatus === "In Ride"
   ).length;
 
   const getGpsStatus = (status: unknown) =>

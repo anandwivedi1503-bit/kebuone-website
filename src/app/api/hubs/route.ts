@@ -363,7 +363,10 @@ const { searchParams } = new URL(req.url);
 const cityFilter = clean(searchParams.get("city"));
 
 const hubQuery: Record<string, unknown> = {
-  isDeleted: false,
+  $or: [
+    { isDeleted: false },
+    { isDeleted: { $exists: false } },
+  ],
 };
 
 if (!isAdmin) {

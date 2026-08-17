@@ -67,7 +67,10 @@ export async function POST(req: Request) {
 
     const booking = await Booking.findOne({
       bookingId: normalizedBookingId,
-      isDeleted: false,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
     }).session(session);
 
     if (!booking) {

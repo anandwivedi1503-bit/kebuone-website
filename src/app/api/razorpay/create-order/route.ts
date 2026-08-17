@@ -235,7 +235,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || keyId,
+      keyId,
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,

@@ -212,7 +212,11 @@ const startRide = async (
 
 }
 
-    alert("Ride started successfully.");
+    alert(
+      data.rideEndOTP
+        ? `Ride started successfully.\nRide End OTP: ${data.rideEndOTP}`
+        : "Ride started successfully."
+    );
 
 setOtpModalOpen(false);
 
@@ -1101,6 +1105,15 @@ disabled:cursor-not-allowed
 
 {booking.rideStatus === "Payment Pending" && (
 
+<>
+
+<button
+onClick={() => setSelectedBooking(booking)}
+className="rounded-lg bg-blue-600 px-3 py-2 text-white font-semibold"
+>
+View
+</button>
+
 <button
 disabled={processingId === booking._id}
 onClick={() => cancelBooking(booking._id)}
@@ -1117,6 +1130,8 @@ disabled:cursor-not-allowed
 >
 {processingId === booking._id ? "Cancelling..." : "Cancel"}
 </button>
+
+</>
 
 )}
 
@@ -1203,6 +1218,15 @@ disabled:cursor-not-allowed
 
 {booking.rideStatus === "In Ride" && (
 
+<>
+
+<button
+onClick={() => setSelectedBooking(booking)}
+className="rounded-lg bg-blue-600 px-3 py-2 text-white font-semibold"
+>
+View
+</button>
+
 <button
 disabled={processingId === booking._id}
 onClick={() => {
@@ -1231,6 +1255,8 @@ disabled:cursor-not-allowed
 >
 {processingId === booking._id ? "Ending..." : "End Ride"}
 </button>
+
+</>
 
 )}
 

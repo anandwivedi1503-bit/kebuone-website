@@ -43,12 +43,12 @@ const createIdempotencyKey = () => {
 
 useEffect(() => {
 
-    loadWallets();
+    loadWallets(true);
     loadTransactions();
 
     const interval = setInterval(() => {
 
-        loadWallets();
+        loadWallets(false);
         loadTransactions();
 
     }, 10000);
@@ -57,11 +57,13 @@ useEffect(() => {
 
 }, []);
 
-const loadWallets = async () => {
-  setPageLoading(true);
+const loadWallets = async (showPageLoader = false) => {
+  if (showPageLoader) {
+    setPageLoading(true);
+  }
 
   try {
-    const res = await fetch("/api/wallet?limit=100", {
+    const res = await fetch("/api/wallet?limit=500", {
       cache: "no-store",
     });
 
@@ -86,7 +88,7 @@ const loadWallets = async () => {
 const loadTransactions = async () => {
   try {
     const res = await fetch(
-      "/api/wallet-transactions?limit=100",
+      "/api/wallet-transactions?limit=500",
       {
         cache: "no-store",
       }
@@ -334,6 +336,7 @@ const totalDebits = transactions
   [
     "Admin Debit",
     "Booking Payment",
+    "Security Deposit Hold",
   ].includes(t.transactionType)
 )
 .reduce((sum, t) => sum + Number(t.amount || 0), 0);

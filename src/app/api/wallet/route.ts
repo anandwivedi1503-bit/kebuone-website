@@ -77,7 +77,7 @@ export async function GET(req: Request) {
 
     const limit = Number.isFinite(rawLimit)
       ? Math.min(
-          100,
+          500,
           Math.max(1, Math.floor(rawLimit))
         )
       : 25;
@@ -95,7 +95,10 @@ export async function GET(req: Request) {
     );
 
     const filter: Record<string, unknown> = {
-      isDeleted: false,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
     };
 
     /*

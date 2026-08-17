@@ -4,8 +4,11 @@ import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 
+import Rider from "@/models/Rider";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
+import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 import {
   isAdminAuthenticated,
@@ -186,6 +189,35 @@ export async function POST(req: Request) {
         idempotencyKey
       );
 
+    const rider = await Rider.findOne({
+      riderId: normalizedRiderId,
+      ...NOT_DELETED_FILTER,
+    });
+
+    if (rider) {
+      try {
+        await ensureRiderWallet(
+          {
+            riderId: rider.riderId,
+            _id: rider._id,
+            fullName: rider.fullName,
+            phone: rider.phone,
+            approvalStatus: rider.approvalStatus,
+            kycStatus: rider.kycStatus,
+            status: rider.status,
+            bookingEnabled: rider.bookingEnabled,
+            blacklisted: rider.blacklisted,
+          },
+          "Admin"
+        );
+      } catch (walletPrepError) {
+        console.error(
+          "WALLET RECHARGE PREP ERROR:",
+          walletPrepError
+        );
+      }
+    }
+
     /*
      * START ATOMIC TRANSACTION
      */
@@ -263,7 +295,7 @@ export async function POST(req: Request) {
 
           status: "Active",
 
-          isDeleted: false,
+          ...NOT_DELETED_FILTER,
         },
         {
           $inc: {
