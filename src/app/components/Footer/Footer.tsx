@@ -95,15 +95,7 @@ export default function Footer() {
                 Ready For The Future?
               </span>
 
-              <h2
-                className="
-                mt-8
-                text-5xl
-                font-black
-                leading-tight
-                md:text-7xl
-                "
-              >
+              <h2 className="mt-8 text-4xl font-black leading-tight sm:text-5xl md:text-7xl">
                 Move Smarter.
                 <br />
                 Move Electric.
@@ -119,7 +111,7 @@ export default function Footer() {
                 text-gray-300
                 "
               >
-                Join EVUDDY and experience India's next generation
+                Join EVUDDY and experience India&apos;s next generation
                 electric mobility ecosystem designed for riders,
                 businesses and everyday commuters.
               </p>
@@ -137,20 +129,7 @@ export default function Footer() {
 
                 <Link
                   href="/register"
-                  className="
-                  inline-flex
-                  items-center
-                  justify-center
-                  rounded-full
-                  bg-[#18B368]
-                  px-8
-                  py-4
-                  text-lg
-                  font-semibold
-                  transition
-                  hover:scale-105
-                  hover:bg-[#14A35E]
-                  "
+                  className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#18B368] px-8 text-lg font-semibold transition hover:bg-[#14A35E] sm:w-auto"
                 >
                   Book an EV
 
@@ -159,23 +138,7 @@ export default function Footer() {
 
                 <Link
                   href="/partners"
-                  className="
-                  inline-flex
-                  items-center
-                  justify-center
-                  rounded-full
-                  border
-                  border-white/15
-                  bg-white/5
-                  px-8
-                  py-4
-                  text-lg
-                  font-semibold
-                  backdrop-blur-xl
-                  transition
-                  hover:border-[#18B368]
-                  hover:bg-[#18B368]/10
-                  "
+                  className="inline-flex h-14 w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-8 text-lg font-semibold backdrop-blur-xl transition hover:border-[#18B368] hover:bg-[#18B368]/10 sm:w-auto"
                 >
                   Become a Partner
                 </Link>
@@ -331,6 +294,20 @@ export default function Footer() {
     </h4>
 
     <div className="space-y-5">
+
+      <Link
+        href="/book-bike"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Book a Scooter
+      </Link>
+
+      <Link
+        href="/register"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Rider Registration
+      </Link>
 
       <Link
         href="/about"
@@ -497,7 +474,7 @@ export default function Footer() {
 
     <p className="mt-2 text-sm text-gray-500">
 
-      Driving India's Future Of Electric Mobility.
+      Driving India&apos;s Future Of Electric Mobility.
 
     </p>
 
