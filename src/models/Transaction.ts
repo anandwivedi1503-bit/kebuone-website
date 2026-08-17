@@ -49,12 +49,12 @@ amount: {
 
     cgstRate: {
       type: Number,
-      default: 0.05,
+      default: 0.025,
     },
 
     sgstRate: {
       type: Number,
-      default: 0.05,
+      default: 0.025,
     },
 
     paymentMethod: {

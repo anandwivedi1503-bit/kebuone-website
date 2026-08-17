@@ -1629,7 +1629,7 @@ text-[#16A34A]
 
 <p className="mt-3 text-slate-500">
 
-Includes CGST 5% + SGST 5% on rental, plus a refundable security deposit of
+Includes CGST 2.5% + SGST 2.5% on rental, plus a refundable security deposit of
 
 <strong className="text-[#16A34A]">
 
@@ -1702,17 +1702,17 @@ text-[#0F172A]
     />
 
     <Summary
-      label="CGST 5%"
+      label="CGST 2.5%"
       value={formatINR(tax.cgstAmount)}
     />
 
     <Summary
-      label="SGST 5%"
+      label="SGST 2.5%"
       value={formatINR(tax.sgstAmount)}
     />
 
     <Summary
-      label="GST Total (10%)"
+      label="GST Total (5%)"
       value={formatINR(tax.gstAmount)}
     />
 
@@ -2178,8 +2178,8 @@ text-[#0F172A]
   value={`${amount(currentBike?.batteryPercentage)}%`}
 />
                 <Summary label="Rental" value={formatINR(rentalAmount)} />
-                <Summary label="CGST 5%" value={formatINR(tax.cgstAmount)} />
-                <Summary label="SGST 5%" value={formatINR(tax.sgstAmount)} />
+                <Summary label="CGST 2.5%" value={formatINR(tax.cgstAmount)} />
+                <Summary label="SGST 2.5%" value={formatINR(tax.sgstAmount)} />
                 <Summary label="Deposit (no GST)" value={formatINR(securityDeposit)} />
                 <Summary label="Grand Total" value={formatINR(payableAmount)} strong />
                 <div

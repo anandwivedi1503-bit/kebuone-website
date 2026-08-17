@@ -1422,12 +1422,12 @@ Payment Details
 </p>
 
 <p>
-<b>CGST 5% :</b>
+<b>CGST 2.5% :</b>
 ₹{money(selectedBooking.cgstAmount).toLocaleString("en-IN")}
 </p>
 
 <p>
-<b>SGST 5% :</b>
+<b>SGST 2.5% :</b>
 ₹{money(selectedBooking.sgstAmount).toLocaleString("en-IN")}
 </p>
 

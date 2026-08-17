@@ -19,6 +19,8 @@ import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import {
+  CGST_RATE,
+  SGST_RATE,
   getBookingPayableAmount,
   gstShareForPayment,
 } from "@/lib/gst";
@@ -433,8 +435,8 @@ export async function POST(req: Request) {
           gstAmount: taxOnPayment.gstAmount,
           cgstAmount: taxOnPayment.cgstAmount,
           sgstAmount: taxOnPayment.sgstAmount,
-          cgstRate: 0.05,
-          sgstRate: 0.05,
+          cgstRate: CGST_RATE,
+          sgstRate: SGST_RATE,
           paymentMethod: "Razorpay",
           razorpayOrderId,
           razorpayPaymentId,

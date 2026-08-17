@@ -1,5 +1,5 @@
-export const CGST_RATE = 0.05;
-export const SGST_RATE = 0.05;
+export const CGST_RATE = 0.025;
+export const SGST_RATE = 0.025;
 export const GST_RATE = CGST_RATE + SGST_RATE;
 
 export function money(value: unknown) {

@@ -902,7 +902,7 @@ subtitle="Tax collection summary."
 <KPICard
 title="CGST"
 value={`₹${totalCGST.toFixed(2)}`}
-subtitle="Collected @ 5%"
+subtitle="Collected @ 2.5%"
 icon="📘"
 color="blue"
 />
@@ -910,7 +910,7 @@ color="blue"
 <KPICard
 title="SGST"
 value={`₹${totalSGST.toFixed(2)}`}
-subtitle="Collected @ 5%"
+subtitle="Collected @ 2.5%"
 icon="📗"
 color="green"
 />
@@ -918,7 +918,7 @@ color="green"
 <KPICard
 title="Total GST"
 value={`₹${totalGST.toFixed(2)}`}
-subtitle="Overall"
+subtitle="Collected @ 5%"
 icon="🧾"
 color="yellow"
 />
@@ -1218,9 +1218,9 @@ Payment
 
 <p><b>GST :</b> ₹{Number(selectedTransaction.gstAmount || 0).toLocaleString("en-IN")}</p>
 
-<p><b>CGST 5% :</b> ₹{transactionCgst(selectedTransaction).toLocaleString("en-IN")}</p>
+<p><b>CGST 2.5% :</b> ₹{transactionCgst(selectedTransaction).toLocaleString("en-IN")}</p>
 
-<p><b>SGST 5% :</b> ₹{transactionSgst(selectedTransaction).toLocaleString("en-IN")}</p>
+<p><b>SGST 2.5% :</b> ₹{transactionSgst(selectedTransaction).toLocaleString("en-IN")}</p>
 
 <p><b>Refund :</b> ₹{Number(selectedTransaction.refundAmount || 0).toLocaleString("en-IN")}</p>
 

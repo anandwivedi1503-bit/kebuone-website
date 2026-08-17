@@ -770,7 +770,7 @@ Payment
 
 <p>
 
-<b>CGST 5% :</b>
+<b>CGST 2.5% :</b>
 
 ₹{transactionCgst(selectedTransaction).toLocaleString("en-IN")}
 
@@ -778,7 +778,7 @@ Payment
 
 <p>
 
-<b>SGST 5% :</b>
+<b>SGST 2.5% :</b>
 
 ₹{transactionSgst(selectedTransaction).toLocaleString("en-IN")}
 
