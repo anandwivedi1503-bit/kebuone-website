@@ -18,8 +18,11 @@ export async function POST(req: Request) {
     await connectDB();
 
     const { bookingId } = await req.json();
+    const normalizedBookingId = String(bookingId || "")
+      .trim()
+      .toUpperCase();
 
-    if (!bookingId) {
+    if (!normalizedBookingId) {
       return NextResponse.json(
         {
           success: false,
@@ -30,7 +33,11 @@ export async function POST(req: Request) {
     }
 
     const booking = await Booking.findOne({
-      bookingId,
+      bookingId: normalizedBookingId,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
     });
 
     if (!booking) {

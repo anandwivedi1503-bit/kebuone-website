@@ -187,7 +187,12 @@ const [refreshing, setRefreshing] = useState(false);
   );
 
   const activeRides = bookings.filter(
-    (item: any) => item.rideStatus === "Booked" || item.rideStatus === "In Ride"
+    (item: any) =>
+      item.rideStatus === "Booked" ||
+      item.rideStatus === "Reserved" ||
+      item.rideStatus === "Payment Pending" ||
+      item.rideStatus === "Ready For Pickup" ||
+      item.rideStatus === "In Ride"
   ).length;
 
   const getGpsStatus = (status: unknown) =>
@@ -204,7 +209,9 @@ const availableVehicles = vehicles.filter(
   (item: any) => item.vehicleStatus === "Available"
 ).length;
   const openTickets = tickets.filter((item: any) => item.status === "OPEN").length;
-  const processingRefunds = refunds.filter((item: any) => item.refundStatus === "PROCESSING").length;
+  const processingRefunds = refunds.filter((item: any) =>
+    item.refundStatus === "PROCESSING" || item.refundStatus === "PENDING"
+  ).length;
   const activeHubs = hubs.filter((item: any) => item.status === "Active").length;
   const lowBatteryVehicles = iotData.filter((item: any) => item.batteryPercentage <= 20).length;
   const geofenceAlerts = iotData.filter((item: any) => item.alertType).length;

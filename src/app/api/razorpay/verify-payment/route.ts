@@ -130,7 +130,7 @@ export async function POST(req: Request) {
       );
     }
 
-        const authRider = await Rider.findOne({
+    const authRider = await Rider.findOne({
       riderId: authBooking.riderId,
       $or: [
         { isDeleted: false },
@@ -263,7 +263,7 @@ export async function POST(req: Request) {
       );
     }
 
-        const rider = await Rider.findOne({
+    const rider = await Rider.findOne({
       riderId: booking.riderId,
       $or: [
         { isDeleted: false },
@@ -437,7 +437,7 @@ export async function POST(req: Request) {
       }
     );
 
-       let wallet = await Wallet.findOne({
+    let wallet = await Wallet.findOne({
       riderId: rider.riderId,
       $or: [
         { isDeleted: false },

@@ -340,7 +340,7 @@ const amountDue = bookingDone ? pendingAmount : payableAmount;
 
   const goToBikeStep = async () => {
   const validName = cleanName(riderName);
-   const validPhone = normalizeIndianPhone(riderPhone);
+  const validPhone = normalizeIndianPhone(riderPhone);
 
   if (!nameRegex.test(validName)) {
     setError("Enter a valid rider name.");
@@ -445,7 +445,7 @@ setStep(2);
       setError("");
       setMessage("");
 
-            const user = auth.currentUser;
+      const user = auth.currentUser;
       const token = firebaseIdToken || (await user?.getIdToken());
 
       if (!token) {
@@ -481,7 +481,7 @@ setStep(2);
         body: JSON.stringify({
           bookingId: newBookingId,
           userName: riderName,
-                    userPhone: normalizedPhone,
+          userPhone: normalizedPhone,
           riderId,
           vehicleId: currentBike.vehicleId,
 startHub: selectedHubData?.hubCode || currentBike.currentHub || hub,

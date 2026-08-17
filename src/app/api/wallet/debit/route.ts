@@ -11,6 +11,7 @@ import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 function normalizeRiderId(value: unknown): string {
   return String(value || "")
@@ -256,7 +257,7 @@ export async function POST(req: Request) {
 
           status: "Active",
 
-          isDeleted: false,
+          ...NOT_DELETED_FILTER,
 
           balance: {
             $gte: debitAmount,

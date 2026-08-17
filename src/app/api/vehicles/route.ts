@@ -545,7 +545,10 @@ export async function GET() {
     if (isAdmin) {
       const vehicles =
         await Vehicle.find({
-          isDeleted: false,
+          $or: [
+            { isDeleted: false },
+            { isDeleted: { $exists: false } },
+          ],
         })
           .sort({
             createdAt: -1,
@@ -564,7 +567,10 @@ export async function GET() {
      */
     const vehicles =
       await Vehicle.find({
-        isDeleted: false,
+        $or: [
+          { isDeleted: false },
+          { isDeleted: { $exists: false } },
+        ],
         isActive: true,
         vehicleStatus: "Available",
       })

@@ -69,7 +69,10 @@ export async function GET() {
     await connectDB();
 
     const bookings = await Booking.find({
-  isDeleted: false,
+  $or: [
+    { isDeleted: false },
+    { isDeleted: { $exists: false } },
+  ],
 }).sort({
   createdAt: -1,
 });
@@ -104,7 +107,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const bookingId = clean(body.bookingId);
     const userName = clean(body.userName);
-        const userPhone = normalizeIndianPhone(body.userPhone);
+    const userPhone = normalizeIndianPhone(body.userPhone);
     const bodyRiderId = clean(body.riderId);
     const vehicleId = clean(body.vehicleId);
     const startHub = clean(body.startHub);
@@ -147,7 +150,6 @@ if (existingBooking) {
 }
 
     if (!idRegex.test(bookingId)) errors.push("Valid booking ID is required.");
-
     if (
       !isAdminRequest &&
       !firebasePhoneMatches(firebaseUser, userPhone)
@@ -177,20 +179,17 @@ if (existingBooking) {
       session
     );
 
-    if (!rider) {
-      await session.abortTransaction();
-      await session.endSession();
-
-      return NextResponse.json(
-        {
-          success: false,
-          errors: [
-            "Rider is not registered. Please complete registration first.",
-          ],
-        },
-        { status: 404 }
-      );
-    }
+if (!rider) {
+  await session.abortTransaction();
+await session.endSession();
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["Rider is not registered. Please complete registration first."],
+    },
+    { status: 404 }
+  );
+}
 
 if (!isAdminRequest && !firebaseUserOwnsRider(firebaseUser, rider)) {
   await session.abortTransaction();

@@ -66,11 +66,36 @@ switch (period) {
   bookings,
   transactions,
 ] = await Promise.all([
-  Rider.find().lean(),
-  Vehicle.find().lean(),
-  Hub.find().lean(),
-  Booking.find().lean(),
-  Transaction.find().lean(),
+  Rider.find({
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  }).lean(),
+  Vehicle.find({
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  }).lean(),
+  Hub.find({
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  }).lean(),
+  Booking.find({
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  }).lean(),
+  Transaction.find({
+    $or: [
+      { isDeleted: false },
+      { isDeleted: { $exists: false } },
+    ],
+  }).lean(),
 ]);
 
     const filteredBookings = bookings.filter(
@@ -93,7 +118,7 @@ t.transactionType==="Booking Payment"
 0
 );
 
-        const activeRides = filteredBookings.filter(
+    const activeRides = filteredBookings.filter(
       (b) =>
         b.rideStatus === "Booked" ||
         b.rideStatus === "Reserved" ||
