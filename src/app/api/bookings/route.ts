@@ -106,7 +106,8 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const bookingId = clean(body.bookingId);
-    const userName = clean(body.userName);
+    const submittedName = clean(body.userName);
+    let userName = submittedName;
     const userPhone = normalizeIndianPhone(body.userPhone);
     const bodyRiderId = clean(body.riderId);
     const vehicleId = clean(body.vehicleId);
@@ -247,6 +248,8 @@ await session.endSession();
   );
 }
 
+userName = clean(rider.fullName);
+
 if (rider.activeRide) {
   await session.abortTransaction();
 await session.endSession();
@@ -256,30 +259,6 @@ await session.endSession();
       errors: ["You already have an active ride."],
     },
     { status: 409 }
-  );
-}
-
-/*
-|--------------------------------------------------------------------------
-| Validate Rider Identity
-|--------------------------------------------------------------------------
-*/
-
-if (
-  rider.fullName.trim().toLowerCase() !==
-  userName.trim().toLowerCase()
-) { 
-  await session.abortTransaction();
-  await session.endSession();
-
-  return NextResponse.json(
-    {
-      success: false,
-      errors: [
-        "Rider details do not match the registered account.",
-      ],
-    },
-    { status: 403 }
   );
 }
 
