@@ -93,12 +93,14 @@ t.transactionType==="Booking Payment"
 0
 );
 
-    const activeRides = filteredBookings.filter(
-  (b) =>
-    b.rideStatus === "Booked" ||
-    b.rideStatus === "In Ride" ||
-    b.rideStatus === "Started"
-).length;
+        const activeRides = filteredBookings.filter(
+      (b) =>
+        b.rideStatus === "Booked" ||
+        b.rideStatus === "Reserved" ||
+        b.rideStatus === "Payment Pending" ||
+        b.rideStatus === "Ready For Pickup" ||
+        b.rideStatus === "In Ride"
+    ).length;
 
     const completedRides = filteredBookings.filter(
       (b) => b.rideStatus === "Completed"

@@ -130,9 +130,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const authRider = await Rider.findOne({
+        const authRider = await Rider.findOne({
       riderId: authBooking.riderId,
-      isDeleted: false,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
     });
 
     if (!authRider) {
@@ -260,9 +263,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const rider = await Rider.findOne({
+        const rider = await Rider.findOne({
       riderId: booking.riderId,
-      isDeleted: false,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
     }).session(session);
 
     if (!rider) {
@@ -431,10 +437,13 @@ export async function POST(req: Request) {
       }
     );
 
-    let wallet = await Wallet.findOne({
-  riderId: rider.riderId,
-  isDeleted: false,
-}).session(session);
+       let wallet = await Wallet.findOne({
+      riderId: rider.riderId,
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
+    }).session(session);
 
 if (!wallet) {
   const [createdWallet] = await Wallet.create(

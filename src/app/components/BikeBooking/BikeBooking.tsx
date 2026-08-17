@@ -97,6 +97,25 @@ const formatINR = (amount: number) =>
 
 const cleanName = (value: string) => value.trim().replace(/\s+/g, " ");
 const cleanDigits = (value: string) => value.replace(/\D/g, "");
+const normalizeIndianPhone = (value: string) => {
+  const digits = cleanDigits(value);
+
+  if (!digits) return "";
+
+  if (digits.length === 12 && digits.startsWith("91")) {
+    return digits.slice(2);
+  }
+
+  if (digits.length === 10) {
+    return digits;
+  }
+
+  if (digits.length > 10) {
+    return digits.slice(-10);
+  }
+
+  return digits;
+};
 const amount = (value: unknown) => {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : 0;
@@ -321,7 +340,7 @@ const amountDue = bookingDone ? pendingAmount : payableAmount;
 
   const goToBikeStep = async () => {
   const validName = cleanName(riderName);
-  const validPhone = cleanDigits(riderPhone).slice(0, 10);
+   const validPhone = normalizeIndianPhone(riderPhone);
 
   if (!nameRegex.test(validName)) {
     setError("Enter a valid rider name.");
@@ -426,7 +445,7 @@ setStep(2);
       setError("");
       setMessage("");
 
-      const user = auth.currentUser;
+            const user = auth.currentUser;
       const token = firebaseIdToken || (await user?.getIdToken());
 
       if (!token) {
@@ -434,7 +453,22 @@ setStep(2);
         return;
       }
 
+      const normalizedPhone =
+        normalizeIndianPhone(riderPhone) ||
+        normalizeIndianPhone(user?.phoneNumber || "");
+
+      if (!phoneRegex.test(normalizedPhone)) {
+        setError("Enter a valid 10 digit Indian mobile number.");
+        return;
+      }
+
+      if (!riderId) {
+        setError("Rider profile not loaded. Please refresh and try again.");
+        return;
+      }
+
       setFirebaseIdToken(token);
+      setRiderPhone(normalizedPhone);
 
       const newBookingId = "BK-" + Date.now();
 
@@ -447,7 +481,7 @@ setStep(2);
         body: JSON.stringify({
           bookingId: newBookingId,
           userName: riderName,
-          userPhone: riderPhone,
+                    userPhone: normalizedPhone,
           riderId,
           vehicleId: currentBike.vehicleId,
 startHub: selectedHubData?.hubCode || currentBike.currentHub || hub,
