@@ -591,6 +591,7 @@ export async function GET() {
             "vehicleModel",
             "batteryType",
             "registrationType",
+            "hourlyRate",
             "dailyRate",
             "weeklyRate",
             "monthlyRate",
