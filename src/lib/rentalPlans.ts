@@ -34,10 +34,14 @@ export function rtoTenureMonths(vehicleMonths?: unknown) {
     : RTO_PLAN.tenureMonths;
 }
 
-export function rtoInstallment(vehicleDailyRate?: unknown) {
-  return rtoDailyRate(vehicleDailyRate) * RTO_PLAN.billingDays;
+export function rtoInstallment(_vehicleDailyRate?: unknown) {
+  return rtoDailyRate();
 }
 
 export function rtoContractValue(vehicleDailyRate?: unknown, months?: unknown) {
-  return rtoInstallment(vehicleDailyRate) * rtoTenureMonths(months);
+  return (
+    rtoDailyRate(vehicleDailyRate) *
+    RTO_PLAN.billingDays *
+    rtoTenureMonths(months)
+  );
 }

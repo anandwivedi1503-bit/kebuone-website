@@ -390,9 +390,8 @@ export default function RentToOwnBooking() {
           Own your EVUDDY in {RTO_PLAN.tenureMonths} months
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-          Fixed plan: {formatINR(dailyRate)} per day for {tenureMonths} months. First payment is 30 days (
-          {formatINR(installment)}) plus 5% GST. There is no security deposit on Rent to Own. After {tenureMonths}{" "}
-          successful monthly installments, ownership of the scooter transfers to you.
+          Fixed plan: {formatINR(dailyRate)} per day for {tenureMonths} months. Pay {formatINR(dailyRate)} plus 5% GST now.
+          There is no security deposit. After {tenureMonths} months of successful payments, ownership of the scooter transfers to you.
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -401,7 +400,7 @@ export default function RentToOwnBooking() {
             <p className="mt-1 text-xl font-black">{formatINR(dailyRate)}</p>
           </div>
           <div className="rounded-2xl bg-white p-4">
-            <p className="text-xs font-bold uppercase text-slate-400">First 30 days</p>
+            <p className="text-xs font-bold uppercase text-slate-400">Pay now</p>
             <p className="mt-1 text-xl font-black">{formatINR(installment)}</p>
           </div>
           <div className="rounded-2xl bg-white p-4">
@@ -572,9 +571,8 @@ export default function RentToOwnBooking() {
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
-              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months (
-              {formatINR(installment)} every 30 days). GST at 5% (CGST 2.5% + SGST 2.5%) applies on each
-              installment. Rent to Own has no security deposit. After successful completion, ownership
+              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months. Today I pay {formatINR(dailyRate)} plus 5% GST
+              (CGST 2.5% + SGST 2.5%). Rent to Own has no security deposit. After successful completion, ownership
               of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
             </label>
             <div className="flex gap-3">
@@ -602,9 +600,9 @@ export default function RentToOwnBooking() {
               <p>Vehicle: {selectedBike} {currentBike?.vehicleModel ? `· ${currentBike.vehicleModel}` : ""}</p>
               <p>Registration: {currentBike?.registrationNumber || "-"}</p>
               <p>City / hub: {city} / {selectedHub?.hubName || hub}</p>
-              <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months ({tenureMonths * 30} billed days)</p>
+              <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months</p>
               <p>Contract rental value: {formatINR(contractValue)}</p>
-              <p>First installment: {formatINR(installment)}</p>
+              <p>Amount now: {formatINR(installment)} + 5% GST</p>
               <p>CGST 2.5%: {formatINR(tax.cgstAmount)} | SGST 2.5%: {formatINR(tax.sgstAmount)}</p>
               <p>Security deposit: None for Rent to Own</p>
               <p>Payable now: {formatINR(payableAmount)}</p>
@@ -617,7 +615,7 @@ export default function RentToOwnBooking() {
               </p>
             </div>
             <div className="rounded-2xl bg-[#0B1B16] p-5 text-white">
-              <p>Payable now (first installment + GST)</p>
+              <p>Payable now ({formatINR(dailyRate)} + GST)</p>
               <p className="text-3xl font-black">{formatINR(payableAmount)}</p>
               <p className="mt-2 text-sm text-white/70">
                 {formatINR(installment)} + {formatINR(tax.gstAmount)} GST · no deposit
@@ -644,10 +642,11 @@ export default function RentToOwnBooking() {
             <p>Booking ID: <b>{bookingId}</b></p>
             {certificateNumber ? <p>Certificate: <b>{certificateNumber}</b></p> : null}
             <div className="rounded-2xl bg-[#F7FBF8] p-4 text-sm">
-              <p>Plan: {formatINR(dailyRate)}/day × 30 days = {formatINR(installment)}</p>
+              <p>Rent to Own: {formatINR(dailyRate)} per day</p>
+              <p>Amount: {formatINR(installment)}</p>
               <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)}</p>
               <p>No security deposit on Rent to Own</p>
-              <p className="mt-2 font-semibold">Amount to pay: {formatINR(pendingAmount || payableAmount)}</p>
+              <p className="mt-2 font-semibold">Pay now: {formatINR(pendingAmount || payableAmount)}</p>
             </div>
             {!paymentSuccess ? (
               <button
