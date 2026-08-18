@@ -19,6 +19,7 @@ import {
   Handshake,
   Headphones,
   IndianRupee,
+  KeyRound,
   LifeBuoy,
   MapPin,
   Moon,
@@ -174,7 +175,7 @@ const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
   loadDashboard();
 
-  const timer = setInterval(loadDashboard, 10000);
+  const timer = setInterval(loadDashboard, 30000);
 
   return () => clearInterval(timer);
 }, []);
@@ -570,6 +571,7 @@ time:formatActivityTime(p.createdAt)
   { title: "Support", description: "Tickets & Refunds", dashboard: "support", icon: Headphones, tone: "bg-red-50 text-red-600" },
   { title: "IoT", description: "Live Tracking", dashboard: "iot", icon: Cpu, tone: "bg-cyan-50 text-cyan-600" },
   { title: "Bookings", description: "Ride Management", dashboard: "bookings", icon: BookOpen, tone: "bg-orange-50 text-orange-600" },
+  { title: "Rent to Own", description: "18-month ownership plans", dashboard: "renttoown", icon: KeyRound, tone: "bg-emerald-50 text-emerald-700" },
   { title: "Partners", description: "Franchise Requests", dashboard: "partner", icon: Handshake, tone: "bg-indigo-50 text-indigo-600" },
   { title: "KYC", description: "Verification Center", dashboard: "kyc", icon: BadgeCheck, tone: "bg-teal-50 text-teal-600" },
   {

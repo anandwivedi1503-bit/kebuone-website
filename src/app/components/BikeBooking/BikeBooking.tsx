@@ -11,6 +11,9 @@ import {
   ReceiptText,
   ShieldCheck,
 } from "lucide-react";
+import Link from "next/link";
+import { gstBreakdown } from "@/lib/gst";
+import { CATALOG_RATES, RTO_PLAN, catalogRate } from "@/lib/rentalPlans";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -306,19 +309,20 @@ const hubValuesMatch = (bikeHub: string, hubKey: string) => {
   return bikeHub.includes(hubKey) || hubKey.includes(bikeHub);
 };
 
+const availableBikes = vehicles.filter((bike) => {
+  const status = normalizeText(bike.vehicleStatus);
+  return status === "available" || status === "";
+});
+
+const hubMatchedBikes = availableBikes.filter((bike) => {
+  const bikeHub = normalizeText(bike.currentHub);
+  return selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey));
+});
+
 const filteredBikes =
   selectedHubKeys.length === 0
     ? []
-    : vehicles
-        .filter((bike) => {
-          const bikeHub = normalizeText(bike.currentHub);
-          const status = normalizeText(bike.vehicleStatus);
-
-          return (
-            (status === "available" || !status) &&
-            selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey))
-          );
-        })
+    : (hubMatchedBikes.length > 0 ? hubMatchedBikes : availableBikes)
         .filter((bike) => {
           if (!bikeSearch.trim()) return true;
 
@@ -335,17 +339,16 @@ const filteredBikes =
             amount(a.batteryPercentage)
         );
 const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
-  if (!bike) return 0;
-  if (mode === "Hourly") return amount(bike.hourlyRate);
-  if (mode === "Daily") return amount(bike.dailyRate);
-  if (mode === "Weekly") return amount(bike.weeklyRate);
-  return amount(bike.monthlyRate);
+  if (mode === "Hourly") return catalogRate("Hourly", bike?.hourlyRate);
+  if (mode === "Daily") return catalogRate("Daily", bike?.dailyRate);
+  if (mode === "Weekly") return catalogRate("Weekly", bike?.weeklyRate);
+  return catalogRate("Monthly", bike?.monthlyRate);
 };
 
 const rentalAmount = getPlanRate(currentBike, rentalMode);
-
+const tax = gstBreakdown(rentalAmount);
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
-const payableAmount = rentalAmount + securityDeposit;
+const payableAmount = tax.totalWithGst + securityDeposit;
 const amountDue = bookingDone ? pendingAmount : payableAmount;
 
   useEffect(() => {
@@ -995,9 +998,28 @@ border
 border-white
 p-6
 md:p-10
-shadow-[0_40px_120px_rgba(15,23,42,.12)]
+"shadow-[0_40px_120px_rgba(15,23,42,.12)]
 "
           >
+            <div className="mb-6 rounded-[24px] border border-[#18B368]/15 bg-[#F7FBF8] p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Rental prices</p>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Hourly {formatINR(CATALOG_RATES.Hourly)}</span>
+                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Daily {formatINR(CATALOG_RATES.Daily)}</span>
+                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Weekly {formatINR(CATALOG_RATES.Weekly)}</span>
+                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Monthly {formatINR(CATALOG_RATES.Monthly)}</span>
+              </div>
+              <Link
+                href="/rent-to-own"
+                className="mt-3 flex items-center justify-between rounded-2xl bg-[#0B1B16] px-4 py-3 text-white"
+              >
+                <span>
+                  <span className="block text-xs uppercase tracking-[0.16em] text-[#6EE7A8]">Own the scooter</span>
+                  <span className="font-bold">Rent to Own {formatINR(RTO_PLAN.dailyRate)}/day · {RTO_PLAN.tenureMonths} months</span>
+                </span>
+                <span className="text-sm font-semibold">Open →</span>
+              </Link>
+            </div>
             {step === 1 && (
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="Rider Name *">
@@ -1314,23 +1336,37 @@ focus:ring-[#22C55E]/10
                       key={item}
                       type="button"
                       onClick={() => setRentalMode(item)}
-                      className={`h-14 rounded-2xl border font-bold ${
+                      className={`min-h-16 rounded-2xl border px-2 py-2 font-bold ${
                         rentalMode === item
 ? "border-[#18B368] bg-gradient-to-r from-[#16A34A] to-[#18B368] text-white shadow-lg"
 : "border-slate-200 bg-white text-slate-700 hover:border-[#22C55E]/40"
                       }`}
                     >
-                      {item}
+                      <span className="block text-sm sm:text-base">{item}</span>
+                      <span className={`block text-xs font-semibold ${rentalMode === item ? "text-white/90" : "text-slate-500"}`}>
+                        {formatINR(CATALOG_RATES[item])}
+                      </span>
                     </button>
                   ))}
                 </div>
+
+                <Link
+                  href="/rent-to-own"
+                  className="mb-5 flex min-h-16 items-center justify-between rounded-2xl border border-[#18B368]/30 bg-[#0B1B16] px-4 py-3 text-white"
+                >
+                  <span>
+                    <span className="block text-sm font-bold">Rent to Own</span>
+                    <span className="text-xs text-white/70">{formatINR(RTO_PLAN.dailyRate)} per day for {RTO_PLAN.tenureMonths} months, then the scooter is yours</span>
+                  </span>
+                  <span className="text-sm font-bold text-[#6EE7A8]">Choose →</span>
+                </Link>
 
                    {loading ? (
   <Empty text="Loading available scooters..." />
 ) : !hub ? (
   <Empty text="Choose your pickup hub to view available scooters." />
 ) : filteredBikes.length === 0 ? (
-  <Empty text="No available scooters found for this hub. In Vehicle Management set vehicleStatus to Available, clear currentBookingId, and set currentHub to this hub code (for example 01)." />
+  <Empty text="No scooters are marked Available at this hub right now. Ask admin to set the bike to Available and currentHub to this hub code." />
 ) : (              
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 ">
                     {filteredBikes.map((bike) => {
@@ -1563,7 +1599,8 @@ BOOKING REVIEW
 <h2
 className="
 mt-5
-text-4xl
+text-3xl
+sm:text-4xl
 font-black
 tracking-[-0.03em]
 text-[#0F172A]
@@ -1612,7 +1649,8 @@ TOTAL PAYABLE
 <p
 className="
 mt-3
-text-[42px]
+text-3xl
+sm:text-[42px]
 font-black
 tracking-[-0.03em]
 text-[#16A34A]
@@ -1625,7 +1663,7 @@ text-[#16A34A]
 
 <p className="mt-3 text-slate-500">
 
-Includes refundable security deposit of
+Includes CGST 2.5% + SGST 2.5% on rental, plus a refundable security deposit of
 
 <strong className="text-[#16A34A]">
 
@@ -1695,6 +1733,21 @@ text-[#0F172A]
     <Summary
       label="Rental Amount"
       value={formatINR(rentalAmount)}
+    />
+
+    <Summary
+      label="CGST 2.5%"
+      value={formatINR(tax.cgstAmount)}
+    />
+
+    <Summary
+      label="SGST 2.5%"
+      value={formatINR(tax.sgstAmount)}
+    />
+
+    <Summary
+      label="GST Total (5%)"
+      value={formatINR(tax.gstAmount)}
     />
 
     <Summary
@@ -2159,7 +2212,9 @@ text-[#0F172A]
   value={`${amount(currentBike?.batteryPercentage)}%`}
 />
                 <Summary label="Rental" value={formatINR(rentalAmount)} />
-                <Summary label="Deposit" value={formatINR(securityDeposit)} />
+                <Summary label="CGST 2.5%" value={formatINR(tax.cgstAmount)} />
+                <Summary label="SGST 2.5%" value={formatINR(tax.sgstAmount)} />
+                <Summary label="Deposit (no GST)" value={formatINR(securityDeposit)} />
                 <Summary label="Grand Total" value={formatINR(payableAmount)} strong />
                 <div
   className="
@@ -2510,4 +2565,4 @@ strong
       </span>
     </div>
   );
- }
+}

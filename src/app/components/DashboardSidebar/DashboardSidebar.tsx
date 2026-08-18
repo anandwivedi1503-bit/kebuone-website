@@ -23,6 +23,7 @@ import {
   RefreshCcw,
     Wallet,
   MapPin,
+  KeyRound,
 } from "lucide-react";
 
 type Props = {
@@ -111,6 +112,11 @@ const menus = [
     id: "bookings",
     name: "Booking Management",
     icon: CalendarDays,
+  },
+  {
+    id: "renttoown",
+    name: "Rent to Own",
+    icon: KeyRound,
   },
   {
     id: "transactions",

@@ -1410,7 +1410,7 @@ function buildExistingRiderResponse(
           true,
 
         redirectTo:
-          "/book-bike",
+          "/ride-options",
 
         errorCode:
           "RIDER_ALREADY_APPROVED",

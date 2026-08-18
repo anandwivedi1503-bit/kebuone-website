@@ -6,8 +6,8 @@ import { ArrowRight, Bike, KeyRound } from "lucide-react";
 import Link from "next/link";
 
 import { auth } from "@/lib/firebase";
-import Navbar from "../Navbar/Navbar";
-import Footer from "../components/Footer/Footer";
+import Navbar from "@/app/Navbar/Navbar";
+import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN, rtoInstallment } from "@/lib/rentalPlans";
 
 const formatINR = (amount: number) =>
@@ -100,7 +100,7 @@ export default function RideOptionsPage() {
 
         <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
           <Link
-            href="/book-bike"
+            href="/book-bike?flow=rental"
             className="group rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 sm:p-8"
           >
             <span className="inline-flex rounded-full bg-[#18B368]/10 px-3 py-1 text-xs font-bold text-[#18B368]">

@@ -281,7 +281,7 @@ Become a Partner
 </Link>
 
 
-<Link href="/register">
+<Link href="/ride-options">
 
 <button
 className="
@@ -484,7 +484,7 @@ Become a Partner
 </Link>
 
 <Link
-href="/register"
+href="/ride-options"
 onClick={()=>setMenuOpen(false)}
 >
 
