@@ -1,4 +1,4 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { denyStaffDeletes, isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
@@ -93,6 +93,9 @@ export async function DELETE(
         if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
+    const blockedDelete = await denyStaffDeletes();
+    if (blockedDelete) return blockedDelete;
+
         
     await connectDB();
 

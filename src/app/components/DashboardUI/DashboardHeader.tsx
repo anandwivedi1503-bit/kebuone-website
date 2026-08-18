@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import {
   CalendarDays,
   Clock3,
-  Bell,
+  Printer,
   ShieldCheck,
 } from "lucide-react";
 
@@ -67,9 +67,10 @@ export default function DashboardHeader({
       bg-white/80
       backdrop-blur-2xl
       shadow-[0_25px_60px_rgba(15,23,42,0.08)]
-      p-8
+      p-5
+      sm:p-8
       lg:p-10
-      mb-10
+      mb-8
       "
     >
       <div className="flex flex-col xl:flex-row justify-between gap-10">
@@ -84,7 +85,8 @@ export default function DashboardHeader({
 
           <h1
             className="
-            text-4xl
+            text-3xl
+            sm:text-4xl
             md:text-5xl
             xl:text-6xl
             font-black
@@ -94,7 +96,7 @@ export default function DashboardHeader({
             {title}
           </h1>
 
-          <p className="mt-5 max-w-3xl text-slate-500 leading-8 text-lg">
+          <p className="mt-4 max-w-3xl text-sm leading-7 text-slate-500 sm:text-lg sm:leading-8">
             {subtitle}
           </p>
 
@@ -167,6 +169,9 @@ export default function DashboardHeader({
             </div>
 
             <button
+              type="button"
+              onClick={() => window.print()}
+              title="Print this dashboard"
               className="
               w-12
               h-12
@@ -180,7 +185,7 @@ export default function DashboardHeader({
               justify-center
               "
             >
-              <Bell size={20} />
+              <Printer size={20} />
             </button>
 
           </div>

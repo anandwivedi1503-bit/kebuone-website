@@ -686,18 +686,27 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                   </button>
 
                   {notificationOpen && (
-                    <div className={`absolute right-0 z-50 mt-3 max-w-[360] w-[calc(100vw-2rem)] overflow-hidden rounded-[28px] sm:w-80  ${menuClass}`}>
+                    <div
+                      className={`fixed left-4 right-4 top-24 z-[80] max-h-[min(70vh,28rem)] overflow-y-auto rounded-[24px] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-80 ${menuClass}`}
+                    >
                       <div className={`border-b px-5 py-4 ${borderClass}`}>
                         <h3 className={`font-bold ${headingClass}`}>Notifications</h3>
+                        <p className={`mt-1 text-xs ${mutedClass}`}>Live bookings, refunds, swaps and partners</p>
                       </div>
 
                       <div className={`divide-y ${dividerClass}`}>
-                        {notifications.map((item) => (
+                        {notifications.length === 0 ? (
+                          <p className={`px-5 py-6 text-sm ${mutedClass}`}>
+                            No new activity yet. New bookings and refunds will appear here.
+                          </p>
+                        ) : (
+                          notifications.map((item) => (
                           <button key={item.id} className="w-full px-5 py-4 text-left transition hover:bg-rose-50/70">
                             <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
                             <p className={`mt-1 text-xs ${mutedClass}`}>{item.time}</p>
                           </button>
-                        ))}
+                          ))
+                        )}
                       </div>
                     </div>
                   )}
@@ -725,7 +734,7 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
 
                     <div className="hidden text-left md:block">
                       <h4 className={`text-sm font-bold leading-4 ${headingClass}`}>Administrator</h4>
-                      <p className={`mt-0.5 text-xs ${mutedClass}`}>Super Admin</p>
+                      <p className={`mt-0.5 text-xs ${mutedClass}`}>Full system access</p>
                     </div>
 
                     <ChevronDown size={17} className={mutedClass} />

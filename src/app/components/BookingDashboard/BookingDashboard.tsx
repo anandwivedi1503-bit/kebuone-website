@@ -577,6 +577,13 @@ Export CSV
 </button>
 
 <button
+onClick={() => window.print()}
+className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700"
+>
+Print / PDF
+</button>
+
+<button
 onClick={fetchBookings}
 className="
 rounded-xl

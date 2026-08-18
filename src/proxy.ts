@@ -13,18 +13,7 @@ function hexToBytes(hex: string) {
   return bytes;
 }
 
-async function isValidSessionToken(token: string | undefined, secret: string) {
-  if (!token || !secret) return false;
-
-  const [expiresAt, nonce, signature] = token.split(".");
-  if (!expiresAt || !nonce || !signature || !/^\d+$/.test(expiresAt)) {
-    return false;
-  }
-
-  if (Number(expiresAt) < Date.now()) {
-    return false;
-  }
-
+async function hmacValid(secret: string, payload: string, signature: string) {
   const key = await crypto.subtle.importKey(
     "raw",
     new TextEncoder().encode(secret),
@@ -37,8 +26,34 @@ async function isValidSessionToken(token: string | undefined, secret: string) {
     "HMAC",
     key,
     hexToBytes(signature),
-    new TextEncoder().encode(`${expiresAt}.${nonce}`)
+    new TextEncoder().encode(payload)
   );
+}
+
+async function isValidSessionToken(token: string | undefined, secret: string) {
+  if (!token || !secret) return false;
+
+  const parts = token.split(".");
+
+  if (parts.length === 3) {
+    const [expiresAt, nonce, signature] = parts;
+    if (!expiresAt || !nonce || !signature || !/^\d+$/.test(expiresAt)) {
+      return false;
+    }
+    if (Number(expiresAt) < Date.now()) return false;
+    return hmacValid(secret, `${expiresAt}.${nonce}`, signature);
+  }
+
+  if (parts.length === 4) {
+    const [expiresAt, nonce, body, signature] = parts;
+    if (!expiresAt || !nonce || !body || !signature || !/^\d+$/.test(expiresAt)) {
+      return false;
+    }
+    if (Number(expiresAt) < Date.now()) return false;
+    return hmacValid(secret, `${expiresAt}.${nonce}.${body}`, signature);
+  }
+
+  return false;
 }
 
 export async function proxy(req: NextRequest) {

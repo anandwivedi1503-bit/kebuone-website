@@ -8,6 +8,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import DashboardActions from "../DashboardUI/DashboardActions";
 
 type BookingRow = {
   _id: string;
@@ -78,6 +79,20 @@ export default function RentToOwnDashboard() {
         <KPICard title="Transferred" value={String(transferred)} subtitle="Owned by rider" icon="✅" color="green" />
         <KPICard title="Collected" value={`₹${collected.toLocaleString("en-IN")}`} subtitle="Received" icon="₹" color="yellow" />
       </KPIGrid>
+
+      <div className="mb-6">
+        <DashboardActions
+          filename="RentToOwn.csv"
+          rows={rto.map((item) => ({
+            BookingID: item.bookingId,
+            Rider: item.userName,
+            Vehicle: item.vehicleId,
+            Certificate: item.rtoCertificateNumber,
+            Pending: item.pendingAmount,
+            Status: item.rideStatus,
+          }))}
+        />
+      </div>
 
       <DashboardCard>
         <div className="overflow-x-auto">

@@ -7,6 +7,7 @@ import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 
@@ -280,6 +281,21 @@ color="yellow"
 title="Refund Requests"
 
 subtitle="Review all customer refund requests."
+
+rightContent={
+  <DashboardActions
+    filename="Refunds.csv"
+    onRefresh={fetchRefunds}
+    rows={filteredRefunds.map((refund) => ({
+      RefundID: refund.refundId,
+      BookingID: refund.bookingId,
+      TicketID: refund.ticketId,
+      Amount: refund.amount,
+      Status: refund.refundStatus,
+      Gateway: refund.paymentGateway,
+    }))}
+  />
+}
 
 />
 
