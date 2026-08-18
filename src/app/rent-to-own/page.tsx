@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
-import Navbar from "../Navbar/Navbar";
-import Footer from "../components/Footer/Footer";
-import RentToOwnBooking from "../components/RentToOwn/RentToOwnBooking";
+import Navbar from "@/app/Navbar/Navbar";
+import Footer from "@/app/components/Footer/Footer";
+import RentToOwnBooking from "@/app/components/RentToOwn/RentToOwnBooking";
 
 export default function RentToOwnPage() {
   const [allowed, setAllowed] = useState(false);
