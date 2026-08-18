@@ -18,6 +18,12 @@ import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
+import {
+  CGST_RATE,
+  SGST_RATE,
+  getBookingPayableAmount,
+  gstShareForPayment,
+} from "@/lib/gst";
 
 export const runtime = "nodejs";
 
@@ -376,9 +382,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const payableAmount =
-      Number(booking.securityDeposit || 0) +
-      Number(booking.totalAmount || 0);
+    const payableAmount = getBookingPayableAmount(booking);
 
     const oldReceivedAmount = Number(booking.receivedAmount || 0);
     const remainingAmount = Math.max(
@@ -399,6 +403,22 @@ export async function POST(req: Request) {
       );
     }
 
+    if (
+      booking.rentalMode === "Rent To Own" &&
+      Number(paidAmount.toFixed(2)) !== Number(remainingAmount.toFixed(2))
+    ) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rent to Own requires the full installment in one payment.",
+        },
+        { status: 400 }
+      );
+    }
+
     const newReceivedAmount = Number(
       (oldReceivedAmount + paidAmount).toFixed(2)
     );
@@ -413,6 +433,12 @@ export async function POST(req: Request) {
     const invoiceNumber = `INV-${new Date().getFullYear()}-${
       booking.bookingId
     }`;
+    const taxOnPayment = gstShareForPayment({
+      rentalAmount: booking.rateApplied || booking.totalAmount,
+      gstAmount: booking.gstAmount,
+      previousReceived: oldReceivedAmount,
+      paidNow: paidAmount,
+    });
 
     await Transaction.create(
       [
@@ -422,7 +448,11 @@ export async function POST(req: Request) {
           userId: String(booking.userId || booking.userPhone || "Rider"),
           userName: booking.userName || "Rider",
           amount: paidAmount,
-          gstAmount: Number((paidAmount * 0.05).toFixed(2)),
+          gstAmount: taxOnPayment.gstAmount,
+          cgstAmount: taxOnPayment.cgstAmount,
+          sgstAmount: taxOnPayment.sgstAmount,
+          cgstRate: CGST_RATE,
+          sgstRate: SGST_RATE,
           paymentMethod: "Razorpay",
           razorpayOrderId,
           razorpayPaymentId,
@@ -476,7 +506,11 @@ if (!wallet) {
       transactionType: "Security Deposit Hold",
     }).session(session);
 
-    if (!existingDepositHold && pendingAmount <= 0) {
+    if (
+      !existingDepositHold &&
+      pendingAmount <= 0 &&
+      Number(booking.securityDeposit || 0) > 0
+    ) {
       wallet.securityDepositHold = Math.max(
         Number(wallet.securityDepositHold || 0),
         Number(booking.securityDeposit || 0)
@@ -542,6 +576,18 @@ if (!wallet) {
           invoiceGenerated: true,
           razorpayOrderId,
           razorpayPaymentId,
+          ...(booking.rentalMode === "Rent To Own" && pendingAmount <= 0
+            ? {
+                rtoInstallmentsPaid:
+                  Number(booking.rtoInstallmentsPaid || 0) + 1,
+                rentToOwnCompletedDays:
+                  Number(booking.rentToOwnCompletedDays || 0) + 30,
+                remainingRentToOwnDays: Math.max(
+                  0,
+                  Number(booking.remainingRentToOwnDays || 0) - 30
+                ),
+              }
+            : {}),
           remarks: `${booking.remarks || ""}
 
 Payment Verified

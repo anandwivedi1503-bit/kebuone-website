@@ -9,6 +9,7 @@ import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import { transactionCgst, transactionSgst } from "@/lib/gst";
 
 export default function RevenueDashboard(){
 
@@ -80,6 +81,16 @@ const totalRevenue = transactions.reduce(
 const totalGST = transactions.reduce(
   (sum, t) =>
     sum + Number(t.gstAmount || 0),
+  0
+);
+
+const totalCGST = transactions.reduce(
+  (sum, t) => sum + transactionCgst(t),
+  0
+);
+
+const totalSGST = transactions.reduce(
+  (sum, t) => sum + transactionSgst(t),
   0
 );
 
@@ -385,17 +396,13 @@ Number(txn.gstAmount || 0)
 
 <td className="px-6 py-5 text-center">
 
-₹{(
-Number(txn.gstAmount || 0) / 2
-).toFixed(2)}
+₹{transactionCgst(txn).toFixed(2)}
 
 </td>
 
  <td className="px-6 py-5 text-center">
 
-₹{(
-Number(txn.gstAmount || 0) / 2
-).toFixed(2)}
+₹{transactionSgst(txn).toFixed(2)}
 
  </td>
 
@@ -894,16 +901,16 @@ subtitle="Tax collection summary."
 
 <KPICard
 title="CGST"
-value={`₹${(totalGST/2).toFixed(2)}`}
-subtitle="Collected"
+value={`₹${totalCGST.toFixed(2)}`}
+subtitle="Collected @ 2.5%"
 icon="📘"
 color="blue"
 />
 
 <KPICard
 title="SGST"
-value={`₹${(totalGST/2).toFixed(2)}`}
-subtitle="Collected"
+value={`₹${totalSGST.toFixed(2)}`}
+subtitle="Collected @ 2.5%"
 icon="📗"
 color="green"
 />
@@ -911,7 +918,7 @@ color="green"
 <KPICard
 title="Total GST"
 value={`₹${totalGST.toFixed(2)}`}
-subtitle="Overall"
+subtitle="Collected @ 5%"
 icon="🧾"
 color="yellow"
 />
@@ -1210,6 +1217,10 @@ Payment
 <p><b>Amount :</b> ₹{Number(selectedTransaction.amount || 0).toLocaleString("en-IN")}</p>
 
 <p><b>GST :</b> ₹{Number(selectedTransaction.gstAmount || 0).toLocaleString("en-IN")}</p>
+
+<p><b>CGST 2.5% :</b> ₹{transactionCgst(selectedTransaction).toLocaleString("en-IN")}</p>
+
+<p><b>SGST 2.5% :</b> ₹{transactionSgst(selectedTransaction).toLocaleString("en-IN")}</p>
 
 <p><b>Refund :</b> ₹{Number(selectedTransaction.refundAmount || 0).toLocaleString("en-IN")}</p>
 

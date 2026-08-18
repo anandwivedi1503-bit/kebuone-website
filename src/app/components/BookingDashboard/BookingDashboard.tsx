@@ -46,7 +46,7 @@ const fetchBookings=async()=>{
 
 try{
 
-const res=await fetch("/api/bookings");
+const res=await fetch("/api/bookings", { cache: "no-store" });
 
 const data=await res.json();
 
@@ -574,6 +574,13 @@ hover:bg-green-700
 
 Export CSV
 
+</button>
+
+<button
+onClick={() => window.print()}
+className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700"
+>
+Print / PDF
 </button>
 
 <button

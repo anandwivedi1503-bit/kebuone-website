@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import DashboardCard from "../DashboardUI/DashboardCard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 
 type BookingRow = {
   bookingId?: string;
@@ -78,6 +79,16 @@ export default function AuditLogsDashboard() {
         title="Audit Logs"
         subtitle="Live activity from the same booking and payment records used across dashboards. Not dummy data."
       />
+      <div className="mb-6">
+        <DashboardActions
+          filename="AuditLogs.csv"
+          rows={rows.map((row) => ({
+            When: row.when,
+            Source: row.source,
+            Activity: row.detail,
+          }))}
+        />
+      </div>
       <DashboardCard>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">

@@ -14,7 +14,7 @@ export default function PageContainer({
       className="
       relative
       min-h-screen
-      overflow-hidden
+      overflow-x-hidden
       bg-[#F5F7FB]
       "
     >

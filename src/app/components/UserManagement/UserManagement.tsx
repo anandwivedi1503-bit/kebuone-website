@@ -7,6 +7,7 @@ import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 
@@ -791,6 +792,18 @@ export default function UserManagement() {
       <SectionHeader
         title="Rider Directory"
         subtitle="Search and manage rider accounts."
+        rightContent={
+          <DashboardActions
+            filename="Riders.csv"
+            rows={filteredRiders.map((rider: any) => ({
+              RiderID: rider.riderId,
+              Name: rider.fullName,
+              Phone: rider.phone,
+              Email: rider.email,
+              Status: rider.approvalStatus,
+            }))}
+          />
+        }
       />
 
       {/* ===================================================

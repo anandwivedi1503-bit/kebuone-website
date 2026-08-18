@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 export default function AdminLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +20,7 @@ export default function AdminLoginPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ password }),
+        body: JSON.stringify({ password, username }),
     });
 
     const data = await res.json();
@@ -45,8 +46,20 @@ router.refresh();
         </h1>
 
         <p className="mt-2 text-gray-500">
-          Enter admin password to open dashboard.
+          Super admin: password only. Staff: username + password.
         </p>
+
+        <input
+          type="text"
+          autoComplete="username"
+          value={username}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            setError("");
+          }}
+          placeholder="Username (staff only)"
+          className="mt-8 h-14 w-full rounded-xl border border-gray-200 px-4 text-[#0A1134] outline-none focus:border-[#FF165E]"
+        />
 
         <input
           type="password"

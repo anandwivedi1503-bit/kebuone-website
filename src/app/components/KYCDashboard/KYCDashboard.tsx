@@ -12,6 +12,7 @@ import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 
@@ -771,6 +772,17 @@ export default function KYCDashboard() {
       <SectionHeader
         title="KYC Applications"
         subtitle="Review submitted rider verification documents."
+        rightContent={
+          <DashboardActions
+            filename="KYC.csv"
+            rows={riders.map((rider: any) => ({
+              RiderID: rider.riderId,
+              Name: rider.fullName,
+              Phone: rider.phone,
+              KYC: rider.kycStatus || rider.approvalStatus,
+            }))}
+          />
+        }
       />
 
       {/* ===================================================

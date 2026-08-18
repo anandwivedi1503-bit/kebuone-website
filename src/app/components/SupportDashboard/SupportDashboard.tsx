@@ -7,6 +7,7 @@ import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 
@@ -180,6 +181,21 @@ color="green"
 title="Support Tickets"
 
 subtitle="Monitor and manage customer issues."
+
+rightContent={
+  <DashboardActions
+    filename="SupportTickets.csv"
+    onRefresh={() => window.location.reload()}
+    rows={tickets.map((ticket) => ({
+      TicketID: ticket.ticketId,
+      User: ticket.userId,
+      Category: ticket.category,
+      Priority: ticket.priority,
+      Status: ticket.status,
+      AssignedTo: ticket.assignedTo,
+    }))}
+  />
+}
 
 />
 

@@ -177,4 +177,20 @@ span {
 .text-white\/90 {
   color: rgba(255, 255, 255, 0.9) !important;
 }
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body,
+  html {
+    overflow: visible !important;
+  }
+}
                                                                               

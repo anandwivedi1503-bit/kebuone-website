@@ -37,6 +37,26 @@ amount: {
       default: 0,
     },
 
+    cgstAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    sgstAmount: {
+      type: Number,
+      default: 0,
+    },
+
+    cgstRate: {
+      type: Number,
+      default: 0.025,
+    },
+
+    sgstRate: {
+      type: Number,
+      default: 0.025,
+    },
+
     paymentMethod: {
   type: String,
   enum: [
@@ -246,6 +266,8 @@ TransactionSchema.pre("save", function (next) {
 
   this.amount = Math.max(0, this.amount || 0);
   this.gstAmount = Math.max(0, this.gstAmount || 0);
+  this.cgstAmount = Math.max(0, this.cgstAmount || 0);
+  this.sgstAmount = Math.max(0, this.sgstAmount || 0);
   this.refundAmount = Math.max(0, this.refundAmount || 0);
 
   next();

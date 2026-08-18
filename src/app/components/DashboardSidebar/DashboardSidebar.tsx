@@ -24,11 +24,14 @@ import {
     Wallet,
   MapPin,
   KeyRound,
+  Shield,
 } from "lucide-react";
 
 type Props = {
   activeDashboard: string;
   setActiveDashboard: (dashboard: string) => void;
+  allowedDashboards?: string[] | null;
+  canManageTeam?: boolean;
 };
 
 const menus = [
@@ -133,11 +136,22 @@ const menus = [
     name: "Refund Dashboard",
     icon: RefreshCcw,
   },
-
+  {
+    id: "audit",
+    name: "Audit Logs",
+    icon: BarChart3,
+  },
+  {
+    id: "team",
+    name: "Team Access",
+    icon: Shield,
+  },
 ];
 export default function DashboardSidebar({
   activeDashboard,
   setActiveDashboard,
+  allowedDashboards = null,
+  canManageTeam = false,
 }: Props) {
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -151,6 +165,7 @@ export default function DashboardSidebar({
         onClick={() => setMobileOpen(true)}
         className="
         lg:hidden
+        no-print
         fixed
         top-5
         left-5
@@ -210,6 +225,7 @@ to-[#15253D]
         ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
 
         lg:translate-x-0
+        no-print
         `}
       >
 
@@ -277,7 +293,12 @@ Enterprise Operations Center
           space-y-3
           "
         >
-        {menus.map((menu) => {
+        {(allowedDashboards
+          ? menus.filter((menu) =>
+              menu.id === "team" ? canManageTeam : allowedDashboards.includes(menu.id)
+            )
+          : menus.filter((menu) => (menu.id === "team" ? canManageTeam : true))
+        ).map((menu) => {
 
   const Icon = menu.icon;
 

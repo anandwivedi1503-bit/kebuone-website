@@ -1,4 +1,5 @@
 import {
+  denyStaffDeletes,
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
@@ -562,6 +563,9 @@ export async function DELETE(
     ) {
       return unauthorizedResponse();
     }
+    const blockedDelete = await denyStaffDeletes();
+    if (blockedDelete) return blockedDelete;
+
 
     await connectDB();
 

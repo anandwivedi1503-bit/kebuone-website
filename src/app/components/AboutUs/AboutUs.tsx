@@ -1,536 +1,219 @@
+import Link from "next/link";
+import {
+  ArrowRight,
+  Building2,
+  Leaf,
+  MapPinned,
+  ShieldCheck,
+  Sparkles,
+  Zap,
+} from "lucide-react";
+
+const facts = [
+  { label: "Hourly", value: "₹60" },
+  { label: "Daily", value: "₹230" },
+  { label: "Weekly", value: "₹1,610" },
+  { label: "Monthly", value: "₹6,900" },
+];
+
+const pillars = [
+  {
+    icon: Zap,
+    title: "Flexible EV rentals",
+    text: "Hourly to monthly plans with GST only on rental, plus a refundable deposit on normal bookings.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Rent to Own",
+    text: "₹280 a day for 18 months. Start with ₹280 + 5% GST. No security deposit. Full installment, then ownership.",
+  },
+  {
+    icon: Building2,
+    title: "Partners and fleets",
+    text: "Hubs, B2B fleets and delivery partners share one live operations platform.",
+  },
+  {
+    icon: MapPinned,
+    title: "Live operations",
+    text: "KYC, OTP pickup, GPS tracking and support so every ride is accountable.",
+  },
+];
+
+const journey = [
+  {
+    year: "2025",
+    title: "Founded",
+    text: "EVUDDY by Kebu One started to make electric scooters easy to book and own in Indian cities.",
+  },
+  {
+    year: "Now",
+    title: "Live platform",
+    text: "Riders register with phone OTP, choose a plan, pay on Razorpay, and pick up from hubs.",
+  },
+  {
+    year: "Next",
+    title: "More cities",
+    text: "Grow hubs, partners and Rent to Own so more riders can commute clean and build an asset.",
+  },
+];
+
 export default function AboutUs() {
   return (
-    <section className="bg-white">
-
-      {/* ================= HERO ================= */}
-
-<section className="relative overflow-hidden">
-
-  {/* Background */}
-
-  <div className="absolute inset-0 bg-gradient-to-br from-[#F6FFF8] via-white to-[#FFF7FB]" />
-
-  <div className="absolute -left-40 top-0 h-[500px] w-[500px] rounded-full bg-[#18B368]/10 blur-[130px]" />
-
-  <div className="absolute right-0 top-20 h-[500px] w-[500px] rounded-full bg-[#FF165E]/10 blur-[140px]" />
-
-  <div className="relative max-w-7xl mx-auto px-6 py-32">
-
-    <div className="max-w-4xl">
-
-      {/* Badge */}
-
-      <div className="inline-flex items-center gap-3 rounded-full border border-[#18B368]/20 bg-white px-6 py-3 shadow-lg">
-
-        <div className="h-3 w-3 rounded-full bg-[#18B368] animate-pulse" />
-
-        <span className="text-sm font-bold tracking-[0.18em] uppercase text-[#18B368]">
-
-          ABOUT EVUDDY
-
-        </span>
-
-      </div>
-
-      {/* Heading */}
-
-      <h1 className="mt-10 text-6xl md:text-7xl font-black leading-[1.05] tracking-[-0.05em] text-[#08112F]">
-
-        Building India's
-
-        <br />
-
-        <span className="bg-gradient-to-r from-[#16A34A] via-[#18B368] to-[#FF165E] bg-clip-text text-transparent">
-
-          Electric Mobility
-
-        </span>
-
-        <br />
-
-        Ecosystem
-
-      </h1>
-
-      {/* Description */}
-
-      <p className="mt-10 max-w-3xl text-xl leading-9 text-slate-600">
-
-        EVUDDY is building India's next-generation electric mobility ecosystem through
-
-        smart EV rentals,
-
-        B2B fleet solutions,
-
-        B2C mobility,
-
-        and Rent-to-Own programs that empower riders,
-
-        businesses and delivery partners.
-
-      </p>
-
-      {/* CTA */}
-
-      <div className="mt-12 flex flex-wrap gap-5">
-
-        <a
-          href="/ride-options"
-          className="rounded-full bg-gradient-to-r from-[#16A34A] to-[#18B368] px-9 py-4 font-bold text-white shadow-[0_18px_45px_rgba(24,179,104,.35)] transition-all duration-300 hover:-translate-y-1"
-        >
-
-          Become a Rider
-
-        </a>
-
-        <a
-          href="/partners"
-          className="rounded-full border border-[#18B368]/20 bg-white px-9 py-4 font-bold text-[#18B368] shadow-lg transition-all duration-300 hover:bg-[#18B368] hover:text-white"
-        >
-
-          Become a Partner
-
-        </a>
-
-      </div>
-
-    </div>
-
-  </div>
-  </section>
-  {/* ================= ABOUT EVUDDY ================= */}
-
-<section className="relative py-28 bg-white overflow-hidden">
-
-  <div className="absolute -right-44 top-10 h-[500px] w-[500px] rounded-full bg-[#18B368]/8 blur-[140px]" />
-
-  <div className="max-w-7xl mx-auto px-6">
-
-    <div className="grid lg:grid-cols-2 gap-20 items-center">
-
-      {/* LEFT */}
-
-      <div>
-
-        <div className="inline-flex items-center gap-3 rounded-full bg-[#F5FFF8] px-5 py-3">
-
-          <div className="h-3 w-3 rounded-full bg-[#18B368]" />
-
-          <span className="text-sm font-bold tracking-[0.15em] uppercase text-[#18B368]">
-
-            OUR STORY
-
-          </span>
-
+    <div className="bg-[#F7FBFA] text-[#0F172A]">
+      <section className="relative overflow-hidden">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(24,179,104,0.14),transparent_34%),radial-gradient(circle_at_90%_0%,rgba(236,42,140,0.08),transparent_28%)]" />
+        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-10">
+          <p className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/15 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-600 shadow-sm">
+            <Sparkles className="h-4 w-4 text-[#18B368]" />
+            ABOUT EVUDDY
+          </p>
+          <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
+            Electric mobility that is easy to book, and possible to own.
+          </h1>
+          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            EVUDDY is Kebu One&apos;s electric scooter platform for daily riders,
+            delivery partners and businesses. We combine rentals, Rent to Own,
+            hubs and live tracking in one product.
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/ride-options"
+              className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)]"
+            >
+              Book an EV <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              href="/partners"
+              className="inline-flex h-14 items-center justify-center rounded-full border border-slate-200 bg-white px-8 font-bold text-[#18B368]"
+            >
+              Become a partner
+            </Link>
+          </div>
         </div>
+      </section>
 
-        <h2 className="mt-8 text-5xl md:text-6xl font-black leading-tight tracking-[-0.04em] text-[#08112F]">
+      <section className="mx-auto grid max-w-6xl gap-3 px-4 pb-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
+        {facts.map((item) => (
+          <div
+            key={item.label}
+            className="rounded-[24px] border border-slate-100 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+              {item.label}
+            </p>
+            <p className="mt-2 text-2xl font-black text-[#18B368]">{item.value}</p>
+          </div>
+        ))}
+      </section>
 
-          About
+      <section className="bg-white py-14 sm:py-20">
+        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:px-10">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">
+              Our story
+            </p>
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+              Built for Indian cities
+            </h2>
+            <p className="mt-5 text-base leading-7 text-slate-600">
+              Commuting should not mean petrol costs, paperwork chaos or a scooter
+              you can never own. EVUDDY makes electric rides bookable in minutes
+              after KYC, with clear pricing and hub pickup.
+            </p>
+            <p className="mt-4 text-base leading-7 text-slate-600">
+              GST is 5% on rental only (CGST 2.5% + SGST 2.5%). Security deposit
+              on normal rentals is refundable and not taxed. Rent to Own has no
+              deposit.
+            </p>
+          </div>
+          <div className="rounded-[28px] bg-[#0F172A] p-7 text-white sm:p-10">
+            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#86EFAC]">
+              What we operate
+            </p>
+            <ul className="mt-6 space-y-4 text-sm leading-6 text-white/80 sm:text-base">
+              <li>Phone OTP registration and admin KYC approval</li>
+              <li>Flexible rental or 18-month Rent to Own</li>
+              <li>Razorpay checkout, wallets and live booking status</li>
+              <li>Hub pickup with OTP, GPS and support tickets</li>
+            </ul>
+          </div>
+        </div>
+      </section>
 
-          <span className="text-[#18B368]">
-
-            {" "}EVUDDY
-
-          </span>
-
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-10">
+        <h2 className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+          How EVUDDY works for you
         </h2>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {pillars.map((item) => (
+            <article
+              key={item.title}
+              className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+            >
+              <item.icon className="h-10 w-10 text-[#18B368]" />
+              <h3 className="mt-4 text-xl font-black">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
-        <p className="mt-8 text-lg leading-9 text-slate-600">
-
-          EVUDDY is building India's next-generation electric mobility ecosystem through B2B, B2C and Rent-to-Own solutions designed specifically for the evolving needs of modern cities and growing communities.
-
-        </p>
-
-        <p className="mt-6 text-lg leading-9 text-slate-600">
-
-          Our mission is to make electric mobility affordable, accessible and asset-building for every rider by combining technology, clean transportation and operational excellence into one integrated platform.
-
-        </p>
-
-        <p className="mt-6 text-lg leading-9 text-slate-600">
-
-          We envision empowering gig workers, delivery partners and businesses with sustainable transportation while creating a future where every ride can lead to ownership.
-
-        </p>
-
-      </div>
-
-      {/* RIGHT */}
-
-      <div>
-
-        <div className="rounded-[40px] bg-gradient-to-br from-[#08112F] via-[#0A1B47] to-[#102A67] p-10 shadow-[0_35px_90px_rgba(8,17,47,.25)]">
-
-          <div className="inline-flex items-center rounded-full bg-white/10 px-4 py-2 text-sm font-bold text-white">
-
-            EVUDDY
-
+      <section className="bg-white py-14 sm:py-20">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10">
+          <h2 className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            Journey
+          </h2>
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {journey.map((item) => (
+              <article
+                key={item.year}
+                className="rounded-[28px] border border-slate-100 bg-[#F7FBFA] p-6"
+              >
+                <p className="text-sm font-bold text-[#18B368]">{item.year}</p>
+                <h3 className="mt-2 text-xl font-black">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+              </article>
+            ))}
           </div>
+        </div>
+      </section>
 
-          <h3 className="mt-7 text-4xl font-black text-white">
+      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-10">
+        <h2 className="text-3xl font-black">Mission and vision</h2>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <article className="rounded-[28px] bg-white p-6 shadow-sm sm:p-8">
+            <h3 className="text-2xl font-black">Mission</h3>
+            <p className="mt-3 text-slate-600 leading-7">
+              Make electric mobility affordable, accessible and asset-building
+              for riders, delivery partners and businesses across India.
+            </p>
+          </article>
+          <article className="rounded-[28px] bg-[#18B368] p-6 text-white sm:p-8">
+            <h3 className="text-2xl font-black">Vision</h3>
+            <p className="mt-3 leading-7 text-white/90">
+              Be India&apos;s most trusted electric scooter ecosystem — rent,
+              ride, return or own — with technology you can see working.
+            </p>
+          </article>
+        </div>
+      </section>
 
-            Smart Electric Mobility
-
-          </h3>
-
-          <p className="mt-7 text-lg leading-9 text-white/80">
-
-            We are creating a technology-first mobility platform connecting riders, partners, businesses and electric vehicles through a seamless digital ecosystem.
-
-          </p>
-
-          <div className="mt-10 space-y-5">
-
-            <div className="flex items-center gap-4">
-
-              <div className="h-12 w-12 rounded-2xl bg-[#18B368] flex items-center justify-center text-white font-bold">
-
-                ✓
-
-              </div>
-
-              <span className="text-white text-lg">
-
-                Smart EV Rentals
-
-              </span>
-
-            </div>
-
-            <div className="flex items-center gap-4">
-
-              <div className="h-12 w-12 rounded-2xl bg-[#18B368] flex items-center justify-center text-white font-bold">
-
-                ✓
-
-              </div>
-
-              <span className="text-white text-lg">
-
-                B2B Fleet Solutions
-
-              </span>
-
-            </div>
-
-            <div className="flex items-center gap-4">
-
-              <div className="h-12 w-12 rounded-2xl bg-[#18B368] flex items-center justify-center text-white font-bold">
-
-                ✓
-
-              </div>
-
-              <span className="text-white text-lg">
-
-                Rent-to-Own Program
-
-              </span>
-
-            </div>
-
-            <div className="flex items-center gap-4">
-
-              <div className="h-12 w-12 rounded-2xl bg-[#18B368] flex items-center justify-center text-white font-bold">
-
-                ✓
-
-              </div>
-
-              <span className="text-white text-lg">
-
-                Sustainable Future
-
-              </span>
-
-            </div>
-
+      <section className="px-4 pb-16 sm:px-6 lg:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 rounded-[32px] bg-[#0F172A] px-6 py-10 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10">
+          <div>
+            <p className="flex items-center gap-2 text-sm font-bold text-[#86EFAC]">
+              <Leaf className="h-4 w-4" /> Join the network
+            </p>
+            <h2 className="mt-2 text-3xl font-black">Ride cleaner. Grow together.</h2>
           </div>
-
+          <Link
+            href="/ride-options"
+            className="inline-flex h-14 items-center justify-center rounded-full bg-white px-8 font-bold text-[#0F172A]"
+          >
+            Get started
+          </Link>
         </div>
-
-      </div>
-
+      </section>
     </div>
-
-  </div>
-  </section>
-
-  {/* ================= MISSION & VISION ================= */}
-
-<section className="relative bg-[#F8FCFA] py-28 overflow-hidden">
-
-  <div className="absolute left-0 top-24 h-[420px] w-[420px] rounded-full bg-[#18B368]/8 blur-[130px]" />
-
-  <div className="absolute right-0 bottom-0 h-[420px] w-[420px] rounded-full bg-[#FF165E]/8 blur-[140px]" />
-
-  <div className="max-w-7xl mx-auto px-6">
-
-    <div className="text-center">
-
-      <span className="inline-flex items-center rounded-full bg-[#F3FFF8] px-5 py-2 text-sm font-bold tracking-[0.15em] uppercase text-[#18B368]">
-
-        OUR PURPOSE
-
-      </span>
-
-      <h2 className="mt-6 text-5xl md:text-6xl font-black tracking-[-0.04em] text-[#08112F]">
-
-        Mission & Vision
-
-      </h2>
-
-      <p className="mt-6 max-w-3xl mx-auto text-lg leading-9 text-slate-600">
-
-        Everything we build is driven by a single purpose —
-        accelerating India's transition towards smarter,
-        cleaner and more accessible electric mobility.
-
-      </p>
-
-    </div>
-
-    <div className="mt-20 grid lg:grid-cols-2 gap-10">
-
-      {/* Mission */}
-
-      <div className="group rounded-[40px] border border-[#18B368]/10 bg-white p-12 shadow-[0_30px_80px_rgba(15,23,42,.08)] transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_40px_100px_rgba(24,179,104,.15)]">
-
-        <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-[#16A34A] to-[#18B368] flex items-center justify-center text-3xl text-white">
-
-          🚀
-
-        </div>
-
-        <h3 className="mt-8 text-4xl font-black text-[#08112F]">
-
-          Our Mission
-
-        </h3>
-
-        <p className="mt-6 text-lg leading-9 text-slate-600">
-
-          To make electric mobility affordable,
-          accessible and asset-building by delivering
-          technology-driven EV solutions for riders,
-          businesses and delivery partners across India.
-
-        </p>
-
-      </div>
-
-      {/* Vision */}
-
-      <div className="group rounded-[40px] bg-gradient-to-br from-[#08112F] via-[#0A1B47] to-[#102A67] p-12 shadow-[0_35px_90px_rgba(8,17,47,.22)] transition-all duration-500 hover:-translate-y-2">
-
-        <div className="h-16 w-16 rounded-2xl bg-white/10 flex items-center justify-center text-3xl">
-
-          🌍
-
-        </div>
-
-        <h3 className="mt-8 text-4xl font-black text-white">
-
-          Our Vision
-
-        </h3>
-
-        <p className="mt-6 text-lg leading-9 text-white/80">
-
-          To become India's most trusted electric
-          mobility ecosystem by connecting riders,
-          partners and businesses through smart,
-          sustainable and technology-first transportation.
-
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-{/* ================= EVUDDY JOURNEY ================= */}
-
-<section className="relative bg-[#F8FCFA] py-32 overflow-hidden">
-
-  <div className="absolute left-0 top-0 h-[420px] w-[420px] rounded-full bg-[#18B368]/8 blur-[140px]" />
-
-  <div className="absolute right-0 bottom-0 h-[420px] w-[420px] rounded-full bg-[#FF165E]/8 blur-[140px]" />
-
-  <div className="max-w-7xl mx-auto px-6">
-
-    <div className="text-center max-w-3xl mx-auto">
-
-      <span className="inline-flex items-center rounded-full bg-white px-5 py-2 text-sm font-bold uppercase tracking-[0.15em] text-[#18B368] shadow">
-
-        OUR JOURNEY
-
-      </span>
-
-      <h2 className="mt-6 text-5xl md:text-6xl font-black tracking-[-0.04em] text-[#08112F]">
-
-        Building The Future
-
-      </h2>
-
-      <p className="mt-6 text-lg leading-9 text-slate-600">
-
-        EVUDDY is continuously expanding its electric mobility ecosystem to empower riders, partners and businesses through sustainable innovation.
-
-      </p>
-
-    </div>
-
-    <div className="mt-20 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-
-      {[
-        {
-          year: "2025",
-          title: "Company Founded",
-          desc: "EVUDDY was established with a vision to transform India's electric mobility ecosystem.",
-        },
-        {
-          year: "Phase 1",
-          title: "Platform Launch",
-          desc: "Launch of EV rentals, partner onboarding and smart mobility technology platform.",
-        },
-        {
-          year: "Phase 2",
-          title: "Scale Across Cities",
-          desc: "Expansion into multiple cities with fleet growth, rider network and business partnerships.",
-        },
-        {
-          year: "Future",
-          title: "National EV Ecosystem",
-          desc: "Building India's most trusted electric mobility platform powered by technology and sustainability.",
-        },
-      ].map((item) => (
-
-        <div
-          key={item.title}
-          className="
-          rounded-[36px]
-          bg-white
-          border
-          border-slate-200
-          p-8
-          shadow-[0_20px_60px_rgba(15,23,42,.08)]
-          transition-all
-          duration-500
-          hover:-translate-y-2
-          hover:border-[#18B368]/30
-          hover:shadow-[0_30px_80px_rgba(24,179,104,.15)]
-          "
-        >
-
-          <div className="inline-flex rounded-full bg-[#18B368] px-5 py-2 text-white font-bold">
-
-            {item.year}
-
-          </div>
-
-          <h3 className="mt-8 text-2xl font-black text-[#08112F]">
-
-            {item.title}
-
-          </h3>
-
-          <p className="mt-5 leading-8 text-slate-600">
-
-            {item.desc}
-
-          </p>
-
-        </div>
-
-      ))}
-
-    </div>
-
-  </div>
-
-</section>
-
-{/* ================= FINAL CTA ================= */}
-
-<section className="relative overflow-hidden py-32">
-
-  {/* Background */}
-
-  <div className="absolute inset-0 bg-gradient-to-r from-[#08112F] via-[#102A67] to-[#18B368]" />
-
-  <div className="absolute -left-40 top-0 h-[500px] w-[500px] rounded-full bg-white/5 blur-[150px]" />
-
-  <div className="absolute right-0 bottom-0 h-[500px] w-[500px] rounded-full bg-[#18B368]/20 blur-[150px]" />
-
-  <div className="relative max-w-6xl mx-auto px-6 text-center">
-
-    <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-6 py-3 text-sm font-bold uppercase tracking-[0.18em] text-[#A7F3D0] backdrop-blur">
-
-      JOIN INDIA'S EV REVOLUTION
-
-    </span>
-
-    <h2 className="mt-8 text-5xl md:text-7xl font-black leading-tight text-white">
-
-      Drive Smarter.
-
-      <br />
-
-      Ride Greener.
-
-      <br />
-
-      Grow Together.
-
-    </h2>
-
-    <p className="mx-auto mt-8 max-w-3xl text-xl leading-9 text-white/80">
-
-      Whether you're looking to rent an EV, become a rider partner,
-      grow your business fleet or collaborate with EVUDDY,
-      we're building India's future of electric mobility together.
-
-    </p>
-
-    <div className="mt-14 flex flex-wrap justify-center gap-6">
-
-      <a
-        href="/ride-options"
-        className="
-        rounded-full
-        bg-white
-        px-10
-        py-5
-        text-lg
-        font-black
-        text-[#08112F]
-        shadow-[0_20px_60px_rgba(255,255,255,.18)]
-        transition-all
-        duration-300
-        hover:-translate-y-2
-        hover:shadow-[0_28px_80px_rgba(255,255,255,.25)]
-        "
-      >
-        Become a Rider
-      </a>
-
-      <a
-        href="/partners"
-        className="rounded-full border border-white/20 bg-white/10 px-10 py-5 text-lg font-black text-white backdrop-blur transition-all duration-300 hover:bg-[#18B368] hover:text-white hover:border-[#18B368] hover:-translate-y-1">
-        Become a Partner
-      </a>
-
-    </div>
-
-  </div>
-
-</section>
-
-</section>
-  );
+   );
 }

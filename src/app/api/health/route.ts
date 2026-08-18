@@ -9,16 +9,13 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       database: mongoose.connection.readyState === 1,
-      readyState: mongoose.connection.readyState,
       timestamp: new Date(),
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       {
         success: false,
         database: false,
-        readyState: mongoose.connection.readyState,
-        error: String(error),
       },
       { status: 500 }
     );

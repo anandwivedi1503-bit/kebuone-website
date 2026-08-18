@@ -314,15 +314,10 @@ const availableBikes = vehicles.filter((bike) => {
   return status === "available" || status === "";
 });
 
-const hubMatchedBikes = availableBikes.filter((bike) => {
-  const bikeHub = normalizeText(bike.currentHub);
-  return selectedHubKeys.some((hubKey) => hubValuesMatch(bikeHub, hubKey));
-});
-
 const filteredBikes =
   selectedHubKeys.length === 0
     ? []
-    : (hubMatchedBikes.length > 0 ? hubMatchedBikes : availableBikes)
+    : availableBikes
         .filter((bike) => {
           if (!bikeSearch.trim()) return true;
 
@@ -661,14 +656,14 @@ await loadData();
         }
 
         setPaidAmount((oldAmount) => Number((oldAmount + payNow).toFixed(2)));
-        setPendingAmount(Number(verifyData.pendingAmount || 0));
+        setPendingAmount(Number(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0));
 
-        if (Number(verifyData.pendingAmount || 0) > 0) {
+        if (Number(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0) > 0) {
   setPaymentMessage(
-    `Partial payment received. Pending: ${formatINR(Number(verifyData.pendingAmount))}`
+    `Partial payment received. Pending: ${formatINR(Number(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0))}`
   );
 
-  setPaymentAmount(String(verifyData.pendingAmount));
+  setPaymentAmount(String(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0));
 
   setPaymentLoading(false);
 } else {
@@ -1357,7 +1352,7 @@ focus:ring-[#22C55E]/10
 ) : !hub ? (
   <Empty text="Choose your pickup hub to view available scooters." />
 ) : filteredBikes.length === 0 ? (
-  <Empty text="No scooters are marked Available at this hub right now. Ask admin to set the bike to Available and currentHub to this hub code." />
+  <Empty text="No scooters are marked Available right now. Ask admin to set bikes to Available." />
 ) : (              
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 ">
                     {filteredBikes.map((bike) => {
@@ -1916,6 +1911,9 @@ text-slate-500
 PAYMENT AMOUNT
 
 </p>
+<p className="mt-2 text-sm text-slate-500">
+Pay the full total or a smaller amount. Remaining pending updates here and on admin dashboards.
+</p>
 <input
   type="number"
   value={paymentAmount}
@@ -1945,7 +1943,12 @@ focus:ring-[#18B368]/10
 
 </div>
                  
-                <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+  <AmountBox
+    label="Total"
+    value={formatINR(payableAmount)}
+    tone="green"
+  />
   <AmountBox
     label="Paid"
     value={formatINR(paidAmount)}
@@ -1954,7 +1957,7 @@ focus:ring-[#18B368]/10
 
   <AmountBox
     label="Pending"
-    value={formatINR(pendingAmount)}
+    value={formatINR(pendingAmount || payableAmount - paidAmount)}
     tone="amber"
   />
 </div>
