@@ -129,7 +129,7 @@ export default function ContactUs() {
       <div className="mt-12 flex flex-wrap gap-5">
 
         <a
-          href="/register"
+          href="/ride-options"
           className="
           rounded-full
           bg-gradient-to-r
@@ -830,7 +830,7 @@ disabled:opacity-60
     <div className="mt-14 flex flex-wrap justify-center gap-6">
 
       <a
-        href="/register"
+        href="/ride-options"
         className="rounded-full bg-white px-10 py-5 text-lg font-black text-[#08112F] transition-all duration-300 hover:-translate-y-2"
       >
 

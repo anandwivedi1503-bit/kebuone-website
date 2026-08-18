@@ -21,7 +21,7 @@ export default function ServiceCard({
   title,
   description,
   image,
-  link = "/register",
+  link = "/ride-options",
   badge,
   tags = [],
 }: ServiceCardProps) {

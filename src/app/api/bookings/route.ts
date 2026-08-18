@@ -25,7 +25,18 @@ import { publicApiError } from "@/lib/publicError";
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const idRegex = /^[A-Za-z0-9_-]{3,60}$/;
+const rtoRelations = [
+  "Spouse",
+  "Father",
+  "Mother",
+  "Son",
+  "Daughter",
+  "Brother",
+  "Sister",
+  "Other",
+];
 
 const rentalModes = [
   "Hourly",
@@ -343,13 +354,29 @@ if (!hasValidHub) {
     if (!rentalModes.includes(rentalMode)) errors.push("Valid rental mode is required.");
 
     const rtoNomineeName = clean(body.rtoNomineeName).slice(0, 80);
+    const rtoNomineeRelation = clean(body.rtoNomineeRelation).slice(0, 40);
     const rtoPermanentAddress = clean(body.rtoPermanentAddress).slice(0, 240);
     const rtoOccupation = clean(body.rtoOccupation).slice(0, 80);
+    const rtoGuardianName = clean(body.rtoGuardianName).slice(0, 80);
+    const rtoEmergencyPhone = clean(body.rtoEmergencyPhone).replace(/\D/g, "").slice(0, 10);
+    const rtoEmail = clean(body.rtoEmail).toLowerCase().slice(0, 120);
     const rtoAgreementAccepted = Boolean(body.rtoAgreementAccepted);
 
     if (rentalMode === "Rent To Own") {
       if (!nameRegex.test(rtoNomineeName)) {
         errors.push("Nominee name is required for Rent to Own.");
+      }
+      if (!rtoRelations.includes(rtoNomineeRelation)) {
+        errors.push("Nominee relation is required for Rent to Own.");
+      }
+      if (!nameRegex.test(rtoGuardianName)) {
+        errors.push("Father / guardian name is required for Rent to Own.");
+      }
+      if (!phoneRegex.test(rtoEmergencyPhone)) {
+        errors.push("Valid emergency contact number is required for Rent to Own.");
+      }
+      if (!emailRegex.test(rtoEmail)) {
+        errors.push("Valid email is required for Rent to Own.");
       }
       if (rtoPermanentAddress.length < 12) {
         errors.push("Permanent address is required for Rent to Own.");
@@ -504,9 +531,17 @@ await session.endSession();
  
 const vehicleHub = clean(vehicle.currentHub).toLowerCase();
 
-const matched = hubAliases.some(
-  (hub) => clean(hub).toLowerCase() === vehicleHub
-);
+const hubsMatch = (alias: string) => {
+  const key = clean(alias).toLowerCase();
+  if (!key || !vehicleHub) return false;
+  if (key === vehicleHub) return true;
+  if (/^\d+$/.test(key) && /^\d+$/.test(vehicleHub)) {
+    return Number(key) === Number(vehicleHub);
+  }
+  return key.includes(vehicleHub) || vehicleHub.includes(key);
+};
+
+const matched = hubAliases.some(hubsMatch);
 
 if (!matched) {
   await session.abortTransaction();
@@ -727,6 +762,10 @@ remainingRentToOwnDays:
 ownershipTransferred: false,
 
 rtoNomineeName: rentalMode === "Rent To Own" ? rtoNomineeName : "",
+rtoNomineeRelation: rentalMode === "Rent To Own" ? rtoNomineeRelation : "",
+rtoGuardianName: rentalMode === "Rent To Own" ? rtoGuardianName : "",
+rtoEmergencyPhone: rentalMode === "Rent To Own" ? rtoEmergencyPhone : "",
+rtoEmail: rentalMode === "Rent To Own" ? rtoEmail : "",
 rtoPermanentAddress:
   rentalMode === "Rent To Own" ? rtoPermanentAddress : "",
 rtoOccupation: rentalMode === "Rent To Own" ? rtoOccupation : "",

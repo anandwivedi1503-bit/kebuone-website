@@ -68,7 +68,7 @@ export default function Services() {
             color="from-[#18B368] to-[#16C45B]"
             description="Designed for effortless daily commuting with smart technology, long battery life, and a premium riding experience."
             image="/trans.png"
-            link="/register"
+            link="/ride-options"
           />
         </motion.div>
 

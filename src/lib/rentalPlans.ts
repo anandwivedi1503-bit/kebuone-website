@@ -23,8 +23,8 @@ export function catalogRate(
   return moneyRate(vehicleRate, CATALOG_RATES[mode]);
 }
 
-export function rtoDailyRate(vehicleRate?: unknown) {
-  return moneyRate(vehicleRate, RTO_PLAN.dailyRate);
+export function rtoDailyRate(_vehicleRate?: unknown) {
+  return RTO_PLAN.dailyRate;
 }
 
 export function rtoTenureMonths(vehicleMonths?: unknown) {

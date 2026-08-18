@@ -188,6 +188,35 @@ rtoNomineeName: {
   default: "",
 },
 
+rtoNomineeRelation: {
+  type: String,
+  trim: true,
+  maxlength: 40,
+  default: "",
+},
+
+rtoGuardianName: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+rtoEmergencyPhone: {
+  type: String,
+  trim: true,
+  maxlength: 10,
+  default: "",
+},
+
+rtoEmail: {
+  type: String,
+  trim: true,
+  lowercase: true,
+  maxlength: 120,
+  default: "",
+},
+
 rtoPermanentAddress: {
   type: String,
   trim: true,

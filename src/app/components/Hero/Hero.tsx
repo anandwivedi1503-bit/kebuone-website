@@ -131,7 +131,7 @@ export default function Hero() {
               variants={fadeUp}
               className="mt-8 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:justify-center lg:justify-start"
             >
-              <Link href="/register" className="w-full sm:w-auto">
+              <Link href="/ride-options" className="w-full sm:w-auto">
                 <span className="group relative flex h-14 w-full items-center justify-center overflow-hidden rounded-full bg-gradient-to-r from-[#18B368] via-[#16C45B] to-[#13A657] px-8 text-base font-bold text-white shadow-[0_22px_60px_rgba(24,179,104,0.38)] transition duration-300 hover:-translate-y-0.5 active:scale-[0.98] sm:h-16 sm:px-10 sm:text-lg">
                   <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                   <span className="relative flex items-center gap-2">

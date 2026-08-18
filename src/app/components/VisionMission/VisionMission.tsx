@@ -648,7 +648,7 @@ India's transition towards clean, smart and sustainable mobility.
     <div className="mt-14 flex flex-wrap justify-center gap-6">
 
       <a
-        href="/register"
+        href="/ride-options"
         className="
         rounded-full
         bg-white

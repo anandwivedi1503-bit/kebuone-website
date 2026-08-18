@@ -88,7 +88,7 @@ export default function HowItWorks() {
             </p>
             <h3 className="mt-2 text-2xl font-black sm:text-4xl">Experience smarter urban mobility</h3>
           </div>
-          <Link href="/register" className="w-full sm:w-auto">
+          <Link href="/ride-options" className="w-full sm:w-auto">
             <span className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 py-4 font-bold text-white sm:w-auto">
               Book an EV
               <ArrowRight size={18} />

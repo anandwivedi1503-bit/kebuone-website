@@ -128,7 +128,7 @@ export default function Footer() {
               >
 
                 <Link
-                  href="/register"
+                  href="/ride-options"
                   className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#18B368] px-8 text-lg font-semibold transition hover:bg-[#14A35E] sm:w-auto"
                 >
                   Book an EV
@@ -303,7 +303,7 @@ export default function Footer() {
       </Link>
 
       <Link
-        href="/register"
+        href="/ride-options"
         className="block text-gray-400 transition hover:text-white"
       >
         Rider Registration
