@@ -49,7 +49,12 @@ export async function GET() {
     }
     await connectDB();
 
-    const transactions = await Transaction.find().sort({
+    const transactions = await Transaction.find({
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
+    }).sort({
       createdAt: -1,
     });
 

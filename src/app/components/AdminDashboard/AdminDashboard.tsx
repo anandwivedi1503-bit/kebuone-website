@@ -135,7 +135,7 @@ const [refreshing, setRefreshing] = useState(false);
         "/api/batteries",
         "/api/battery-swaps",
         "/api/partners",
-        "/api/wallet?limit=100",
+        "/api/wallet?limit=500",
       ];
 
       const responses = await Promise.all(

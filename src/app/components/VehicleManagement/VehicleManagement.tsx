@@ -740,13 +740,9 @@ Rent to Own Daily (₹)
 
 <input
 type="number"
-value={formData.rentToOwnDailyRate}
-onChange={(e)=>
-setFormData({
-...formData,
-rentToOwnDailyRate: Math.max(0, Number(e.target.value)),
-})
-}
+value={280}
+disabled
+readOnly
 className="
 w-full
 h-14
@@ -762,6 +758,9 @@ focus:border-[#FF165E]
 transition
 "
 />
+<p className="mt-2 text-xs text-slate-500">
+  Locked company rate: ₹280/day. Booking always uses this amount plus 5% GST.
+</p>
 
 </div>
 

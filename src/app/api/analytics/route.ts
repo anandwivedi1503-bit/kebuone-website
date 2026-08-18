@@ -111,8 +111,7 @@ const filteredTransactions = transactions.filter(
 filteredTransactions
 .filter(
 (t)=>
-t.status==="Success" &&
-t.transactionType==="Booking Payment"
+t.status==="Success"
 )
 .reduce(
 (sum,t)=>sum+(t.amount||0),

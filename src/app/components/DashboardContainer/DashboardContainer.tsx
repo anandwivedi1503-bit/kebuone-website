@@ -24,6 +24,7 @@ import TransactionDashboard from "../TransactionDashboard/TransactionDashboard";
 import AnalyticsDashboard from "../AnalyticsDashboard/AnalyticsDashboard";
 import RefundDashboard from "../RefundDashboard/RefundDashboard";
 import RentToOwnDashboard from "../RentToOwnDashboard/RentToOwnDashboard";
+import AuditLogsDashboard from "../AuditLogsDashboard/AuditLogsDashboard";
 
 
 export default function DashboardContainer() {
@@ -57,6 +58,7 @@ export default function DashboardContainer() {
           {activeDashboard === "kyc" && <KYCDashboard />}
           {activeDashboard === "bookings" && <BookingDashboard />}
           {activeDashboard === "renttoown" && <RentToOwnDashboard />}
+          {activeDashboard === "audit" && <AuditLogsDashboard />}
           {activeDashboard === "transactions" && <TransactionDashboard />}
           {activeDashboard === "analytics" && <AnalyticsDashboard />}
           {activeDashboard === "refunds" && <RefundDashboard />}

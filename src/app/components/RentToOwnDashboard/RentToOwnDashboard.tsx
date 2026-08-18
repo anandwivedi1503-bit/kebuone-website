@@ -48,6 +48,8 @@ export default function RentToOwnDashboard() {
       }
     };
     void load();
+    const interval = window.setInterval(() => void load(), 30000);
+    return () => window.clearInterval(interval);
   }, []);
 
   const rto = useMemo(

@@ -30,7 +30,7 @@ export default function RentToOwnPage() {
   return (
     <main>
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-28">
         <RentToOwnBooking />
       </div>
       <Footer />

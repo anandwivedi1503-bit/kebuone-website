@@ -33,7 +33,7 @@ export default function BookBikePage() {
   return (
     <main>
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-28">
         <BikeBooking />
       </div>
       <Footer />
