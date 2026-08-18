@@ -24,6 +24,7 @@ type BookingRow = {
   remainingRentToOwnDays?: number;
   rentToOwnCompletedDays?: number;
   rtoInstallmentsPaid?: number;
+  rtoCertificateNumber?: string;
   rtoNomineeName?: string;
   rtoNomineeRelation?: string;
   rtoOccupation?: string;
