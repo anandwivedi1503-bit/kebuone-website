@@ -10,6 +10,11 @@ import Vehicle from "@/models/Vehicle";
 import Hub, {
   IHub,
 } from "@/models/Hub";
+import {
+  catalogRate,
+  rtoDailyRate,
+  rtoTenureMonths,
+} from "@/lib/rentalPlans";
 
 const registrationTypes = [
   "RTO",
@@ -221,6 +226,18 @@ export async function POST(req: Request) {
       numberOrDefault(
         body.securityDeposit,
         0
+      );
+
+    const rentToOwnDailyRate =
+      numberOrDefault(
+        body.rentToOwnDailyRate,
+        280
+      );
+
+    const rentToOwnMonths =
+      numberOrDefault(
+        body.rentToOwnMonths,
+        18
       );
 
     const odometer =
@@ -457,6 +474,10 @@ export async function POST(req: Request) {
 
         monthlyRate,
 
+        rentToOwnDailyRate,
+
+        rentToOwnMonths,
+
         securityDeposit,
 
         odometer,
@@ -557,7 +578,15 @@ export async function GET() {
 
       return NextResponse.json({
         success: true,
-        data: vehicles,
+        data: vehicles.map((vehicle) => ({
+          ...vehicle,
+          hourlyRate: catalogRate("Hourly", vehicle.hourlyRate),
+          dailyRate: catalogRate("Daily", vehicle.dailyRate),
+          weeklyRate: catalogRate("Weekly", vehicle.weeklyRate),
+          monthlyRate: catalogRate("Monthly", vehicle.monthlyRate),
+          rentToOwnDailyRate: rtoDailyRate(vehicle.rentToOwnDailyRate),
+          rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
+        })),
       });
     }
 
@@ -595,6 +624,8 @@ export async function GET() {
             "dailyRate",
             "weeklyRate",
             "monthlyRate",
+            "rentToOwnDailyRate",
+            "rentToOwnMonths",
             "securityDeposit",
             "batteryPercentage",
             "currentHub",
@@ -608,7 +639,15 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: vehicles,
+      data: vehicles.map((vehicle) => ({
+        ...vehicle,
+        hourlyRate: catalogRate("Hourly", vehicle.hourlyRate),
+        dailyRate: catalogRate("Daily", vehicle.dailyRate),
+        weeklyRate: catalogRate("Weekly", vehicle.weeklyRate),
+        monthlyRate: catalogRate("Monthly", vehicle.monthlyRate),
+        rentToOwnDailyRate: rtoDailyRate(vehicle.rentToOwnDailyRate),
+        rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
+      })),
     });
   } catch (error) {
     console.error(

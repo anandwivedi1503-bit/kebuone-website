@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { gstBreakdown } from "@/lib/gst";
+import { CATALOG_RATES, catalogRate } from "@/lib/rentalPlans";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -337,11 +338,10 @@ const filteredBikes =
             amount(a.batteryPercentage)
         );
 const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
-  if (!bike) return 0;
-  if (mode === "Hourly") return amount(bike.hourlyRate);
-  if (mode === "Daily") return amount(bike.dailyRate);
-  if (mode === "Weekly") return amount(bike.weeklyRate);
-  return amount(bike.monthlyRate);
+  if (mode === "Hourly") return catalogRate("Hourly", bike?.hourlyRate);
+  if (mode === "Daily") return catalogRate("Daily", bike?.dailyRate);
+  if (mode === "Weekly") return catalogRate("Weekly", bike?.weeklyRate);
+  return catalogRate("Monthly", bike?.monthlyRate);
 };
 
 const rentalAmount = getPlanRate(currentBike, rentalMode);
@@ -1316,13 +1316,16 @@ focus:ring-[#22C55E]/10
                       key={item}
                       type="button"
                       onClick={() => setRentalMode(item)}
-                      className={`h-14 rounded-2xl border font-bold ${
+                      className={`min-h-16 rounded-2xl border px-2 py-2 font-bold ${
                         rentalMode === item
 ? "border-[#18B368] bg-gradient-to-r from-[#16A34A] to-[#18B368] text-white shadow-lg"
 : "border-slate-200 bg-white text-slate-700 hover:border-[#22C55E]/40"
                       }`}
                     >
-                      {item}
+                      <span className="block text-sm sm:text-base">{item}</span>
+                      <span className={`block text-xs font-semibold ${rentalMode === item ? "text-white/90" : "text-slate-500"}`}>
+                        {formatINR(CATALOG_RATES[item])}
+                      </span>
                     </button>
                   ))}
                 </div>

@@ -98,7 +98,7 @@ export default function WhyChoose() {
                 <ArrowRight size={18} />
               </span>
             </Link>
-            <Link href="/book-bike" className="w-full sm:w-auto">
+            <Link href="/ride-options" className="w-full sm:w-auto">
               <span className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 px-8 py-4 font-bold text-[#0F172A] sm:w-auto">
                 I already have an account
               </span>

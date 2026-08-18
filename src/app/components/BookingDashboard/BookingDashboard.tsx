@@ -18,6 +18,7 @@ const [loading,setLoading]=useState(true);
 const [search,setSearch]=useState("");
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [paymentFilter, setPaymentFilter] = useState("ALL");
+const [modeFilter, setModeFilter] = useState("ALL");
 const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");
 const [generatedPickupOTP, setGeneratedPickupOTP] =
@@ -348,10 +349,17 @@ const matchesPayment =
 paymentFilter === "ALL" ||
 booking.paymentStatus === paymentFilter;
 
+const matchesMode =
+modeFilter === "ALL" ||
+(modeFilter === "Rent To Own"
+  ? booking.rentalMode === "Rent To Own"
+  : booking.rentalMode !== "Rent To Own");
+
 return (
 matchesSearch &&
 matchesStatus &&
-matchesPayment
+matchesPayment &&
+matchesMode
 );
 });
 
@@ -703,6 +711,37 @@ paymentFilter===status
 
 {status}
 
+</button>
+
+))}
+
+</div>
+
+<div className="mb-8 flex flex-wrap gap-3">
+
+{[
+["ALL", "All plans"],
+["Rental", "Normal rental"],
+["Rent To Own", "Rent to Own"],
+].map(([value, label])=>(
+
+<button
+key={value}
+onClick={()=>setModeFilter(value)}
+className={`
+rounded-xl
+px-5
+py-2
+font-semibold
+transition
+${
+modeFilter===value
+? "bg-[#18B368] text-white"
+: "bg-gray-100 hover:bg-emerald-100"
+}
+`}
+>
+{label}
 </button>
 
 ))}
@@ -1401,6 +1440,16 @@ Booking Details
 <p><b>Booking ID :</b> {selectedBooking.bookingId}</p>
 
 <p><b>Rental Mode :</b> {selectedBooking.rentalMode}</p>
+{selectedBooking.rentalMode === "Rent To Own" ? (
+  <>
+    <p><b>Certificate :</b> {selectedBooking.rtoCertificateNumber || "-"}</p>
+    <p><b>Nominee :</b> {selectedBooking.rtoNomineeName || "-"}</p>
+    <p><b>Tenure :</b> {selectedBooking.rentToOwnMonths || 18} months @ ₹{selectedBooking.rentToOwnDailyRate || 280}/day</p>
+    <p><b>Installments paid :</b> {selectedBooking.rtoInstallmentsPaid || 0}</p>
+    <p><b>Days remaining :</b> {selectedBooking.remainingRentToOwnDays || 0}</p>
+    <p><b>Ownership :</b> {selectedBooking.ownershipTransferred ? "Transferred" : "In progress"}</p>
+  </>
+) : null}
 
 <p><b>Start Hub :</b> {selectedBooking.startHub}</p>
 

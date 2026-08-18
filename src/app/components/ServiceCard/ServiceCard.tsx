@@ -69,7 +69,7 @@ export default function ServiceCard({
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
-            <Link href="/book-bike" className="w-full sm:w-auto">
+            <Link href="/ride-options" className="w-full sm:w-auto">
               <span className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 py-4 text-base font-bold text-[#0F172A] transition hover:border-[#18B368] hover:text-[#18B368] sm:w-auto">
                 Book a scooter
               </span>

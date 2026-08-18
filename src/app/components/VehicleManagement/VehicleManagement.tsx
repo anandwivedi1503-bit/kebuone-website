@@ -50,9 +50,12 @@ vehicleModel: "",
 
 batteryType: "Chargeable",
 
-dailyRate: 0,
-weeklyRate: 0,
-monthlyRate: 0,
+dailyRate: 230,
+hourlyRate: 60,
+weeklyRate: 1610,
+monthlyRate: 6900,
+rentToOwnDailyRate: 280,
+rentToOwnMonths: 18,
 
 securityDeposit: 0,
 
@@ -149,11 +152,17 @@ vehicleModel:"",
 
 batteryType:"Chargeable",
 
-dailyRate:200,
+dailyRate:230,
 
-weeklyRate:1200,
+hourlyRate:60,
 
-monthlyRate:4500,
+weeklyRate:1610,
+
+monthlyRate:6900,
+
+rentToOwnDailyRate:280,
+
+rentToOwnMonths:18,
 
 securityDeposit:0,
 
@@ -670,6 +679,105 @@ onChange={(e)=>
 setFormData({
 ...formData,
 monthlyRate: Math.max(0, Number(e.target.value)),
+})
+}
+className="
+w-full
+h-14
+rounded-2xl
+border
+border-pink-100
+bg-pink-50/40
+px-5
+focus:outline-none
+focus:ring-2
+focus:ring-pink-200
+focus:border-[#FF165E]
+transition
+"
+/>
+
+</div>
+
+<div>
+
+<label className="block mb-3 font-bold text-[#0A1134]">
+Hourly Rate (₹)
+</label>
+
+<input
+type="number"
+value={formData.hourlyRate}
+onChange={(e)=>
+setFormData({
+...formData,
+hourlyRate: Math.max(0, Number(e.target.value)),
+})
+}
+className="
+w-full
+h-14
+rounded-2xl
+border
+border-pink-100
+bg-pink-50/40
+px-5
+focus:outline-none
+focus:ring-2
+focus:ring-pink-200
+focus:border-[#FF165E]
+transition
+"
+/>
+
+</div>
+
+<div>
+
+<label className="block mb-3 font-bold text-[#0A1134]">
+Rent to Own Daily (₹)
+</label>
+
+<input
+type="number"
+value={formData.rentToOwnDailyRate}
+onChange={(e)=>
+setFormData({
+...formData,
+rentToOwnDailyRate: Math.max(0, Number(e.target.value)),
+})
+}
+className="
+w-full
+h-14
+rounded-2xl
+border
+border-pink-100
+bg-pink-50/40
+px-5
+focus:outline-none
+focus:ring-2
+focus:ring-pink-200
+focus:border-[#FF165E]
+transition
+"
+/>
+
+</div>
+
+<div>
+
+<label className="block mb-3 font-bold text-[#0A1134]">
+Rent to Own Months
+</label>
+
+<input
+type="number"
+value={formData.rentToOwnMonths}
+onChange={(e)=>
+setFormData({
+...formData,
+rentToOwnMonths: Math.max(1, Number(e.target.value)),
 })
 }
 className="

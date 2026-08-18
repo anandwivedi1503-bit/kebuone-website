@@ -116,7 +116,7 @@ useEffect(() => {
 
   clearInterval(interval);
 
-  window.location.href = "/book-bike";
+  window.location.href = "/ride-options";
 }
 
     } catch {}
@@ -437,7 +437,7 @@ if (!response.ok) {
       );
     }
 
-    window.location.href = "/book-bike";
+    window.location.href = "/ride-options";
     return;
   }
 
@@ -696,7 +696,7 @@ const verifyOtp = async () => {
       data.data.bookingEnabled
     ) {
 
-      window.location.href = "/book-bike";
+      window.location.href = "/ride-options";
       return;
 
     }
@@ -1091,7 +1091,7 @@ This page updates automatically after approval.
 <button
 
 onClick={()=>{
-window.location.href="/book-bike";
+window.location.href="/ride-options";
 }}
 
 className="

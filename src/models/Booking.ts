@@ -181,6 +181,46 @@ ownershipTransferred: {
 
 ownershipTransferredAt: Date,
 
+rtoNomineeName: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+rtoPermanentAddress: {
+  type: String,
+  trim: true,
+  maxlength: 240,
+  default: "",
+},
+
+rtoOccupation: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+rtoAgreementAccepted: {
+  type: Boolean,
+  default: false,
+},
+
+rtoAgreementAcceptedAt: Date,
+
+rtoCertificateNumber: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
+rtoInstallmentsPaid: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
     rentalStartDate: {
   type: Date,
   required: true,

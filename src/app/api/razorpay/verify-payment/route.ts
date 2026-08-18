@@ -556,6 +556,18 @@ if (!wallet) {
           invoiceGenerated: true,
           razorpayOrderId,
           razorpayPaymentId,
+          ...(booking.rentalMode === "Rent To Own" && pendingAmount <= 0
+            ? {
+                rtoInstallmentsPaid:
+                  Number(booking.rtoInstallmentsPaid || 0) + 1,
+                rentToOwnCompletedDays:
+                  Number(booking.rentToOwnCompletedDays || 0) + 30,
+                remainingRentToOwnDays: Math.max(
+                  0,
+                  Number(booking.remainingRentToOwnDays || 0) - 30
+                ),
+              }
+            : {}),
           remarks: `${booking.remarks || ""}
 
 Payment Verified

@@ -296,7 +296,7 @@ export default function Footer() {
     <div className="space-y-5">
 
       <Link
-        href="/book-bike"
+        href="/ride-options"
         className="block text-gray-400 transition hover:text-white"
       >
         Book a Scooter

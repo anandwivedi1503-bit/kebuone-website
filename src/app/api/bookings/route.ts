@@ -14,6 +14,12 @@ import {
 } from "@/lib/requestAuth";
 import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
 import { gstBreakdown, money } from "@/lib/gst";
+import {
+  catalogRate,
+  rtoDailyRate,
+  rtoInstallment,
+  rtoTenureMonths,
+} from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
 
 
@@ -336,6 +342,26 @@ if (!hasValidHub) {
 }
     if (!rentalModes.includes(rentalMode)) errors.push("Valid rental mode is required.");
 
+    const rtoNomineeName = clean(body.rtoNomineeName).slice(0, 80);
+    const rtoPermanentAddress = clean(body.rtoPermanentAddress).slice(0, 240);
+    const rtoOccupation = clean(body.rtoOccupation).slice(0, 80);
+    const rtoAgreementAccepted = Boolean(body.rtoAgreementAccepted);
+
+    if (rentalMode === "Rent To Own") {
+      if (!nameRegex.test(rtoNomineeName)) {
+        errors.push("Nominee name is required for Rent to Own.");
+      }
+      if (rtoPermanentAddress.length < 12) {
+        errors.push("Permanent address is required for Rent to Own.");
+      }
+      if (rtoOccupation.length < 2) {
+        errors.push("Occupation is required for Rent to Own.");
+      }
+      if (!rtoAgreementAccepted) {
+        errors.push("You must accept the Rent to Own ownership agreement.");
+      }
+    }
+
     if (errors.length > 0) {
       await session.abortTransaction();
 await session.endSession();
@@ -514,15 +540,15 @@ await session.endSession();
 
 const rentalAmount =
   rentalMode === "Hourly"
-    ? Number(vehicle.hourlyRate || 0)
+    ? catalogRate("Hourly", vehicle.hourlyRate)
     : rentalMode === "Daily"
-    ? Number(vehicle.dailyRate || 0)
+    ? catalogRate("Daily", vehicle.dailyRate)
     : rentalMode === "Weekly"
-    ? Number(vehicle.weeklyRate || 0)
+    ? catalogRate("Weekly", vehicle.weeklyRate)
     : rentalMode === "Monthly"
-    ? Number(vehicle.monthlyRate || 0)
+    ? catalogRate("Monthly", vehicle.monthlyRate)
     : rentalMode === "Rent To Own"
-    ? Number(vehicle.rentToOwnDailyRate || 0)
+    ? rtoInstallment(vehicle.rentToOwnDailyRate)
     : 0;
 
 const rentalEndDate = new Date(rentalStartDate);
@@ -553,24 +579,7 @@ switch (rentalMode) {
     break;
 
   case "Rent To Own": {
-    const months = Number(
-      vehicle.rentToOwnMonths || 0
-    );
-
-    if (!Number.isInteger(months) || months <= 0) {
-      await session.abortTransaction();
-      await session.endSession();
-
-      return NextResponse.json(
-        {
-          success: false,
-          errors: [
-            "Rent To Own duration is not configured for this vehicle.",
-          ],
-        },
-        { status: 400 }
-      );
-    }
+    const months = rtoTenureMonths(vehicle.rentToOwnMonths);
 
     rentalEndDate.setMonth(
       rentalEndDate.getMonth() + months
@@ -690,23 +699,46 @@ new mongoose.Types.ObjectId().toString(),
 
       rentalMode,
 
-      dailyRate:
-  Number(vehicle.dailyRate || 0),
+dailyRate:
+  catalogRate("Daily", vehicle.dailyRate),
 
 weeklyRate:
-  Number(vehicle.weeklyRate || 0),
+  catalogRate("Weekly", vehicle.weeklyRate),
 
 monthlyRate:
-  Number(vehicle.monthlyRate || 0),
+  catalogRate("Monthly", vehicle.monthlyRate),
 
 hourlyRate:
-  Number(vehicle.hourlyRate || 0),
+  catalogRate("Hourly", vehicle.hourlyRate),
 
 rentToOwnDailyRate:
-  Number(vehicle.rentToOwnDailyRate || 0),
+  rtoDailyRate(vehicle.rentToOwnDailyRate),
 
 rentToOwnMonths:
-  Number(vehicle.rentToOwnMonths || 0),
+  rtoTenureMonths(vehicle.rentToOwnMonths),
+
+rentToOwnCompletedDays: rentalMode === "Rent To Own" ? 0 : 0,
+
+remainingRentToOwnDays:
+  rentalMode === "Rent To Own"
+    ? rtoTenureMonths(vehicle.rentToOwnMonths) * 30
+    : 0,
+
+ownershipTransferred: false,
+
+rtoNomineeName: rentalMode === "Rent To Own" ? rtoNomineeName : "",
+rtoPermanentAddress:
+  rentalMode === "Rent To Own" ? rtoPermanentAddress : "",
+rtoOccupation: rentalMode === "Rent To Own" ? rtoOccupation : "",
+rtoAgreementAccepted:
+  rentalMode === "Rent To Own" ? rtoAgreementAccepted : false,
+rtoAgreementAcceptedAt:
+  rentalMode === "Rent To Own" ? new Date() : undefined,
+rtoCertificateNumber:
+  rentalMode === "Rent To Own"
+    ? `RTO-${bookingId.replace(/[^A-Z0-9]/gi, "").slice(-10)}`
+    : "",
+rtoInstallmentsPaid: 0,
 
 rentalStartDate,
 

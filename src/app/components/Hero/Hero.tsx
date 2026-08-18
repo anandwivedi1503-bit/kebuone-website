@@ -151,7 +151,7 @@ export default function Hero() {
             <p className="mt-4 text-sm text-slate-500">
               Already registered?{" "}
               <Link
-                href="/book-bike"
+                href="/ride-options"
                 className="font-bold text-[#18B368] underline-offset-4 hover:underline"
               >
                 Book a scooter
