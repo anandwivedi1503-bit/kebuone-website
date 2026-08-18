@@ -8,7 +8,13 @@ import {
   X,
   ChevronRight,
   Building2,
+  LogOut,
 } from "lucide-react";
+
+import { onAuthStateChanged } from "firebase/auth";
+
+import { auth } from "@/lib/firebase";
+import { hasRiderPlanReady, logoutRider } from "@/lib/riderPlanGate";
 
 import {
   motion,
@@ -53,6 +59,8 @@ export default function Navbar() {
 
   const [isScrolled, setIsScrolled] = useState(false);
 
+  const [riderLoggedIn, setRiderLoggedIn] = useState(false);
+
   useEffect(() => {
 
     const handleScroll = () => {
@@ -91,7 +99,20 @@ export default function Navbar() {
 
   }, [menuOpen]);
 
-  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setRiderLoggedIn(Boolean(user?.phoneNumber) || hasRiderPlanReady());
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    setMenuOpen(false);
+    await logoutRider();
+  };
+
+
 
   return (
 
@@ -320,6 +341,36 @@ className="transition-transform duration-300 group-hover:translate-x-1"
 
 </Link>
 
+{riderLoggedIn && (
+<button
+type="button"
+onClick={handleLogout}
+className="
+flex
+items-center
+gap-2
+rounded-full
+border
+border-slate-200
+bg-white
+px-4
+xl:px-5
+h-12
+xl:h-13
+font-bold
+text-[#0F172A]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:border-[#EC2A8C]
+hover:text-[#EC2A8C]
+"
+>
+<LogOut size={16} />
+Logout
+</button>
+)}
+
 </div>
 
 {/* ================= Mobile Button ================= */}
@@ -501,6 +552,17 @@ Book Ride
 </button>
 
 </Link>
+
+{riderLoggedIn && (
+<button
+type="button"
+onClick={handleLogout}
+className="w-full h-14 rounded-full border border-slate-200 bg-white text-[#0F172A] font-semibold hover:border-[#EC2A8C] hover:text-[#EC2A8C] transition flex items-center justify-center gap-2"
+>
+<LogOut size={18} />
+Logout
+</button>
+)}
 
 </div>
 

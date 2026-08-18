@@ -13,7 +13,7 @@ import { auth } from "@/lib/firebase";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN, rtoInstallment } from "@/lib/rentalPlans";
-import { hasRiderPlanReady, markRiderPlanReady } from "@/lib/riderPlanGate";
+import { hasRiderPlanReady, logoutRider, markRiderPlanReady } from "@/lib/riderPlanGate";
 
 const formatINR = (amount: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -361,6 +361,13 @@ export default function RideOptionsPage() {
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
               Pick a flexible rental, or own the scooter after 18 months of Rent to Own payments.
             </p>
+            <button
+              type="button"
+              onClick={() => void logoutRider()}
+              className="mt-5 text-sm font-bold text-slate-500 underline-offset-4 hover:text-[#EC2A8C] hover:underline"
+            >
+              Logout and start again
+            </button>
           </div>
 
           <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
