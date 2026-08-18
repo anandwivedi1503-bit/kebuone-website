@@ -64,8 +64,7 @@ type Hub = {
   city?: string;
 };
 
-const COMPANY_SECURITY_DEPOSIT = 2500;
-const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+ = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const NOMINEE_RELATIONS = [
@@ -136,11 +135,7 @@ export default function RentToOwnBooking() {
   const installment = rtoInstallment();
   const contractValue = rtoContractValue(undefined, tenureMonths);
   const tax = gstBreakdown(installment);
-  const securityDeposit =
-    Number(currentBike?.securityDeposit) > 0
-      ? Number(currentBike?.securityDeposit)
-      : COMPANY_SECURITY_DEPOSIT;
-  const payableAmount = tax.totalWithGst + securityDeposit;
+  const payableAmount = tax.totalWithGst;
 
   const filteredHubs = useMemo(() => {
     if (!city) return [];
@@ -156,16 +151,7 @@ export default function RentToOwnBooking() {
     return status === "available" || status === "";
   });
 
-  const hubBikes = availableBikes.filter((bike) => {
-    if (!hub) return false;
-    const bikeHub = normalizeText(bike.currentHub);
-    const keys = [selectedHub?.hubCode, selectedHub?.hubName, selectedHub?.hubLocation, hub]
-      .map(normalizeText)
-      .filter(Boolean);
-    return keys.some((key) => bikeHub === key || bikeHub.includes(key) || key.includes(bikeHub));
-  });
-
-  const bikes = hubBikes.length > 0 ? hubBikes : hub ? availableBikes : [];
+  const bikes = availableBikes;
 
   const loadData = async (selectedCity = "") => {
     try {
@@ -301,7 +287,7 @@ export default function RentToOwnBooking() {
       setBookingMongoId(bookingData.data._id);
       setCertificateNumber(bookingData.data.rtoCertificateNumber || "");
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
-      setMessage("Agreement saved. Pay the first 30-day installment to activate Rent to Own.");
+      setMessage("Agreement saved. Pay the full first installment to activate Rent to Own.");
       setStep(4);
     } catch {
       setError("Could not create the Rent to Own booking.");
@@ -314,6 +300,7 @@ export default function RentToOwnBooking() {
     setError("");
     setPaymentLoading(true);
     try {
+      const payNow = Number(pendingAmount || payableAmount);
       const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
       const orderRes = await fetch("/api/razorpay/create-order", {
         method: "POST",
@@ -323,7 +310,8 @@ export default function RentToOwnBooking() {
         },
         body: JSON.stringify({
           bookingMongoId,
-          amount: pendingAmount,
+          amount: payNow,
+          firebaseIdToken: token,
         }),
       });
       const orderData = await orderRes.json();
@@ -332,14 +320,18 @@ export default function RentToOwnBooking() {
         return;
       }
 
+      const keyId = orderData.keyId || orderData.data?.keyId;
+      const orderId = orderData.orderId || orderData.data?.orderId;
+      const orderAmount = orderData.amount || orderData.data?.amount;
+
       const openCheckout = () => {
         const razorpay = new window.Razorpay!({
-          key: orderData.data.keyId,
-          amount: orderData.data.amount,
-          currency: "INR",
+          key: keyId,
+          amount: orderAmount,
+          currency: orderData.currency || "INR",
           name: "EVUDDY Rent to Own",
           description: bookingId,
-          order_id: orderData.data.orderId,
+          order_id: orderId,
           prefill: { name: riderName, contact: riderPhone },
           notes: { bookingMongoId },
           theme: { color: "#18B368" },
@@ -355,6 +347,7 @@ export default function RentToOwnBooking() {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,
                 razorpay_signature: response.razorpay_signature,
+                firebaseIdToken: token,
               }),
             });
             const verifyData = await verifyRes.json();
@@ -363,8 +356,9 @@ export default function RentToOwnBooking() {
               return;
             }
             setPaymentSuccess(true);
-            setPickupOtp(verifyData.data?.pickupOTP || verifyData.pickupOTP || "");
             setPendingAmount(0);
+            setPickupOtp(verifyData.data?.pickupOTP || verifyData.pickupOTP || "");
+            setMessage("Rent to Own activated. Collect the scooter with your pickup OTP.");
           },
           modal: {
             ondismiss: () => undefined,
@@ -395,32 +389,27 @@ export default function RentToOwnBooking() {
         <h1 className="mt-2 text-3xl font-black text-[#0F172A] sm:text-5xl">
           Own your EVUDDY in {RTO_PLAN.tenureMonths} months
         </h1>
-        <p className="mt-3 text-slate-500">
-          Fixed plan: {formatINR(dailyRate)} per day for {tenureMonths} months. First payment is 30 days (
-          {formatINR(installment)}) + 5% GST + refundable deposit. After {tenureMonths} successful monthly
-          installments, ownership of the scooter transfers to you.
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+          Fixed plan: {formatINR(dailyRate)} per day for {tenureMonths} months. Pay {formatINR(dailyRate)} plus 5% GST now.
+          There is no security deposit. After {tenureMonths} months of successful payments, ownership of the scooter transfers to you.
         </p>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
           <div className="rounded-2xl bg-white p-4">
             <p className="text-xs font-bold uppercase text-slate-400">Daily</p>
             <p className="mt-1 text-xl font-black">{formatINR(dailyRate)}</p>
           </div>
           <div className="rounded-2xl bg-white p-4">
-            <p className="text-xs font-bold uppercase text-slate-400">First 30 days</p>
+            <p className="text-xs font-bold uppercase text-slate-400">Pay now</p>
             <p className="mt-1 text-xl font-black">{formatINR(installment)}</p>
           </div>
           <div className="rounded-2xl bg-white p-4">
             <p className="text-xs font-bold uppercase text-slate-400">GST 5%</p>
             <p className="mt-1 text-xl font-black">{formatINR(tax.gstAmount)}</p>
           </div>
-          <div className="rounded-2xl bg-white p-4">
-            <p className="text-xs font-bold uppercase text-slate-400">Deposit</p>
-            <p className="mt-1 text-xl font-black">{formatINR(securityDeposit)}</p>
-          </div>
         </div>
 
-        <div className="mt-6 flex gap-2 text-xs font-bold">
+        <div className="mt-6 grid grid-cols-2 gap-2 text-[11px] font-bold sm:flex sm:flex-wrap sm:text-xs">
           {["Scooter", "Application", "Agreement", "Pay"].map((label, index) => (
             <span
               key={label}
@@ -466,6 +455,10 @@ export default function RentToOwnBooking() {
             <p className="text-sm font-bold">Available scooters *</p>
             {loading ? (
               <p className="text-slate-500">Loading scooters...</p>
+            ) : bikes.length === 0 ? (
+              <p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                No scooters are marked Available right now. Ask admin to set bikes to Available.
+              </p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {bikes.map((bike) => (
@@ -473,7 +466,7 @@ export default function RentToOwnBooking() {
                     key={bike._id}
                     type="button"
                     onClick={() => setSelectedBike(bike.vehicleId)}
-                    className={`rounded-2xl border p-4 text-left ${
+                    className={`min-h-[7rem] rounded-2xl border p-4 text-left ${
                       selectedBike === bike.vehicleId
                         ? "border-[#18B368] bg-[#F0FDF4]"
                         : "border-slate-200 bg-white"
@@ -484,7 +477,9 @@ export default function RentToOwnBooking() {
                     {bike.registrationNumber ? (
                       <p className="text-xs text-slate-400">Reg: {bike.registrationNumber}</p>
                     ) : null}
-                    <p className="text-xs text-slate-400">Battery: {bike.batteryPercentage ?? "-"}%</p>
+                    <p className="text-xs text-slate-400">
+                      Hub: {bike.currentHub || "-"} · Battery: {bike.batteryPercentage ?? "-"}%
+                    </p>
                     <p className="mt-2 text-sm font-semibold text-[#18B368]">
                       {formatINR(dailyRate)}/day · {tenureMonths} months
                     </p>
@@ -576,9 +571,8 @@ export default function RentToOwnBooking() {
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
-              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months (
-              {formatINR(installment)} every 30 days). GST at 5% (CGST 2.5% + SGST 2.5%) applies on each
-              installment. Security deposit is refundable and has no GST. After successful completion, ownership
+              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months. Today I pay {formatINR(dailyRate)} plus 5% GST
+              (CGST 2.5% + SGST 2.5%). Rent to Own has no security deposit. After successful completion, ownership
               of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
             </label>
             <div className="flex gap-3">
@@ -606,11 +600,11 @@ export default function RentToOwnBooking() {
               <p>Vehicle: {selectedBike} {currentBike?.vehicleModel ? `· ${currentBike.vehicleModel}` : ""}</p>
               <p>Registration: {currentBike?.registrationNumber || "-"}</p>
               <p>City / hub: {city} / {selectedHub?.hubName || hub}</p>
-              <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months ({tenureMonths * 30} billed days)</p>
+              <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months</p>
               <p>Contract rental value: {formatINR(contractValue)}</p>
-              <p>First installment: {formatINR(installment)}</p>
+              <p>Amount now: {formatINR(installment)} + 5% GST</p>
               <p>CGST 2.5%: {formatINR(tax.cgstAmount)} | SGST 2.5%: {formatINR(tax.sgstAmount)}</p>
-              <p>Security deposit: {formatINR(securityDeposit)} (refundable, no GST)</p>
+              <p>Security deposit: None for Rent to Own</p>
               <p>Payable now: {formatINR(payableAmount)}</p>
               <p>Nominee: {nomineeName} ({nomineeRelation})</p>
               <p>Emergency contact: {emergencyPhone}</p>
@@ -621,10 +615,10 @@ export default function RentToOwnBooking() {
               </p>
             </div>
             <div className="rounded-2xl bg-[#0B1B16] p-5 text-white">
-              <p>Payable now (first installment + GST + deposit)</p>
+              <p>Payable now ({formatINR(dailyRate)} + GST)</p>
               <p className="text-3xl font-black">{formatINR(payableAmount)}</p>
               <p className="mt-2 text-sm text-white/70">
-                {formatINR(installment)} + {formatINR(tax.gstAmount)} GST + {formatINR(securityDeposit)} deposit
+                {formatINR(installment)} + {formatINR(tax.gstAmount)} GST · no deposit
               </p>
             </div>
             <div className="flex gap-3">
@@ -647,20 +641,23 @@ export default function RentToOwnBooking() {
             <h2 className="text-2xl font-black">Payment & certificate</h2>
             <p>Booking ID: <b>{bookingId}</b></p>
             {certificateNumber ? <p>Certificate: <b>{certificateNumber}</b></p> : null}
-            <p>Amount due: <b>{formatINR(pendingAmount || payableAmount)}</b></p>
             <div className="rounded-2xl bg-[#F7FBF8] p-4 text-sm">
-              <p>Plan: {formatINR(dailyRate)}/day × 30 days = {formatINR(installment)}</p>
+              <p>Rent to Own: {formatINR(dailyRate)} per day</p>
+              <p>Amount: {formatINR(installment)}</p>
               <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)}</p>
-              <p>Refundable deposit {formatINR(securityDeposit)}</p>
+              <p>No security deposit on Rent to Own</p>
+              <p className="mt-2 font-semibold">Pay now: {formatINR(pendingAmount || payableAmount)}</p>
             </div>
             {!paymentSuccess ? (
               <button
                 type="button"
                 disabled={paymentLoading}
                 onClick={() => void payWithRazorpay()}
-                className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white"
+                className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white disabled:bg-slate-300"
               >
-                {paymentLoading ? "Opening Razorpay..." : "Pay first installment"}
+                {paymentLoading
+                  ? "Opening Razorpay..."
+                  : `Pay ${formatINR(pendingAmount || payableAmount)}`}
               </button>
             ) : (
               <div className="rounded-2xl bg-emerald-50 p-5">

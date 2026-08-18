@@ -92,9 +92,11 @@ export async function GET() {
     { isDeleted: false },
     { isDeleted: { $exists: false } },
   ],
-}).sort({
-  createdAt: -1,
-});
+})
+  .sort({
+    createdAt: -1,
+  })
+  .lean();
 
     return NextResponse.json({
       success: true,
@@ -636,7 +638,10 @@ switch (rentalMode) {
     );
 }
 
-const securityDeposit = money(vehicle.securityDeposit || 2500);
+const securityDeposit =
+  rentalMode === "Rent To Own"
+    ? 0
+    : money(vehicle.securityDeposit || 2500);
 const tax = gstBreakdown(rentalAmount);
 const payableAmount = money(tax.totalWithGst + securityDeposit);
 
