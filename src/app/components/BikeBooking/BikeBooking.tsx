@@ -990,16 +990,7 @@ step > index + 1
 <div className="grid gap-10 lg:grid-cols-[1.38fr_0.62fr]">
           <form
             onSubmit={createBooking}
-            className="
-rounded-[36px]
-bg-white/95
-backdrop-blur-xl
-border
-border-white
-p-6
-md:p-10
-"shadow-[0_40px_120px_rgba(15,23,42,.12)]
-"
+            className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl md:p-10"
           >
             <div className="mb-6 rounded-[24px] border border-[#18B368]/15 bg-[#F7FBF8] p-4">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Rental prices</p>
