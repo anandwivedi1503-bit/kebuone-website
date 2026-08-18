@@ -303,7 +303,7 @@ export default function Footer() {
       </Link>
 
       <Link
-        href="/ride-options"
+        href="/register"
         className="block text-gray-400 transition hover:text-white"
       >
         Rider Registration

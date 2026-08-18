@@ -915,7 +915,7 @@ await session.endSession();
       message: isReplicaSetError
         ? "Database is not configured for booking transactions. Use MongoDB Atlas or a replica set."
         : "Failed to create booking.",
-      details: errorMessage,
+      details: publicApiError(error, "Failed to create booking."),
     },
     {
       status: 500,

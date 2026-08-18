@@ -11,6 +11,7 @@ import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { publicApiError } from "@/lib/publicError";
 
 export async function GET(req: Request) {
   try {
@@ -110,8 +111,7 @@ const filteredTransactions = transactions.filter(
 filteredTransactions
 .filter(
 (t)=>
-t.status==="Success" &&
-t.transactionType==="Booking Payment"
+t.status==="Success"
 )
 .reduce(
 (sum,t)=>sum+(t.amount||0),
@@ -304,7 +304,7 @@ paymentDistribution: paymentDistribution || [],
     return NextResponse.json(
       {
         success: false,
-        error: String(error),
+        error: publicApiError(error, "Failed to load analytics"),
       },
       {
         status: 500,

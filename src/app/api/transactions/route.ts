@@ -49,7 +49,12 @@ export async function GET() {
     }
     await connectDB();
 
-    const transactions = await Transaction.find().sort({
+    const transactions = await Transaction.find({
+      $or: [
+        { isDeleted: false },
+        { isDeleted: { $exists: false } },
+      ],
+    }).sort({
       createdAt: -1,
     });
 
@@ -214,6 +219,12 @@ errors:["This Razorpay payment already exists."]
       userName,
       amount: Number(body.amount),
       gstAmount: Number(body.gstAmount || 0),
+      cgstAmount: Number(
+        body.cgstAmount ?? Number(body.gstAmount || 0) / 2
+      ),
+      sgstAmount: Number(
+        body.sgstAmount ?? Number(body.gstAmount || 0) / 2
+      ),
       paymentMethod,
       transactionType,
       status,

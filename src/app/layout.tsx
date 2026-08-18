@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,9 +13,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Kebu One - Bike Rental, Househelp, Cab & Delivery",
+  title: "EVUDDY by Kebu One | Electric Scooter Rentals",
   description:
-    "Kebu One is an operations-first urban services platform for bike rentals, househelp, cab, delivery and smart mobility services.",
+    "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own, with live tracking across Indian cities.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#18B368",
 };
 
 export default function RootLayout({

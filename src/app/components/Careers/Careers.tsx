@@ -1,3 +1,5 @@
+import CareersApply from "./CareersApply";
+
 export default function Careers() {
   return (
     <section className="bg-white">
@@ -51,7 +53,7 @@ export default function Careers() {
       <div className="mt-12 flex flex-wrap gap-5">
 
         <a
-          href="mailto:careers@evuddy.com"
+          href="#careers-apply"
           className="rounded-full bg-gradient-to-r from-[#16A34A] to-[#18B368] px-9 py-4 font-bold text-white shadow-[0_18px_45px_rgba(24,179,104,.35)] hover:-translate-y-1 transition"
         >
 
@@ -828,6 +830,7 @@ export default function Careers() {
 
   </div>
 </section>
+      <CareersApply />
 </section>
 
   );

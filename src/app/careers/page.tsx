@@ -6,7 +6,7 @@ export default function Page() {
   return (
     <main>
       <Navbar />
-      <div className="pt-20">
+      <div className="pt-28">
         <Careers />
       </div>
       <Footer />
