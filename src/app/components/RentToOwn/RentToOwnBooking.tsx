@@ -125,8 +125,6 @@ export default function RentToOwnBooking() {
   const [bookingMongoId, setBookingMongoId] = useState("");
   const [certificateNumber, setCertificateNumber] = useState("");
   const [pendingAmount, setPendingAmount] = useState(0);
-  const [paidAmount, setPaidAmount] = useState(0);
-  const [paymentAmount, setPaymentAmount] = useState("");
   const [pickupOtp, setPickupOtp] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -138,7 +136,6 @@ export default function RentToOwnBooking() {
   const contractValue = rtoContractValue(undefined, tenureMonths);
   const tax = gstBreakdown(installment);
   const payableAmount = tax.totalWithGst;
-  const amountDue = pendingAmount > 0 ? pendingAmount : payableAmount;
 
   const filteredHubs = useMemo(() => {
     if (!city) return [];
@@ -290,9 +287,7 @@ export default function RentToOwnBooking() {
       setBookingMongoId(bookingData.data._id);
       setCertificateNumber(bookingData.data.rtoCertificateNumber || "");
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
-      setPaymentAmount(String(bookingData.data.pendingAmount || payableAmount));
-      setPaidAmount(Number(bookingData.data.receivedAmount || 0));
-      setMessage("Agreement saved. Pay the first installment to activate Rent to Own. You can pay in part; remaining stays pending.");
+      setMessage("Agreement saved. Pay the full first installment to activate Rent to Own.");
       setStep(4);
     } catch {
       setError("Could not create the Rent to Own booking.");
@@ -305,12 +300,7 @@ export default function RentToOwnBooking() {
     setError("");
     setPaymentLoading(true);
     try {
-      const payNow = Number(paymentAmount || amountDue);
-      if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
-        setError(`Enter an amount between ₹1 and ${formatINR(amountDue)}.`);
-        return;
-      }
-
+      const payNow = Number(pendingAmount || payableAmount);
       const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
       const orderRes = await fetch("/api/razorpay/create-order", {
         method: "POST",
@@ -365,26 +355,8 @@ export default function RentToOwnBooking() {
               setError(verifyData.message || "Payment verification failed.");
               return;
             }
-
-            const nextPending = Number(
-              verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0
-            );
-            const nextPaid = Number(
-              verifyData.paidAmount ?? verifyData.data?.receivedAmount ?? paidAmount + payNow
-            );
-            setPaidAmount(nextPaid);
-            setPendingAmount(nextPending);
-            setPaymentAmount(nextPending > 0 ? String(nextPending) : "0");
-
-            if (nextPending > 0) {
-              setPaymentSuccess(false);
-              setMessage(
-                `Partial payment received. Paid ${formatINR(nextPaid)}. Pending ${formatINR(nextPending)}.`
-              );
-              return;
-            }
-
             setPaymentSuccess(true);
+            setPendingAmount(0);
             setPickupOtp(verifyData.data?.pickupOTP || verifyData.pickupOTP || "");
             setMessage("Rent to Own activated. Collect the scooter with your pickup OTP.");
           },
@@ -675,43 +647,18 @@ export default function RentToOwnBooking() {
               <p>Plan: {formatINR(dailyRate)}/day × 30 days = {formatINR(installment)}</p>
               <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)}</p>
               <p>No security deposit on Rent to Own</p>
-              <p className="mt-2 font-semibold">Total for this installment: {formatINR(payableAmount)}</p>
-            </div>
-            <label className="block text-sm font-bold">Pay now</label>
-            <input
-              type="number"
-              min={1}
-              max={amountDue}
-              value={paymentAmount}
-              disabled={paymentSuccess}
-              onChange={(e) => setPaymentAmount(e.target.value)}
-              className="h-16 w-full rounded-2xl border border-slate-200 px-5 text-xl font-black text-[#16A34A] outline-none focus:border-[#18B368]"
-            />
-            <p className="text-sm text-slate-500">
-              Pay the full amount or a part. If you pay less, the remaining pending amount stays on this booking and on admin dashboards.
-            </p>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl bg-[#F7FBF8] p-4">
-                <p className="text-xs font-bold uppercase text-slate-400">Total</p>
-                <p className="mt-1 font-black">{formatINR(payableAmount)}</p>
-              </div>
-              <div className="rounded-2xl bg-emerald-50 p-4">
-                <p className="text-xs font-bold uppercase text-emerald-700">Paid</p>
-                <p className="mt-1 font-black text-emerald-700">{formatINR(paidAmount)}</p>
-              </div>
-              <div className="col-span-2 rounded-2xl bg-amber-50 p-4 sm:col-span-1">
-                <p className="text-xs font-bold uppercase text-amber-700">Pending</p>
-                <p className="mt-1 font-black text-amber-700">{formatINR(pendingAmount || payableAmount - paidAmount)}</p>
-              </div>
+              <p className="mt-2 font-semibold">Amount to pay: {formatINR(pendingAmount || payableAmount)}</p>
             </div>
             {!paymentSuccess ? (
               <button
                 type="button"
-                disabled={paymentLoading || amountDue <= 0}
+                disabled={paymentLoading}
                 onClick={() => void payWithRazorpay()}
                 className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white disabled:bg-slate-300"
               >
-                {paymentLoading ? "Opening Razorpay..." : `Pay ${formatINR(Number(paymentAmount || amountDue) || 0)}`}
+                {paymentLoading
+                  ? "Opening Razorpay..."
+                  : `Pay ${formatINR(pendingAmount || payableAmount)}`}
               </button>
             ) : (
               <div className="rounded-2xl bg-emerald-50 p-5">

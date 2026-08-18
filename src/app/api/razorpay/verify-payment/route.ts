@@ -403,6 +403,22 @@ export async function POST(req: Request) {
       );
     }
 
+    if (
+      booking.rentalMode === "Rent To Own" &&
+      Number(paidAmount.toFixed(2)) !== Number(remainingAmount.toFixed(2))
+    ) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rent to Own requires the full installment in one payment.",
+        },
+        { status: 400 }
+      );
+    }
+
     const newReceivedAmount = Number(
       (oldReceivedAmount + paidAmount).toFixed(2)
     );

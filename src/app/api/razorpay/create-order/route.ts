@@ -190,6 +190,19 @@ export async function POST(req: Request) {
 
     const amount = requestedAmount || remainingAmount;
 
+    if (
+      booking.rentalMode === "Rent To Own" &&
+      Number(amount.toFixed(2)) !== Number(remainingAmount.toFixed(2))
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Rent to Own requires the full installment in one payment.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (amount < 1 || amount > remainingAmount) {
       return NextResponse.json(
         {
