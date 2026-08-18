@@ -6,8 +6,8 @@ import { ArrowRight, Bike, KeyRound } from "lucide-react";
 import Link from "next/link";
 
 import { auth } from "@/lib/firebase";
-import Navbar from "../Navbar/Navbar";
-import Footer from "../components/Footer/Footer";
+import Navbar from "@/app/Navbar/Navbar";
+import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN, rtoInstallment } from "@/lib/rentalPlans";
 
 const formatINR = (amount: number) =>
