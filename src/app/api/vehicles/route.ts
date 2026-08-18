@@ -609,7 +609,12 @@ export async function GET() {
               { isActive: { $exists: false } },
             ],
           },
-          { vehicleStatus: "Available" },
+          {
+            $or: [
+              { vehicleStatus: "Available" },
+              { vehicleStatus: "available" },
+            ],
+          },
         ],
       })
         .select(

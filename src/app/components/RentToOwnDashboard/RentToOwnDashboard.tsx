@@ -40,7 +40,7 @@ export default function RentToOwnDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/bookings");
+        const res = await fetch("/api/bookings", { cache: "no-store" });
         const data = await res.json();
         setBookings(data.data || []);
       } finally {
@@ -87,6 +87,7 @@ export default function RentToOwnDashboard() {
                 <th className="px-4 py-3">Vehicle</th>
                 <th className="px-4 py-3">Certificate</th>
                 <th className="px-4 py-3">Installments</th>
+                <th className="px-4 py-3">Pending</th>
                 <th className="px-4 py-3">Days left</th>
                 <th className="px-4 py-3">Status</th>
               </tr>
@@ -94,13 +95,13 @@ export default function RentToOwnDashboard() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="px-4 py-8" colSpan={7}>
+                  <td className="px-4 py-8" colSpan={8}>
                     Loading...
                   </td>
                 </tr>
               ) : rto.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-slate-500" colSpan={7}>
+                  <td className="px-4 py-8 text-slate-500" colSpan={8}>
                     No Rent to Own contracts yet. They appear here after a rider completes the RTO flow.
                   </td>
                 </tr>
@@ -116,6 +117,7 @@ export default function RentToOwnDashboard() {
                     <td className="px-4 py-3">{item.vehicleId}</td>
                     <td className="px-4 py-3">{item.rtoCertificateNumber || "-"}</td>
                     <td className="px-4 py-3">{item.rtoInstallmentsPaid || 0}</td>
+                    <td className="px-4 py-3">₹{Number(item.pendingAmount || 0).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">{item.remainingRentToOwnDays || 0}</td>
                     <td className="px-4 py-3">
                       <StatusBadge

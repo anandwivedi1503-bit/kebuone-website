@@ -46,7 +46,7 @@ const fetchBookings=async()=>{
 
 try{
 
-const res=await fetch("/api/bookings");
+const res=await fetch("/api/bookings", { cache: "no-store" });
 
 const data=await res.json();
 

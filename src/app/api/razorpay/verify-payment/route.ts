@@ -490,7 +490,11 @@ if (!wallet) {
       transactionType: "Security Deposit Hold",
     }).session(session);
 
-    if (!existingDepositHold && pendingAmount <= 0) {
+    if (
+      !existingDepositHold &&
+      pendingAmount <= 0 &&
+      Number(booking.securityDeposit || 0) > 0
+    ) {
       wallet.securityDepositHold = Math.max(
         Number(wallet.securityDepositHold || 0),
         Number(booking.securityDeposit || 0)

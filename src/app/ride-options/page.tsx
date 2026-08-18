@@ -423,7 +423,7 @@ export default function RideOptionsPage() {
                 <p>
                   First installment (30 days): <b>{formatINR(rtoInstallment())}</b> + 5% GST
                 </p>
-                <p className="mt-1 text-white/70">Refundable deposit extra, as applicable.</p>
+                <p className="mt-1 text-white/70">No security deposit on Rent to Own.</p>
               </div>
               <span className="mt-6 inline-flex items-center gap-2 font-bold text-[#6EE7A8]">
                 Start Rent to Own <ArrowRight size={16} />
