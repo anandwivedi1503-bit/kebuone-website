@@ -64,7 +64,7 @@ type Hub = {
   city?: string;
 };
 
- = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const NOMINEE_RELATIONS = [
