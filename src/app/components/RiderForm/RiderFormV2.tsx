@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { auth } from "@/lib/firebase";
+import { markRiderPlanReady } from "@/lib/riderPlanGate";
 
 import {
   RecaptchaVerifier,
@@ -115,8 +116,8 @@ useEffect(() => {
   );
 
   clearInterval(interval);
-
-  window.location.href = "/book-bike";
+  markRiderPlanReady();
+  window.location.href = "/ride-options";
 }
 
     } catch {}
@@ -437,7 +438,8 @@ if (!response.ok) {
       );
     }
 
-    window.location.href = "/book-bike";
+    markRiderPlanReady();
+    window.location.href = "/ride-options";
     return;
   }
 
@@ -695,8 +697,8 @@ const verifyOtp = async () => {
       data.data.approvalStatus === "Approved" &&
       data.data.bookingEnabled
     ) {
-
-      window.location.href = "/book-bike";
+      markRiderPlanReady();
+      window.location.href = "/ride-options";
       return;
 
     }
@@ -1091,7 +1093,8 @@ This page updates automatically after approval.
 <button
 
 onClick={()=>{
-window.location.href="/book-bike";
+markRiderPlanReady();
+window.location.href="/ride-options";
 }}
 
 className="
