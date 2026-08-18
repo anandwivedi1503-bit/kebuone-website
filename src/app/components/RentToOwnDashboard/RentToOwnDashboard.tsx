@@ -24,7 +24,9 @@ type BookingRow = {
   remainingRentToOwnDays?: number;
   rentToOwnCompletedDays?: number;
   rtoInstallmentsPaid?: number;
-  rtoCertificateNumber?: string;
+  rtoNomineeName?: string;
+  rtoNomineeRelation?: string;
+  rtoOccupation?: string;
   ownershipTransferred?: boolean;
   pendingAmount?: number;
   receivedAmount?: number;
@@ -108,6 +110,7 @@ export default function RentToOwnDashboard() {
                     <td className="px-4 py-3">
                       {item.userName}
                       <div className="text-xs text-slate-400">{item.riderId}</div>
+                      <div className="text-xs text-slate-400">{item.rtoOccupation || ""}</div>
                     </td>
                     <td className="px-4 py-3">{item.vehicleId}</td>
                     <td className="px-4 py-3">{item.rtoCertificateNumber || "-"}</td>

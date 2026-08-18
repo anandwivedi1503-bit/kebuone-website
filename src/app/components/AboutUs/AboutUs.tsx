@@ -75,7 +75,7 @@ export default function AboutUs() {
       <div className="mt-12 flex flex-wrap gap-5">
 
         <a
-          href="/register"
+          href="/ride-options"
           className="rounded-full bg-gradient-to-r from-[#16A34A] to-[#18B368] px-9 py-4 font-bold text-white shadow-[0_18px_45px_rgba(24,179,104,.35)] transition-all duration-300 hover:-translate-y-1"
         >
 
@@ -500,7 +500,7 @@ export default function AboutUs() {
     <div className="mt-14 flex flex-wrap justify-center gap-6">
 
       <a
-        href="/register"
+        href="/ride-options"
         className="
         rounded-full
         bg-white

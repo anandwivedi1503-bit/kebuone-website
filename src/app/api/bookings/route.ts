@@ -13,11 +13,30 @@ import {
   normalizeIndianPhone,
 } from "@/lib/requestAuth";
 import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
+import { gstBreakdown, money } from "@/lib/gst";
+import {
+  catalogRate,
+  rtoDailyRate,
+  rtoInstallment,
+  rtoTenureMonths,
+} from "@/lib/rentalPlans";
+import { publicApiError } from "@/lib/publicError";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const idRegex = /^[A-Za-z0-9_-]{3,60}$/;
+const rtoRelations = [
+  "Spouse",
+  "Father",
+  "Mother",
+  "Son",
+  "Daughter",
+  "Brother",
+  "Sister",
+  "Other",
+];
 
 const rentalModes = [
   "Hourly",
@@ -86,7 +105,7 @@ export async function GET() {
       {
         success: false,
         message: "Failed to fetch bookings",
-        error: String(error),
+        error: publicApiError(error, "Failed to fetch bookings"),
       },
       { status: 500 }
     );
@@ -106,7 +125,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const bookingId = clean(body.bookingId);
-        const submittedName = clean(body.userName);
+    const submittedName = clean(body.userName);
     let userName = submittedName;
     const userPhone = normalizeIndianPhone(body.userPhone);
     const bodyRiderId = clean(body.riderId);
@@ -248,6 +267,8 @@ await session.endSession();
   );
 }
 
+userName = clean(rider.fullName);
+
 if (rider.activeRide) {
   await session.abortTransaction();
 await session.endSession();
@@ -259,8 +280,6 @@ await session.endSession();
     { status: 409 }
   );
 }
-
-
 
 if (!rider.bookingEnabled) {
   await session.abortTransaction();
@@ -333,6 +352,42 @@ if (!hasValidHub) {
   errors.push("Pickup hub is required.");
 }
     if (!rentalModes.includes(rentalMode)) errors.push("Valid rental mode is required.");
+
+    const rtoNomineeName = clean(body.rtoNomineeName).slice(0, 80);
+    const rtoNomineeRelation = clean(body.rtoNomineeRelation).slice(0, 40);
+    const rtoPermanentAddress = clean(body.rtoPermanentAddress).slice(0, 240);
+    const rtoOccupation = clean(body.rtoOccupation).slice(0, 80);
+    const rtoGuardianName = clean(body.rtoGuardianName).slice(0, 80);
+    const rtoEmergencyPhone = clean(body.rtoEmergencyPhone).replace(/\D/g, "").slice(0, 10);
+    const rtoEmail = clean(body.rtoEmail).toLowerCase().slice(0, 120);
+    const rtoAgreementAccepted = Boolean(body.rtoAgreementAccepted);
+
+    if (rentalMode === "Rent To Own") {
+      if (!nameRegex.test(rtoNomineeName)) {
+        errors.push("Nominee name is required for Rent to Own.");
+      }
+      if (!rtoRelations.includes(rtoNomineeRelation)) {
+        errors.push("Nominee relation is required for Rent to Own.");
+      }
+      if (!nameRegex.test(rtoGuardianName)) {
+        errors.push("Father / guardian name is required for Rent to Own.");
+      }
+      if (!phoneRegex.test(rtoEmergencyPhone)) {
+        errors.push("Valid emergency contact number is required for Rent to Own.");
+      }
+      if (!emailRegex.test(rtoEmail)) {
+        errors.push("Valid email is required for Rent to Own.");
+      }
+      if (rtoPermanentAddress.length < 12) {
+        errors.push("Permanent address is required for Rent to Own.");
+      }
+      if (rtoOccupation.length < 2) {
+        errors.push("Occupation is required for Rent to Own.");
+      }
+      if (!rtoAgreementAccepted) {
+        errors.push("You must accept the Rent to Own ownership agreement.");
+      }
+    }
 
     if (errors.length > 0) {
       await session.abortTransaction();
@@ -476,9 +531,17 @@ await session.endSession();
  
 const vehicleHub = clean(vehicle.currentHub).toLowerCase();
 
-const matched = hubAliases.some(
-  (hub) => clean(hub).toLowerCase() === vehicleHub
-);
+const hubsMatch = (alias: string) => {
+  const key = clean(alias).toLowerCase();
+  if (!key || !vehicleHub) return false;
+  if (key === vehicleHub) return true;
+  if (/^\d+$/.test(key) && /^\d+$/.test(vehicleHub)) {
+    return Number(key) === Number(vehicleHub);
+  }
+  return key.includes(vehicleHub) || vehicleHub.includes(key);
+};
+
+const matched = hubAliases.some(hubsMatch);
 
 if (!matched) {
   await session.abortTransaction();
@@ -512,15 +575,15 @@ await session.endSession();
 
 const rentalAmount =
   rentalMode === "Hourly"
-    ? Number(vehicle.hourlyRate || 0)
+    ? catalogRate("Hourly", vehicle.hourlyRate)
     : rentalMode === "Daily"
-    ? Number(vehicle.dailyRate || 0)
+    ? catalogRate("Daily", vehicle.dailyRate)
     : rentalMode === "Weekly"
-    ? Number(vehicle.weeklyRate || 0)
+    ? catalogRate("Weekly", vehicle.weeklyRate)
     : rentalMode === "Monthly"
-    ? Number(vehicle.monthlyRate || 0)
+    ? catalogRate("Monthly", vehicle.monthlyRate)
     : rentalMode === "Rent To Own"
-    ? Number(vehicle.rentToOwnDailyRate || 0)
+    ? rtoInstallment(vehicle.rentToOwnDailyRate)
     : 0;
 
 const rentalEndDate = new Date(rentalStartDate);
@@ -551,24 +614,7 @@ switch (rentalMode) {
     break;
 
   case "Rent To Own": {
-    const months = Number(
-      vehicle.rentToOwnMonths || 0
-    );
-
-    if (!Number.isInteger(months) || months <= 0) {
-      await session.abortTransaction();
-      await session.endSession();
-
-      return NextResponse.json(
-        {
-          success: false,
-          errors: [
-            "Rent To Own duration is not configured for this vehicle.",
-          ],
-        },
-        { status: 400 }
-      );
-    }
+    const months = rtoTenureMonths(vehicle.rentToOwnMonths);
 
     rentalEndDate.setMonth(
       rentalEndDate.getMonth() + months
@@ -590,13 +636,9 @@ switch (rentalMode) {
     );
 }
 
-const securityDeposit = Number(
-  vehicle.securityDeposit || 2500
-);
-
-const payableAmount = Number(
-  (rentalAmount + securityDeposit).toFixed(2)
-);
+const securityDeposit = money(vehicle.securityDeposit || 2500);
+const tax = gstBreakdown(rentalAmount);
+const payableAmount = money(tax.totalWithGst + securityDeposit);
 
 if (
   rentalAmount <= 0 ||
@@ -692,23 +734,50 @@ new mongoose.Types.ObjectId().toString(),
 
       rentalMode,
 
-      dailyRate:
-  Number(vehicle.dailyRate || 0),
+dailyRate:
+  catalogRate("Daily", vehicle.dailyRate),
 
 weeklyRate:
-  Number(vehicle.weeklyRate || 0),
+  catalogRate("Weekly", vehicle.weeklyRate),
 
 monthlyRate:
-  Number(vehicle.monthlyRate || 0),
+  catalogRate("Monthly", vehicle.monthlyRate),
 
 hourlyRate:
-  Number(vehicle.hourlyRate || 0),
+  catalogRate("Hourly", vehicle.hourlyRate),
 
 rentToOwnDailyRate:
-  Number(vehicle.rentToOwnDailyRate || 0),
+  rtoDailyRate(vehicle.rentToOwnDailyRate),
 
 rentToOwnMonths:
-  Number(vehicle.rentToOwnMonths || 0),
+  rtoTenureMonths(vehicle.rentToOwnMonths),
+
+rentToOwnCompletedDays: rentalMode === "Rent To Own" ? 0 : 0,
+
+remainingRentToOwnDays:
+  rentalMode === "Rent To Own"
+    ? rtoTenureMonths(vehicle.rentToOwnMonths) * 30
+    : 0,
+
+ownershipTransferred: false,
+
+rtoNomineeName: rentalMode === "Rent To Own" ? rtoNomineeName : "",
+rtoNomineeRelation: rentalMode === "Rent To Own" ? rtoNomineeRelation : "",
+rtoGuardianName: rentalMode === "Rent To Own" ? rtoGuardianName : "",
+rtoEmergencyPhone: rentalMode === "Rent To Own" ? rtoEmergencyPhone : "",
+rtoEmail: rentalMode === "Rent To Own" ? rtoEmail : "",
+rtoPermanentAddress:
+  rentalMode === "Rent To Own" ? rtoPermanentAddress : "",
+rtoOccupation: rentalMode === "Rent To Own" ? rtoOccupation : "",
+rtoAgreementAccepted:
+  rentalMode === "Rent To Own" ? rtoAgreementAccepted : false,
+rtoAgreementAcceptedAt:
+  rentalMode === "Rent To Own" ? new Date() : undefined,
+rtoCertificateNumber:
+  rentalMode === "Rent To Own"
+    ? `RTO-${bookingId.replace(/[^A-Z0-9]/gi, "").slice(-10)}`
+    : "",
+rtoInstallmentsPaid: 0,
 
 rentalStartDate,
 
@@ -725,6 +794,12 @@ startHub:
         clean(body.city),
 
       securityDeposit,
+
+      gstAmount: tax.gstAmount,
+      cgstAmount: tax.cgstAmount,
+      sgstAmount: tax.sgstAmount,
+      cgstRate: tax.cgstRate,
+      sgstRate: tax.sgstRate,
 
       paymentDue:
         payableAmount,

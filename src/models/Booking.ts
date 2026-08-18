@@ -181,6 +181,75 @@ ownershipTransferred: {
 
 ownershipTransferredAt: Date,
 
+rtoNomineeName: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+rtoNomineeRelation: {
+  type: String,
+  trim: true,
+  maxlength: 40,
+  default: "",
+},
+
+rtoGuardianName: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+rtoEmergencyPhone: {
+  type: String,
+  trim: true,
+  maxlength: 10,
+  default: "",
+},
+
+rtoEmail: {
+  type: String,
+  trim: true,
+  lowercase: true,
+  maxlength: 120,
+  default: "",
+},
+
+rtoPermanentAddress: {
+  type: String,
+  trim: true,
+  maxlength: 240,
+  default: "",
+},
+
+rtoOccupation: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+rtoAgreementAccepted: {
+  type: Boolean,
+  default: false,
+},
+
+rtoAgreementAcceptedAt: Date,
+
+rtoCertificateNumber: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
+rtoInstallmentsPaid: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
     rentalStartDate: {
   type: Date,
   required: true,
@@ -283,6 +352,36 @@ dropLongitude: {
     totalAmount: {
       type: Number,
       default: 0,
+      min: 0,
+    },
+
+    gstAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    cgstAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    sgstAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    cgstRate: {
+      type: Number,
+      default: 0.025,
+      min: 0,
+    },
+
+    sgstRate: {
+      type: Number,
+      default: 0.025,
       min: 0,
     },
 

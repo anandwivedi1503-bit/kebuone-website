@@ -92,13 +92,13 @@ export default function WhyChoose() {
             Register once, then book an EVUDDY scooter from your nearest hub.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
-            <Link href="/register" className="w-full sm:w-auto">
+            <Link href="/ride-options" className="w-full sm:w-auto">
               <span className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 py-4 font-bold text-white sm:w-auto">
                 Book an EV
                 <ArrowRight size={18} />
               </span>
             </Link>
-            <Link href="/book-bike" className="w-full sm:w-auto">
+            <Link href="/ride-options" className="w-full sm:w-auto">
               <span className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 px-8 py-4 font-bold text-[#0F172A] sm:w-auto">
                 I already have an account
               </span>

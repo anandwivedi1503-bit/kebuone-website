@@ -8,6 +8,7 @@ import { auth } from "@/lib/firebase";
 import { gstBreakdown } from "@/lib/gst";
 import {
   RTO_PLAN,
+  rtoContractValue,
   rtoDailyRate,
   rtoInstallment,
   rtoTenureMonths,
@@ -19,13 +20,35 @@ type RazorpayResponse = {
   razorpay_signature: string;
 };
 
+type RazorpayInstance = {
+  open: () => void;
+};
+
+type RazorpayOptions = {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  prefill: { name: string; contact: string };
+  notes: Record<string, string>;
+  theme: { color: string };
+  handler: (response: RazorpayResponse) => void;
+  modal: { ondismiss: () => void };
+};
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
+  }
+}
+
 type Vehicle = {
   _id: string;
   vehicleId: string;
   registrationNumber?: string;
   vehicleModel?: string;
-  hourlyRate?: number;
-  dailyRate?: number;
   rentToOwnDailyRate?: number;
   rentToOwnMonths?: number;
   securityDeposit?: number;
@@ -43,6 +66,18 @@ type Hub = {
 
 const COMPANY_SECURITY_DEPOSIT = 2500;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+const phoneRegex = /^[6-9]\d{9}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NOMINEE_RELATIONS = [
+  "Spouse",
+  "Father",
+  "Mother",
+  "Son",
+  "Daughter",
+  "Brother",
+  "Sister",
+  "Other",
+];
 
 const formatINR = (amount: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -57,6 +92,9 @@ const normalizeText = (value: unknown) =>
     .toLowerCase()
     .replace(/\s+/g, " ");
 
+const inputClass =
+  "h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none focus:border-[#18B368]";
+
 export default function RentToOwnBooking() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -69,6 +107,7 @@ export default function RentToOwnBooking() {
 
   const [riderName, setRiderName] = useState("");
   const [riderPhone, setRiderPhone] = useState("");
+  const [riderEmail, setRiderEmail] = useState("");
   const [riderId, setRiderId] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
 
@@ -76,7 +115,10 @@ export default function RentToOwnBooking() {
   const [hub, setHub] = useState("");
   const [selectedBike, setSelectedBike] = useState("");
   const [occupation, setOccupation] = useState("");
+  const [guardianName, setGuardianName] = useState("");
   const [nomineeName, setNomineeName] = useState("");
+  const [nomineeRelation, setNomineeRelation] = useState("");
+  const [emergencyPhone, setEmergencyPhone] = useState("");
   const [address, setAddress] = useState("");
   const [agreed, setAgreed] = useState(false);
 
@@ -89,9 +131,10 @@ export default function RentToOwnBooking() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const currentBike = vehicles.find((bike) => bike.vehicleId === selectedBike);
-  const dailyRate = rtoDailyRate(currentBike?.rentToOwnDailyRate);
+  const dailyRate = rtoDailyRate();
   const tenureMonths = rtoTenureMonths(currentBike?.rentToOwnMonths);
-  const installment = rtoInstallment(currentBike?.rentToOwnDailyRate);
+  const installment = rtoInstallment();
+  const contractValue = rtoContractValue(undefined, tenureMonths);
   const tax = gstBreakdown(installment);
   const securityDeposit =
     Number(currentBike?.securityDeposit) > 0
@@ -116,7 +159,7 @@ export default function RentToOwnBooking() {
   const hubBikes = availableBikes.filter((bike) => {
     if (!hub) return false;
     const bikeHub = normalizeText(bike.currentHub);
-    const keys = [selectedHub?.hubCode, selectedHub?.hubName, hub]
+    const keys = [selectedHub?.hubCode, selectedHub?.hubName, selectedHub?.hubLocation, hub]
       .map(normalizeText)
       .filter(Boolean);
     return keys.some((key) => bikeHub === key || bikeHub.includes(key) || key.includes(bikeHub));
@@ -170,37 +213,47 @@ export default function RentToOwnBooking() {
       if (data.success) {
         setRiderName(data.data.fullName || "");
         setRiderId(data.data.riderId || "");
+        setRiderEmail(data.data.email || "");
       }
     });
     return () => unsubscribe();
   }, []);
 
+  const validateApplication = () => {
+    if (!currentBike) return "Select a scooter.";
+    if (!emailRegex.test(riderEmail.trim())) return "Enter a valid email address.";
+    if (occupation.trim().length < 2) return "Enter your occupation.";
+    if (!nameRegex.test(guardianName.trim())) return "Enter father / guardian full name.";
+    if (!nameRegex.test(nomineeName.trim())) return "Enter a valid nominee name.";
+    if (!NOMINEE_RELATIONS.includes(nomineeRelation)) return "Select nominee relation.";
+    if (!phoneRegex.test(emergencyPhone)) return "Enter a valid 10-digit emergency mobile number.";
+    if (emergencyPhone === riderPhone) return "Emergency contact must be different from your number.";
+    if (address.trim().length < 12) return "Enter your full permanent address.";
+    if (!agreed) return "Please accept the ownership agreement.";
+    return "";
+  };
+
+  const goToReview = (event: FormEvent) => {
+    event.preventDefault();
+    const nextError = validateApplication();
+    if (nextError) {
+      setError(nextError);
+      return;
+    }
+    setError("");
+    setStep(3);
+  };
+
   const createBooking = async (event: FormEvent) => {
     event.preventDefault();
-    setError("");
-
-    if (!currentBike) {
-      setError("Select a scooter.");
-      return;
-    }
-    if (!nameRegex.test(nomineeName.trim())) {
-      setError("Enter a valid nominee name.");
-      return;
-    }
-    if (address.trim().length < 12) {
-      setError("Enter your full permanent address.");
-      return;
-    }
-    if (occupation.trim().length < 2) {
-      setError("Enter your occupation.");
-      return;
-    }
-    if (!agreed) {
-      setError("Please accept the ownership agreement.");
+    const nextError = validateApplication();
+    if (nextError) {
+      setError(nextError);
       return;
     }
 
     setSaving(true);
+    setError("");
     try {
       const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
       const newBookingId = "RTO-" + Date.now();
@@ -215,15 +268,25 @@ export default function RentToOwnBooking() {
           userName: riderName,
           userPhone: riderPhone,
           riderId,
-          vehicleId: currentBike.vehicleId,
-          startHub: selectedHub?.hubCode || currentBike.currentHub || hub,
+          vehicleId: currentBike?.vehicleId,
+          startHub: selectedHub?.hubCode || currentBike?.currentHub || hub,
           pickupHubName: selectedHub?.hubName || hub,
-          hubAliases: [selectedHub?.hubName, selectedHub?.hubCode, hub, currentBike.currentHub].filter(Boolean),
+          hubAliases: [
+            selectedHub?.hubName,
+            selectedHub?.hubCode,
+            selectedHub?.hubLocation,
+            hub,
+            currentBike?.currentHub,
+          ].filter(Boolean),
           city,
           pickupCity: city,
           rentalMode: "Rent To Own",
           firebaseIdToken: token,
           rtoNomineeName: nomineeName.trim(),
+          rtoNomineeRelation: nomineeRelation,
+          rtoGuardianName: guardianName.trim(),
+          rtoEmergencyPhone: emergencyPhone,
+          rtoEmail: riderEmail.trim(),
           rtoPermanentAddress: address.trim(),
           rtoOccupation: occupation.trim(),
           rtoAgreementAccepted: true,
@@ -325,21 +388,40 @@ export default function RentToOwnBooking() {
     }
   };
 
-  const printCertificate = () => {
-    window.print();
-  };
-
   return (
     <section className="bg-[#F6FAF8] px-4 py-10 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-4xl">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#18B368]">Rent to Own</p>
-        <h1 className="mt-2 text-3xl font-black text-[#0F172A] sm:text-5xl">Own your EVUDDY in {RTO_PLAN.tenureMonths} months</h1>
+        <h1 className="mt-2 text-3xl font-black text-[#0F172A] sm:text-5xl">
+          Own your EVUDDY in {RTO_PLAN.tenureMonths} months
+        </h1>
         <p className="mt-3 text-slate-500">
-          {formatINR(RTO_PLAN.dailyRate)} per day. First payment is 30 days ({formatINR(rtoInstallment())}) plus 5% GST and deposit. After {RTO_PLAN.tenureMonths} months of successful payments, the scooter is transferred to you.
+          Fixed plan: {formatINR(dailyRate)} per day for {tenureMonths} months. First payment is 30 days (
+          {formatINR(installment)}) + 5% GST + refundable deposit. After {tenureMonths} successful monthly
+          installments, ownership of the scooter transfers to you.
         </p>
 
+        <div className="mt-6 grid gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl bg-white p-4">
+            <p className="text-xs font-bold uppercase text-slate-400">Daily</p>
+            <p className="mt-1 text-xl font-black">{formatINR(dailyRate)}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-4">
+            <p className="text-xs font-bold uppercase text-slate-400">First 30 days</p>
+            <p className="mt-1 text-xl font-black">{formatINR(installment)}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-4">
+            <p className="text-xs font-bold uppercase text-slate-400">GST 5%</p>
+            <p className="mt-1 text-xl font-black">{formatINR(tax.gstAmount)}</p>
+          </div>
+          <div className="rounded-2xl bg-white p-4">
+            <p className="text-xs font-bold uppercase text-slate-400">Deposit</p>
+            <p className="mt-1 text-xl font-black">{formatINR(securityDeposit)}</p>
+          </div>
+        </div>
+
         <div className="mt-6 flex gap-2 text-xs font-bold">
-          {["Scooter", "Agreement", "Review", "Pay"].map((label, index) => (
+          {["Scooter", "Application", "Agreement", "Pay"].map((label, index) => (
             <span
               key={label}
               className={`rounded-full px-3 py-1 ${
@@ -356,14 +438,14 @@ export default function RentToOwnBooking() {
 
         {step === 1 && (
           <div className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8">
-            <label className="block text-sm font-bold">City</label>
+            <label className="block text-sm font-bold">City *</label>
             <select
               value={city}
               onChange={(e) => {
                 setCity(e.target.value);
                 setHub("");
               }}
-              className="h-14 w-full rounded-2xl border border-slate-200 px-4"
+              className={inputClass}
             >
               <option value="">Select city</option>
               {cities.map((item) => (
@@ -372,12 +454,8 @@ export default function RentToOwnBooking() {
                 </option>
               ))}
             </select>
-            <label className="block text-sm font-bold">Hub</label>
-            <select
-              value={hub}
-              onChange={(e) => setHub(e.target.value)}
-              className="h-14 w-full rounded-2xl border border-slate-200 px-4"
-            >
+            <label className="block text-sm font-bold">Pickup hub *</label>
+            <select value={hub} onChange={(e) => setHub(e.target.value)} className={inputClass}>
               <option value="">Select hub</option>
               {filteredHubs.map((item) => (
                 <option key={item.hubCode} value={item.hubCode}>
@@ -385,9 +463,9 @@ export default function RentToOwnBooking() {
                 </option>
               ))}
             </select>
-            <p className="text-sm font-bold">Available scooters</p>
+            <p className="text-sm font-bold">Available scooters *</p>
             {loading ? (
-              <p className="text-slate-500">Loading...</p>
+              <p className="text-slate-500">Loading scooters...</p>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
                 {bikes.map((bike) => (
@@ -403,8 +481,12 @@ export default function RentToOwnBooking() {
                   >
                     <p className="font-black">{bike.vehicleId}</p>
                     <p className="text-sm text-slate-500">{bike.vehicleModel || "EVUDDY Scooter"}</p>
+                    {bike.registrationNumber ? (
+                      <p className="text-xs text-slate-400">Reg: {bike.registrationNumber}</p>
+                    ) : null}
+                    <p className="text-xs text-slate-400">Battery: {bike.batteryPercentage ?? "-"}%</p>
                     <p className="mt-2 text-sm font-semibold text-[#18B368]">
-                      {formatINR(rtoDailyRate(bike.rentToOwnDailyRate))}/day
+                      {formatINR(dailyRate)}/day · {tenureMonths} months
                     </p>
                   </button>
                 ))}
@@ -412,41 +494,78 @@ export default function RentToOwnBooking() {
             )}
             <button
               type="button"
-              disabled={!selectedBike}
+              disabled={!selectedBike || !city || !hub}
               onClick={() => setStep(2)}
               className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white disabled:bg-slate-300"
             >
-              Continue
+              Continue to application
             </button>
           </div>
         )}
 
         {step === 2 && (
-          <form
-            className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8"
-            onSubmit={(e) => {
-              e.preventDefault();
-              setStep(3);
-            }}
-          >
+          <form className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8" onSubmit={goToReview}>
             <h2 className="text-2xl font-black">Ownership application</h2>
-            <input className="h-14 w-full rounded-2xl border px-4" value={riderName} readOnly />
-            <input className="h-14 w-full rounded-2xl border px-4" value={riderPhone} readOnly />
+            <p className="text-sm text-slate-500">
+              KYC is already on file. Complete the Rent to Own details required for the 18-month ownership contract.
+            </p>
+            <label className="block text-sm font-bold">Rider name</label>
+            <input className={inputClass} value={riderName} readOnly />
+            <label className="block text-sm font-bold">Registered mobile</label>
+            <input className={inputClass} value={riderPhone} readOnly />
+            <label className="block text-sm font-bold">Email *</label>
             <input
-              className="h-14 w-full rounded-2xl border px-4"
-              placeholder="Occupation *"
+              className={inputClass}
+              value={riderEmail}
+              onChange={(e) => setRiderEmail(e.target.value)}
+              placeholder="name@email.com"
+            />
+            <label className="block text-sm font-bold">Occupation *</label>
+            <input
+              className={inputClass}
               value={occupation}
               onChange={(e) => setOccupation(e.target.value)}
+              placeholder="e.g. Delivery partner, Student, Private job"
             />
+            <label className="block text-sm font-bold">Father / guardian name *</label>
             <input
-              className="h-14 w-full rounded-2xl border px-4"
-              placeholder="Nominee full name *"
+              className={inputClass}
+              value={guardianName}
+              onChange={(e) => setGuardianName(e.target.value)}
+              placeholder="Full name"
+            />
+            <label className="block text-sm font-bold">Nominee full name *</label>
+            <input
+              className={inputClass}
               value={nomineeName}
               onChange={(e) => setNomineeName(e.target.value)}
+              placeholder="Person who receives ownership if required"
             />
+            <label className="block text-sm font-bold">Nominee relation *</label>
+            <select
+              className={inputClass}
+              value={nomineeRelation}
+              onChange={(e) => setNomineeRelation(e.target.value)}
+            >
+              <option value="">Select relation</option>
+              {NOMINEE_RELATIONS.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+            <label className="block text-sm font-bold">Emergency contact number *</label>
+            <input
+              className={inputClass}
+              value={emergencyPhone}
+              onChange={(e) => setEmergencyPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
+              placeholder="10 digit mobile number"
+              inputMode="numeric"
+            />
+            <label className="block text-sm font-bold">Permanent address *</label>
             <textarea
-              className="min-h-28 w-full rounded-2xl border px-4 py-3"
-              placeholder="Permanent address *"
+              className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-[#18B368]"
+              placeholder="House / street, area, city, PIN"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
             />
@@ -457,7 +576,10 @@ export default function RentToOwnBooking() {
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
-              I agree that paying {formatINR(dailyRate)} per day for {tenureMonths} months transfers ownership of scooter {selectedBike} to me after successful completion, subject to EVUDDY terms, GST and deposit rules.
+              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months (
+              {formatINR(installment)} every 30 days). GST at 5% (CGST 2.5% + SGST 2.5%) applies on each
+              installment. Security deposit is refundable and has no GST. After successful completion, ownership
+              of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
             </label>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(1)} className="h-14 flex-1 rounded-full border font-bold">
@@ -473,24 +595,37 @@ export default function RentToOwnBooking() {
         {step === 3 && (
           <form onSubmit={createBooking} className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8">
             <h2 className="flex items-center gap-2 text-2xl font-black">
-              <FileText className="text-[#18B368]" /> Certificate preview
+              <FileText className="text-[#18B368]" /> Rent to Own agreement
             </h2>
-            <div className="rounded-2xl border border-dashed border-[#18B368]/40 bg-[#F7FBF8] p-5 text-sm leading-7">
+            <div id="rto-certificate" className="rounded-2xl border border-dashed border-[#18B368]/40 bg-[#F7FBF8] p-5 text-sm leading-7">
               <p className="font-black">EVUDDY RENT TO OWN AGREEMENT</p>
               <p>Rider: {riderName} ({riderId})</p>
-              <p>Vehicle: {selectedBike}</p>
-              <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months</p>
-              <p>First installment: {formatINR(installment)} + CGST 2.5% + SGST 2.5%</p>
+              <p>Mobile: {riderPhone} | Email: {riderEmail}</p>
+              <p>Father / guardian: {guardianName}</p>
+              <p>Occupation: {occupation}</p>
+              <p>Vehicle: {selectedBike} {currentBike?.vehicleModel ? `· ${currentBike.vehicleModel}` : ""}</p>
+              <p>Registration: {currentBike?.registrationNumber || "-"}</p>
+              <p>City / hub: {city} / {selectedHub?.hubName || hub}</p>
+              <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months ({tenureMonths * 30} billed days)</p>
+              <p>Contract rental value: {formatINR(contractValue)}</p>
+              <p>First installment: {formatINR(installment)}</p>
+              <p>CGST 2.5%: {formatINR(tax.cgstAmount)} | SGST 2.5%: {formatINR(tax.sgstAmount)}</p>
               <p>Security deposit: {formatINR(securityDeposit)} (refundable, no GST)</p>
-              <p>Nominee: {nomineeName}</p>
-              <p>Address: {address}</p>
+              <p>Payable now: {formatINR(payableAmount)}</p>
+              <p>Nominee: {nomineeName} ({nomineeRelation})</p>
+              <p>Emergency contact: {emergencyPhone}</p>
+              <p>Permanent address: {address}</p>
               <p className="mt-3 font-semibold">
-                After {tenureMonths} months of successful installment payments, ownership of this scooter shall transfer to the rider.
+                After {tenureMonths} months of successful installment payments, ownership of this scooter shall
+                transfer to the rider named above.
               </p>
             </div>
             <div className="rounded-2xl bg-[#0B1B16] p-5 text-white">
-              <p>Payable now</p>
+              <p>Payable now (first installment + GST + deposit)</p>
               <p className="text-3xl font-black">{formatINR(payableAmount)}</p>
+              <p className="mt-2 text-sm text-white/70">
+                {formatINR(installment)} + {formatINR(tax.gstAmount)} GST + {formatINR(securityDeposit)} deposit
+              </p>
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(2)} className="h-14 flex-1 rounded-full border font-bold">
@@ -513,6 +648,11 @@ export default function RentToOwnBooking() {
             <p>Booking ID: <b>{bookingId}</b></p>
             {certificateNumber ? <p>Certificate: <b>{certificateNumber}</b></p> : null}
             <p>Amount due: <b>{formatINR(pendingAmount || payableAmount)}</b></p>
+            <div className="rounded-2xl bg-[#F7FBF8] p-4 text-sm">
+              <p>Plan: {formatINR(dailyRate)}/day × 30 days = {formatINR(installment)}</p>
+              <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)}</p>
+              <p>Refundable deposit {formatINR(securityDeposit)}</p>
+            </div>
             {!paymentSuccess ? (
               <button
                 type="button"
@@ -532,9 +672,12 @@ export default function RentToOwnBooking() {
                     <ShieldCheck /> Pickup OTP: {pickupOtp}
                   </p>
                 ) : null}
+                <p className="mt-2 text-sm text-emerald-800">
+                  Show this OTP at the hub to collect scooter {selectedBike}. Keep the certificate for your records.
+                </p>
                 <button
                   type="button"
-                  onClick={printCertificate}
+                  onClick={() => window.print()}
                   className="mt-4 h-12 rounded-full border border-emerald-700 px-6 font-bold text-emerald-800"
                 >
                   Print / save certificate
