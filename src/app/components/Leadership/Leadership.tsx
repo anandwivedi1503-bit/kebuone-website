@@ -72,8 +72,8 @@ export default function Leadership() {
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Founder, board and the team building smart electric mobility — one
-              safe ride at a time.
+              Sunil Pathak, Bindu Singh and Anjali Mishra lead EVUDDY with the
+              wider team behind every safe electric ride.
             </p>
           </motion.div>
         </div>
@@ -87,10 +87,11 @@ export default function Leadership() {
             Leadership posters
           </p>
           <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.05em] sm:text-5xl">
-            Founder, Chairman and Executive Director
+            Founder &amp; CEO, General Manager and Chairman
           </h2>
           <p className="mt-4 max-w-2xl text-lg text-slate-600">
-            Three official portraits. Open any poster to read the profile.
+            Official posters for Sunil Pathak, Bindu Singh and Anjali Mishra.
+            Open any poster to read the profile.
           </p>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
@@ -104,12 +105,9 @@ export default function Leadership() {
                 }`}
               >
                 <figure className="overflow-hidden rounded-[28px] bg-white p-2.5 shadow-[0_28px_80px_rgba(8,17,47,0.1)] ring-1 ring-[#18B368]/10 transition group-hover:-translate-y-1 group-hover:shadow-[0_36px_90px_rgba(24,179,104,0.16)]">
-                  <Image
+                  <PosterMedia
                     src={leader.image}
                     alt={`${leader.name}, ${leader.role} of EVUDDY`}
-                    width={768}
-                    height={1024}
-                    className="h-auto w-full rounded-[20px] object-cover"
                     priority={leader.id === "ceo"}
                   />
                 </figure>
@@ -134,8 +132,8 @@ export default function Leadership() {
             The people across every function
           </h2>
           <p className="mt-4 max-w-2xl text-lg text-slate-600">
-            Operations, technology, finance, people, marketing and growth — one
-            team, one electric mobility mission.
+            Operations, technology, finance, people, marketing and growth. Each
+            card is ready — add the poster URL and the portrait appears.
           </p>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -221,13 +219,40 @@ function LeaderProfile({ leader }: { leader: LeaderPoster }) {
   );
 }
 
+function PosterMedia({
+  src,
+  alt,
+  priority = false,
+}: {
+  src: string;
+  alt: string;
+  priority?: boolean;
+}) {
+  if (/^https?:\/\//.test(src)) {
+    return (
+      <img src={src} alt={alt} className="h-auto w-full rounded-[20px] object-cover" />
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={768}
+      height={1024}
+      priority={priority}
+      className="h-auto w-full rounded-[20px] object-cover"
+    />
+  );
+}
+
 function TeamCard({ member }: { member: TeamMember }) {
-  const [missing, setMissing] = useState(false);
+  const [missing, setMissing] = useState(!member.image);
 
   return (
     <article className="overflow-hidden rounded-[28px] border border-slate-100 bg-[#F7FBFA] shadow-[0_16px_40px_rgba(8,17,47,0.05)] transition hover:-translate-y-1 hover:bg-white hover:shadow-[0_24px_60px_rgba(24,179,104,0.12)]">
       <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-[#E8FFF3] via-white to-[#FFF0F6]">
-        {!missing ? (
+        {member.image && !missing ? (
           <img
             src={member.image}
             alt={`${member.name}, ${member.role} at EVUDDY`}
@@ -244,7 +269,7 @@ function TeamCard({ member }: { member: TeamMember }) {
                 .slice(0, 2)}
             </p>
             <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Team portrait
+              Paste poster URL
             </p>
           </div>
         )}

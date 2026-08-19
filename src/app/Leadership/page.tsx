@@ -7,7 +7,7 @@ import Leadership from "../components/Leadership/Leadership";
 export const metadata: Metadata = {
   title: "Leadership | EVUDDY by Kebu One",
   description:
-    "Meet EVUDDY leadership — Founder and CEO Sunil Pathak, the board, and the team building smart electric mobility.",
+    "Meet EVUDDY leadership: Founder and CEO Sunil Pathak, General Manager Bindu Singh, and Chairman Anjali Mishra.",
 };
 
 export default function LeadershipPage() {
