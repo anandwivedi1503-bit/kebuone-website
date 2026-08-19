@@ -147,7 +147,10 @@ export default function RideOptionsPage() {
       return;
     }
 
-    if (data.data.approvalStatus === "Under Review") {
+    if (
+      data.data.approvalStatus === "Under Review" ||
+      data.data.approvalStatus === "Approved"
+    ) {
       setView("pending");
       return;
     }

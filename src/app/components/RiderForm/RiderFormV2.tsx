@@ -1033,11 +1033,11 @@ if (submitted) {
 </div>
 
           <h2 className="text-5xl font-black text-[#0A1134] mb-4">
-            Registration Submitted
+            Waiting for admin approval
           </h2>
 
           <p className="text-[#444] text-lg mb-10">
-            Your onboarding request has been successfully received.
+            Registration submitted. You can book or start Rent to Own only after an admin approves your KYC.
           </p>
 
           <div className="grid md:grid-cols-3 gap-6 mb-10">

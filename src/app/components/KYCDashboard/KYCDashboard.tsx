@@ -491,6 +491,9 @@ export default function KYCDashboard() {
 
                   approvalStatus:
                     "Approved",
+
+                  status:
+                    "Active",
                 }),
             }
           );

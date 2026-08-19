@@ -850,31 +850,30 @@ export async function PATCH(
       rider.kycStatus ===
         "Approved";
 
+    /*
+     * New registrations are stored as Blocked until
+     * KYC is approved. That waiting state must not
+     * block the approval path. Only an explicit
+     * Suspended/Blocked update in this request, or
+     * a remaining Suspended status, keeps booking off.
+     */
+
+    const explicitHold =
+      requestedStatus ===
+        "Suspended" ||
+      requestedStatus ===
+        "Blocked" ||
+      (rider.status ===
+        "Suspended" &&
+        requestedStatus !==
+          "Active");
+
     /* =====================================================
-       EXPLICIT SUSPENSION
+       EXPLICIT SUSPENSION / BLOCK
     ===================================================== */
 
     if (
-      rider.status ===
-      "Suspended"
-    ) {
-      rider.bookingEnabled =
-        false;
-
-      rider.blockedAt =
-        new Date();
-
-      rider.blockedBy =
-        auditActor;
-    }
-
-    /* =====================================================
-       EXPLICIT BLOCK
-    ===================================================== */
-
-    else if (
-      rider.status ===
-      "Blocked"
+      explicitHold
     ) {
       rider.bookingEnabled =
         false;
@@ -913,7 +912,8 @@ export async function PATCH(
        FULLY APPROVED
        
        This is the ONLY condition under which booking
-       becomes enabled automatically.
+       becomes enabled automatically. It also lifts the
+       initial Blocked status created at registration.
     ===================================================== */
 
     else if (
