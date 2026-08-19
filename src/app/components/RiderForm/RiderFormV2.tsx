@@ -8,6 +8,7 @@ import { markRiderPlanReady } from "@/lib/riderPlanGate";
 import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  onAuthStateChanged,
   ConfirmationResult,
 } from "firebase/auth";
 
@@ -69,6 +70,36 @@ useState("Under Review");
 const [bookingEnabled, setBookingEnabled] =
 useState(false);
 
+
+const applyExistingFirebaseSession = async (typedPhone = "") => {
+  const user = auth.currentUser;
+  const sessionPhone = indianMobile(user?.phoneNumber || "");
+  const typed = indianMobile(typedPhone);
+  if (!user || !phoneRegex.test(sessionPhone)) {
+    return false;
+  }
+  if (typed && typed !== sessionPhone) {
+    return false;
+  }
+
+  const token = await user.getIdToken(true);
+  setPhone(sessionPhone);
+  setFirebaseUid(user.uid);
+  setFirebaseIdToken(token);
+  setOtpVerified(true);
+  setOtpSent(true);
+  setOtp("");
+  setConfirmationResult(null);
+  setOtpMessage("Phone already verified. Continue — no second SMS is needed.");
+  return true;
+};
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, () => {
+    void applyExistingFirebaseSession();
+  });
+  return () => unsubscribe();
+}, []);
 
 useEffect(() => {
 
@@ -151,6 +182,10 @@ const allowedPhotoTypes = [
 const maxFileSize = 5 * 1024 * 1024;
 
 const cleanDigits = (value: string) => value.replace(/\D/g, "");
+const indianMobile = (value: string) => {
+  const digits = cleanDigits(value);
+  return digits.length > 10 ? digits.slice(-10) : digits.slice(0, 10);
+};
 const cleanName = (value: string) => value.trim().replace(/\s+/g, " ");
 const cleanLicense = (value: string) =>
   value.toUpperCase().replace(/\s/g, "");
@@ -558,7 +593,7 @@ const sendOtp = async () => {
     setError("");
     setOtpMessage("");
 
-    const validPhone = cleanDigits(phone).slice(0, 10);
+    const validPhone = indianMobile(phone);
 
     if (!phoneRegex.test(validPhone)) {
       setError("Enter a valid 10 digit Indian mobile number.");
@@ -582,10 +617,16 @@ const sendOtp = async () => {
 
     setPhone(validPhone);
     setOtp("");
-setOtpVerified(false);
-setOtpLoading(true);
-setConfirmationResult(null);
-resetRecaptcha();
+    setOtpVerified(false);
+    setOtpLoading(true);
+    setConfirmationResult(null);
+
+    const reused = await applyExistingFirebaseSession(validPhone);
+    if (reused) {
+      return;
+    }
+
+    resetRecaptcha();
 
     recaptchaVerifierRef.current = new RecaptchaVerifier(
       auth,
@@ -764,7 +805,7 @@ showOtpMessage("Phone verified successfully.");
 const validateStep = () => {
   if (step === 1) {
     const validName = cleanName(fullName);
-    const validPhone = cleanDigits(phone);
+    const validPhone = indianMobile(phone);
     const validEmail = email.trim().toLowerCase();
 
     if (!nameRegex.test(validName)) {
@@ -1752,7 +1793,14 @@ focus:ring-[#22C55E]/20
   placeholder="Phone Number *"
   value={phone}
   onChange={(e) => {
-  setPhone(e.target.value);
+  const next = e.target.value;
+  setPhone(next);
+  const digits = indianMobile(next);
+  const sessionPhone = indianMobile(auth.currentUser?.phoneNumber || "");
+  if (sessionPhone && digits === sessionPhone && phoneRegex.test(sessionPhone)) {
+    void applyExistingFirebaseSession(digits);
+    return;
+  }
   setOtp("");
   setOtpSent(false);
   setOtpVerified(false);

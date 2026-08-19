@@ -256,7 +256,8 @@ export default function RideOptionsPage() {
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
               Already registered riders must complete OTP verification before choosing
-              Normal booking or Rent to Own.
+              Normal booking or Rent to Own. New riders can register directly. If you
+              already verified OTP here, registration will not send a second SMS.
             </p>
 
             <label className="mt-8 block text-sm font-semibold text-[#0F172A]">
@@ -338,7 +339,7 @@ export default function RideOptionsPage() {
         <section className="px-4 pb-24 pt-40 text-center">
           <h1 className="text-3xl font-black text-[#0F172A]">Registration required</h1>
           <p className="mt-3 text-slate-500">
-            This number is not an approved rider yet. Complete registration first.
+            This number is already verified. Complete registration — you will not get a second SMS.
           </p>
           <Link
             href="/register"
