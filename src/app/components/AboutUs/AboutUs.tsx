@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -39,64 +40,111 @@ const pillars = [
   },
 ];
 
-const journey = [
-  {
-    year: "2025",
-    title: "Founded",
-    text: "EVUDDY by Kebu One started to make electric scooters easy to book and own in Indian cities.",
-  },
-  {
-    year: "Now",
-    title: "Live platform",
-    text: "Riders register with phone OTP, choose a plan, pay on Razorpay, and pick up from hubs.",
-  },
-  {
-    year: "Next",
-    title: "More cities",
-    text: "Grow hubs, partners and Rent to Own so more riders can commute clean and build an asset.",
-  },
-];
-
 export default function AboutUs() {
   return (
-    <div className="bg-[#F7FBFA] text-[#0F172A]">
+    <div className="bg-[#F4F7F8] text-[#08112F]">
       <section className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_10%,rgba(24,179,104,0.14),transparent_34%),radial-gradient(circle_at_90%_0%,rgba(236,42,140,0.08),transparent_28%)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20 lg:px-10">
-          <p className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/15 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-600 shadow-sm">
-            <Sparkles className="h-4 w-4 text-[#18B368]" />
-            ABOUT EVUDDY
-          </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.05em] sm:text-6xl lg:text-7xl">
-            Electric mobility that is easy to book, and possible to own.
-          </h1>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
-            EVUDDY is Kebu One&apos;s electric scooter platform for daily riders,
-            delivery partners and businesses. We combine rentals, Rent to Own,
-            hubs and live tracking in one product.
-          </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href="/ride-options"
-              className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)]"
-            >
-              Book an EV <ArrowRight className="h-5 w-5" />
-            </Link>
-            <Link
-              href="/partners"
-              className="inline-flex h-14 items-center justify-center rounded-full border border-slate-200 bg-white px-8 font-bold text-[#18B368]"
-            >
-              Become a partner
-            </Link>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 left-0 w-1/2 opacity-[0.12]"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%2318B368' stroke-width='1.2'%3E%3Ccircle cx='36' cy='40' r='14'/%3E%3Cpath d='M86 30h30M86 42h22M24 104h36M42 86v36M118 88l20 20M118 108l20-20'/%3E%3Crect x='108' y='28' width='30' height='20' rx='4'/%3E%3C/g%3E%3C/svg%3E\")",
+          }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-24 -top-24 h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_30%_30%,#7CFFB2_0%,#18B368_46%,transparent_70%)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-8 top-28 h-64 w-64 rounded-full opacity-35 [background-image:radial-gradient(#ffffff_1.1px,transparent_1.15px)] [background-size:13px_13px]"
+        />
+
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-4 py-10 sm:px-6 sm:py-16 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:px-10">
+          <div>
+            <Image
+              src="/Evuddy-logo-dark-E.png"
+              alt="EVUDDY"
+              width={260}
+              height={78}
+              className="h-12 w-auto object-contain sm:h-14"
+            />
+            <p className="mt-3 text-[11px] font-bold tracking-[0.32em] text-[#08112F]">
+              SMART · ELECTRIC · MOBILITY
+            </p>
+            <h1 className="mt-8 text-5xl font-black tracking-[-0.06em] sm:text-7xl">
+              About <span className="text-[#18B368]">Us</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600">
+              EVUDDY is building India&apos;s next-generation EV mobility
+              ecosystem through B2B, B2C, and Rent-to-Own solutions.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/ride-options"
+                className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)]"
+              >
+                Book an EV <ArrowRight className="h-5 w-5" />
+              </Link>
+              <Link
+                href="/Leadership"
+                className="inline-flex h-14 items-center justify-center rounded-full border border-slate-200 bg-white px-8 font-bold text-[#18B368]"
+              >
+                Meet leadership
+              </Link>
+            </div>
+          </div>
+
+          <figure className="overflow-hidden rounded-[32px] bg-white p-3 shadow-[0_36px_100px_rgba(8,17,47,0.12)] ring-1 ring-[#18B368]/10">
+            <Image
+              src="/about/about-poster.png"
+              alt="EVUDDY About Us — mission and vision"
+              width={1024}
+              height={1365}
+              priority
+              className="h-auto w-full rounded-[24px] object-cover"
+            />
+          </figure>
+        </div>
+      </section>
+
+      <section className="px-4 pb-6 sm:px-6 lg:px-10">
+        <div className="relative mx-auto max-w-6xl">
+          <div
+            aria-hidden
+            className="absolute inset-x-4 top-3 h-[calc(100%-0.75rem)] rounded-[32px] bg-[#F59E0B] sm:inset-x-2"
+          />
+          <div className="relative rounded-[32px] bg-[#08112F] px-6 py-10 text-center text-white sm:px-12 sm:py-14">
+            <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.22em] text-[#6EE7A8]">
+              <Sparkles className="h-3.5 w-3.5" />
+              About EVUDDY
+            </p>
+            <p className="mx-auto mt-6 max-w-4xl text-base leading-8 text-white/92 sm:text-lg">
+              EVUDDY is building India&apos;s next-generation EV mobility
+              ecosystem through B2B, B2C, and Rent-to-Own solutions.
+            </p>
+            <p className="mx-auto mt-5 max-w-4xl text-base leading-8 text-white/92 sm:text-lg">
+              Our mission is to make electric mobility affordable, accessible,
+              and asset-building for every rider.
+            </p>
+            <p className="mx-auto mt-5 max-w-4xl text-base leading-8 text-white/92 sm:text-lg">
+              We envision empowering gig workers and businesses with sustainable
+              transportation while creating a future where every ride can lead
+              to ownership.
+            </p>
+            <div className="mt-10 rounded-2xl bg-[#18B368] px-5 py-3">
+              <p className="text-sm font-black tracking-wide">#safeRideWithEvuddy</p>
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-6xl gap-3 px-4 pb-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
+      <section className="mx-auto grid max-w-6xl gap-3 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
         {facts.map((item) => (
           <div
             key={item.label}
-            className="rounded-[24px] border border-slate-100 bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+            className="rounded-[24px] border border-white bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
           >
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
               {item.label}
@@ -110,31 +158,26 @@ export default function AboutUs() {
         <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:px-10">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">
-              Our story
+              How we work
             </p>
             <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
-              Built for Indian cities
+              Affordable. Accessible. Asset-building.
             </h2>
             <p className="mt-5 text-base leading-7 text-slate-600">
-              Commuting should not mean petrol costs, paperwork chaos or a scooter
-              you can never own. EVUDDY makes electric rides bookable in minutes
-              after KYC, with clear pricing and hub pickup.
-            </p>
-            <p className="mt-4 text-base leading-7 text-slate-600">
               GST is 5% on rental only (CGST 2.5% + SGST 2.5%). Security deposit
               on normal rentals is refundable and not taxed. Rent to Own has no
               deposit.
             </p>
           </div>
-          <div className="rounded-[28px] bg-[#0F172A] p-7 text-white sm:p-10">
+          <div className="rounded-[28px] bg-[#08112F] p-7 text-white sm:p-10">
             <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#86EFAC]">
               What we operate
             </p>
             <ul className="mt-6 space-y-4 text-sm leading-6 text-white/80 sm:text-base">
-              <li>Phone OTP registration and admin KYC approval</li>
-              <li>Flexible rental or 18-month Rent to Own</li>
-              <li>Razorpay checkout, wallets and live booking status</li>
-              <li>Hub pickup with OTP, GPS and support tickets</li>
+              <li>B2C rentals for daily riders</li>
+              <li>B2B fleets, hubs and delivery partners</li>
+              <li>Rent to Own so every ride can lead to ownership</li>
+              <li>OTP, KYC, Razorpay and live hub pickup</li>
             </ul>
           </div>
         </div>
@@ -158,62 +201,22 @@ export default function AboutUs() {
         </div>
       </section>
 
-      <section className="bg-white py-14 sm:py-20">
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10">
-          <h2 className="text-3xl font-black tracking-[-0.04em] sm:text-5xl">
-            Journey
-          </h2>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {journey.map((item) => (
-              <article
-                key={item.year}
-                className="rounded-[28px] border border-slate-100 bg-[#F7FBFA] p-6"
-              >
-                <p className="text-sm font-bold text-[#18B368]">{item.year}</p>
-                <h3 className="mt-2 text-xl font-black">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6 lg:px-10">
-        <h2 className="text-3xl font-black">Mission and vision</h2>
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <article className="rounded-[28px] bg-white p-6 shadow-sm sm:p-8">
-            <h3 className="text-2xl font-black">Mission</h3>
-            <p className="mt-3 text-slate-600 leading-7">
-              Make electric mobility affordable, accessible and asset-building
-              for riders, delivery partners and businesses across India.
-            </p>
-          </article>
-          <article className="rounded-[28px] bg-[#18B368] p-6 text-white sm:p-8">
-            <h3 className="text-2xl font-black">Vision</h3>
-            <p className="mt-3 leading-7 text-white/90">
-              Be India&apos;s most trusted electric scooter ecosystem — rent,
-              ride, return or own — with technology you can see working.
-            </p>
-          </article>
-        </div>
-      </section>
-
       <section className="px-4 pb-16 sm:px-6 lg:px-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 rounded-[32px] bg-[#0F172A] px-6 py-10 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-4 rounded-[32px] bg-[#08112F] px-6 py-10 text-white sm:flex-row sm:items-center sm:justify-between sm:px-10">
           <div>
             <p className="flex items-center gap-2 text-sm font-bold text-[#86EFAC]">
-              <Leaf className="h-4 w-4" /> Join the network
+              <Leaf className="h-4 w-4" /> #safeRideWithEvuddy
             </p>
-            <h2 className="mt-2 text-3xl font-black">Ride cleaner. Grow together.</h2>
+            <h2 className="mt-2 text-3xl font-black">Ride cleaner. Own the journey.</h2>
           </div>
           <Link
             href="/ride-options"
-            className="inline-flex h-14 items-center justify-center rounded-full bg-white px-8 font-bold text-[#0F172A]"
+            className="inline-flex h-14 items-center justify-center rounded-full bg-white px-8 font-bold text-[#08112F]"
           >
             Get started
           </Link>
         </div>
       </section>
     </div>
-   );
+  );
 }
