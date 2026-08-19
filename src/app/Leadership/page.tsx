@@ -7,7 +7,7 @@ import Leadership from "../components/Leadership/Leadership";
 export const metadata: Metadata = {
   title: "Leadership | EVUDDY by Kebu One",
   description:
-    "Meet Sunil Pathak, Founder and CEO of Shubhrax Mobility Ltd, and the leadership behind EVUDDY smart electric mobility.",
+    "Meet EVUDDY leadership — Founder and CEO Sunil Pathak, the board, and the team building smart electric mobility.",
 };
 
 export default function LeadershipPage() {

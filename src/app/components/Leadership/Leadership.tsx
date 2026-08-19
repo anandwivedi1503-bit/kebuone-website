@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -12,8 +13,7 @@ import {
   Zap,
 } from "lucide-react";
 
-const CEO_BIO =
-  "As the CEO & Founder of Shubhrax Mobility Ltd, Sunil Pathak is the driving force behind the company's vision of transforming smart electric mobility. With a strong focus on innovation, customer satisfaction, and sustainable growth, he has led Evuddy towards becoming a trusted name in the mobility sector. His leadership is driven by a commitment to excellence, empowering teams, and embracing technology to deliver reliable and eco-friendly mobility solutions. Through his vision and dedication, Sunil continues to inspire progress, create lasting impact, and shape a future-ready organization.";
+import { board, team, type LeaderPoster, type TeamMember } from "./leadershipData";
 
 const values = [
   {
@@ -39,11 +39,13 @@ const values = [
 ];
 
 const fade = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0 },
 };
 
 export default function Leadership() {
+  const [active, setActive] = useState(board[0]);
+
   return (
     <div className="bg-[#F4FBF7] text-[#08112F]">
       <section className="relative overflow-hidden">
@@ -57,105 +59,94 @@ export default function Leadership() {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,31,0.72)_0%,rgba(7,17,31,0.5)_45%,rgba(7,17,31,0.9)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(24,179,104,0.28),transparent_34%)]" />
 
-        <div className="relative mx-auto flex min-h-[72vh] max-w-6xl flex-col justify-end px-4 pb-16 pt-36 sm:px-6 sm:pb-20 lg:px-10">
-          <motion.div
-            initial="hidden"
-            animate="show"
-            variants={fade}
-            transition={{ duration: 0.7 }}
-          >
+        <div className="relative mx-auto flex min-h-[68vh] max-w-6xl flex-col justify-end px-4 pb-16 pt-36 sm:px-6 sm:pb-20 lg:px-10">
+          <motion.div initial="hidden" animate="show" variants={fade} transition={{ duration: 0.7 }}>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-bold tracking-[0.22em] text-white backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-[#6EE7A8]" />
               LEADERSHIP
             </p>
             <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.06em] text-white sm:text-6xl lg:text-7xl">
-              Meet the founder
+              Meet the people
               <span className="block bg-gradient-to-r from-[#6EE7A8] via-white to-[#FF8FBF] bg-clip-text text-transparent">
-                driving EVUDDY.
+                behind EVUDDY.
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Smart · Electric · Mobility. Leadership with a clear brief: make
-              every ride safe, simple and electric.
+              Founder, board and the team building smart electric mobility — one
+              safe ride at a time.
             </p>
           </motion.div>
         </div>
       </section>
 
-      <section id="founder" className="relative px-4 py-16 sm:px-6 sm:py-24 lg:px-10">
+      <section id="leaders" className="relative px-4 py-16 sm:px-6 sm:py-24 lg:px-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(24,179,104,0.12),transparent_32%),radial-gradient(circle_at_100%_8%,rgba(236,42,140,0.08),transparent_28%)]" />
 
         <div className="relative mx-auto max-w-6xl">
-          <div className="mb-10 flex flex-col gap-3 sm:mb-14">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#18B368]">
-              Founder &amp; CEO
-            </p>
-            <h2 className="max-w-3xl text-3xl font-black tracking-[-0.05em] sm:text-5xl">
-              Sunil Pathak
-            </h2>
-            <p className="max-w-2xl text-lg text-slate-600">
-              Founder &amp; CEO, Shubhrax Mobility Ltd
-            </p>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#18B368]">
+            Leadership posters
+          </p>
+          <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.05em] sm:text-5xl">
+            Founder, Chairman and Executive Director
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg text-slate-600">
+            Three official portraits. Open any poster to read the profile.
+          </p>
+
+          <div className="mt-12 grid gap-6 lg:grid-cols-3">
+            {board.map((leader) => (
+              <button
+                key={leader.id}
+                type="button"
+                onClick={() => setActive(leader)}
+                className={`group text-left transition ${
+                  active.id === leader.id ? "scale-[1.01]" : ""
+                }`}
+              >
+                <figure className="overflow-hidden rounded-[28px] bg-white p-2.5 shadow-[0_28px_80px_rgba(8,17,47,0.1)] ring-1 ring-[#18B368]/10 transition group-hover:-translate-y-1 group-hover:shadow-[0_36px_90px_rgba(24,179,104,0.16)]">
+                  <Image
+                    src={leader.image}
+                    alt={`${leader.name}, ${leader.role} of EVUDDY`}
+                    width={768}
+                    height={1024}
+                    className="h-auto w-full rounded-[20px] object-cover"
+                    priority={leader.id === "ceo"}
+                  />
+                </figure>
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
+                  {leader.role}
+                </p>
+                <h3 className="mt-1 text-2xl font-black">{leader.name}</h3>
+              </button>
+            ))}
           </div>
 
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.2 }}
-            variants={fade}
-            transition={{ duration: 0.6 }}
-            className="grid items-start gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-12"
-          >
-            <figure className="overflow-hidden rounded-[32px] bg-white p-3 shadow-[0_40px_120px_rgba(8,17,47,0.14)] ring-1 ring-[#18B368]/10">
-              <Image
-                src="/leadership/ceo-poster.png"
-                alt="Sunil Pathak, Founder and CEO of EVUDDY by Shubhrax Mobility Ltd"
-                width={1024}
-                height={1365}
-                className="h-auto w-full rounded-[24px] object-cover"
-                priority
-              />
-            </figure>
-
-            <div className="flex flex-col justify-center">
-              <div className="rounded-[32px] bg-[#08112F] p-7 text-white shadow-[0_30px_80px_rgba(8,17,47,0.18)] sm:p-10">
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#6EE7A8]">
-                  Profile
-                </p>
-                <h3 className="mt-3 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
-                  Meet the Founder &amp; CEO
-                </h3>
-                <p className="mt-6 text-sm leading-7 text-white/88 sm:text-base sm:leading-8">
-                  {CEO_BIO}
-                </p>
-                <div className="mt-8 rounded-2xl bg-[#18B368] px-5 py-3 text-center">
-                  <p className="text-sm font-black tracking-wide">#safeRideWithEvuddy</p>
-                </div>
-              </div>
-
-              <div className="mt-6 grid gap-4 sm:grid-cols-3">
-                {[
-                  ["Company", "Shubhrax Mobility Ltd"],
-                  ["Brand", "EVUDDY"],
-                  ["Focus", "Smart EV mobility"],
-                ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="rounded-[22px] border border-white bg-white p-5 shadow-[0_16px_40px_rgba(8,17,47,0.06)]"
-                  >
-                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
-                      {label}
-                    </p>
-                    <p className="mt-2 font-bold text-[#08112F]">{value}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
+          <LeaderProfile leader={active} />
         </div>
       </section>
 
-      <section className="bg-white px-4 py-20 sm:px-6 lg:px-10">
+      <section id="team" className="bg-white px-4 py-20 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-6xl">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">
+            Team EVUDDY
+          </p>
+          <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-[-0.05em] sm:text-5xl">
+            The people across every function
+          </h2>
+          <p className="mt-4 max-w-2xl text-lg text-slate-600">
+            Operations, technology, finance, people, marketing and growth — one
+            team, one electric mobility mission.
+          </p>
+
+          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {team.map((member) => (
+              <TeamCard key={member.id} member={member} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white px-4 pb-8 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-6xl">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">Our values</p>
           <h2 className="mt-3 max-w-2xl text-3xl font-black tracking-[-0.05em] sm:text-5xl">
@@ -204,5 +195,66 @@ export default function Leadership() {
         </div>
       </section>
     </div>
+  );
+}
+
+function LeaderProfile({ leader }: { leader: LeaderPoster }) {
+  return (
+    <motion.div
+      key={leader.id}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-12 overflow-hidden rounded-[32px] bg-[#08112F] p-7 text-white shadow-[0_30px_80px_rgba(8,17,47,0.18)] sm:p-10"
+    >
+      <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#6EE7A8]">
+        {leader.role}
+      </p>
+      <h3 className="mt-3 text-3xl font-black tracking-[-0.04em]">{leader.name}</h3>
+      <p className="mt-2 text-sm font-semibold text-white/60">{leader.org}</p>
+      <p className="mt-6 max-w-4xl text-sm leading-7 text-white/88 sm:text-base sm:leading-8">
+        {leader.bio}
+      </p>
+      <div className="mt-8 max-w-sm rounded-2xl bg-[#18B368] px-5 py-3 text-center">
+        <p className="text-sm font-black tracking-wide">#safeRideWithEvuddy</p>
+      </div>
+    </motion.div>
+  );
+}
+
+function TeamCard({ member }: { member: TeamMember }) {
+  const [missing, setMissing] = useState(false);
+
+  return (
+    <article className="overflow-hidden rounded-[28px] border border-slate-100 bg-[#F7FBFA] shadow-[0_16px_40px_rgba(8,17,47,0.05)] transition hover:-translate-y-1 hover:bg-white hover:shadow-[0_24px_60px_rgba(24,179,104,0.12)]">
+      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-[#E8FFF3] via-white to-[#FFF0F6]">
+        {!missing ? (
+          <img
+            src={member.image}
+            alt={`${member.name}, ${member.role} at EVUDDY`}
+            className="h-full w-full object-cover"
+            onError={() => setMissing(true)}
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center px-6 text-center">
+            <p className="text-4xl font-black text-[#18B368]">
+              {member.role
+                .split(" ")
+                .map((part) => part[0])
+                .join("")
+                .slice(0, 2)}
+            </p>
+            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+              Team portrait
+            </p>
+          </div>
+        )}
+      </div>
+      <div className="p-6">
+        <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
+          {member.role}
+        </p>
+        <h3 className="mt-2 text-xl font-black">{member.name}</h3>
+      </div>
+    </article>
   );
 }
