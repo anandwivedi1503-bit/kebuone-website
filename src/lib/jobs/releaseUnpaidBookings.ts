@@ -112,10 +112,10 @@ let lastSweep = 0;
 
 export async function maybeSweepUnpaidBookings() {
   const now = Date.now();
-  if (now - lastSweep < 60 * 1000) return null;
+  if (now - lastSweep < 30 * 1000) return null;
   lastSweep = now;
   try {
-    return await releaseUnpaidBookings(25);
+    return await releaseUnpaidBookings(50);
   } catch (error) {
     console.error("UNPAID BOOKING SWEEP ERROR:", error);
     return null;

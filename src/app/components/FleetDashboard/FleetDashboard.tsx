@@ -23,13 +23,18 @@ useState("All");
 
 useEffect(() => {
 
-fetch("/api/vehicles")
-.then((res) => res.json())
-.then((data) => {
+const loadFleet = () => {
+  fetch("/api/vehicles")
+    .then((res) => res.json())
+    .then((data) => {
+      setVehicles(data.data || []);
+    })
+    .catch(() => undefined);
+};
 
-setVehicles(data.data || []);
-
-});
+loadFleet();
+const timer = window.setInterval(loadFleet, 10000);
+return () => window.clearInterval(timer);
 
 }, []);
 

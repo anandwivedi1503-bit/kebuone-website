@@ -2,6 +2,7 @@
 
  import { useEffect, useState } from "react";
  import type { LucideIcon } from "lucide-react";
+import { sessionCanOpen } from "@/lib/adminCan";
 import {
   AlertTriangle,
   BarChart3,
@@ -48,8 +49,6 @@ const formatActivityTime = (value: any) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
-
-
 type AdminDashboardProps = {
   setActiveDashboard?: (dashboard: string) => void;
 };
@@ -63,6 +62,12 @@ export default function AdminDashboard({
 
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adminSession, setAdminSession] = useState<{
+    role: "super" | "staff";
+    username: string;
+    dashboards: string[];
+  } | null>(null);
 
   const [riders, setRiders] = useState<any[]>([]);
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -112,14 +117,32 @@ const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
     const closeMenus = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest(".notification-menu") && !target.closest(".profile-menu")) {
+      if (
+        !target.closest(".notification-menu") &&
+        !target.closest(".profile-menu") &&
+        !target.closest(".settings-menu")
+      ) {
         setNotificationOpen(false);
         setProfileOpen(false);
+        setSettingsOpen(false);
       }
     };
 
     window.addEventListener("click", closeMenus);
     return () => window.removeEventListener("click", closeMenus);
+  }, []);
+
+  useEffect(() => {
+    const loadSession = async () => {
+      try {
+        const res = await fetch("/api/admin/me", { cache: "no-store" });
+        const data = await res.json();
+        if (data.success) setAdminSession(data.data);
+      } catch {
+        setAdminSession(null);
+      }
+    };
+    void loadSession();
   }, []);
 
    const loadDashboard = async () => {
@@ -178,7 +201,7 @@ const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
   loadDashboard();
 
-  const timer = setInterval(loadDashboard, 30000);
+  const timer = setInterval(loadDashboard, 12000);
 
   return () => clearInterval(timer);
 }, []);
@@ -587,12 +610,94 @@ time:formatActivityTime(p.createdAt)
   icon: AlertTriangle,
   tone: "bg-gray-100 text-gray-700",
 },
-  { title: "Settings", description: "System Configuration", dashboard: "admin", icon: Settings, tone: "bg-[#0A1134] text-white", featured: true },
+  { title: "Settings", description: "Team access and configuration", dashboard: "team", icon: Settings, tone: "bg-[#0A1134] text-white", featured: true },
 ];
 const filteredQuickActions = quickActions.filter((item) =>
   item.title.toLowerCase().includes(searchKeyword) ||
   item.description.toLowerCase().includes(searchKeyword)
 );
+
+const openDashboard = (dashboard: string) => {
+  setProfileOpen(false);
+  setSettingsOpen(false);
+  setNotificationOpen(false);
+  setActiveDashboard?.(dashboard);
+};
+
+const searchHits = searchKeyword
+  ? [
+      ...riders
+        .filter((item: any) =>
+          [item.fullName, item.phone, item.email, item.riderId]
+            .join(" ")
+            .toLowerCase()
+            .includes(searchKeyword)
+        )
+        .slice(0, 5)
+        .map((item: any) => ({
+          id: String(item._id || item.riderId),
+          title: item.fullName || item.riderId || "Rider",
+          subtitle: item.phone || item.email || "Rider",
+          dashboard: "users",
+        })),
+      ...vehicles
+        .filter((item: any) =>
+          [item.vehicleId, item.registrationNumber, item.vehicleModel, item.currentHub]
+            .join(" ")
+            .toLowerCase()
+            .includes(searchKeyword)
+        )
+        .slice(0, 5)
+        .map((item: any) => ({
+          id: String(item._id || item.vehicleId),
+          title: item.vehicleId || "Vehicle",
+          subtitle: `${item.vehicleStatus || "Status"} · ${item.currentHub || "Hub"}`,
+          dashboard: "fleet",
+        })),
+      ...bookings
+        .filter((item: any) =>
+          [item.bookingId, item.userName, item.userPhone, item.vehicleId]
+            .join(" ")
+            .toLowerCase()
+            .includes(searchKeyword)
+        )
+        .slice(0, 5)
+        .map((item: any) => ({
+          id: String(item._id || item.bookingId),
+          title: item.bookingId || "Booking",
+          subtitle: `${item.userName || item.userPhone || "Rider"} · ${item.rideStatus || ""}`,
+          dashboard: "bookings",
+        })),
+      ...tickets
+        .filter((item: any) =>
+          [item.ticketId, item.category, item.status]
+            .join(" ")
+            .toLowerCase()
+            .includes(searchKeyword)
+        )
+        .slice(0, 4)
+        .map((item: any) => ({
+          id: String(item._id || item.ticketId),
+          title: item.ticketId || "Ticket",
+          subtitle: item.status || "Support",
+          dashboard: "support",
+        })),
+      ...wallets
+        .filter((item: any) =>
+          [item.riderId, item.phone, item.walletId]
+            .join(" ")
+            .toLowerCase()
+            .includes(searchKeyword)
+        )
+        .slice(0, 4)
+        .map((item: any) => ({
+          id: String(item._id || item.riderId),
+          title: item.riderId || "Wallet",
+          subtitle: item.status || "Wallet",
+          dashboard: "wallet",
+        })),
+    ]
+  : [];
 
 const refreshDashboard = async () => {
 
@@ -669,6 +774,44 @@ if (loading) {
                   placeholder="Search riders, vehicles, bookings, tickets, wallets..."
                   className={`h-12 w-full rounded-2xl border pl-11 pr-4 text-sm font-medium outline-none transition focus:ring-4 ${inputClass}`}
                 />
+                {searchKeyword && (
+                  <div className={`absolute left-0 right-0 top-full z-[90] mt-2 max-h-80 overflow-y-auto rounded-2xl ${menuClass}`}>
+                    {searchHits.length === 0 && filteredQuickActions.length === 0 ? (
+                      <p className={`px-4 py-4 text-sm ${mutedClass}`}>No matching riders, vehicles, bookings or modules.</p>
+                    ) : (
+                      <>
+                        {searchHits.map((hit) => (
+                          <button
+                            key={`${hit.dashboard}-${hit.id}`}
+                            type="button"
+                            onClick={() => {
+                              setSearch("");
+                              openDashboard(hit.dashboard);
+                            }}
+                            className="w-full px-4 py-3 text-left transition hover:bg-rose-50/70"
+                          >
+                            <p className={`text-sm font-semibold ${headingClass}`}>{hit.title}</p>
+                            <p className={`mt-0.5 text-xs ${mutedClass}`}>{hit.subtitle}</p>
+                          </button>
+                        ))}
+                        {filteredQuickActions.slice(0, 4).map((item) => (
+                          <button
+                            key={`mod-${item.title}`}
+                            type="button"
+                            onClick={() => {
+                              setSearch("");
+                              openDashboard(item.dashboard);
+                            }}
+                            className="w-full px-4 py-3 text-left transition hover:bg-rose-50/70"
+                          >
+                            <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
+                            <p className={`mt-0.5 text-xs ${mutedClass}`}>Open {item.description}</p>
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between gap-3 sm:justify-end">
@@ -707,7 +850,18 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                           </p>
                         ) : (
                           notifications.map((item) => (
-                          <button key={item.id} className="w-full px-5 py-4 text-left transition hover:bg-rose-50/70">
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => {
+                              const title = item.title.toLowerCase();
+                              if (title.includes("refund")) openDashboard("refunds");
+                              else if (title.includes("swap")) openDashboard("swap");
+                              else if (title.includes("partner")) openDashboard("partner");
+                              else openDashboard("bookings");
+                            }}
+                            className="w-full px-5 py-4 text-left transition hover:bg-rose-50/70"
+                          >
                             <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
                             <p className={`mt-1 text-xs ${mutedClass}`}>{item.time}</p>
                           </button>
@@ -726,6 +880,55 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                   {darkMode ? <Sun size={19} /> : <Moon size={19} />}
                 </button>
 
+                <div className="relative settings-menu">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSettingsOpen(!settingsOpen);
+                      setProfileOpen(false);
+                      setNotificationOpen(false);
+                    }}
+                    title="Settings"
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
+                  >
+                    <Settings size={19} />
+                  </button>
+                  {settingsOpen && (
+                    <div className={`absolute right-0 z-50 mt-3 w-64 overflow-hidden rounded-[28px] ${menuClass}`}>
+                      <div className={`border-b px-4 py-3 ${borderClass}`}>
+                        <p className={`text-sm font-bold ${headingClass}`}>Settings</p>
+                        <p className={`mt-1 text-xs ${mutedClass}`}>
+                          {adminSession?.username || "Administrator"} · {adminSession?.role === "staff" ? "Staff" : "Super admin"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openDashboard("admin")}
+                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
+                      >
+                        Control center
+                      </button>
+                      {sessionCanOpen(adminSession, "team") && (
+                        <button
+                          type="button"
+                          onClick={() => openDashboard("team")}
+                          className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
+                        >
+                          Team access
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => openDashboard("audit")}
+                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
+                      >
+                        Audit logs
+                      </button>
+                    </div>
+                  )}
+                </div>
+
                 <div className="relative profile-menu">
                   <button
                     onClick={(e) => {
@@ -739,8 +942,12 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                     </div>
 
                     <div className="hidden text-left md:block">
-                      <h4 className={`text-sm font-bold leading-4 ${headingClass}`}>Administrator</h4>
-                      <p className={`mt-0.5 text-xs ${mutedClass}`}>Full system access</p>
+                      <h4 className={`text-sm font-bold leading-4 ${headingClass}`}>
+                        {adminSession?.username || "Administrator"}
+                      </h4>
+                      <p className={`mt-0.5 text-xs ${mutedClass}`}>
+                        {adminSession?.role === "staff" ? "Staff access" : "Full system access"}
+                      </p>
                     </div>
 
                     <ChevronDown size={17} className={mutedClass} />
@@ -748,8 +955,31 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
 
                   {profileOpen && (
                     <div className={`absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-[28px] ${menuClass}`}>
-                      <button className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70">Profile</button>
-                      <button className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70">Settings</button>
+                      <div className={`border-b px-4 py-3 ${borderClass}`}>
+                        <p className={`text-sm font-bold ${headingClass}`}>
+                          {adminSession?.username || "Administrator"}
+                        </p>
+                        <p className={`mt-1 text-xs ${mutedClass}`}>
+                          {adminSession?.role === "staff" ? "Staff" : "Super admin"}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => openDashboard("users")}
+                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
+                      >
+                        Profile / riders
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setProfileOpen(false);
+                          setSettingsOpen(true);
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
+                      >
+                        Settings
+                      </button>
                       <a
   href="/api/admin-logout"
   className="block w-full px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
@@ -1272,8 +1502,12 @@ className={refreshing ? "animate-spin" : ""}
                 <button
                   key={action.title}
                   onClick={() => {
-  setActiveDashboard?.(action.dashboard);
-}}
+                    if (action.dashboard === "team" && !sessionCanOpen(adminSession, "team")) {
+                      setSettingsOpen(true);
+                      return;
+                    }
+                    setActiveDashboard?.(action.dashboard);
+                  }}
                   className={`${panelClass} group rounded-[28px] p-5 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}
                 >
                   <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-105 ${action.tone}`}>
