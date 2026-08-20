@@ -1207,8 +1207,10 @@ Waiting For Admin Approval
    <section
   id="rider-registration"
   className="
-pt-44
-pb-24
+pt-8
+pb-16
+lg:pt-44
+lg:pb-24
 bg-gradient-to-br
 from-white
 via-[#F7FFFB]
@@ -1218,18 +1220,22 @@ overflow-hidden
 >
       <div className="max-w-7xl mx-auto px-6">
 
-        <div className="grid lg:grid-cols-[1fr_0.95fr] gap-10 items-start">
+        <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr] lg:gap-10 items-start">
 
           {/* ================= LEFT PREMIUM SECTION ================= */}
 
-<div className="relative hidden lg:block">
+<div className="relative block">
 
   <div
 className="
 relative
 overflow-hidden
-rounded-[42px]
-h-[720px]
+rounded-[28px]
+h-[220px]
+sm:h-[320px]
+lg:h-[720px]
+lg:rounded-[42px]
+bg-[#081C15]
 shadow-[0_40px_120px_rgba(0,0,0,0.18)]
 "
 >
@@ -1240,23 +1246,23 @@ shadow-[0_40px_120px_rgba(0,0,0,0.18)]
       className="
 w-full
 h-full
-object-cover
-object-[48%_center]
+object-contain
+lg:object-cover
+object-center
+lg:object-[48%_center]
 scale-[1.02]
 transition-all
 duration-700
 "
     />
 
-    <div className="absolute inset-0 bg-gradient-to-br from-[#081C15]/82
-via-[#0B2A20]/58
-to-[#18B368]/22" />
+    <div className="absolute inset-0 bg-gradient-to-br from-[#081C15]/35 via-[#0B2A20]/20 to-transparent lg:from-[#081C15]/82 lg:via-[#0B2A20]/58 lg:to-[#18B368]/22" />
 
   </div>
 
   {/* Premium Logo */}
 
-<div className="absolute top-10 left-8 z-20">
+<div className="absolute top-10 left-8 z-20 hidden lg:block">
 
   <span
     className="
@@ -1311,6 +1317,8 @@ rentals and smart commuting.
 
   <div
 className="
+hidden
+lg:block
 absolute
 top-16
 right-2
@@ -1380,6 +1388,8 @@ Fast Digital Verification
 
   <div
 className="
+hidden
+lg:block
 absolute
 bottom-10
 left-6
