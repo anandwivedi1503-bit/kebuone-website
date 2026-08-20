@@ -1,9 +1,4 @@
-import {
-  Building2,
-  MapPinned,
-  ShieldCheck,
-  Zap,
-} from "lucide-react";
+import { Building2, MapPinned, ShieldCheck, Zap } from "lucide-react";
 
 import {
   BrandCardGrid,
@@ -13,7 +8,7 @@ import {
   BrandMosaic,
   BrandSplit,
   BrandStatement,
-} from "@/app/components/Brand/BrandPage";
+} from "@/app/components/Brand/BrandStoryPage";
 
 const facts = [
   { label: "Hourly", value: "₹60" },
@@ -56,7 +51,7 @@ export default function AboutUs() {
         primaryLabel="Book an EV"
         secondaryHref="/Leadership"
         secondaryLabel="Meet leadership"
-        posterSrc="/about/about-poster.png?v=20260820"
+        posterSrc="/about/about-poster.png?v=20260820b"
         posterAlt="EVUDDY About Us — mission and vision"
       />
 
@@ -70,7 +65,8 @@ export default function AboutUs() {
       />
 
       <BrandFilm
-        src="/bike-final.mp4"
+        src="/kebu-final.mp4"
+        secondSrc="/hero-finalback.mp4"
         eyebrow="The company"
         title="Smart electric mobility you can book, ride and own."
       />
