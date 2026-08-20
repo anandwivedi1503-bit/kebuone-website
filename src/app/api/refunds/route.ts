@@ -183,7 +183,7 @@ export async function GET() {
 
     const refunds = await Refund.find().sort({
       createdAt: -1,
-    });
+    }).limit(300);
 
     return NextResponse.json({
       success: true,

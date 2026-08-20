@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import cloudinary from "@/lib/cloudinary";
 import { adminAuth } from "@/lib/firebaseAdmin";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
@@ -80,6 +81,13 @@ function detectFileType(
 
 export async function POST(req: Request) {
   try {
+    if (!rateLimitAllowed(`upload:${clientIp(req)}`, 20, 10 * 60 * 1000)) {
+      return NextResponse.json(
+        { success: false, error: "Too many uploads. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
 
     const file = body.file;

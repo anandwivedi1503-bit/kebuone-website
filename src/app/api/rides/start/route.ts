@@ -6,6 +6,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
+import { isOtpExpired, generateSixDigitOtp } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -15,7 +16,7 @@ function clean(value: unknown) {
 }
 
 function generateRideEndOTP() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return generateSixDigitOtp();
 }
 
 async function rollback(session: mongoose.ClientSession | null) {
@@ -120,6 +121,19 @@ export async function POST(req: Request) {
         {
           success: false,
           message: "Invalid Pickup OTP.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (isOtpExpired(booking.pickupOTPExpiry)) {
+      await rollback(session);
+      session = null;
+
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Pickup OTP has expired. Generate a new OTP.",
         },
         { status: 400 }
       );

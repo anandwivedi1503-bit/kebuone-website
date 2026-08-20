@@ -37,8 +37,8 @@ export default function AuditLogsDashboard() {
     const load = async () => {
       try {
         const [bookingRes, txnRes] = await Promise.all([
-          fetch("/api/bookings", { cache: "no-store" }),
-          fetch("/api/transactions", { cache: "no-store" }),
+          fetch("/api/bookings?limit=300", { cache: "no-store" }),
+          fetch("/api/transactions?limit=300", { cache: "no-store" }),
         ]);
         const bookingData = await bookingRes.json();
         const txnData = await txnRes.json();

@@ -15,6 +15,7 @@ import {
   rtoDailyRate,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
+import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 
 const registrationTypes = [
   "RTO",
@@ -557,6 +558,7 @@ export async function POST(req: Request) {
 export async function GET() {
   try {
     await connectDB();
+    void maybeSweepUnpaidBookings();
 
     const isAdmin =
       await isAdminAuthenticated().catch(

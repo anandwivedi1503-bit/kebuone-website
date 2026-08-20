@@ -7,6 +7,7 @@ import {
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
 import { publicApiError } from "@/lib/publicError";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
@@ -70,6 +71,13 @@ export async function POST(req: Request) {
   let session: mongoose.ClientSession | null = null;
 
   try {
+    if (!rateLimitAllowed(`tickets:${clientIp(req)}`, 12, 10 * 60 * 1000)) {
+      return NextResponse.json(
+        { success: false, errors: ["Too many requests. Please try again later."] },
+        { status: 429 }
+      );
+    }
+
     await connectDB();
 
     const body = await req.json();
@@ -321,7 +329,7 @@ export async function GET() {
 
     const tickets = await Ticket.find().sort({
       createdAt: -1,
-    });
+    }).limit(300).lean();
 
     return NextResponse.json({
       success: true,

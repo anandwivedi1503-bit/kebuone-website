@@ -2,6 +2,7 @@ import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Partner from "@/models/Partner";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -36,6 +37,13 @@ function clean(value: unknown, max = 160) {
 
 export async function POST(req: Request) {
   try {
+    if (!rateLimitAllowed(`partners:${clientIp(req)}`, 8, 10 * 60 * 1000)) {
+      return NextResponse.json(
+        { success: false, errors: ["Too many requests. Please try again later."] },
+        { status: 429 }
+      );
+    }
+
     await connectDB();
 
     const body = await req.json();

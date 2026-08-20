@@ -21,6 +21,7 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
+import { listResponse, parseListQuery } from "@/lib/listQuery";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -80,28 +81,49 @@ async function findActiveRider(
 
 
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
         if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
     await connectDB();
 
-    const bookings = await Booking.find({
+    const { page, limit, skip, q, rideStatus, paymentStatus } = parseListQuery(req);
+    const filter: Record<string, unknown> = {
   $or: [
     { isDeleted: false },
     { isDeleted: { $exists: false } },
   ],
-})
-  .sort({
-    createdAt: -1,
-  })
-  .lean();
+};
+    if (rideStatus) filter.rideStatus = rideStatus;
+    if (paymentStatus) filter.paymentStatus = paymentStatus;
+    if (q) {
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$and = [
+        { $or: filter.$or as unknown[] },
+        {
+          $or: [
+            { bookingId: new RegExp(escaped, "i") },
+            { userName: new RegExp(escaped, "i") },
+            { userPhone: new RegExp(escaped, "i") },
+            { vehicleId: new RegExp(escaped, "i") },
+          ],
+        },
+      ];
+      delete filter.$or;
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: bookings,
-    });
+    const [bookings, total] = await Promise.all([
+      Booking.find(filter)
+        .select("-pickupOTP -rideStartOTP -rideEndOTP")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Booking.countDocuments(filter),
+    ]);
+
+    return NextResponse.json(listResponse(bookings, total, page, limit));
   } catch (error) {
     return NextResponse.json(
       {

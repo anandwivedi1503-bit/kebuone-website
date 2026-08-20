@@ -122,6 +122,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, errors }, { status: 400 });
     }
 
+    const vehicle = await Vehicle.findOne({ vehicleId });
+    const nextStatus =
+      vehicle?.currentBookingId &&
+      (vehicleStatus === "Available" || vehicleStatus === "Low Battery")
+        ? String(vehicle.vehicleStatus || vehicleStatus)
+        : vehicleStatus;
+
     await Vehicle.findOneAndUpdate(
   { vehicleId },
   {
@@ -129,9 +136,12 @@ export async function POST(req: Request) {
 
     gpsStatus,
 
-    lockStatus,
+    lockStatus:
+      vehicle?.currentBookingId && lockStatus === "Unlocked" && vehicleStatus === "Available"
+        ? vehicle.lockStatus
+        : lockStatus,
 
-    vehicleStatus,
+    vehicleStatus: nextStatus,
 
     currentLatitude: Number(body.currentLat),
 

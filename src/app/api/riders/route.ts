@@ -1729,6 +1729,7 @@ export async function GET(req: Request) {
           createdAt:
             -1,
         })
+        .limit(300)
         .lean<AdminRiderRecord[]>();
 
     /* =====================================================

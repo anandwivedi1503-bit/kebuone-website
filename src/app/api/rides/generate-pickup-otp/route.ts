@@ -6,6 +6,7 @@ import {
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 
+import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
 import Booking from "@/models/Booking";
 
 export async function POST(req: Request) {
@@ -74,11 +75,10 @@ export async function POST(req: Request) {
 
 if (!otp) {
 
-  otp = Math.floor(
-    100000 + Math.random() * 900000
-  ).toString();
+  otp = generateSixDigitOtp();
 
   booking.pickupOTP = otp;
+  booking.pickupOTPExpiry = pickupOtpExpiry();
 
 }
 

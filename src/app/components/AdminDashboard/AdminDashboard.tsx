@@ -74,8 +74,9 @@ export default function AdminDashboard({
   const [refunds, setRefunds] = useState<any[]>([]);
   const [batteries, setBatteries] = useState<any[]>([]);
 const [batterySwaps, setBatterySwaps] = useState<any[]>([]);
-const [partners, setPartners] = useState<any[]>([]);
-const [wallets, setWallets] = useState<any[]>([]);
+  const [partners, setPartners] = useState<any[]>([]);
+  const [wallets, setWallets] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
 
 const [loading, setLoading] = useState(true);
 const [lastUpdated, setLastUpdated] = useState("");
@@ -135,7 +136,8 @@ const [refreshing, setRefreshing] = useState(false);
         "/api/batteries",
         "/api/battery-swaps",
         "/api/partners",
-        "/api/wallet?limit=500",
+        "/api/wallet?limit=300",
+        "/api/analytics?period=all",
       ];
 
       const responses = await Promise.all(
@@ -158,6 +160,7 @@ const [refreshing, setRefreshing] = useState(false);
       setBatterySwaps(data[9].data || []);
       setPartners(data[10].data || []);
       setWallets(data[11].data || []);
+      setStats(data[12].data || null);
 
       setLastUpdated(
   new Date().toLocaleString("en-IN", {
@@ -180,21 +183,24 @@ const [refreshing, setRefreshing] = useState(false);
   return () => clearInterval(timer);
 }, []);
 
-  const totalRevenue = transactions
-  .filter((item: any) => item.status === "Success")
-  .reduce(
-    (sum: number, item: any) => sum + (item.amount || 0),
-    0
+  const totalRevenue = Number(
+    stats?.totalRevenue ??
+      transactions
+        .filter((item: any) => item.status === "Success")
+        .reduce((sum: number, item: any) => sum + (item.amount || 0), 0)
   );
 
-  const activeRides = bookings.filter(
-    (item: any) =>
-      item.rideStatus === "Booked" ||
-      item.rideStatus === "Reserved" ||
-      item.rideStatus === "Payment Pending" ||
-      item.rideStatus === "Ready For Pickup" ||
-      item.rideStatus === "In Ride"
-  ).length;
+  const activeRides = Number(
+    stats?.activeRides ??
+      bookings.filter(
+        (item: any) =>
+          item.rideStatus === "Booked" ||
+          item.rideStatus === "Reserved" ||
+          item.rideStatus === "Payment Pending" ||
+          item.rideStatus === "Ready For Pickup" ||
+          item.rideStatus === "In Ride"
+      ).length
+  );
 
   const getGpsStatus = (status: unknown) =>
   String(status || "").trim().toUpperCase();

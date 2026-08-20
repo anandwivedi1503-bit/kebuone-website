@@ -41,7 +41,7 @@ export default function RentToOwnDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/bookings", { cache: "no-store" });
+        const res = await fetch("/api/bookings?limit=300", { cache: "no-store" });
         const data = await res.json();
         setBookings(data.data || []);
       } finally {

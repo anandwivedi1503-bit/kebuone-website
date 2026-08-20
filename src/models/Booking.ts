@@ -713,7 +713,9 @@ BookingSchema.index({
 });
 
 BookingSchema.index({
-  pickupOTP: 1,
+  paymentStatus: 1,
+  rideStatus: 1,
+  createdAt: 1,
 });
 
 BookingSchema.index({

@@ -15,6 +15,7 @@ import Rider from "@/models/Rider";
 import {
   getBookingPayableAmount,
 } from "@/lib/gst";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 function clean(value: unknown) {
   return String(value || "").trim();
@@ -55,6 +56,12 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
+    if (!rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 20, 10 * 60 * 1000)) {
+      return NextResponse.json(
+        { success: false, message: "Too many payment attempts. Please wait." },
+        { status: 429 }
+      );
+    }
     const bookingMongoId = clean(body.bookingMongoId);
     const requestedAmount = parseAmount(body.amount);
 

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
 import Booking from "@/models/Booking";
+import { listResponse, parseListQuery } from "@/lib/listQuery";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -42,26 +43,41 @@ function isValidAmount(value: unknown) {
   return Number.isFinite(amount) && amount >= 0;
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
         if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
     }
     await connectDB();
 
-    const transactions = await Transaction.find({
+    const { page, limit, skip, q } = parseListQuery(req);
+    const filter: Record<string, unknown> = {
       $or: [
         { isDeleted: false },
         { isDeleted: { $exists: false } },
       ],
-    }).sort({
-      createdAt: -1,
-    });
+    };
+    if (q) {
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.$and = [
+        { $or: filter.$or as unknown[] },
+        {
+          $or: [
+            { transactionId: new RegExp(escaped, "i") },
+            { bookingId: new RegExp(escaped, "i") },
+            { userName: new RegExp(escaped, "i") },
+          ],
+        },
+      ];
+      delete filter.$or;
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: transactions,
-    });
+    const [transactions, total] = await Promise.all([
+      Transaction.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Transaction.countDocuments(filter),
+    ]);
+
+    return NextResponse.json(listResponse(transactions, total, page, limit));
   } catch (error) {
     return NextResponse.json(
       {
