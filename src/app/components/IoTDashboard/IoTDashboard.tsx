@@ -19,12 +19,35 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 export default function IoTDashboard(){
 
 const [iotData,setIotData]=useState<any[]>([]);
+const [googleMapsApiKey, setGoogleMapsApiKey] = useState(
+  process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+);
 const mapRef = useRef<HTMLDivElement | null>(null);
 const googleMapRef = useRef<any>(null);
 const markerRefs = useRef<any[]>([]);
 const [mapStatus, setMapStatus] = useState("");
 
-const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "";
+useEffect(() => {
+  const loadMapsKey = async () => {
+    try {
+      const response = await fetch("/api/admin/maps-config", { cache: "no-store" });
+      const data = await response.json();
+      if (data?.apiKey) {
+        setGoogleMapsApiKey(String(data.apiKey));
+        return;
+      }
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        setMapStatus("Google Maps API key is missing.");
+      }
+    } catch {
+      if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
+        setMapStatus("Google Maps API key is missing.");
+      }
+    }
+  };
+
+  void loadMapsKey();
+}, []);
 
 const validLocations = iotData.filter((iot) => {
   const lat = Number(iot.currentLat);
@@ -186,7 +209,7 @@ useEffect(() => {
   };
 
   renderMap();
-}, [iotData]);
+}, [iotData, googleMapsApiKey]);
 
 
 

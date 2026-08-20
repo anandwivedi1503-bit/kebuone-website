@@ -24,15 +24,18 @@ const [saving, setSaving] = useState(false);
 
 useEffect(()=>{
 
-fetch("/api/hubs")
+const loadHubs = () => {
+  fetch("/api/hubs")
+    .then((res)=>res.json())
+    .then((data)=>{
+      setHubs(data.data||[]);
+    })
+    .catch(() => undefined);
+};
 
-.then((res)=>res.json())
-
-.then((data)=>{
-
-setHubs(data.data||[]);
-
-});
+loadHubs();
+const timer = window.setInterval(loadHubs, 15000);
+return () => window.clearInterval(timer);
 
 },[]);
 

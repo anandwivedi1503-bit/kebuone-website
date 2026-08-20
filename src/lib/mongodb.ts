@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import { ensureScaleIndexes } from "@/lib/ensureScaleIndexes";
+
 const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
@@ -41,6 +43,8 @@ export async function connectDB() {
   }
 
   cached.conn = await cached.promise;
+
+  void ensureScaleIndexes();
 
   if (process.env.NODE_ENV === "development") {
     console.log("✅ MongoDB Connected");

@@ -49,7 +49,7 @@ export default function RentToOwnDashboard() {
       }
     };
     void load();
-    const interval = window.setInterval(() => void load(), 30000);
+    const interval = window.setInterval(() => void load(), 12000);
     return () => window.clearInterval(interval);
   }, []);
 

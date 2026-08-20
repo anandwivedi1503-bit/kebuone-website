@@ -22,6 +22,8 @@ import {
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
 import { listResponse, parseListQuery } from "@/lib/listQuery";
+import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -87,6 +89,7 @@ export async function GET(req: Request) {
       return unauthorizedResponse();
     }
     await connectDB();
+    void maybeSweepUnpaidBookings();
 
     const { page, limit, skip, q, rideStatus, paymentStatus } = parseListQuery(req);
     const filter: Record<string, unknown> = {
@@ -305,6 +308,36 @@ await session.endSession();
   );
 }
 
+if (
+      rider.currentBookingId &&
+      String(rider.currentBookingId).trim()
+    ) {
+      await session.abortTransaction();
+      await session.endSession();
+      return NextResponse.json(
+        {
+          success: false,
+          errors: ["You already have an active booking."],
+        },
+        { status: 409 }
+      );
+    }
+
+    if (
+      !rateLimitAllowed(`booking:${rider.riderId}`, 12, 10 * 60 * 1000) ||
+      !rateLimitAllowed(`booking-ip:${clientIp(req)}`, 40, 10 * 60 * 1000)
+    ) {
+      await session.abortTransaction();
+      await session.endSession();
+      return NextResponse.json(
+        {
+          success: false,
+          errors: ["Too many booking attempts. Please wait a moment."],
+        },
+        { status: 429 }
+      );
+    }
+
 if (!rider.bookingEnabled) {
   await session.abortTransaction();
   await session.endSession();
@@ -515,6 +548,38 @@ if (body.bookingRequestId) {
         );
     }
 
+}
+
+const riderLock = await Rider.findOneAndUpdate(
+  {
+    _id: rider._id,
+    $or: [
+      { currentBookingId: "" },
+      { currentBookingId: null },
+      { currentBookingId: { $exists: false } },
+    ],
+  },
+  {
+    $set: {
+      currentBookingId: bookingId,
+    },
+  },
+  {
+    new: true,
+    session,
+  }
+);
+
+if (!riderLock) {
+  await session.abortTransaction();
+  await session.endSession();
+  return NextResponse.json(
+    {
+      success: false,
+      errors: ["You already have an active booking."],
+    },
+    { status: 409 }
+  );
 }
 
 const vehicle = await Vehicle.findOneAndUpdate(

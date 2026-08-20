@@ -74,7 +74,7 @@ const interval = setInterval(() => {
 
 fetchBookings();
 
-},30000);
+}, 12000);
 
 return ()=>clearInterval(interval);
 

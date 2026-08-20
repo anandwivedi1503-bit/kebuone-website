@@ -39,44 +39,41 @@ export async function GET() {
 
     await connectDB();
 
-    const vehicles = await Vehicle.find().sort({
-  updatedAt: -1,
-});
+    const vehicles = await Vehicle.find({
+      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+    })
+      .select(
+        "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt"
+      )
+      .sort({ updatedAt: -1 })
+      .limit(500)
+      .lean();
 
-const latestAlerts = await iot.find().sort({
-  createdAt: -1,
-});
+    const vehicleIds = vehicles.map((vehicle) => vehicle.vehicleId);
+    const latestAlerts = vehicleIds.length
+      ? await iot
+          .find({ vehicleId: { $in: vehicleIds } })
+          .select("vehicleId alertType")
+          .lean()
+      : [];
 
-const iotData = vehicles.map((vehicle) => {
+    const alertByVehicle = new Map(
+      latestAlerts.map((item) => [item.vehicleId, item.alertType || ""])
+    );
 
-  const latestAlert = latestAlerts.find(
-    (item) => item.vehicleId === vehicle.vehicleId
-  );
-
-  return {
-    _id: vehicle._id,
-
-    vehicleId: vehicle.vehicleId,
-
-    batteryPercentage: vehicle.batteryPercentage,
-
-    currentLat: vehicle.currentLatitude,
-
-    currentLng: vehicle.currentLongitude,
-
-    lockStatus: vehicle.lockStatus,
-
-    gpsStatus: vehicle.gpsStatus,
-
-    vehicleStatus: vehicle.vehicleStatus,
-
-    updatedAt: vehicle.lastPingTime,
-
-    createdAt: vehicle.createdAt,
-
-    alertType: latestAlert?.alertType || "",
-  };
-});
+    const iotData = vehicles.map((vehicle) => ({
+      _id: vehicle._id,
+      vehicleId: vehicle.vehicleId,
+      batteryPercentage: vehicle.batteryPercentage,
+      currentLat: vehicle.currentLatitude,
+      currentLng: vehicle.currentLongitude,
+      lockStatus: vehicle.lockStatus,
+      gpsStatus: vehicle.gpsStatus,
+      vehicleStatus: vehicle.vehicleStatus,
+      updatedAt: vehicle.lastPingTime,
+      createdAt: vehicle.createdAt,
+      alertType: alertByVehicle.get(vehicle.vehicleId) || "",
+    }));
 
     return NextResponse.json({
       success: true,
@@ -151,16 +148,25 @@ export async function POST(req: Request) {
   }
 );
 
-const newIot = await iot.create({
-  vehicleId,
-  batteryPercentage: Number(body.batteryPercentage),
-  currentLat: Number(body.currentLat),
-  currentLng: Number(body.currentLng),
-  lockStatus,
-  gpsStatus,
-  vehicleStatus,
-  alertType,
-});
+const newIot = await iot.findOneAndUpdate(
+  { vehicleId },
+  {
+    $set: {
+      batteryPercentage: Number(body.batteryPercentage),
+      currentLat: Number(body.currentLat),
+      currentLng: Number(body.currentLng),
+      lockStatus,
+      gpsStatus,
+      vehicleStatus: nextStatus,
+      alertType,
+    },
+  },
+  {
+    upsert: true,
+    new: true,
+    setDefaultsOnInsert: true,
+  }
+);
 
 return NextResponse.json({
   success: true,
