@@ -72,7 +72,7 @@ export default function Careers() {
       />
 
       <BrandFilm
-        src="/kebu-final.mp4"
+        src="/bike-final.mp4"
         eyebrow="Life at EVUDDY"
         title="The work is on the street, in hubs, and in the product."
       />
@@ -86,21 +86,21 @@ export default function Careers() {
       />
 
       <BrandSplit
-        eyebrow="Delivery & gig"
-        title="Build mobility that earns."
-        text="Delivery partners and gig workers need machines that start, last and can become an asset. Rent to Own is part of the job, not a side project."
-        image="/delivery.jpeg"
-        alt="Delivery mobility with EVUDDY"
+        eyebrow="The scooter"
+        title="Build the machine people actually ride."
+        text="Hubs, availability and Rent to Own all sit on the same EV. If you join, you work on that ride — not a side category."
+        image="/evuddy-scooter.png"
+        alt="EVUDDY electric scooter"
         reverse
       />
 
       <BrandMosaic
-        title="Same brand. Many kinds of work."
+        title="Same brand. The scooter at the centre."
         text="Engineering, hubs, support, growth and finance share one mission: smart, electric, dependable rides."
         photos={[
           { src: "/poster.png", alt: "EVUDDY scooters in the city" },
           { src: "/bike-rent.jpeg", alt: "Electric scooter rental" },
-          { src: "/evuddy.jpeg", alt: "EVUDDY brand" },
+          { src: "/biker-rent.jpeg", alt: "Rider on an EVUDDY scooter" },
         ]}
       />
 
@@ -114,8 +114,8 @@ export default function Careers() {
         eyebrow="Product in motion"
         title="From garage energy to a city fleet."
         text="If you like moving between design, code, hubs and rider conversations, this is the pace. We hire for ownership, not job titles that sit still."
-        image="/hero-finalback.mp4"
-        alt="EVUDDY in motion"
+        image="/bike-final.mp4"
+        alt="EVUDDY scooter ride"
         video
       />
 

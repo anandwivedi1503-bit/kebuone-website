@@ -70,7 +70,7 @@ export default function AboutUs() {
       />
 
       <BrandFilm
-        src="/hero-finalback.mp4"
+        src="/bike-final.mp4"
         eyebrow="The company"
         title="Smart electric mobility you can book, ride and own."
       />
@@ -84,11 +84,11 @@ export default function AboutUs() {
       />
 
       <BrandMosaic
-        title="One ecosystem. Many ways to ride."
-        text="B2C rentals, B2B fleets, delivery partners and Rent to Own sit on the same live platform."
+        title="One ecosystem. The scooter at the centre."
+        text="B2C rentals, hubs, fleets and Rent to Own sit on the same live platform."
         photos={[
           { src: "/poster.png", alt: "EVUDDY scooters on the road" },
-          { src: "/delivery.jpeg", alt: "Delivery on EVUDDY" },
+          { src: "/bike-rent.jpeg", alt: "EVUDDY rental scooter" },
           { src: "/evuddy-scooter.png", alt: "EVUDDY scooter" },
         ]}
       />

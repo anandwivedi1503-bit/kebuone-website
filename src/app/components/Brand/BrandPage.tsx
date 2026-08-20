@@ -204,7 +204,7 @@ export function BrandSplit({
           <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">{title}</h2>
           <p className="mt-5 text-base leading-8 text-slate-600 sm:text-lg">{text}</p>
         </div>
-        <figure className="overflow-hidden rounded-[32px] bg-[#08112F] shadow-[0_30px_80px_rgba(8,17,47,0.14)]">
+        <figure className="aspect-video overflow-hidden rounded-[32px] bg-[#08112F] shadow-[0_30px_80px_rgba(8,17,47,0.14)]">
           {video ? (
             <video
               src={image}
@@ -212,10 +212,14 @@ export function BrandSplit({
               muted
               loop
               playsInline
-              className="h-full min-h-[280px] w-full object-cover"
+              className="h-full w-full object-contain object-center"
             />
           ) : (
-            <img src={image} alt={alt} className="h-full min-h-[280px] w-full object-cover" />
+            <img
+              src={image}
+              alt={alt}
+              className="h-full w-full object-cover object-center"
+            />
           )}
         </figure>
       </div>
@@ -269,21 +273,23 @@ export function BrandFilm({
 }) {
   return (
     <section className="px-4 py-10 sm:px-6 lg:px-10">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[36px]">
-        <video
-          src={src}
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="h-[420px] w-full object-cover sm:h-[520px]"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08112F] via-[#08112F]/35 to-transparent" />
-        <div className="absolute bottom-8 left-8 right-8 text-white sm:bottom-12 sm:left-12">
+      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-[#08112F]">
+        <div className="relative aspect-video">
+          <video
+            src={src}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 h-full w-full object-contain object-center"
+          />
+        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#08112F] via-[#08112F]/25 to-transparent" />
+        <div className="absolute bottom-6 left-6 right-6 text-white sm:bottom-10 sm:left-10">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#6EE7A8]">
             {eyebrow}
           </p>
-          <h2 className="mt-3 max-w-xl text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+          <h2 className="mt-3 max-w-xl text-2xl font-black tracking-[-0.04em] sm:text-4xl">
             {title}
           </h2>
         </div>

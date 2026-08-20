@@ -60,7 +60,7 @@ export default function VisionMission() {
       />
 
       <BrandFilm
-        src="/hero-video.mp4"
+        src="/bike-final.mp4"
         eyebrow="The future we are riding toward"
         title="Every ride can lead to ownership."
       />
@@ -76,19 +76,19 @@ export default function VisionMission() {
       <BrandSplit
         eyebrow="Cities"
         title="Quiet streets. Live operations."
-        text="Hubs, OTP pickup, GPS and support keep electric scooters working in real Indian cities — for commuters, delivery and small businesses."
+        text="Hubs, OTP pickup, GPS and support keep electric scooters working in real Indian cities for daily riders."
         image="/poster.png"
         alt="EVUDDY fleet on city roads"
         reverse
       />
 
       <BrandMosaic
-        title="Riders, delivery, daily work."
-        text="The vision is not a slogan. It is who gets on the scooter tomorrow morning."
+        title="The scooter is the story."
+        text="The vision is not a slogan. It is the ride people take tomorrow morning."
         photos={[
-          { src: "/biker-rent.jpeg", alt: "Daily EV commute" },
-          { src: "/delivery.jpeg", alt: "Delivery on electric scooter" },
-          { src: "/househelp.jpeg", alt: "Everyday city mobility" },
+          { src: "/poster.png", alt: "EVUDDY scooters on city roads" },
+          { src: "/bike-rent.jpeg", alt: "EVUDDY rental scooter" },
+          { src: "/biker-rent.jpeg", alt: "Rider on an EVUDDY scooter" },
         ]}
       />
 
@@ -99,11 +99,11 @@ export default function VisionMission() {
       </BrandCardGrid>
 
       <BrandSplit
-        eyebrow="B2B & fleets"
-        title="Businesses move cleaner too."
+        eyebrow="The ride"
+        title="One scooter. One standard."
         text="Partners and fleets share the same platform as riders: one booking engine, one hub network, one standard of #safeRideWithEvuddy."
-        image="/cab.jpeg"
-        alt="Urban mobility"
+        image="/bike-rent.jpeg"
+        alt="EVUDDY electric scooter"
       />
 
       <BrandCardGrid title="SMART · ELECTRIC · MOBILITY">
