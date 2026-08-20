@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 const initialForm = {
   fullName: "",
@@ -9,6 +12,36 @@ const initialForm = {
   subject: "",
   message: "",
 };
+
+const directory = [
+  {
+    title: "Customer Support",
+    text: "Bookings, rentals, payments and rider help for EVUDDY scooters.",
+    value: "support@evuddy.com",
+    href: "mailto:support@evuddy.com",
+  },
+  {
+    title: "Business Partnerships",
+    text: "Fleet operators, hubs and partners who want EVUDDY scooters on the road.",
+    value: "partners@evuddy.com",
+    href: "mailto:partners@evuddy.com",
+  },
+  {
+    title: "Careers",
+    text: "Join the team building smart electric mobility.",
+    value: "careers@evuddy.com",
+    href: "mailto:careers@evuddy.com",
+  },
+  {
+    title: "Corporate Office",
+    text: "Summit Building, 7th Floor, Gomti Nagar, Lucknow, Uttar Pradesh.",
+    value: "Lucknow",
+    href: "",
+  },
+];
+
+const fieldClass =
+  "h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-[#08112F] outline-none focus:border-[#18B368]";
 
 export default function ContactUs() {
   const [form, setForm] = useState(initialForm);
@@ -61,799 +94,208 @@ export default function ContactUs() {
   };
 
   return (
-    <section className="bg-[#F8F9FC]">
-      {/* ================= HERO ================= */}
-
-<section className="relative overflow-hidden">
-
-  {/* Background */}
-
-  <div className="absolute inset-0 bg-gradient-to-br from-[#F6FFF8] via-white to-[#FFF7FB]" />
-
-  <div className="absolute -left-44 top-0 h-[34rem] w-[34rem] rounded-full bg-[#18B368]/10 blur-[140px]" />
-
-  <div className="absolute right-0 top-0 h-[34rem] w-[34rem] rounded-full bg-[#FF165E]/10 blur-[150px]" />
-
-  <div className="relative max-w-7xl mx-auto px-6 py-32">
-
-    <div className="max-w-4xl">
-
-      {/* Badge */}
-
-      <div className="inline-flex items-center gap-3 rounded-full border border-[#18B368]/20 bg-white px-6 py-3 shadow-lg">
-
-        <div className="h-3 w-3 rounded-full bg-[#18B368] animate-pulse" />
-
-        <span className="text-sm font-bold uppercase tracking-[0.18em] text-[#18B368]">
-
-          CONTACT EVUDDY
-
-        </span>
-
-      </div>
-
-      {/* Heading */}
-
-      <h1 className="mt-10 text-6xl md:text-7xl font-black leading-[1.05] tracking-[-0.05em] text-[#08112F]">
-
-        Let's Build
-
-        <br />
-
-        <span className="bg-gradient-to-r from-[#16A34A] via-[#18B368] to-[#FF165E] bg-clip-text text-transparent">
-
-          The Future
-
-        </span>
-
-        <br />
-
-        Together
-
-      </h1>
-
-      {/* Description */}
-
-      <p className="mt-10 max-w-3xl text-xl leading-9 text-slate-600">
-
-        Whether you're looking to become a rider, partner with EVUDDY,
-
-        explore business opportunities, media collaborations or simply
-
-        have a question, our team is here to help you.
-
-      </p>
-
-      {/* CTA */}
-
-      <div className="mt-12 flex flex-wrap gap-5">
-
-        <a
-          href="/ride-options"
-          className="
-          rounded-full
-          bg-gradient-to-r
-          from-[#16A34A]
-          to-[#18B368]
-          px-9
-          py-4
-          font-bold
-          text-white
-          shadow-[0_18px_45px_rgba(24,179,104,.35)]
-          transition-all
-          duration-300
-          hover:-translate-y-1
-          "
-        >
-
-          Become a Rider
-
-        </a>
-
-        <a
-          href="/partners"
-          className="
-          rounded-full
-          border
-          border-[#18B368]/20
-          bg-white
-          px-9
-          py-4
-          font-bold
-          text-[#18B368]
-          shadow-lg
-          transition-all
-          duration-300
-          hover:bg-[#18B368]
-          hover:text-white
-          "
-        >
-
-          Become a Partner
-
-        </a>
-
-      </div>
-
-      {/* Quick Stats */}
-
-      <div className="mt-16 flex flex-wrap gap-5">
-
-        <div className="rounded-full bg-white px-6 py-3 shadow font-semibold text-[#18B368]">
-
-          ⚡ Fast Response
-
+    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
+      <section className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:px-10">
+        <div className="min-w-0">
+          <Image
+            src="/Evuddy-logo-dark-E.png"
+            alt="EVUDDY"
+            width={260}
+            height={78}
+            className="h-10 w-auto max-w-full object-contain sm:h-14"
+          />
+          <p className="mt-3 text-[10px] font-bold tracking-[0.22em] text-[#08112F] sm:text-[11px] sm:tracking-[0.32em]">
+            SMART · ELECTRIC · MOBILITY
+          </p>
+          <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-[-0.05em] sm:mt-7 sm:text-6xl">
+            Contact <span className="text-[#18B368]">EVUDDY</span>
+          </h1>
+          <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
+            Questions about scooter rentals, Rent to Own, hubs or partnerships —
+            the EVUDDY team is here.
+          </p>
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/ride-options"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-6 text-sm font-bold text-white sm:h-14 sm:w-auto sm:px-8 sm:text-base"
+            >
+              Book an EV <ArrowRight className="h-5 w-5" />
+            </Link>
+            <Link
+              href="/partners"
+              className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-[#18B368] sm:h-14 sm:w-auto sm:px-8 sm:text-base"
+            >
+              Become a Partner
+            </Link>
+          </div>
         </div>
 
-        <div className="rounded-full bg-white px-6 py-3 shadow font-semibold text-[#18B368]">
+        <figure className="relative aspect-[1600/589] w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
+          <img
+            src="/poster.png"
+            alt="EVUDDY electric scooters"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              maxWidth: "none",
+              objectFit: "contain",
+            }}
+          />
+        </figure>
+      </section>
 
-          🤝 Dedicated Support
-
+      <section className="px-4 pb-4 sm:px-6 lg:px-10">
+        <div className="mx-auto max-w-6xl rounded-[24px] bg-[#08112F] px-5 py-8 text-center text-white sm:rounded-[32px] sm:px-12 sm:py-12">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">
+            Contact
+          </p>
+          <p className="mx-auto mt-4 max-w-4xl text-sm leading-7 text-white/92 sm:text-lg sm:leading-8">
+            Reach support, partnerships or hiring. Every message is about getting
+            riders onto EVUDDY electric scooters safely.
+          </p>
+          <div className="mt-7 rounded-2xl bg-[#18B368] px-4 py-3 sm:mt-8">
+            <p className="text-xs font-black tracking-wide sm:text-sm">#safeRideWithEvuddy</p>
+          </div>
         </div>
+      </section>
 
-        <div className="rounded-full bg-white px-6 py-3 shadow font-semibold text-[#18B368]">
-
-          🚀 Business Partnerships
-
+      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
+        <h2 className="text-2xl font-black tracking-[-0.04em] sm:text-4xl">Get in touch</h2>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
+          {directory.map((item) => (
+            <article
+              key={item.title}
+              className="rounded-[22px] border border-slate-100 bg-white p-5 sm:p-6"
+            >
+              <h3 className="text-lg font-black sm:text-xl">{item.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+              {item.href ? (
+                <a href={item.href} className="mt-4 inline-block text-sm font-bold text-[#18B368]">
+                  {item.value}
+                </a>
+              ) : (
+                <p className="mt-4 text-sm font-bold text-[#18B368]">{item.value}</p>
+              )}
+            </article>
+          ))}
         </div>
+      </section>
 
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-      <div className="mx-auto max-w-7xl px-4 py-16 md:px-6 md:py-24">
-        {/* ================= CONTACT DIRECTORY ================= */}
-
-<div className="mb-20">
-
-  <div className="text-center">
-
-    <span className="inline-flex items-center rounded-full bg-[#F4FFF8] px-5 py-2 text-sm font-bold uppercase tracking-[0.16em] text-[#18B368]">
-
-      CORPORATE DIRECTORY
-
-    </span>
-
-    <h2 className="mt-6 text-5xl font-black tracking-[-0.04em] text-[#08112F]">
-
-      Get In Touch
-
-    </h2>
-
-    <p className="mt-5 max-w-3xl mx-auto text-lg leading-9 text-slate-600">
-
-      Reach the right EVUDDY team for faster assistance.
-
-    </p>
-
-  </div>
-
-  <div className="mt-16 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
-
-    {/* Card 1 */}
-
-    <div className="group rounded-[34px] bg-white p-8 border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,.08)] transition-all duration-500 hover:-translate-y-2 hover:border-[#18B368]/30">
-
-      <div className="text-4xl">📞</div>
-
-      <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-        Customer Support
-
-      </h3>
-
-      <p className="mt-4 leading-8 text-slate-600">
-
-        Assistance for bookings, rentals, payments and rider support.
-
-      </p>
-
-      <p className="mt-6 font-bold text-[#18B368]">
-
-        support@evuddy.com
-
-      </p>
-
-    </div>
-
-    {/* Card 2 */}
-
-    <div className="group rounded-[34px] bg-white p-8 border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,.08)] transition-all duration-500 hover:-translate-y-2 hover:border-[#18B368]/30">
-
-      <div className="text-4xl">🤝</div>
-
-      <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-        Business Partnerships
-
-      </h3>
-
-      <p className="mt-4 leading-8 text-slate-600">
-
-        Fleet operators, franchise partners and strategic collaborations.
-
-      </p>
-
-      <p className="mt-6 font-bold text-[#18B368]">
-
-        partners@evuddy.com
-
-      </p>
-
-    </div>
-
-    {/* Card 3 */}
-
-    <div className="group rounded-[34px] bg-white p-8 border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,.08)] transition-all duration-500 hover:-translate-y-2 hover:border-[#18B368]/30">
-
-      <div className="text-4xl">💼</div>
-
-      <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-        Careers
-
-      </h3>
-
-      <p className="mt-4 leading-8 text-slate-600">
-
-        Join our growing team and help shape the future of electric mobility.
-
-      </p>
-
-      <p className="mt-6 font-bold text-[#18B368]">
-
-        careers@evuddy.com
-
-      </p>
-
-    </div>
-
-    {/* Card 5 */}
-
-    <div className="group rounded-[34px] bg-white p-8 border border-slate-200 shadow-[0_20px_60px_rgba(15,23,42,.08)] transition-all duration-500 hover:-translate-y-2 hover:border-[#18B368]/30">
-
-      <div className="text-4xl">🏢</div>
-
-      <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-        Corporate Office
-
-      </h3>
-
-      <p className="mt-4 leading-8 text-slate-600">
-
-        Summit Building, 7th Floor,
-        Gomti Nagar,
-        Lucknow, Uttar Pradesh.
-
-      </p>
-
-    </div>
-
-    {/* Card 6 */}
-
-    <div className="group rounded-[34px] bg-gradient-to-br from-[#08112F] to-[#102A67] p-8 shadow-[0_25px_80px_rgba(8,17,47,.20)] transition-all duration-500 hover:-translate-y-2">
-
-      <div className="text-4xl">
-
-        🚀
-
-      </div>
-
-      <h3 className="mt-6 text-2xl font-black text-white">
-
-        Business Growth
-
-      </h3>
-
-      <p className="mt-4 leading-8 text-white/80">
-
-        Looking for large fleet solutions or enterprise partnerships?
-
-      </p>
-
-      <div className="mt-8 inline-flex rounded-full bg-[#18B368] px-5 py-2 text-sm font-bold text-white">
-
-        Let's Talk
-
-      </div>
-
-    </div>
-
-  </div>
-
-</div>
-
-        <div className="mb-12 grid gap-8 lg:grid-cols-[1.1fr_0.9fr]">
+      <section className="px-4 py-8 sm:px-6 lg:px-10">
+        <div className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-2 lg:gap-12">
           <form
-  onSubmit={submitForm}
-  className="
-relative
-overflow-hidden
-rounded-[40px]
-border
-border-white
-bg-white/95
-backdrop-blur-xl
-p-8
-md:p-12
-grid
-gap-6
-md:grid-cols-2
-shadow-[0_35px_100px_rgba(15,23,42,.10)]
-"
->
-
-<div className="absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-[#18B368] via-[#34D399] to-[#FF165E]" /> 
-<div className="md:col-span-2 mb-4">
-
-<span className="inline-flex rounded-full bg-[#F3FFF8] px-5 py-2 text-sm font-bold uppercase tracking-[0.15em] text-[#18B368]">
-
-SEND US A MESSAGE
-
-</span>
-
-<h2 className="mt-5 text-4xl font-black text-[#08112F]">
-
-We'd Love To Hear From You
-
-</h2>
-
-<p className="mt-3 text-slate-600 leading-8">
-
-Fill in the form below and our team will respond shortly.
-
-</p>
-
-</div>
-            <input name="fullName" value={form.fullName} onChange={updateField} required placeholder="Full Name" className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#08112F]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#18B368]/40
-focus:bg-white
-focus:border-[#18B368]
-focus:ring-4
-focus:ring-[#18B368]/10
-" />
-            <input name="email" type="email" value={form.email} onChange={updateField} required placeholder="Email Address" className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#08112F]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#18B368]/40
-focus:bg-white
-focus:border-[#18B368]
-focus:ring-4
-focus:ring-[#18B368]/10
-" />
-            <input name="phone" type="tel" value={form.phone} onChange={updateField} required placeholder="Phone Number" className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#08112F]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#18B368]/40
-focus:bg-white
-focus:border-[#18B368]
-focus:ring-4
-focus:ring-[#18B368]/10
-" />
-            <input name="subject" value={form.subject} onChange={updateField} required placeholder="Subject" className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#08112F]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#18B368]/40
-focus:bg-white
-focus:border-[#18B368]
-focus:ring-4
-focus:ring-[#18B368]/10
-" />
-            <textarea name="message" rows={6} value={form.message} onChange={updateField} required placeholder="Your Message" className="
-min-h-[180px]
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-p-5
-text-[15px]
-font-medium
-text-[#08112F]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#18B368]/40
-focus:bg-white
-focus:border-[#18B368]
-focus:ring-4
-focus:ring-[#18B368]/10
-md:col-span-2
-resize-none
-" />
-
-            {error && <div className="rounded-xl bg-red-50 p-4 font-semibold text-red-700 md:col-span-2">{error}</div>}
-            {status && <div className="rounded-xl bg-green-50 p-4 font-semibold text-green-700 md:col-span-2">{status}</div>}
-
-            <button disabled={loading} type="submit" className="
-md:col-span-2
-h-16
-rounded-2xl
-bg-gradient-to-r
-from-[#16A34A]
-via-[#22C55E]
-to-[#18B368]
-font-bold
-tracking-wide
-text-white
-shadow-[0_20px_50px_rgba(24,179,104,.35)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:shadow-[0_30px_70px_rgba(24,179,104,.45)]
-active:scale-[0.98]
-disabled:opacity-60
-">
-              {loading ? "Sending Message..." : "Submit Enquiry"}
+            onSubmit={submitForm}
+            className="space-y-4 rounded-[28px] bg-white p-6 shadow-[0_20px_50px_rgba(8,17,47,0.06)] sm:p-10"
+          >
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#18B368]">
+              Message
+            </p>
+            <h2 className="text-2xl font-black sm:text-3xl">Send us a message</h2>
+            <p className="text-sm leading-6 text-slate-500">
+              We will get back to you about EVUDDY rentals, hubs or partnerships.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <input
+                name="fullName"
+                value={form.fullName}
+                onChange={updateField}
+                required
+                placeholder="Full name"
+                className={fieldClass}
+              />
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={updateField}
+                required
+                placeholder="Email"
+                className={fieldClass}
+              />
+            </div>
+            <input
+              name="phone"
+              type="tel"
+              value={form.phone}
+              onChange={updateField}
+              required
+              placeholder="Phone number"
+              className={fieldClass}
+            />
+            <input
+              name="subject"
+              value={form.subject}
+              onChange={updateField}
+              required
+              placeholder="Subject"
+              className={fieldClass}
+            />
+            <textarea
+              name="message"
+              rows={5}
+              value={form.message}
+              onChange={updateField}
+              required
+              placeholder="Your message"
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-[#08112F] outline-none focus:border-[#18B368]"
+            />
+            {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+            {status && <p className="text-sm font-semibold text-[#18B368]">{status}</p>}
+            <button
+              disabled={loading}
+              type="submit"
+              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#18B368] px-8 font-bold text-white disabled:opacity-60 sm:h-14 sm:w-auto"
+            >
+              {loading ? "Sending..." : "Submit enquiry"}
             </button>
           </form>
 
-          <div className="space-y-6">
-
-  {/* Corporate Office */}
-
-  <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,.08)]">
-
-    <div className="text-4xl">🏢</div>
-
-    <h3 className="mt-5 text-3xl font-black text-[#08112F]">
-
-      Corporate Office
-
-    </h3>
-
-    <p className="mt-5 leading-8 text-slate-600">
-
-      Summit Building, 7th Floor
-
-      <br />
-
-      Vibhuti Khand
-
-      <br />
-
-      Gomti Nagar
-
-      <br />
-
-      Lucknow
-
-      <br />
-
-      Uttar Pradesh - 226010
-
-    </p>
-
-  </div>
-
-  {/* General Contact */}
-
-  <div className="rounded-[34px] border border-slate-200 bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,.08)]">
-
-    <div className="text-4xl">📧</div>
-
-    <h3 className="mt-5 text-3xl font-black text-[#08112F]">
-
-      General Enquiries
-
-    </h3>
-
-    <p className="mt-5 text-slate-600">
-
-      Have a question?
-
-      Need assistance?
-
-      Our team is happy to help.
-
-    </p>
-
-    <a
-
-      href="mailto:info@evuddy.com"
-
-      className="mt-6 inline-block text-lg font-bold text-[#18B368] hover:underline"
-
-    >
-
-      info@evuddy.com
-
-    </a>
-
-  </div>
-
-  {/* Executive Director */}
-
-  <div className="overflow-hidden rounded-[36px] bg-gradient-to-br from-[#08112F] via-[#102A67] to-[#18B368] p-8 text-white shadow-[0_30px_80px_rgba(8,17,47,.25)]">
-
-    <span className="rounded-full bg-white/10 px-4 py-2 text-sm font-bold">
-
-      EXECUTIVE DIRECTOR
-
-    </span>
-
-    <h3 className="mt-6 text-4xl font-black">
-
-      Anwar Khan
-
-    </h3>
-
-    <p className="mt-4 text-white/80 leading-8">
-
-      For strategic partnerships, corporate collaborations,
-
-      franchise opportunities and business expansion,
-
-      feel free to connect with the Executive Director's office.
-
-    </p>
-
-    <a
-
-      href="mailto:director@evuddy.com"
-
-      className="mt-8 inline-flex rounded-full bg-white px-6 py-3 font-bold text-[#08112F] transition-all hover:scale-105"
-
-    >
-
-      Contact Executive Office
-
-    </a>
-
-  </div>
-
-</div>
-
-          
+          <div className="space-y-5">
+            <figure className="relative aspect-[1080/1350] w-full overflow-hidden rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)]">
+              <img
+                src="/evuddy-scooter.png"
+                alt="EVUDDY electric scooter"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  maxWidth: "none",
+                  objectFit: "contain",
+                  padding: "1.25rem",
+                }}
+              />
+            </figure>
+            <article className="rounded-[22px] border border-slate-100 bg-white p-6">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
+                General enquiries
+              </p>
+              <h3 className="mt-2 text-xl font-black">info@evuddy.com</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow,
+                Uttar Pradesh 226010.
+              </p>
+            </article>
+          </div>
         </div>
-      {/* ================= WHY CONTACT EVUDDY ================= */}
+      </section>
 
-<section className="relative overflow-hidden bg-[#F8FCFA] py-28">
-
-  {/* Background Glow */}
-
-  <div className="absolute -left-40 top-10 h-[420px] w-[420px] rounded-full bg-[#18B368]/8 blur-[140px]" />
-
-  <div className="absolute right-0 bottom-0 h-[420px] w-[420px] rounded-full bg-[#FF165E]/8 blur-[140px]" />
-
-  <div className="relative mx-auto max-w-7xl px-6">
-
-    <div className="text-center">
-
-      <span className="inline-flex rounded-full bg-[#F3FFF8] px-5 py-2 text-sm font-bold uppercase tracking-[0.15em] text-[#18B368]">
-
-        WHY EVUDDY
-
-      </span>
-
-      <h2 className="mt-6 text-5xl md:text-6xl font-black tracking-[-0.04em] text-[#08112F]">
-
-        We're Always Here To Help
-
-      </h2>
-
-      <p className="mx-auto mt-6 max-w-3xl text-lg leading-9 text-slate-600">
-
-        Every enquiry matters to us. Whether you're a rider,
-        partner or business, our dedicated team ensures a
-        quick, transparent and professional response.
-
-      </p>
-
+      <section className="px-4 pb-12 sm:px-6 sm:pb-16 lg:px-10">
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 rounded-[24px] bg-[#08112F] px-5 py-8 text-white sm:flex-row sm:items-center sm:justify-between sm:rounded-[32px] sm:px-10">
+          <div>
+            <p className="text-sm font-bold text-[#86EFAC]">#safeRideWithEvuddy</p>
+            <h2 className="mt-2 text-2xl font-black sm:text-3xl">Ready to ride electric?</h2>
+          </div>
+          <Link
+            href="/ride-options"
+            className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-white px-8 font-bold text-[#08112F] sm:h-14 sm:w-auto"
+          >
+            Book an EV
+          </Link>
+        </div>
+      </section>
     </div>
-
-    <div className="mt-20 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
-
-      {/* Card */}
-
-      <div className="rounded-[34px] bg-white p-8 shadow-lg transition-all duration-300 hover:-translate-y-2">
-
-        <div className="text-5xl">⚡</div>
-
-        <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-          Fast Response
-
-        </h3>
-
-        <p className="mt-4 leading-8 text-slate-600">
-
-          Our team works to respond as quickly as possible.
-
-        </p>
-
-      </div>
-
-      {/* Card */}
-
-      <div className="rounded-[34px] bg-white p-8 shadow-lg transition-all duration-300 hover:-translate-y-2">
-
-        <div className="text-5xl">🤝</div>
-
-        <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-          Dedicated Team
-
-        </h3>
-
-        <p className="mt-4 leading-8 text-slate-600">
-
-          Every request reaches the appropriate department.
-
-        </p>
-
-      </div>
-
-      {/* Card */}
-
-      <div className="rounded-[34px] bg-white p-8 shadow-lg transition-all duration-300 hover:-translate-y-2">
-
-        <div className="text-5xl">🔒</div>
-
-        <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-          Secure Communication
-
-        </h3>
-
-        <p className="mt-4 leading-8 text-slate-600">
-
-          Your information stays safe and confidential.
-
-        </p>
-
-      </div>
-
-      {/* Card */}
-
-      <div className="rounded-[34px] bg-white p-8 shadow-lg transition-all duration-300 hover:-translate-y-2">
-
-        <div className="text-5xl">💚</div>
-
-        <h3 className="mt-6 text-2xl font-black text-[#08112F]">
-
-          Customer First
-
-        </h3>
-
-        <p className="mt-4 leading-8 text-slate-600">
-
-          Delivering exceptional support is at the heart of EVUDDY.
-
-        </p>
-
-      </div>
-
-    </div>
-
-  </div>
-
-</section>
-
-{/* ================= FINAL CTA ================= */}
-
-<section className="relative overflow-hidden py-28">
-
-  <div className="absolute inset-0 bg-gradient-to-r from-[#08112F] via-[#102A67] to-[#18B368]" />
-
-  <div className="absolute -left-32 top-0 h-[420px] w-[420px] rounded-full bg-white/5 blur-[140px]" />
-
-  <div className="relative mx-auto max-w-6xl px-6 text-center">
-
-    <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-bold uppercase tracking-[0.16em] text-[#A7F3D0]">
-
-      START YOUR EV JOURNEY
-
-    </span>
-
-    <h2 className="mt-8 text-5xl md:text-7xl font-black leading-tight text-white">
-
-      Let's Build
-
-      <br />
-
-      India's Future
-
-      <br />
-
-      Together
-
-    </h2>
-
-    <p className="mx-auto mt-8 max-w-3xl text-xl leading-9 text-white/80">
-
-      Join thousands of riders and partners building the future
-      of sustainable electric mobility with EVUDDY.
-
-    </p>
-
-    <div className="mt-14 flex flex-wrap justify-center gap-6">
-
-      <a
-        href="/ride-options"
-        className="rounded-full bg-white px-10 py-5 text-lg font-black text-[#08112F] transition-all duration-300 hover:-translate-y-2"
-      >
-
-        Become a Rider
-
-      </a>
-
-      <a
-        href="/partners"
-        className="rounded-full border border-white/20 bg-white/10 px-10 py-5 text-lg font-black text-white backdrop-blur transition-all duration-300 hover:bg-[#18B368] hover:text-white hover:border-[#18B368] hover:-translate-y-1"
-      >
-
-        Become a Partner
-
-      </a>
-
-    </div>
-
-  </div>
-
-</section>
-
-      </div>
-    </section>
   );
 }

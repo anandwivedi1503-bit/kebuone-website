@@ -8,16 +8,23 @@ const iconPattern =
 
 export type BrandMediaFit = "poster" | "product" | "photo" | "wide" | "video";
 
+const SCOOTER_ASPECT: Record<string, string> = {
+  "/evuddy-scooter.png": "aspect-[1080/1350]",
+  "/poster.png": "aspect-[1600/589]",
+  "/bike-rent.jpeg": "aspect-[1405/1120]",
+  "/biker-rent.jpeg": "aspect-square",
+};
+
 const frameClass: Record<BrandMediaFit, string> = {
   poster:
-    "relative mx-auto w-full max-w-[440px] overflow-hidden rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[3/4] sm:rounded-[28px]",
+    "relative mx-auto w-full max-w-[440px] overflow-hidden rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[2/3] sm:rounded-[28px]",
   product:
-    "relative w-full overflow-hidden rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)] aspect-[4/5] sm:rounded-[28px] sm:aspect-[3/4]",
+    "relative w-full overflow-hidden rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)] sm:rounded-[28px]",
   photo:
-    "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[4/5] sm:rounded-[28px]",
-  wide: "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[16/9] sm:rounded-[28px]",
+    "relative w-full overflow-hidden rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]",
+  wide: "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[1600/589] sm:rounded-[28px]",
   video:
-    "relative w-full overflow-hidden rounded-[24px] bg-[#08112F] aspect-[16/9] sm:rounded-[28px] md:aspect-[21/9]",
+    "relative w-full overflow-hidden rounded-[24px] bg-[#08112F] aspect-[1920/700] sm:rounded-[28px]",
 };
 
 const fillContain: CSSProperties = {
@@ -38,20 +45,23 @@ const fillCover: CSSProperties = {
 
 function MediaFrame({
   fit,
+  src,
   className = "",
   padded = false,
   flush = false,
   children,
 }: {
   fit: BrandMediaFit;
+  src?: string;
   className?: string;
   padded?: boolean;
   flush?: boolean;
   children: ReactNode;
 }) {
+  const native = src ? SCOOTER_ASPECT[src.split("?")[0]] : "";
   return (
     <figure
-      className={`${frameClass[fit]} ${flush ? "rounded-none sm:rounded-none" : ""} ${className}`.trim()}
+      className={`${frameClass[fit]} ${native} ${flush ? "rounded-none sm:rounded-none" : ""} ${className}`.trim()}
     >
       {padded ? (
         <div className="absolute inset-3 sm:inset-5">{children}</div>
@@ -74,7 +84,7 @@ function MediaImage({
   return <img src={src} alt={alt} style={cover ? fillCover : fillContain} />;
 }
 
-function MediaVideo({ src, cover = true }: { src: string; cover?: boolean }) {
+function MediaVideo({ src }: { src: string }) {
   return (
     <video
       src={src}
@@ -82,7 +92,7 @@ function MediaVideo({ src, cover = true }: { src: string; cover?: boolean }) {
       muted
       loop
       playsInline
-      style={cover ? fillCover : fillContain}
+      style={fillCover}
     />
   );
 }
@@ -281,11 +291,11 @@ export function BrandSplit({
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
         </div>
-        <MediaFrame fit={mediaFit} padded={mediaFit === "product" || mediaFit === "poster"}>
+        <MediaFrame fit={mediaFit} src={image} padded={mediaFit === "product" || mediaFit === "poster"}>
           {video || mediaFit === "video" ? (
-            <MediaVideo src={image} cover />
+            <MediaVideo src={image} />
           ) : (
-            <MediaImage src={image} alt={alt} cover={mediaFit === "photo" || mediaFit === "wide"} />
+            <MediaImage src={image} alt={alt} />
           )}
         </MediaFrame>
       </div>
@@ -317,14 +327,11 @@ export function BrandMosaic({
               <MediaFrame
                 key={`${photo.src}-${index}`}
                 fit={mediaFit}
+                src={photo.src}
                 className={span}
                 padded={mediaFit === "product"}
               >
-                <MediaImage
-                  src={photo.src}
-                  alt={photo.alt}
-                  cover={mediaFit === "photo" || mediaFit === "wide"}
-                />
+                <MediaImage src={photo.src} alt={photo.alt} />
               </MediaFrame>
             );
           })}
@@ -346,8 +353,8 @@ export function BrandFilm({
   return (
     <section className="px-4 py-8 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-6xl overflow-hidden rounded-[24px] bg-[#08112F] sm:rounded-[32px]">
-        <MediaFrame fit="video" flush>
-          <MediaVideo src={src} cover />
+        <MediaFrame fit="video" src={src} flush>
+          <MediaVideo src={src} />
         </MediaFrame>
         <div className="px-5 py-6 text-white sm:px-8 sm:py-8">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">

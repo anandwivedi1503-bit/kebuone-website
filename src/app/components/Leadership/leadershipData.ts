@@ -17,6 +17,14 @@ export type TeamMember = {
 
 export const board: LeaderPoster[] = [
   {
+    id: "chairman",
+    name: "Anjali Mishra",
+    role: "Chairman",
+    org: "Shubhrax Mobility Ltd",
+    image: "/leadership/chairman-poster.png",
+    bio: "As the Chairman of Shubhrax Mobility Ltd, Anjali Mishra plays a pivotal role in steering the company towards innovation, operational excellence, and sustainable growth. With a sharp strategic vision and a deep understanding of the mobility sector, she ensures that every initiative aligns with our mission of delivering Smart, Electric, and Dependable solutions. Anjali believes in building strong systems, empowering teams, and embracing technology to create real impact. Her leadership continues to inspire trust, drive transformation, and shape Shubhrax Mobility Ltd into a future-ready organisation.",
+  },
+  {
     id: "ceo",
     name: "Sunil Pathak",
     role: "Founder & CEO",
@@ -31,14 +39,6 @@ export const board: LeaderPoster[] = [
     org: "Shubhrax Mobility Ltd",
     image: "/leadership/gm-poster.png",
     bio: "As the General Manager of Shubhrax Mobility Ltd, Bindu Singh plays a pivotal role in steering the company towards innovation, operational excellence, and sustainable growth. With a sharp strategic vision and a deep understanding of the mobility sector, she ensures that every initiative aligns with our mission of delivering Smart, Electric, and Dependable solutions. Bindu believes in building strong systems, empowering teams, and embracing technology to create real impact. Her leadership continues to inspire trust, drive transformation, and shape Shubhrax Mobility Ltd into a future-ready organisation.",
-  },
-  {
-    id: "chairman",
-    name: "Anjali Mishra",
-    role: "Chairman",
-    org: "Shubhrax Mobility Ltd",
-    image: "/leadership/chairman-poster.png",
-    bio: "As the Chairman of Shubhrax Mobility Ltd, Anjali Mishra plays a pivotal role in steering the company towards innovation, operational excellence, and sustainable growth. With a sharp strategic vision and a deep understanding of the mobility sector, she ensures that every initiative aligns with our mission of delivering Smart, Electric, and Dependable solutions. Anjali believes in building strong systems, empowering teams, and embracing technology to create real impact. Her leadership continues to inspire trust, drive transformation, and shape Shubhrax Mobility Ltd into a future-ready organisation.",
   },
 ];
 

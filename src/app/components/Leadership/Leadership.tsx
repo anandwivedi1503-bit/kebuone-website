@@ -87,7 +87,7 @@ export default function Leadership() {
             Leadership posters
           </p>
           <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-[-0.05em] sm:text-5xl">
-            Founder &amp; CEO, General Manager and Chairman
+            Chairman, Founder &amp; CEO and General Manager
           </h2>
           <p className="mt-4 max-w-2xl text-lg text-slate-600">
             Official posters for Sunil Pathak, Bindu Singh and Anjali Mishra.
@@ -108,6 +108,7 @@ export default function Leadership() {
                   <PosterMedia
                     src={leader.image}
                     alt={`${leader.name}, ${leader.role} of EVUDDY`}
+                    frame={leader.id === "chairman" ? "tall" : "standard"}
                   />
                 </figure>
                 <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
@@ -230,17 +231,34 @@ function posterSrc(src: string) {
 function PosterMedia({
   src,
   alt,
+  frame = "standard",
 }: {
   src: string;
   alt: string;
+  frame?: "tall" | "standard";
   priority?: boolean;
 }) {
   return (
-    <img
-      src={posterSrc(src)}
-      alt={alt}
-      className="h-auto w-full rounded-[20px] object-cover"
-    />
+    <div
+      className={`relative w-full overflow-hidden rounded-[20px] bg-[#E7EEE9] ${
+        frame === "tall" ? "aspect-[941/1672]" : "aspect-[1087/1447]"
+      }`}
+    >
+      <img
+        src={posterSrc(src)}
+        alt={alt}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          maxWidth: "none",
+          maxHeight: "none",
+          objectFit: "contain",
+          objectPosition: "center",
+        }}
+      />
+    </div>
   );
 }
 

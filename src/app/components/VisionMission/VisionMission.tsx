@@ -30,7 +30,7 @@ const pillars = [
 
 const values = [
   { title: "Smart", text: "OTP, KYC, live hubs and tracking so every ride is accountable." },
-  { title: "Electric", text: "Quiet scooters for commute, delivery and city work." },
+  { title: "Electric", text: "Quiet scooters for commute, city work and Rent to Own." },
   { title: "Dependable", text: "Clear pricing, Razorpay checkout and support when something needs a human." },
   { title: "Asset-building", text: "Rent to Own turns daily riding into ownership, not only a rental receipt." },
 ];
@@ -60,7 +60,7 @@ export default function VisionMission() {
       />
 
       <BrandFilm
-        src="/hero-video.mp4"
+        src="/hero-video five.mp4"
         eyebrow="The future we are riding toward"
         title="Every ride can lead to ownership."
       />
