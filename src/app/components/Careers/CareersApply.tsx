@@ -60,7 +60,7 @@ export default function CareersApply() {
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#18B368]">
           Apply
         </p>
-        <h2 className="text-3xl font-black text-[#08112F]">Apply to EVUDDY</h2>
+        <h2 className="text-2xl font-black text-[#08112F] sm:text-3xl">Apply to EVUDDY</h2>
         <p className="max-w-2xl text-sm leading-6 text-slate-500">
           This creates a hiring ticket for the team. You can also email careers@evuddy.com.
         </p>
@@ -100,7 +100,7 @@ export default function CareersApply() {
         {status && <p className="text-sm font-semibold text-[#18B368]">{status}</p>}
         <button
           disabled={loading}
-          className="inline-flex h-14 items-center rounded-full bg-[#18B368] px-8 font-bold text-white disabled:opacity-60"
+          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#18B368] px-8 font-bold text-white disabled:opacity-60 sm:h-14 sm:w-auto"
         >
           {loading ? "Sending..." : "Submit application"}
         </button>

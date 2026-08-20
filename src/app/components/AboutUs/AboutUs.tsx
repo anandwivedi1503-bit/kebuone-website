@@ -47,7 +47,7 @@ const pillars = [
 
 export default function AboutUs() {
   return (
-    <div className="bg-[#F4F7F8] text-[#08112F]">
+    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
       <BrandHero
         title="About"
         accent="Us"
@@ -113,7 +113,7 @@ export default function AboutUs() {
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">
               How we work
             </p>
-            <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] sm:text-4xl lg:text-5xl">
               Affordable. Accessible. Asset-building.
             </h2>
             <p className="mt-5 text-base leading-7 text-slate-600">

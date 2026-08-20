@@ -37,7 +37,7 @@ const values = [
 
 export default function VisionMission() {
   return (
-    <div className="bg-[#F4F7F8] text-[#08112F]">
+    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
       <BrandHero
         title="Our"
         accent="Vision"

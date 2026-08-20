@@ -49,7 +49,7 @@ const steps = [
 
 export default function Careers() {
   return (
-    <div className="bg-[#F4F7F8] text-[#08112F]">
+    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
       <BrandHero
         title="Join"
         accent="EVUDDY"
