@@ -49,15 +49,6 @@ canvas {
   height: auto;
 }
 
-img.brand-media,
-video.brand-media {
-  max-width: none;
-  max-height: none;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
-
 video {
   max-width: 100%;
   display: block;

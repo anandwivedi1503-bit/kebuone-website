@@ -7,7 +7,7 @@ import {
   BrandMosaic,
   BrandSplit,
   BrandStatement,
-} from "@/app/components/Brand/BrandPage";
+} from "@/app/components/Brand/BrandStoryPage";
 import CareersApply from "./CareersApply";
 
 const why = [

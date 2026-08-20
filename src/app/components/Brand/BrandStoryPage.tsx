@@ -1,38 +1,99 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowRight } from "lucide-react";
 
 const iconPattern =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%2318B368' stroke-width='1.2'%3E%3Ccircle cx='36' cy='40' r='14'/%3E%3Cpath d='M86 30h30M86 42h22M24 104h36M42 86v36M118 88l20 20M118 108l20-20'/%3E%3Crect x='108' y='28' width='30' height='20' rx='4'/%3E%3C/g%3E%3C/svg%3E\")";
 
-type StageKind = "poster" | "photo" | "video";
+export type BrandMediaFit = "poster" | "product" | "photo" | "wide" | "video";
 
-const stageHeight: Record<StageKind, string> = {
-  poster: "h-[300px] sm:h-[380px] lg:h-[420px]",
-  photo: "h-[200px] sm:h-[240px] lg:h-[280px]",
-  video: "h-[200px] sm:h-[260px] lg:h-[320px]",
+const frameClass: Record<BrandMediaFit, string> = {
+  poster:
+    "relative mx-auto w-full max-w-[440px] overflow-hidden rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[3/4] sm:rounded-[28px]",
+  product:
+    "relative w-full overflow-hidden rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)] aspect-[4/5] sm:rounded-[28px] sm:aspect-[3/4]",
+  photo:
+    "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[4/5] sm:rounded-[28px]",
+  wide: "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[16/9] sm:rounded-[28px]",
+  video:
+    "relative w-full overflow-hidden rounded-[24px] bg-[#08112F] aspect-[16/9] sm:rounded-[28px] md:aspect-[21/9]",
 };
 
-function MediaStage({
-  kind,
+const fillContain: CSSProperties = {
+  position: "absolute",
+  inset: 0,
+  width: "100%",
+  height: "100%",
+  maxWidth: "none",
+  maxHeight: "none",
+  objectFit: "contain",
+  objectPosition: "center",
+};
+
+const fillCover: CSSProperties = {
+  ...fillContain,
+  objectFit: "cover",
+};
+
+function MediaFrame({
+  fit,
+  className = "",
+  padded = false,
+  flush = false,
   children,
 }: {
-  kind: StageKind;
+  fit: BrandMediaFit;
+  className?: string;
+  padded?: boolean;
+  flush?: boolean;
   children: ReactNode;
 }) {
   return (
     <figure
-      className={`relative w-full overflow-hidden rounded-[20px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px] ${stageHeight[kind]}`}
+      className={`${frameClass[fit]} ${flush ? "rounded-none sm:rounded-none" : ""} ${className}`.trim()}
     >
-      <div className="absolute inset-0 flex items-center justify-center p-2 sm:p-3">
-        {children}
-      </div>
+      {padded ? (
+        <div className="absolute inset-3 sm:inset-5">{children}</div>
+      ) : (
+        children
+      )}
     </figure>
   );
 }
 
-const mediaClass = "h-full w-full object-contain object-center";
+function MediaImage({
+  src,
+  alt,
+  cover,
+}: {
+  src: string;
+  alt: string;
+  cover?: boolean;
+}) {
+  return <img src={src} alt={alt} style={cover ? fillCover : fillContain} />;
+}
+
+function MediaVideo({ src, cover = true }: { src: string; cover?: boolean }) {
+  return (
+    <video
+      src={src}
+      autoPlay
+      muted
+      loop
+      playsInline
+      style={cover ? fillCover : fillContain}
+    />
+  );
+}
+
+function fitForSrc(src: string, video?: boolean): BrandMediaFit {
+  if (video || src.endsWith(".mp4")) return "video";
+  if (src.includes("evuddy-scooter")) return "product";
+  if (src.includes("/poster.png")) return "wide";
+  if (src.includes("vision-poster") || src.includes("careers-poster")) return "poster";
+  return "photo";
+}
 
 export function BrandHero({
   title,
@@ -63,8 +124,8 @@ export function BrandHero({
         style={{ backgroundImage: iconPattern }}
       />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-6 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-10 lg:px-10">
-        <div>
+      <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:px-10">
+        <div className="min-w-0">
           <Image
             src="/Evuddy-logo-dark-E.png"
             alt="EVUDDY"
@@ -75,7 +136,7 @@ export function BrandHero({
           <p className="mt-3 text-[10px] font-bold tracking-[0.22em] text-[#08112F] sm:text-[11px] sm:tracking-[0.32em]">
             SMART · ELECTRIC · MOBILITY
           </p>
-          <h1 className="mt-5 text-4xl font-black leading-[1.05] tracking-[-0.05em] sm:mt-7 sm:text-6xl">
+          <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-[-0.05em] sm:mt-7 sm:text-6xl">
             {title} <span className="text-[#18B368]">{accent}</span>
           </h1>
           <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
@@ -97,9 +158,9 @@ export function BrandHero({
           </div>
         </div>
 
-        <MediaStage kind="poster">
-          <img src={posterSrc} alt={posterAlt} className={mediaClass} />
-        </MediaStage>
+        <MediaFrame fit="poster" padded>
+          <MediaImage src={posterSrc} alt={posterAlt} />
+        </MediaFrame>
       </div>
     </section>
   );
@@ -152,7 +213,7 @@ export function BrandCta({
         </div>
         <Link
           href={href}
-          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-white px-8 font-bold text-[#08112F] sm:h-14 sm:w-auto"
+          className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-white px-8 font-bold text-[#08112F] sm:h-14 sm:w-auto"
         >
           {label}
         </Link>
@@ -193,6 +254,7 @@ export function BrandSplit({
   alt,
   reverse = false,
   video,
+  fit,
 }: {
   eyebrow: string;
   title: string;
@@ -201,35 +263,31 @@ export function BrandSplit({
   alt: string;
   reverse?: boolean;
   video?: boolean;
+  fit?: BrandMediaFit;
 }) {
+  const mediaFit = fit ?? fitForSrc(image, video);
+
   return (
-    <section className="px-4 py-7 sm:px-6 lg:px-10">
+    <section className="px-4 py-8 sm:px-6 lg:px-10">
       <div
-        className={`mx-auto grid max-w-6xl items-center gap-5 lg:grid-cols-2 lg:gap-10 ${
+        className={`mx-auto grid max-w-6xl items-center gap-6 lg:grid-cols-2 lg:gap-12 ${
           reverse ? "lg:[&>figure]:order-2" : ""
         }`}
       >
-        <div>
+        <div className="min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#18B368] sm:text-[11px]">
             {eyebrow}
           </p>
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
         </div>
-        <MediaStage kind={video ? "video" : "photo"}>
-          {video ? (
-            <video
-              src={image}
-              autoPlay
-              muted
-              loop
-              playsInline
-              className={mediaClass}
-            />
+        <MediaFrame fit={mediaFit} padded={mediaFit === "product" || mediaFit === "poster"}>
+          {video || mediaFit === "video" ? (
+            <MediaVideo src={image} cover />
           ) : (
-            <img src={image} alt={alt} className={mediaClass} />
+            <MediaImage src={image} alt={alt} cover={mediaFit === "photo" || mediaFit === "wide"} />
           )}
-        </MediaStage>
+        </MediaFrame>
       </div>
     </section>
   );
@@ -242,7 +300,7 @@ export function BrandMosaic({
 }: {
   title: string;
   text: string;
-  photos: Array<{ src: string; alt: string }>;
+  photos: Array<{ src: string; alt: string; fit?: BrandMediaFit }>;
 }) {
   return (
     <section className="bg-white px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
@@ -251,12 +309,25 @@ export function BrandMosaic({
         <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">
           {text}
         </p>
-        <div className="mt-8 grid gap-3 sm:grid-cols-3 sm:gap-4">
-          {photos.map((photo) => (
-            <MediaStage key={photo.src} kind="photo">
-              <img src={photo.src} alt={photo.alt} className={mediaClass} />
-            </MediaStage>
-          ))}
+        <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+          {photos.map((photo, index) => {
+            const mediaFit = photo.fit ?? (index === 0 ? "wide" : fitForSrc(photo.src));
+            const span = index === 0 ? "sm:col-span-2 lg:col-span-3" : "";
+            return (
+              <MediaFrame
+                key={`${photo.src}-${index}`}
+                fit={mediaFit}
+                className={span}
+                padded={mediaFit === "product"}
+              >
+                <MediaImage
+                  src={photo.src}
+                  alt={photo.alt}
+                  cover={mediaFit === "photo" || mediaFit === "wide"}
+                />
+              </MediaFrame>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -273,23 +344,16 @@ export function BrandFilm({
   title: string;
 }) {
   return (
-    <section className="px-4 py-7 sm:px-6 lg:px-10">
+    <section className="px-4 py-8 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-6xl overflow-hidden rounded-[24px] bg-[#08112F] sm:rounded-[32px]">
-        <MediaStage kind="video">
-          <video
-            src={src}
-            autoPlay
-            muted
-            loop
-            playsInline
-            className={mediaClass}
-          />
-        </MediaStage>
-        <div className="px-5 py-5 text-white sm:px-8 sm:py-6">
+        <MediaFrame fit="video" flush>
+          <MediaVideo src={src} cover />
+        </MediaFrame>
+        <div className="px-5 py-6 text-white sm:px-8 sm:py-8">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">
             {eyebrow}
           </p>
-          <h2 className="mt-2 text-xl font-black sm:text-3xl">{title}</h2>
+          <h2 className="mt-2 text-xl font-black leading-tight sm:text-3xl">{title}</h2>
         </div>
       </div>
     </section>
