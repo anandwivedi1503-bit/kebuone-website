@@ -70,7 +70,7 @@ export default function AboutUs() {
       />
 
       <BrandFilm
-        src="/bike-final.mp4"
+        src="/hero-video.mp4"
         eyebrow="The company"
         title="Smart electric mobility you can book, ride and own."
       />

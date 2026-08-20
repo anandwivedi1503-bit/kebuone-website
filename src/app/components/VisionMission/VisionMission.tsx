@@ -60,7 +60,7 @@ export default function VisionMission() {
       />
 
       <BrandFilm
-        src="/bike-final.mp4"
+        src="/hero-video.mp4"
         eyebrow="The future we are riding toward"
         title="Every ride can lead to ownership."
       />
