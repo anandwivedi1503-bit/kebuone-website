@@ -18,7 +18,10 @@ export default function CareersApply() {
     setLoading(true);
 
     try {
-      const description = `Career application for ${role}. ${name} (${email}). ${message}`.slice(0, 500);
+      const description = `Career application for ${role}. ${name} (${email}). ${message}`.slice(
+        0,
+        500
+      );
       const response = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -49,30 +52,35 @@ export default function CareersApply() {
   };
 
   return (
-    <section id="careers-apply" className="bg-[#F7FBFA] px-4 py-16 sm:px-6 lg:px-10">
+    <section id="careers-apply" className="px-4 py-8 sm:px-6 lg:px-10">
       <form
         onSubmit={submit}
-        className="mx-auto max-w-xl space-y-4 rounded-[28px] bg-white p-6 shadow-sm sm:p-8"
+        className="mx-auto max-w-6xl space-y-4 rounded-[32px] bg-white p-6 shadow-[0_20px_50px_rgba(8,17,47,0.06)] sm:p-10"
       >
-        <h2 className="text-2xl font-black text-[#0F172A]">Apply to EVUDDY</h2>
-        <p className="text-sm text-slate-500">
-          This creates a support ticket for the hiring team. You can also email careers@evuddy.com.
+        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#18B368]">
+          Apply
         </p>
-        <input
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Full name"
-          className="h-14 w-full rounded-2xl border border-slate-200 px-4"
-        />
-        <input
-          required
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-          className="h-14 w-full rounded-2xl border border-slate-200 px-4"
-        />
+        <h2 className="text-3xl font-black text-[#08112F]">Apply to EVUDDY</h2>
+        <p className="max-w-2xl text-sm leading-6 text-slate-500">
+          This creates a hiring ticket for the team. You can also email careers@evuddy.com.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <input
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Full name"
+            className="h-14 w-full rounded-2xl border border-slate-200 px-4"
+          />
+          <input
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            className="h-14 w-full rounded-2xl border border-slate-200 px-4"
+          />
+        </div>
         <input
           required
           value={role}
@@ -82,18 +90,17 @@ export default function CareersApply() {
         />
         <textarea
           required
-          minLength={10}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Tell us briefly about your experience"
-          className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3"
+          placeholder="Tell us briefly why you want to join"
+          rows={4}
+          className="w-full rounded-2xl border border-slate-200 px-4 py-3"
         />
-        {error ? <p className="text-sm font-semibold text-red-600">{error}</p> : null}
-        {status ? <p className="text-sm font-semibold text-[#18B368]">{status}</p> : null}
+        {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
+        {status && <p className="text-sm font-semibold text-[#18B368]">{status}</p>}
         <button
-          type="submit"
           disabled={loading}
-          className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white disabled:opacity-60"
+          className="inline-flex h-14 items-center rounded-full bg-[#18B368] px-8 font-bold text-white disabled:opacity-60"
         >
           {loading ? "Sending..." : "Submit application"}
         </button>
