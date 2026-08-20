@@ -46,6 +46,7 @@ html {
 img,
 canvas {
   max-width: 100%;
+  height: auto;
 }
 
 img.brand-media,
