@@ -62,7 +62,7 @@ export default function CareersApply() {
         </p>
         <h2 className="text-2xl font-black text-[#08112F] sm:text-3xl">Apply to EVUDDY</h2>
         <p className="max-w-2xl text-sm leading-6 text-slate-500">
-          This creates a hiring ticket for the team. You can also email careers@evuddy.com.
+          This creates a hiring ticket for the team. You can also email info@kebuone.in.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
           <input

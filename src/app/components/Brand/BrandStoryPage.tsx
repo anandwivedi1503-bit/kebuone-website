@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 const iconPattern =
   "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='none' stroke='%2318B368' stroke-width='1.2'%3E%3Ccircle cx='36' cy='40' r='14'/%3E%3Cpath d='M86 30h30M86 42h22M24 104h36M42 86v36M118 88l20 20M118 108l20-20'/%3E%3Crect x='108' y='28' width='30' height='20' rx='4'/%3E%3C/g%3E%3C/svg%3E\")";
 
-export type BrandMediaFit = "poster" | "product" | "photo" | "wide" | "video";
+export type BrandMediaFit = "poster" | "product" | "photo" | "wide" | "video" | "portrait";
 
 const SCOOTER_ASPECT: Record<string, string> = {
   "/evuddy-scooter.png": "aspect-[1080/1350]",
@@ -25,6 +25,8 @@ const frameClass: Record<BrandMediaFit, string> = {
   wide: "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[1600/589] sm:rounded-[28px]",
   video:
     "relative w-full overflow-hidden rounded-[24px] bg-[#08112F] aspect-[1920/700] sm:rounded-[28px]",
+  portrait:
+    "relative mx-auto w-full max-w-[380px] overflow-hidden rounded-[24px] bg-[#08112F] aspect-[9/16] shadow-[0_24px_60px_rgba(0,0,0,0.35)] sm:rounded-[28px]",
 };
 
 const fillContain: CSSProperties = {
@@ -98,6 +100,7 @@ function MediaVideo({ src }: { src: string }) {
 }
 
 function fitForSrc(src: string, video?: boolean): BrandMediaFit {
+  if (src.includes("kebu-final") || src.includes("hero-finalback")) return "portrait";
   if (video || src.endsWith(".mp4")) return "video";
   if (src.includes("evuddy-scooter")) return "product";
   if (src.includes("/poster.png")) return "wide";
@@ -343,20 +346,32 @@ export function BrandMosaic({
 
 export function BrandFilm({
   src,
+  secondSrc,
   eyebrow,
   title,
 }: {
   src: string;
+  secondSrc?: string;
   eyebrow: string;
   title: string;
 }) {
+  const clips = secondSrc ? [src, secondSrc] : [src];
+
   return (
     <section className="px-4 py-8 sm:px-6 lg:px-10">
       <div className="mx-auto max-w-6xl overflow-hidden rounded-[24px] bg-[#08112F] sm:rounded-[32px]">
-        <MediaFrame fit="video" src={src} flush>
-          <MediaVideo src={src} />
-        </MediaFrame>
-        <div className="px-5 py-6 text-white sm:px-8 sm:py-8">
+        <div
+          className={`flex flex-col items-center justify-center gap-4 px-4 pt-6 sm:px-8 sm:pt-8 ${
+            clips.length > 1 ? "lg:flex-row" : ""
+          }`}
+        >
+          {clips.map((clip) => (
+            <MediaFrame key={clip} fit={fitForSrc(clip, true)} src={clip}>
+              <MediaVideo src={clip} />
+            </MediaFrame>
+          ))}
+        </div>
+        <div className="px-5 py-6 text-center text-white sm:px-8 sm:py-8">
           <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">
             {eyebrow}
           </p>

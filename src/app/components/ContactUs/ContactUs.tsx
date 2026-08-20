@@ -17,20 +17,20 @@ const directory = [
   {
     title: "Customer Support",
     text: "Bookings, rentals, payments and rider help for EVUDDY scooters.",
-    value: "support@evuddy.com",
-    href: "mailto:support@evuddy.com",
+    value: "info@kebuone.in",
+    href: "mailto:info@kebuone.in",
   },
   {
     title: "Business Partnerships",
     text: "Fleet operators, hubs and partners who want EVUDDY scooters on the road.",
-    value: "partners@evuddy.com",
-    href: "mailto:partners@evuddy.com",
+    value: "info@kebuone.in",
+    href: "mailto:info@kebuone.in",
   },
   {
     title: "Careers",
     text: "Join the team building smart electric mobility.",
-    value: "careers@evuddy.com",
-    href: "mailto:careers@evuddy.com",
+    value: "info@kebuone.in",
+    href: "mailto:info@kebuone.in",
   },
   {
     title: "Corporate Office",
@@ -253,18 +253,19 @@ export default function ContactUs() {
           </form>
 
           <div className="space-y-5">
-            <figure className="relative aspect-[1080/1350] w-full overflow-hidden rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)]">
-              <img
-                src="/evuddy-scooter.png"
-                alt="EVUDDY electric scooter"
+            <figure className="relative mx-auto aspect-[9/16] w-full max-w-[380px] overflow-hidden rounded-[24px] bg-[#08112F] shadow-[0_24px_60px_rgba(8,17,47,0.18)]">
+              <video
+                src="/kebu-final.mp4"
+                autoPlay
+                muted
+                loop
+                playsInline
                 style={{
                   position: "absolute",
                   inset: 0,
                   width: "100%",
                   height: "100%",
-                  maxWidth: "none",
-                  objectFit: "contain",
-                  padding: "1.25rem",
+                  objectFit: "cover",
                 }}
               />
             </figure>
@@ -272,7 +273,9 @@ export default function ContactUs() {
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
                 General enquiries
               </p>
-              <h3 className="mt-2 text-xl font-black">info@evuddy.com</h3>
+              <a href="mailto:info@kebuone.in" className="mt-2 inline-block text-xl font-black text-[#08112F]">
+                info@kebuone.in
+              </a>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow,
                 Uttar Pradesh 226010.

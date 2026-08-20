@@ -72,7 +72,8 @@ export default function Careers() {
       />
 
       <BrandFilm
-        src="/hero-video five.mp4"
+        src="/kebu-final.mp4"
+        secondSrc="/hero-finalback.mp4"
         eyebrow="Life at EVUDDY"
         title="The work is on the street, in hubs, and in the product."
       />
@@ -114,7 +115,7 @@ export default function Careers() {
         eyebrow="Product in motion"
         title="From garage energy to a city fleet."
         text="If you like moving between design, code, hubs and rider conversations, this is the pace. We hire for ownership, not job titles that sit still."
-        image="/hero-video six.mp4"
+        image="/kebu-final.mp4"
         alt="EVUDDY scooter ride"
         video
       />
@@ -133,7 +134,7 @@ export default function Careers() {
 
       <CareersApply />
 
-      <BrandCta title="Ready to build with us?" href="mailto:careers@evuddy.com" label="Email careers" />
+      <BrandCta title="Ready to build with us?" href="mailto:info@kebuone.in" label="Email careers" />
     </div>
   );
 }
