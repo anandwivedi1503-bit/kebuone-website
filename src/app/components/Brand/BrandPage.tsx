@@ -172,3 +172,122 @@ export function BrandCard({ title, text }: { title: string; text: string }) {
     </article>
   );
 }
+
+export function BrandSplit({
+  eyebrow,
+  title,
+  text,
+  image,
+  alt,
+  reverse = false,
+  video,
+}: {
+  eyebrow: string;
+  title: string;
+  text: string;
+  image: string;
+  alt: string;
+  reverse?: boolean;
+  video?: boolean;
+}) {
+  return (
+    <section className="px-4 py-10 sm:px-6 lg:px-10">
+      <div
+        className={`mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-2 ${
+          reverse ? "lg:[&>figure]:order-2" : ""
+        }`}
+      >
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#18B368]">
+            {eyebrow}
+          </p>
+          <h2 className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-5xl">{title}</h2>
+          <p className="mt-5 text-base leading-8 text-slate-600 sm:text-lg">{text}</p>
+        </div>
+        <figure className="overflow-hidden rounded-[32px] bg-[#08112F] shadow-[0_30px_80px_rgba(8,17,47,0.14)]">
+          {video ? (
+            <video
+              src={image}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="h-full min-h-[280px] w-full object-cover"
+            />
+          ) : (
+            <img src={image} alt={alt} className="h-full min-h-[280px] w-full object-cover" />
+          )}
+        </figure>
+      </div>
+    </section>
+  );
+}
+
+export function BrandMosaic({
+  title,
+  text,
+  photos,
+}: {
+  title: string;
+  text: string;
+  photos: Array<{ src: string; alt: string }>;
+}) {
+  return (
+    <section className="bg-white px-4 py-14 sm:px-6 sm:py-20 lg:px-10">
+      <div className="mx-auto max-w-6xl">
+        <h2 className="max-w-3xl text-3xl font-black tracking-[-0.04em] sm:text-5xl">{title}</h2>
+        <p className="mt-4 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">{text}</p>
+        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+          {photos.map((photo, index) => (
+            <figure
+              key={photo.src}
+              className={`overflow-hidden rounded-[28px] ${
+                index === 0 ? "sm:col-span-2 sm:row-span-2" : ""
+              }`}
+            >
+              <img
+                src={photo.src}
+                alt={photo.alt}
+                className={`w-full object-cover ${index === 0 ? "h-full min-h-[320px]" : "h-48 sm:h-full min-h-[160px]"}`}
+              />
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+export function BrandFilm({
+  src,
+  eyebrow,
+  title,
+}: {
+  src: string;
+  eyebrow: string;
+  title: string;
+}) {
+  return (
+    <section className="px-4 py-10 sm:px-6 lg:px-10">
+      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[36px]">
+        <video
+          src={src}
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="h-[420px] w-full object-cover sm:h-[520px]"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#08112F] via-[#08112F]/35 to-transparent" />
+        <div className="absolute bottom-8 left-8 right-8 text-white sm:bottom-12 sm:left-12">
+          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#6EE7A8]">
+            {eyebrow}
+          </p>
+          <h2 className="mt-3 max-w-xl text-3xl font-black tracking-[-0.04em] sm:text-5xl">
+            {title}
+          </h2>
+        </div>
+      </div>
+    </section>
+  );
+}

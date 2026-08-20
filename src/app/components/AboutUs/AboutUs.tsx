@@ -6,10 +6,12 @@ import {
 } from "lucide-react";
 
 import {
-  BrandCard,
   BrandCardGrid,
   BrandCta,
+  BrandFilm,
   BrandHero,
+  BrandMosaic,
+  BrandSplit,
   BrandStatement,
 } from "@/app/components/Brand/BrandPage";
 
@@ -64,6 +66,30 @@ export default function AboutUs() {
           "EVUDDY is building India's next-generation EV mobility ecosystem through B2B, B2C, and Rent-to-Own solutions.",
           "Our mission is to make electric mobility affordable, accessible, and asset-building for every rider.",
           "We envision empowering gig workers and businesses with sustainable transportation while creating a future where every ride can lead to ownership.",
+        ]}
+      />
+
+      <BrandFilm
+        src="/hero-finalback.mp4"
+        eyebrow="The company"
+        title="Smart electric mobility you can book, ride and own."
+      />
+
+      <BrandSplit
+        eyebrow="Riders"
+        title="A scooter when you need it. An asset if you want it."
+        text="Hourly to monthly plans for daily riders. GST is 5% on rental only. Normal bookings include a refundable deposit. Rent to Own has no deposit."
+        image="/bike-rent.jpeg"
+        alt="EVUDDY rental scooter"
+      />
+
+      <BrandMosaic
+        title="One ecosystem. Many ways to ride."
+        text="B2C rentals, B2B fleets, delivery partners and Rent to Own sit on the same live platform."
+        photos={[
+          { src: "/poster.png", alt: "EVUDDY scooters on the road" },
+          { src: "/delivery.jpeg", alt: "Delivery on EVUDDY" },
+          { src: "/evuddy-scooter.png", alt: "EVUDDY scooter" },
         ]}
       />
 

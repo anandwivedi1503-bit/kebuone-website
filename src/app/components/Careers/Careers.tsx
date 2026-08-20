@@ -2,7 +2,10 @@ import {
   BrandCard,
   BrandCardGrid,
   BrandCta,
+  BrandFilm,
   BrandHero,
+  BrandMosaic,
+  BrandSplit,
   BrandStatement,
 } from "@/app/components/Brand/BrandPage";
 import CareersApply from "./CareersApply";
@@ -68,11 +71,53 @@ export default function Careers() {
         ]}
       />
 
+      <BrandFilm
+        src="/kebu-final.mp4"
+        eyebrow="Life at EVUDDY"
+        title="The work is on the street, in hubs, and in the product."
+      />
+
+      <BrandSplit
+        eyebrow="The work"
+        title="You will see riders use what you ship."
+        text="Booking, KYC, pickup OTP, payments and fleet status are live. Join if you want product, operations and cities in the same week — not a distant roadmap."
+        image="/biker-rent.jpeg"
+        alt="Rider on an EVUDDY electric scooter"
+      />
+
+      <BrandSplit
+        eyebrow="Delivery & gig"
+        title="Build mobility that earns."
+        text="Delivery partners and gig workers need machines that start, last and can become an asset. Rent to Own is part of the job, not a side project."
+        image="/delivery.jpeg"
+        alt="Delivery mobility with EVUDDY"
+        reverse
+      />
+
+      <BrandMosaic
+        title="Same brand. Many kinds of work."
+        text="Engineering, hubs, support, growth and finance share one mission: smart, electric, dependable rides."
+        photos={[
+          { src: "/poster.png", alt: "EVUDDY scooters in the city" },
+          { src: "/bike-rent.jpeg", alt: "Electric scooter rental" },
+          { src: "/evuddy.jpeg", alt: "EVUDDY brand" },
+        ]}
+      />
+
       <BrandCardGrid title="Why people join">
         {why.map((item) => (
           <BrandCard key={item.title} title={item.title} text={item.text} />
         ))}
       </BrandCardGrid>
+
+      <BrandSplit
+        eyebrow="Product in motion"
+        title="From garage energy to a city fleet."
+        text="If you like moving between design, code, hubs and rider conversations, this is the pace. We hire for ownership, not job titles that sit still."
+        image="/hero-finalback.mp4"
+        alt="EVUDDY in motion"
+        video
+      />
 
       <BrandCardGrid title="Teams we hire for">
         {teams.map((item) => (

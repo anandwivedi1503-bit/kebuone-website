@@ -2,7 +2,10 @@ import {
   BrandCard,
   BrandCardGrid,
   BrandCta,
+  BrandFilm,
   BrandHero,
+  BrandMosaic,
+  BrandSplit,
   BrandStatement,
 } from "@/app/components/Brand/BrandPage";
 
@@ -56,11 +59,52 @@ export default function VisionMission() {
         ]}
       />
 
+      <BrandFilm
+        src="/hero-video.mp4"
+        eyebrow="The future we are riding toward"
+        title="Every ride can lead to ownership."
+      />
+
+      <BrandSplit
+        eyebrow="Mission"
+        title="Affordable. Accessible. Asset-building."
+        text="Riders should not choose between a clean commute and a scooter they can never own. Flexible rentals get you moving. Rent to Own turns the same habit into an asset."
+        image="/evuddy-scooter.png"
+        alt="EVUDDY electric scooter"
+      />
+
+      <BrandSplit
+        eyebrow="Cities"
+        title="Quiet streets. Live operations."
+        text="Hubs, OTP pickup, GPS and support keep electric scooters working in real Indian cities — for commuters, delivery and small businesses."
+        image="/poster.png"
+        alt="EVUDDY fleet on city roads"
+        reverse
+      />
+
+      <BrandMosaic
+        title="Riders, delivery, daily work."
+        text="The vision is not a slogan. It is who gets on the scooter tomorrow morning."
+        photos={[
+          { src: "/biker-rent.jpeg", alt: "Daily EV commute" },
+          { src: "/delivery.jpeg", alt: "Delivery on electric scooter" },
+          { src: "/househelp.jpeg", alt: "Everyday city mobility" },
+        ]}
+      />
+
       <BrandCardGrid title="What we are building toward">
         {pillars.map((item) => (
           <BrandCard key={item.title} title={item.title} text={item.text} />
         ))}
       </BrandCardGrid>
+
+      <BrandSplit
+        eyebrow="B2B & fleets"
+        title="Businesses move cleaner too."
+        text="Partners and fleets share the same platform as riders: one booking engine, one hub network, one standard of #safeRideWithEvuddy."
+        image="/cab.jpeg"
+        alt="Urban mobility"
+      />
 
       <BrandCardGrid title="SMART · ELECTRIC · MOBILITY">
         {values.map((item) => (
