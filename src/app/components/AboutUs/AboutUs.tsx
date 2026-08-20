@@ -97,12 +97,9 @@ export default function AboutUs() {
           </div>
 
           <figure className="overflow-hidden rounded-[32px] bg-white p-3 shadow-[0_36px_100px_rgba(8,17,47,0.12)] ring-1 ring-[#18B368]/10">
-            <Image
-              src="/about/about-poster.png"
+            <img
+              src="/about/about-poster.png?v=20260820"
               alt="EVUDDY About Us — mission and vision"
-              width={1024}
-              height={1365}
-              priority
               className="h-auto w-full rounded-[24px] object-cover"
             />
           </figure>

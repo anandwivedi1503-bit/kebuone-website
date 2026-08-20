@@ -108,7 +108,6 @@ export default function Leadership() {
                   <PosterMedia
                     src={leader.image}
                     alt={`${leader.name}, ${leader.role} of EVUDDY`}
-                    priority={leader.id === "ceo"}
                   />
                 </figure>
                 <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
@@ -219,28 +218,27 @@ function LeaderProfile({ leader }: { leader: LeaderPoster }) {
   );
 }
 
+function posterSrc(src: string) {
+  const stamp = "v20260820";
+  if (!src) return src;
+  if (/^https?:\/\//.test(src)) {
+    return src.includes("?") ? `${src}&${stamp}` : `${src}?${stamp}`;
+  }
+  return `${src}?${stamp}`;
+}
+
 function PosterMedia({
   src,
   alt,
-  priority = false,
 }: {
   src: string;
   alt: string;
   priority?: boolean;
 }) {
-  if (/^https?:\/\//.test(src)) {
-    return (
-      <img src={src} alt={alt} className="h-auto w-full rounded-[20px] object-cover" />
-    );
-  }
-
   return (
-    <Image
-      src={src}
+    <img
+      src={posterSrc(src)}
       alt={alt}
-      width={768}
-      height={1024}
-      priority={priority}
       className="h-auto w-full rounded-[20px] object-cover"
     />
   );
