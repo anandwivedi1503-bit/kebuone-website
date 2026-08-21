@@ -4,15 +4,8 @@ import { useId, useState } from "react";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
 
 /**
- * Full-width EVUDDY operations strip.
- *
- * Why it used to look “squeezed”: a 1440×820 viewBox inside a short band
- * scales by HEIGHT, so the city sat in the middle third with empty sides.
- *
- * Fix: wide shallow viewBox + preserveAspectRatio slice so the scene always
- * fills the viewport width. Expand on hover/click to show more height.
- *
- * Scooters only on the avenue, pickup yard, and charge bays — never on the hub roof.
+ * Full-width EVUDDY city strip.
+ * Scooter photo faces left — moving assets are mirrored so the nose follows the path.
  */
 
 const OX = 960;
@@ -53,12 +46,7 @@ function Box({
   right: string;
   stroke?: string;
 }) {
-  const p = [
-    iso(x, y),
-    iso(x + w, y),
-    iso(x + w, y + d),
-    iso(x, y + d),
-  ];
+  const p = [iso(x, y), iso(x + w, y), iso(x + w, y + d), iso(x, y + d)];
   const q = p.map((pt) => ({ x: pt.x, y: pt.y - h }));
   return (
     <g>
@@ -97,19 +85,65 @@ function RoofSolar({ x, y, elev }: { x: number; y: number; elev: number }) {
             stroke="#86EFAC"
             strokeWidth="0.7"
           />
-          <line
-            x1={dx + 4}
-            y1={-4}
-            x2={dx + 16}
-            y2={0}
-            stroke="#4ADE80"
-            strokeWidth="0.5"
-            opacity="0.7"
-          />
         </g>
       ))}
     </g>
   );
+}
+
+function Sign({
+  x,
+  y,
+  elev,
+  label,
+  bg = "#0F172A",
+  color = "#fff",
+  width = 86,
+}: {
+  x: number;
+  y: number;
+  elev: number;
+  label: string;
+  bg?: string;
+  color?: string;
+  width?: number;
+}) {
+  const t = iso(x, y);
+  return (
+    <g>
+      <rect x={t.x - width / 2} y={t.y - elev - 8} width={width} height={20} rx="10" fill={bg} />
+      <text
+        x={t.x}
+        y={t.y - elev + 6}
+        textAnchor="middle"
+        fill={color}
+        fontSize="10"
+        fontWeight="800"
+        fontFamily="system-ui,sans-serif"
+      >
+        {label}
+      </text>
+    </g>
+  );
+}
+
+function Awning({ x, y, w, d, c1, c2 }: { x: number; y: number; w: number; d: number; c1: string; c2: string }) {
+  const strips = [];
+  const n = 6;
+  for (let i = 0; i < n; i++) {
+    const a = iso(x + (w * i) / n, y);
+    const b = iso(x + (w * (i + 1)) / n, y);
+    const c = iso(x + (w * (i + 1)) / n, y + d);
+    const e = iso(x + (w * i) / n, y + d);
+    strips.push(
+      <polygon
+        key={i}
+        points={`${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y} ${e.x},${e.y}`}
+        fill={i % 2 === 0 ? c1 : c2}
+      />
+    );
+  }
+  return <g>{strips}</g>;
 }
 
 function Tree({ x, y }: { x: number; y: number }) {
@@ -121,6 +155,17 @@ function Tree({ x, y }: { x: number; y: number }) {
       <ellipse cx={p.x} cy={p.y - 22} rx="16" ry="13" fill="#166534" />
       <ellipse cx={p.x + 5} cy={p.y - 28} rx="11" ry="9" fill="#22C55E" />
       <ellipse cx={p.x - 6} cy={p.y - 26} rx="9" ry="7" fill="#15803D" />
+    </g>
+  );
+}
+
+function Lamp({ x, y }: { x: number; y: number }) {
+  const p = iso(x, y);
+  return (
+    <g>
+      <rect x={p.x - 1.4} y={p.y - 38} width="2.8" height="38" rx="1" fill="#334155" />
+      <circle cx={p.x} cy={p.y - 42} r="5" fill="#FDE68A" opacity="0.95" />
+      <circle cx={p.x} cy={p.y - 42} r="8" fill="#FDE68A" opacity="0.18" />
     </g>
   );
 }
@@ -210,18 +255,73 @@ function Windows({
   return <g>{items}</g>;
 }
 
+function CarBody({ body, glass }: { body: string; glass: string }) {
+  return (
+    <g>
+      <ellipse cx="0" cy="6" rx="20" ry="5" fill="rgba(15,23,42,0.16)" />
+      <path d="M-22 2 L-18 -2 L-8 -6 L8 -6 L20 -1 L24 4 L18 8 L-18 8 Z" fill={body} />
+      <path d="M-8 -6 L-4 -14 L10 -14 L16 -6 Z" fill={glass} />
+      <rect x="-6" y="-12" width="3" height="5" rx="0.6" fill="#93C5FD" opacity="0.9" />
+      <rect x="2" y="-12" width="6" height="5" rx="0.6" fill="#93C5FD" opacity="0.75" />
+      <circle cx="-12" cy="7" r="3.4" fill="#0F172A" />
+      <circle cx="12" cy="7" r="3.4" fill="#0F172A" />
+      <circle cx="-12" cy="7" r="1.3" fill="#94A3B8" />
+      <circle cx="12" cy="7" r="1.3" fill="#94A3B8" />
+      <rect x="20" y="1" width="3" height="2" rx="0.4" fill="#FDE68A" />
+    </g>
+  );
+}
+
+function ParkedCar({
+  x,
+  y,
+  body,
+  glass = "#1E3A5F",
+}: {
+  x: number;
+  y: number;
+  body: string;
+  glass?: string;
+}) {
+  const p = iso(x, y);
+  return (
+    <g transform={`translate(${p.x} ${p.y})`}>
+      <CarBody body={body} glass={glass} />
+    </g>
+  );
+}
+
+function MovingCar({
+  pathId,
+  dur,
+  delay,
+  body,
+}: {
+  pathId: string;
+  dur: string;
+  delay: string;
+  body: string;
+}) {
+  return (
+    <g>
+      <animateMotion dur={dur} begin={delay} repeatCount="indefinite" rotate="auto">
+        <mpath href={`#${pathId}`} />
+      </animateMotion>
+      <CarBody body={body} glass="#1E3A5F" />
+    </g>
+  );
+}
+
 function RealScooter({
   src,
   x,
   y,
   scale = 0.2,
-  flip,
 }: {
   src: string;
   x: number;
   y: number;
   scale?: number;
-  flip?: boolean;
 }) {
   const p = iso(x, y);
   const w = 520 * scale;
@@ -234,7 +334,7 @@ function RealScooter({
       width={w}
       height={h}
       preserveAspectRatio="xMidYMid meet"
-      transform={flip ? `translate(${p.x} ${p.y}) scale(-1 1) translate(${-p.x} ${-p.y})` : undefined}
+      transform={`translate(${p.x} ${p.y}) scale(-1 1) translate(${-p.x} ${-p.y})`}
       style={{ filter: "drop-shadow(8px 10px 8px rgba(15,23,42,0.22))" }}
     />
   );
@@ -257,19 +357,20 @@ function MovingScooter({
   const h = 290 * scale;
   return (
     <g>
-      <image
-        href={src}
-        x={-w * 0.5}
-        y={-h * 0.86}
-        width={w}
-        height={h}
-        preserveAspectRatio="xMidYMid meet"
-        style={{ filter: "drop-shadow(6px 8px 7px rgba(15,23,42,0.2))" }}
-      >
-        <animateMotion dur={dur} begin={delay} repeatCount="indefinite" rotate="auto">
-          <mpath href={`#${pathId}`} />
-        </animateMotion>
-      </image>
+      <animateMotion dur={dur} begin={delay} repeatCount="indefinite" rotate="auto">
+        <mpath href={`#${pathId}`} />
+      </animateMotion>
+      <g transform="scale(-1 1)">
+        <image
+          href={src}
+          x={-w * 0.5}
+          y={-h * 0.86}
+          width={w}
+          height={h}
+          preserveAspectRatio="xMidYMid meet"
+          style={{ filter: "drop-shadow(6px 8px 7px rgba(15,23,42,0.2))" }}
+        />
+      </g>
     </g>
   );
 }
@@ -278,10 +379,16 @@ export default function EvuddyEcosystem() {
   const src = useEvuddySideSrc();
   const uid = useId().replace(/:/g, "");
   const roadId = `${uid}-road`;
+  const carId = `${uid}-cars`;
+  const backId = `${uid}-back`;
   const [expanded, setExpanded] = useState(false);
 
-  const a0 = iso(-7.2, 5.35);
-  const a1 = iso(20.4, 5.35);
+  const scootA = iso(-7.2, 5.22);
+  const scootB = iso(20.4, 5.22);
+  const carA = iso(-7.2, 5.58);
+  const carB = iso(20.4, 5.58);
+  const backA = iso(20.4, 5.4);
+  const backB = iso(-7.2, 5.4);
 
   return (
     <div
@@ -323,13 +430,12 @@ export default function EvuddyEcosystem() {
           ))
         )}
 
-        {/* Long avenue — scooters ride HERE only */}
         <polygon
           points={`${iso(-7.4, 4.85).x},${iso(-7.4, 4.85).y} ${iso(20.6, 4.85).x},${iso(20.6, 4.85).y} ${iso(20.6, 5.95).x},${iso(20.6, 5.95).y} ${iso(-7.4, 5.95).x},${iso(-7.4, 5.95).y}`}
           fill="#CBD5E1"
         />
         <polygon
-          points={`${iso(-7.4, 5.22).x},${iso(-7.4, 5.22).y} ${iso(20.6, 5.22).x},${iso(20.6, 5.22).y} ${iso(20.6, 5.58).x},${iso(20.6, 5.58).y} ${iso(-7.4, 5.58).x},${iso(-7.4, 5.58).y}`}
+          points={`${iso(-7.4, 5.18).x},${iso(-7.4, 5.18).y} ${iso(20.6, 5.18).x},${iso(20.6, 5.18).y} ${iso(20.6, 5.62).x},${iso(20.6, 5.62).y} ${iso(-7.4, 5.62).x},${iso(-7.4, 5.62).y}`}
           fill="#94A3B8"
         />
         <path
@@ -339,13 +445,68 @@ export default function EvuddyEcosystem() {
           strokeDasharray="14 16"
           opacity="0.95"
         />
-        <path id={roadId} d={`M ${a0.x} ${a0.y} L ${a1.x} ${a1.y}`} fill="none" />
+        <path id={roadId} d={`M ${scootA.x} ${scootA.y} L ${scootB.x} ${scootB.y}`} fill="none" />
+        <path id={carId} d={`M ${carA.x} ${carA.y} L ${carB.x} ${carB.y}`} fill="none" />
+        <path id={backId} d={`M ${backA.x} ${backA.y} L ${backB.x} ${backB.y}`} fill="none" />
 
-        {/* NORTH of road: pickup yard + charge — never on buildings */}
-        <polygon points={diamond(3.15, 2.15, 3.55)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.2" />
+        <g filter={`url(#${uid}-soft)`}>
+          {/* Hotel */}
+          <Box x={-6.15} y={0.2} w={2.45} d={1.7} h={132} top="#FFF1F2" left="#FECDD3" right="#F43F5E" />
+          <Windows x={-6.15} y={0.2} cols={5} rows={6} h={132} tone="#FECACA" />
+          <Sign x={-4.95} y={0.25} elev={132} label="HOTEL" bg="#9F1239" width={78} />
+
+          {/* Offices */}
+          <Box x={-3.35} y={0.35} w={2.55} d={1.75} h={148} top="#EFF6FF" left="#BFDBFE" right="#3B82F6" />
+          <Windows x={-3.35} y={0.35} cols={5} rows={7} h={148} />
+          <RoofSolar x={-2.1} y={1.15} elev={148} />
+          <Sign x={-2.1} y={0.4} elev={148} label="OFFICES" bg="#1D4ED8" width={92} />
+
+          {/* Cafe + mart */}
+          <Box x={-0.45} y={1.05} w={2.2} d={1.35} h={52} top="#FFF7ED" left="#FED7AA" right="#F97316" />
+          <Windows x={-0.45} y={1.05} cols={4} rows={2} h={52} tone="#FFEDD5" />
+          <Awning x={-0.45} y={2.28} w={2.2} d={0.28} c1="#EC2A8C" c2="#fff" />
+          <Sign x={0.65} y={1.15} elev={52} label="CAFE" bg="#C2410C" width={64} />
+
+          <Box x={7.05} y={0.15} w={3.35} d={1.85} h={108} top="#EEF2FF" left="#C7D2FE" right="#6366F1" />
+          <Windows x={7.05} y={0.15} cols={7} rows={5} h={108} tone="#A5B4FC" />
+          <Sign x={8.7} y={0.2} elev={108} label="MALL" bg="#3730A3" width={78} />
+
+          <Box x={14.35} y={0.3} w={2.35} d={1.55} h={96} top="#F8FAFC" left="#E2E8F0" right="#64748B" />
+          <Windows x={14.35} y={0.3} cols={5} rows={4} h={96} />
+          <RoofSolar x={15.5} y={1.0} elev={96} />
+          <Sign x={15.5} y={0.35} elev={96} label="TOWER" bg="#334155" width={74} />
+
+          {/* South: shops, station, more offices */}
+          <Box x={-6.2} y={7.05} w={2.15} d={1.4} h={58} top="#ECFDF5" left="#BBF7D0" right="#18B368" />
+          <Windows x={-6.2} y={7.05} cols={4} rows={2} h={58} tone="#BBF7D0" />
+          <Awning x={-6.2} y={8.3} w={2.15} d={0.26} c1="#18B368" c2="#fff" />
+          <Sign x={-5.15} y={7.1} elev={58} label="MART" bg="#15803D" width={70} />
+
+          <Box x={7.15} y={7.15} w={2.55} d={1.55} h={118} top="#F1F5F9" left="#CBD5E1" right="#475569" />
+          <Windows x={7.15} y={7.15} cols={5} rows={5} h={118} />
+          <RoofSolar x={8.4} y={7.85} elev={118} />
+          <Sign x={8.4} y={7.2} elev={118} label="OFFICE" bg="#0F172A" width={84} />
+
+          <Box x={13.85} y={6.95} w={3.15} d={1.7} h={64} top="#FEF3C7" left="#FDE68A" right="#D97706" />
+          <Windows x={13.85} y={6.95} cols={6} rows={2} h={64} tone="#FDE68A" />
+          <Sign x={15.4} y={7.0} elev={64} label="STATION" bg="#92400E" width={96} />
+        </g>
+
+        {/* Station canopy + platform */}
+        <polygon
+          points={`${iso(13.7, 8.5).x},${iso(13.7, 8.5).y} ${iso(17.15, 8.5).x},${iso(17.15, 8.5).y} ${iso(17.15, 9.15).x},${iso(17.15, 9.15).y} ${iso(13.7, 9.15).x},${iso(13.7, 9.15).y}`}
+          fill="#E2E8F0"
+        />
+        <polygon
+          points={`${iso(13.55, 8.35).x},${iso(13.55, 8.35).y - 28} ${iso(17.3, 8.35).x},${iso(17.3, 8.35).y - 28} ${iso(17.3, 9.2).x},${iso(17.3, 9.2).y - 18} ${iso(13.55, 9.2).x},${iso(13.55, 9.2).y - 18}`}
+          fill="#0F172A"
+          opacity="0.88"
+        />
+
+        <polygon points={diamond(3.2, 2.05, 3.4)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.2" />
         <text
-          x={iso(4.7, 2.2).x}
-          y={iso(4.7, 2.2).y - 8}
+          x={iso(4.8, 2.1).x}
+          y={iso(4.8, 2.1).y - 8}
           textAnchor="middle"
           fill="#0F172A"
           fontSize="11"
@@ -356,16 +517,16 @@ export default function EvuddyEcosystem() {
         </text>
         {src ? (
           <>
-            <RealScooter src={src} x={3.55} y={3.05} scale={0.175} />
-            <RealScooter src={src} x={4.55} y={3.35} scale={0.175} />
-            <RealScooter src={src} x={5.55} y={3.65} scale={0.175} />
+            <RealScooter src={src} x={3.6} y={2.95} scale={0.17} />
+            <RealScooter src={src} x={4.55} y={3.25} scale={0.17} />
+            <RealScooter src={src} x={5.5} y={3.55} scale={0.17} />
           </>
         ) : null}
 
-        <polygon points={diamond(11.05, 2.35, 2.7)} fill="#ECFDF5" stroke="#18B368" strokeWidth="1.4" />
+        <polygon points={diamond(10.85, 2.25, 2.65)} fill="#ECFDF5" stroke="#18B368" strokeWidth="1.4" />
         <text
-          x={iso(12.3, 2.4).x}
-          y={iso(12.3, 2.4).y - 10}
+          x={iso(12.1, 2.3).x}
+          y={iso(12.1, 2.3).y - 10}
           textAnchor="middle"
           fill="#0F172A"
           fontSize="11"
@@ -374,112 +535,89 @@ export default function EvuddyEcosystem() {
         >
           EV CHARGE
         </text>
-        <ChargePost x={11.45} y={3.15} />
-        <ChargePost x={12.55} y={3.55} />
+        <ChargePost x={11.25} y={3.05} />
+        <ChargePost x={12.35} y={3.45} />
         {src ? (
           <>
-            <RealScooter src={src} x={11.85} y={3.85} scale={0.16} />
-            <RealScooter src={src} x={12.85} y={4.15} scale={0.16} />
+            <RealScooter src={src} x={11.65} y={3.75} scale={0.155} />
+            <RealScooter src={src} x={12.65} y={4.05} scale={0.155} />
           </>
         ) : null}
 
-        {/* Buildings with rooftop solar — north and south of the road, not on it */}
-        <g filter={`url(#${uid}-soft)`}>
-          <Box x={-5.4} y={0.35} w={2.15} d={1.55} h={86} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
-          <Windows x={-5.4} y={0.35} cols={4} rows={4} h={86} />
-          <RoofSolar x={-4.35} y={1.05} elev={86} />
-
-          <Box x={-2.35} y={0.55} w={2.35} d={1.7} h={118} top="#F1F5F9" left="#E2E8F0" right="#94A3B8" />
-          <Windows x={-2.35} y={0.55} cols={5} rows={5} h={118} />
-          <RoofSolar x={-1.2} y={1.25} elev={118} />
-
-          <Box x={7.15} y={0.25} w={2.5} d={1.65} h={102} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
-          <Windows x={7.15} y={0.25} cols={5} rows={5} h={102} />
-          <RoofSolar x={8.35} y={1.0} elev={102} />
-
-          <Box x={14.55} y={0.45} w={2.2} d={1.5} h={92} top="#F1F5F9" left="#E2E8F0" right="#94A3B8" />
-          <Windows x={14.55} y={0.45} cols={4} rows={4} h={92} />
-          <RoofSolar x={15.6} y={1.1} elev={92} />
-
-          {/* SOUTH of road: neighbourhood + HUB (hub is NOT on the avenue) */}
-          <Box x={-4.8} y={7.15} w={2.05} d={1.45} h={78} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
-          <Windows x={-4.8} y={7.15} cols={4} rows={3} h={78} />
-          <RoofSolar x={-3.8} y={7.8} elev={78} />
-
-          <Box x={7.35} y={7.25} w={2.15} d={1.5} h={88} top="#F1F5F9" left="#E2E8F0" right="#94A3B8" />
-          <Windows x={7.35} y={7.25} cols={4} rows={4} h={88} />
-          <RoofSolar x={8.4} y={7.9} elev={88} />
-
-          <Box x={14.2} y={7.05} w={2.4} d={1.55} h={96} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
-          <Windows x={14.2} y={7.05} cols={5} rows={4} h={96} />
-          <RoofSolar x={15.35} y={7.75} elev={96} />
-        </g>
-
-        {/* EVUDDY hub campus — south of the avenue */}
         <polygon
-          points={`${iso(0.85, 6.95).x},${iso(0.85, 6.95).y} ${iso(5.55, 6.95).x},${iso(5.55, 6.95).y} ${iso(5.55, 9.05).x},${iso(5.55, 9.05).y} ${iso(0.85, 9.05).x},${iso(0.85, 9.05).y}`}
+          points={`${iso(0.75, 6.9).x},${iso(0.75, 6.9).y} ${iso(5.65, 6.9).x},${iso(5.65, 6.9).y} ${iso(5.65, 9.1).x},${iso(5.65, 9.1).y} ${iso(0.75, 9.1).x},${iso(0.75, 9.1).y}`}
           fill="#D1FAE5"
           stroke="#18B368"
           strokeWidth="1.6"
         />
-        <Box x={1.35} y={7.2} w={3.55} d={1.55} h={70} top="#ECFDF5" left="#6EE7B7" right="#18B368" />
-        <Windows x={1.35} y={7.2} cols={6} rows={3} h={70} tone="#BBF7D0" />
-        <RoofSolar x={3.05} y={7.85} elev={70} />
-        <g>
-          {(() => {
-            const t = iso(3.1, 7.15);
-            return (
-              <>
-                <rect x={t.x - 38} y={t.y - 96} width="76" height="22" rx="11" fill="#0F172A" />
-                <text
-                  x={t.x}
-                  y={t.y - 81}
-                  textAnchor="middle"
-                  fill="#fff"
-                  fontSize="11"
-                  fontWeight="800"
-                  fontFamily="system-ui,sans-serif"
-                >
-                  EVUDDY HUB
-                </text>
-              </>
-            );
-          })()}
-        </g>
+        <Box x={1.25} y={7.15} w={3.55} d={1.55} h={70} top="#ECFDF5" left="#6EE7B7" right="#18B368" />
+        <Windows x={1.25} y={7.15} cols={6} rows={3} h={70} tone="#BBF7D0" />
+        <RoofSolar x={2.95} y={7.8} elev={70} />
+        <Sign x={3.0} y={7.15} elev={86} label="EVUDDY HUB" bg="#0F172A" width={108} />
 
-        <Tree x={-6.2} y={2.4} />
-        <Tree x={0.15} y={1.85} />
+        <ParkedCar x={-4.55} y={4.55} body="#0F172A" />
+        <ParkedCar x={0.85} y={4.45} body="#2563EB" />
+        <ParkedCar x={8.55} y={4.5} body="#F8FAFC" glass="#334155" />
+        <ParkedCar x={16.15} y={4.55} body="#EC2A8C" />
+        <ParkedCar x={-3.15} y={6.55} body="#F59E0B" />
+        <ParkedCar x={9.85} y={6.6} body="#18B368" />
+
+        <Lamp x={-5.4} y={4.7} />
+        <Lamp x={1.1} y={4.7} />
+        <Lamp x={6.4} y={4.7} />
+        <Lamp x={12.9} y={4.7} />
+        <Lamp x={18.2} y={4.7} />
+        <Lamp x={-4.9} y={6.15} />
+        <Lamp x={6.1} y={6.15} />
+        <Lamp x={15.4} y={6.15} />
+
+        <Tree x={-6.55} y={2.55} />
+        <Tree x={-0.85} y={0.55} />
         <Tree x={6.35} y={2.05} />
-        <Tree x={10.15} y={1.55} />
-        <Tree x={16.95} y={2.15} />
-        <Tree x={-6.05} y={6.55} />
-        <Tree x={6.25} y={6.75} />
-        <Tree x={13.15} y={6.55} />
-        <Tree x={17.35} y={6.85} />
+        <Tree x={10.05} y={1.45} />
+        <Tree x={17.05} y={2.2} />
+        <Tree x={-6.85} y={6.45} />
+        <Tree x={6.15} y={6.7} />
+        <Tree x={12.55} y={6.5} />
+        <Tree x={17.55} y={6.75} />
 
-        <Person x={-5.55} y={4.35} shirt="#18B368" />
-        <Person x={-3.85} y={4.55} shirt="#EC2A8C" flip />
-        <Person x={2.15} y={4.25} shirt="#0F172A" />
-        <Person x={4.85} y={1.85} shirt="#18B368" />
-        <Person x={8.15} y={4.45} shirt="#2563EB" flip />
-        <Person x={10.55} y={4.25} shirt="#EC2A8C" />
-        <Person x={13.35} y={2.05} shirt="#0F172A" />
-        <Person x={16.25} y={4.55} shirt="#18B368" flip />
-        <Person x={1.55} y={6.55} shirt="#EC2A8C" />
-        <Person x={4.25} y={6.65} shirt="#18B368" flip />
-        <Person x={9.15} y={6.55} shirt="#0F172A" />
+        <Person x={-5.35} y={4.3} shirt="#18B368" />
+        <Person x={-4.15} y={4.45} shirt="#EC2A8C" flip />
+        <Person x={-0.15} y={2.55} shirt="#F97316" />
+        <Person x={0.85} y={2.65} shirt="#0F172A" flip />
+        <Person x={2.25} y={4.25} shirt="#2563EB" />
+        <Person x={4.75} y={1.75} shirt="#18B368" />
+        <Person x={8.05} y={4.35} shirt="#EC2A8C" flip />
+        <Person x={8.95} y={2.15} shirt="#6366F1" />
+        <Person x={10.45} y={4.2} shirt="#0F172A" />
+        <Person x={12.55} y={2.0} shirt="#18B368" flip />
+        <Person x={15.85} y={4.45} shirt="#F59E0B" />
+        <Person x={-5.05} y={8.55} shirt="#0F172A" />
+        <Person x={-4.15} y={8.7} shirt="#EC2A8C" flip />
+        <Person x={1.45} y={6.5} shirt="#18B368" />
+        <Person x={4.15} y={6.6} shirt="#EC2A8C" flip />
+        <Person x={9.05} y={6.5} shirt="#2563EB" />
+        <Person x={14.55} y={8.85} shirt="#92400E" />
+        <Person x={15.55} y={8.95} shirt="#0F172A" flip />
+        <Person x={16.45} y={8.75} shirt="#18B368" />
+
+        <MovingCar pathId={carId} dur="14s" delay="0s" body="#0F172A" />
+        <MovingCar pathId={carId} dur="18s" delay="6s" body="#2563EB" />
+        <MovingCar pathId={backId} dur="16s" delay="2.5s" body="#F8FAFC" />
+        <MovingCar pathId={backId} dur="20s" delay="11s" body="#F59E0B" />
 
         {src ? (
           <>
-            <MovingScooter src={src} pathId={roadId} dur="11s" delay="0s" scale={0.165} />
-            <MovingScooter src={src} pathId={roadId} dur="13.5s" delay="3.6s" scale={0.155} />
-            <MovingScooter src={src} pathId={roadId} dur="16s" delay="7.2s" scale={0.15} />
+            <MovingScooter src={src} pathId={roadId} dur="11s" delay="0s" scale={0.16} />
+            <MovingScooter src={src} pathId={roadId} dur="13.5s" delay="3.8s" scale={0.15} />
+            <MovingScooter src={src} pathId={backId} dur="12.5s" delay="1.6s" scale={0.15} />
+            <MovingScooter src={src} pathId={backId} dur="15s" delay="7s" scale={0.145} />
           </>
         ) : null}
 
         {expanded ? (
           <>
-            <g transform={`translate(${iso(4.7, 2.05).x} ${iso(4.7, 2.05).y - 118})`}>
+            <g transform={`translate(${iso(4.8, 2.0).x} ${iso(4.8, 2.0).y - 118})`}>
               <rect x="-92" y="-28" width="184" height="52" rx="18" fill="#fff" stroke="#E2E8F0" />
               <text x="0" y="-6" textAnchor="middle" fill="#0F172A" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">
                 Pickup yard
@@ -488,7 +626,7 @@ export default function EvuddyEcosystem() {
                 Booked EVUDDY scooters ready to go
               </text>
             </g>
-            <g transform={`translate(${iso(3.1, 7.15).x} ${iso(3.1, 7.15).y + 58})`}>
+            <g transform={`translate(${iso(3.0, 7.15).x} ${iso(3.0, 7.15).y + 58})`}>
               <rect x="-100" y="-28" width="200" height="52" rx="18" fill="#fff" stroke="#E2E8F0" />
               <text x="0" y="-6" textAnchor="middle" fill="#0F172A" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">
                 Neighbourhood hub
