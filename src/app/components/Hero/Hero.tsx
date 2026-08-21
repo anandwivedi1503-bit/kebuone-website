@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import HeroCityRide from "./HeroCityRide";
+import { useEvuddySideSrc } from "./useEvuddySideSrc";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 
 const partners = [
