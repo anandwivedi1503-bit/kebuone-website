@@ -58,21 +58,35 @@ function Shop({ name, stripe }: { name: string; stripe: string }) {
   );
 }
 
-function Yard({ label }: { label: string }) {
+function HubStation({ label }: { label: string }) {
   return (
     <div className="relative flex h-full w-[500px] shrink-0 items-end px-4 sm:px-6">
-      <div className="absolute inset-x-3 bottom-0 top-6 rounded-t-[24px] border border-white/70 bg-white/50 sm:inset-x-4 sm:top-8 sm:rounded-t-[28px]" />
+      <div className="absolute inset-x-4 bottom-0 top-5 rounded-t-[20px] border border-[#18B368]/20 bg-[#ECFDF3]/70 sm:inset-x-6" />
       <div className="relative mb-1 w-full">
-        <div className="mx-auto h-[96px] max-w-[240px] rounded-t-[18px] bg-white shadow-[0_14px_30px_rgba(24,179,104,0.12)] sm:h-[118px] sm:max-w-[280px] sm:rounded-t-[22px]">
-          <div className="mx-5 mt-4 h-2 rounded-full bg-[#18B368] sm:mx-6 sm:mt-5" />
-          <p className="mt-4 text-center text-[10px] font-black uppercase tracking-[0.18em] text-[#18B368] sm:mt-6 sm:text-[11px] sm:tracking-[0.22em]">
-            {label}
-          </p>
-          <div className="mx-auto mt-3 flex w-32 justify-center gap-2 sm:mt-4 sm:w-40">
-            {[0, 1, 2, 3].map((n) => (
-              <span key={n} className="h-6 w-1.5 rounded-full bg-[#86EFAC] sm:h-8 sm:w-2" />
-            ))}
+        <div className="mx-auto max-w-[268px] sm:max-w-[300px]">
+          <div className="relative h-7 rounded-t-[10px] bg-[#18B368] sm:h-8">
+            <div className="absolute inset-x-6 -top-2 h-2 rounded-full bg-[#86EFAC] sm:-top-2.5 sm:h-2.5" />
+            <p className="pt-1.5 text-center text-[9px] font-black tracking-[0.28em] text-white sm:text-[10px]">
+              EVUDDY
+            </p>
           </div>
+          <div className="relative overflow-hidden bg-[#0F172A] px-4 pb-3 pt-3 shadow-[0_16px_28px_rgba(15,23,42,0.18)] sm:px-5 sm:pb-4 sm:pt-4">
+            <p className="text-center text-[16px] font-black tracking-[0.2em] text-[#6EE7A8] sm:text-[20px]">
+              HUB
+            </p>
+            <p className="mt-0.5 text-center text-[8px] font-bold uppercase tracking-[0.16em] text-white/55 sm:text-[9px]">
+              {label}
+            </p>
+            <div className="mt-3 grid grid-cols-4 gap-1.5 sm:mt-4 sm:gap-2">
+              {[0, 1, 2, 3].map((n) => (
+                <span
+                  key={n}
+                  className="h-8 rounded-sm border border-[#18B368]/50 bg-[#052e16] shadow-[inset_0_0_0_1px_rgba(110,231,168,0.25)] sm:h-10"
+                />
+              ))}
+            </div>
+          </div>
+          <div className="h-2 bg-[#16A34A]" />
         </div>
       </div>
     </div>
@@ -108,7 +122,7 @@ function Station() {
 function Ecosystem() {
   return (
     <>
-      <Yard label="EVUDDY Yard" />
+      <HubStation label="EVUDDY HUB" />
 
       <div className="relative flex h-full w-[880px] shrink-0 items-end gap-3 px-6 pb-0 sm:gap-5 sm:px-8">
         <Tree size={1.05} />
@@ -174,7 +188,7 @@ function Ecosystem() {
         </div>
       </div>
 
-      <Yard label="EVUDDY Yard" />
+      <HubStation label="EVUDDY YARD" />
     </>
   );
 }
@@ -253,11 +267,11 @@ export default function HeroCityRide() {
           animate={{ scaleX: [-1, -1, 1, 1, -1] }}
           transition={{ duration: 30, repeat: Infinity, ease: "linear", times: [0, 0.46, 0.5, 0.96, 1] }}
         >
-          <img
-            src={bikeSrc}
-            alt="EVUDDY scooter"
-            className="evuddy-city-bike"
-          />
+          {bikeSrc ? (
+            <img src={bikeSrc} alt="EVUDDY scooter" className="evuddy-city-bike" />
+          ) : (
+            <div className="evuddy-city-bike h-[72px] rounded-md bg-[#EC2A8C]/90 sm:h-[96px]" />
+          )}
         </motion.div>
       </div>
     </div>

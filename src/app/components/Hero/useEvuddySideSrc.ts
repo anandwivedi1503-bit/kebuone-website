@@ -2,6 +2,12 @@
 
 import { useEffect, useState } from "react";
 
+const CANDIDATES = [
+  "/evuddy-side.png",
+  "/evuddy-scooter-cutout.png",
+  "/evuddy-scooter.png",
+];
+
 function stripStudioBackground(image: HTMLImageElement) {
   const canvas = document.createElement("canvas");
   canvas.width = image.naturalWidth;
@@ -85,12 +91,32 @@ function stripStudioBackground(image: HTMLImageElement) {
 }
 
 export function useEvuddySideSrc() {
-  const [src, setSrc] = useState("/evuddy-side.png");
+  const [src, setSrc] = useState("");
 
   useEffect(() => {
-    const image = new Image();
-    image.onload = () => setSrc(stripStudioBackground(image) || "/evuddy-side.png");
-    image.src = "/evuddy-side.png";
+    let cancelled = false;
+
+    const load = (index: number) => {
+      if (index >= CANDIDATES.length) return;
+      const image = new Image();
+      image.onload = () => {
+        if (cancelled) return;
+        setSrc(CANDIDATES[index]);
+        try {
+          const stripped = stripStudioBackground(image);
+          if (stripped) setSrc(stripped);
+        } catch {
+          /* keep the file URL */
+        }
+      };
+      image.onerror = () => load(index + 1);
+      image.src = CANDIDATES[index];
+    };
+
+    load(0);
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return src;
