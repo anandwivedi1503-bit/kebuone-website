@@ -1,5 +1,7 @@
 "use client";
 
+import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
+
 type Pt = { sx: number; sy: number };
 
 const OX = 720;
@@ -81,16 +83,15 @@ function Person({ x, y, shirt }: { x: number; y: number; shirt: string }) {
   );
 }
 
-function Scooter({ x, y, flip }: { x: number; y: number; flip?: boolean }) {
+function Scooter({ x, y, flip, src }: { x: number; y: number; flip?: boolean; src: string }) {
   const p = iso(x, y);
+  if (!src) return null;
   return (
-    <g transform={`translate(${p.sx} ${p.sy}) scale(${flip ? -1.35 : 1.35} 1.35)`}>
-      <ellipse cx="0" cy="5" rx="16" ry="4.5" fill="#0F172A" opacity="0.12" />
-      <ellipse cx="-13" cy="3" rx="6" ry="3.2" fill="#111827" />
-      <ellipse cx="15" cy="3" rx="6" ry="3.2" fill="#111827" />
-      <path d="M-11 1 L17 1 L15 -5 L-7 -5 Z" fill="#EC2A8C" />
-      <path d="M13 -5 L16 1 L18 -12 L14 -18 L11 -11 Z" fill="#18B368" />
-      <rect x="12" y="-20" width="11" height="3" rx="1" fill="#0F172A" />
+    <g transform={`translate(${p.sx} ${p.sy})`}>
+      <ellipse cx="0" cy="8" rx="28" ry="7" fill="#0F172A" opacity="0.14" />
+      <g transform={`scale(${flip ? -1 : 1} 1)`}>
+        <image href={src} x="-54" y="-46" width="108" height="58" preserveAspectRatio="xMidYMid meet" />
+      </g>
     </g>
   );
 }
@@ -103,30 +104,30 @@ function Line({ from, to }: { from: Pt; to: Pt }) {
       d={`M${from.sx} ${from.sy} Q ${mx} ${my} ${to.sx} ${to.sy}`}
       fill="none"
       stroke="#18B368"
-      strokeWidth="3"
+      strokeWidth="2"
+      opacity="0.55"
       className="evuddy-net-line"
     />
   );
 }
 
-function RidingScooter({ delay, flip }: { delay: string; flip?: boolean }) {
+function RidingScooter({ delay, src }: { delay: string; src: string }) {
+  if (!src) return null;
   return (
     <g>
-      <animateMotion dur="16s" begin={delay} repeatCount="indefinite" rotate="0">
+      <animateMotion dur="18s" begin={delay} repeatCount="indefinite" rotate="0">
         <mpath href="#evuddy-eco-road" />
       </animateMotion>
-      <g transform={`scale(${flip ? -1.45 : 1.45} 1.45) translate(${flip ? 12 : -12} -6)`}>
-        <ellipse cx="-13" cy="3" rx="6" ry="3.2" fill="#111827" />
-        <ellipse cx="15" cy="3" rx="6" ry="3.2" fill="#111827" />
-        <path d="M-11 1 L17 1 L15 -5 L-7 -5 Z" fill="#EC2A8C" />
-        <path d="M13 -5 L16 1 L18 -12 L14 -18 L11 -11 Z" fill="#18B368" />
-        <rect x="12" y="-20" width="11" height="3" rx="1" fill="#0F172A" />
+      <ellipse cx="0" cy="10" rx="30" ry="7" fill="#0F172A" opacity="0.16" />
+      <g transform="scale(-1 1)">
+        <image href={src} x="-62" y="-52" width="124" height="66" preserveAspectRatio="xMidYMid meet" />
       </g>
     </g>
   );
 }
 
 export default function EvuddyEcosystem() {
+  const bikeSrc = useEvuddySideSrc();
   const hq = iso(5.2, 4.0, 150);
   const pickup = iso(0.2, 5.4, 10);
   const hub = iso(5.4, 7.6, 78);
@@ -142,8 +143,8 @@ export default function EvuddyEcosystem() {
           to { stroke-dashoffset: -56; }
         }
         @keyframes evuddy-cam {
-          0%, 100% { transform: scale(1.08) translate(0, 0); }
-          50% { transform: scale(1.16) translate(-1.4%, 1.1%); }
+          0%, 100% { transform: scale(1.02) translate(0, 0); }
+          50% { transform: scale(1.06) translate(-0.6%, 0.5%); }
         }
         .evuddy-net-line {
           stroke-dasharray: 9 11;
@@ -206,16 +207,16 @@ export default function EvuddyEcosystem() {
         </g>
 
         {/* Spread city blocks */}
-        <Box x={-1.6} y={-0.2} w={1.7} d={1.5} h={78} top="#F4F8FF" front="#E4EDF7" side="#C9D8E8" />
-        <Box x={0.4} y={-0.4} w={1.55} d={1.45} h={108} top="#FBFDFF" front="#EEF3F9" side="#C2D3E4" />
-        <Box x={2.2} y={-0.15} w={1.4} d={1.3} h={70} top="#F8FBFF" front="#EAF0F6" side="#C7D7E6" />
-        <Box x={8.2} y={-0.3} w={1.8} d={1.55} h={124} top="#F3FAF6" front="#E7F4EC" side="#B7D5C4" />
-        <Box x={10.2} y={0.2} w={1.5} d={1.35} h={88} top="#FBFDFF" front="#F2F6FA" side="#C5D6E4" />
-        <Box x={11.8} y={1.4} w={1.35} d={1.2} h={64} top="#F7FAFC" front="#EEF2F6" side="#C3D2DF" />
-        <Box x={10.0} y={8.2} w={1.9} d={1.55} h={68} top="#FFF1F7" front="#FCE7F1" side="#E8A0C0" />
-        <Box x={8.4} y={8.6} w={1.4} d={1.25} h={52} top="#FDF2F8" front="#FCE7F3" side="#F0ABD0" />
-        <Box x={-2.0} y={8.0} w={2.15} d={1.7} h={58} top="#E2E8F0" front="#334155" side="#1E293B" />
-        <Box x={11.4} y={4.6} w={1.3} d={1.15} h={56} top="#ECFDF5" front="#D1FAE5" side="#86EFAC" />
+        <Box x={-1.6} y={-0.2} w={1.7} d={1.5} h={78} top="#F8FBFF" front="#EEF4FA" side="#D2DFEB" />
+        <Box x={0.4} y={-0.4} w={1.55} d={1.45} h={108} top="#FFFFFF" front="#F4F8FC" side="#D0DDE8" />
+        <Box x={2.2} y={-0.15} w={1.4} d={1.3} h={70} top="#F8FBFF" front="#F0F5F9" side="#D4E0EA" />
+        <Box x={8.2} y={-0.3} w={1.8} d={1.55} h={124} top="#F4FBF7" front="#ECF6F1" side="#C9DDD2" />
+        <Box x={10.2} y={0.2} w={1.5} d={1.35} h={88} top="#FFFFFF" front="#F5F8FB" side="#D3DFE8" />
+        <Box x={11.8} y={1.4} w={1.35} d={1.2} h={64} top="#FAFCFE" front="#F1F5F8" side="#D2DCE5" />
+        <Box x={10.0} y={8.2} w={1.9} d={1.55} h={68} top="#F4FBF7" front="#EAF6F0" side="#C5D9CE" />
+        <Box x={8.4} y={8.6} w={1.4} d={1.25} h={52} top="#FFFFFF" front="#F6F8FA" side="#D5DEE6" />
+        <Box x={-2.0} y={8.0} w={2.15} d={1.7} h={58} top="#E8EEF4" front="#3B4A5C" side="#243041" />
+        <Box x={11.4} y={4.6} w={1.3} d={1.15} h={56} top="#ECFDF5" front="#DCFCE7" side="#86EFAC" />
 
         <Box x={0.15} y={1.05} w={1.55} d={1.35} h={46} top="#DCFCE7" front="#0F172A" side="#16A34A" />
 
@@ -301,13 +302,13 @@ export default function EvuddyEcosystem() {
         <Person x={7.0} y={7.7} shirt="#22C55E" />
         <Person x={10.6} y={2.55} shirt="#EC2A8C" />
 
-        <Scooter x={-0.2} y={5.55} />
-        <Scooter x={1.1} y={5.85} flip />
-        <Scooter x={2.0} y={5.5} />
-        <Scooter x={10.2} y={2.55} />
-        <RidingScooter delay="0s" />
-        <RidingScooter delay="5.5s" flip />
-        <RidingScooter delay="11s" />
+        <Scooter x={-0.2} y={5.55} src={bikeSrc} />
+        <Scooter x={1.1} y={5.85} src={bikeSrc} flip />
+        <Scooter x={2.0} y={5.5} src={bikeSrc} />
+        <Scooter x={10.2} y={2.55} src={bikeSrc} />
+        <RidingScooter delay="0s" src={bikeSrc} />
+        <RidingScooter delay="6s" src={bikeSrc} />
+        <RidingScooter delay="12s" src={bikeSrc} />
       </svg>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#EAF4FB] to-transparent" />
