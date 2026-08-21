@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
 function Tree({ size = 1 }: { size?: number }) {
   return (
@@ -181,6 +182,8 @@ function Ecosystem() {
 const WORLD = 500 + 880 + 940 + 720 + 400 + 580 + 500;
 
 export default function HeroCityRide() {
+  const bikeSrc = useEvuddySideSrc();
+
   return (
     <div className="relative mx-auto mt-5 w-full max-w-[1280px] overflow-hidden rounded-[20px] border border-white shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:mt-8 sm:rounded-[32px]">
       <style>{`
@@ -195,7 +198,7 @@ export default function HeroCityRide() {
           background-image: repeating-linear-gradient(90deg, #E7E5E4 0 14px, #D6D3D1 14px 15px);
         }
         .evuddy-city-bike {
-          width: 96px;
+          width: 128px;
           height: auto;
           max-width: none;
           max-height: none;
@@ -203,13 +206,12 @@ export default function HeroCityRide() {
           display: block;
           background: transparent;
           filter: drop-shadow(0 8px 8px rgba(15,23,42,0.22));
-          mix-blend-mode: darken;
         }
         @media (min-width: 640px) {
-          .evuddy-city-bike { width: 148px; }
+          .evuddy-city-bike { width: 190px; }
         }
         @media (min-width: 1024px) {
-          .evuddy-city-bike { width: 168px; }
+          .evuddy-city-bike { width: 220px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .evuddy-drive { animation: none !important; }
@@ -247,12 +249,12 @@ export default function HeroCityRide() {
         </motion.div>
 
         <motion.div
-          className="absolute bottom-[10px] left-[10%] z-20 origin-center sm:bottom-[18px] sm:left-[16%] lg:bottom-[22px]"
+          className="absolute bottom-[8px] left-[12%] z-20 origin-[center_bottom] sm:bottom-[14px] sm:left-[18%] lg:bottom-[16px]"
           animate={{ scaleX: [-1, -1, 1, 1, -1] }}
           transition={{ duration: 30, repeat: Infinity, ease: "linear", times: [0, 0.46, 0.5, 0.96, 1] }}
         >
           <img
-            src="/evuddy-scooter-cutout.png"
+            src={bikeSrc}
             alt="EVUDDY scooter"
             className="evuddy-city-bike"
           />

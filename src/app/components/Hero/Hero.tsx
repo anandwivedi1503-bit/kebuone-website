@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import HeroCityRide from "./HeroCityRide";
+import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
 const partners = [
   { name: "Flipkart", color: "#2874F0" },
@@ -26,6 +27,7 @@ const contain = {
 
 export default function Hero() {
   const cardRef = useRef<HTMLAnchorElement | null>(null);
+  const bikeSrc = useEvuddySideSrc();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotateX = useSpring(useTransform(y, [-40, 40], [4, -4]), {
@@ -264,11 +266,11 @@ export default function Hero() {
                 <circle r="22" fill="#18B368" opacity="0.18" />
                 <circle r="5" fill="#18B368" />
                 <image
-                  href="/evuddy-scooter-cutout.png"
-                  x="-78"
-                  y="-92"
-                  width="156"
-                  height="118"
+                  href={bikeSrc}
+                  x="-110"
+                  y="-78"
+                  width="220"
+                  height="120"
                   preserveAspectRatio="xMidYMid meet"
                 />
               </g>
