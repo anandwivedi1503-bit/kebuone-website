@@ -1,8 +1,15 @@
 "use client";
 
-import { useRef, type MouseEvent } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import Link from "next/link";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import {
+  motion,
+  useMotionValue,
+  useMotionValueEvent,
+  useScroll,
+  useSpring,
+  useTransform,
+} from "framer-motion";
 import { ArrowRight } from "lucide-react";
 
 const partners = [
@@ -17,6 +24,130 @@ const hubs = [
   { label: "In ride", x: "46%", delay: "0.8s" },
   { label: "Return", x: "78%", delay: "1.6s" },
 ];
+
+const beats = [
+  {
+    title: "Leaves the hub",
+    text: "Your EVUDDY scooter rolls out from the yard, charged and ready.",
+  },
+  {
+    title: "Rider on the street",
+    text: "A quiet electric ride through the city.",
+  },
+  {
+    title: "Streetlights and open road",
+    text: "Live GPS on a clean, lit route.",
+  },
+  {
+    title: "Back to the yard",
+    text: "Ride done. Scooter returns home.",
+  },
+];
+
+function ScrollCityRide() {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [beat, setBeat] = useState(0);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start start", "end end"],
+  });
+
+  const x = useTransform(scrollYProgress, [0, 0.32, 0.68, 1], ["2%", "42%", "58%", "6%"]);
+  const flip = useTransform(scrollYProgress, [0.7, 0.78], [1, -1]);
+  const riderFade = useTransform(scrollYProgress, [0.18, 0.32, 0.62, 0.74], [0, 1, 1, 0]);
+  const lightGlow = useTransform(scrollYProgress, [0.45, 0.62, 0.82], [0.25, 1, 0.35]);
+
+  useMotionValueEvent(scrollYProgress, "change", (value) => {
+    if (value < 0.25) setBeat(0);
+    else if (value < 0.5) setBeat(1);
+    else if (value < 0.75) setBeat(2);
+    else setBeat(3);
+  });
+
+  const bikeStyle = {
+    width: "min(58vw, 280px)",
+    height: "auto",
+    maxWidth: "none",
+    maxHeight: "none",
+    objectFit: "contain" as const,
+    display: "block",
+    filter: "drop-shadow(0 16px 24px rgba(15,23,42,0.18))",
+  };
+
+  return (
+    <div ref={ref} className="relative mt-4 h-[280vh] sm:mt-8 sm:h-[300vh]">
+      <div className="sticky top-[4.75rem] flex h-[calc(100svh-5.25rem)] flex-col justify-center overflow-hidden px-4 sm:top-24 sm:h-[70vh] sm:px-6 lg:px-10">
+        <div className="mx-auto w-full max-w-[1280px] overflow-hidden rounded-[24px] border border-white bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:rounded-[32px]">
+          <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-6 sm:pt-5">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              Scroll the ride
+            </p>
+            <p className="text-[11px] font-bold text-[#18B368]">{beats[beat].title}</p>
+          </div>
+
+          <div className="relative mx-4 mb-3 mt-3 h-[46vh] min-h-[280px] overflow-hidden rounded-[20px] bg-[#F7FBFA] sm:mx-6 sm:mb-5 sm:h-[48vh] sm:min-h-[320px] sm:rounded-[24px]">
+            <div className="absolute left-2 top-3 rounded-2xl bg-white/90 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#18B368] shadow-sm sm:left-4 sm:text-[11px]">
+              Hub
+            </div>
+            <div className="absolute right-2 top-3 rounded-2xl bg-white/90 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 shadow-sm sm:right-4 sm:text-[11px]">
+              Yard
+            </div>
+
+            <div className="absolute bottom-[34%] left-2 h-16 w-20 rounded-t-[18px] bg-[#D7EEE2] sm:left-4 sm:h-20 sm:w-28" />
+            <div className="absolute bottom-[34%] right-2 h-16 w-20 rounded-t-[18px] bg-[#E8EEF2] sm:right-4 sm:h-20 sm:w-28" />
+
+            <motion.div className="absolute inset-x-0 top-[12%] flex justify-around px-10 sm:px-24" style={{ opacity: lightGlow }}>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <span className="h-3 w-3 rounded-full bg-[#FDE68A] shadow-[0_0_18px_rgba(253,230,138,0.9)] sm:h-4 sm:w-4" />
+                  <span className="h-16 w-[2px] bg-slate-300 sm:h-24" />
+                </div>
+              ))}
+            </motion.div>
+
+            <div className="absolute inset-x-0 bottom-[22%] h-2 bg-slate-200">
+              <div className="evuddy-road-scroll absolute inset-x-4 top-1/2 h-[3px] -translate-y-1/2 rounded-full" />
+            </div>
+
+            <motion.div
+              className="absolute bottom-[18%] z-20"
+              style={{ left: x, scaleX: flip }}
+            >
+              <img src="/evuddy-scooter.png" alt="" style={bikeStyle} />
+            </motion.div>
+
+            <motion.div
+              className="absolute bottom-[36%] right-[8%] z-10 hidden w-[34%] overflow-hidden rounded-[18px] border border-white shadow-lg sm:block"
+              style={{ opacity: riderFade }}
+            >
+              <img
+                src="/biker-rent.jpeg"
+                alt="Rider on EVUDDY scooter"
+                style={{
+                  width: "100%",
+                  height: "120px",
+                  maxWidth: "none",
+                  maxHeight: "none",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            </motion.div>
+          </div>
+
+          <div className="px-4 pb-5 text-center sm:px-6">
+            <h2 className="text-lg font-black tracking-tight text-[#0F172A] sm:text-2xl">
+              {beats[beat].title}
+            </h2>
+            <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500">
+              {beats[beat].text}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const contain = {
   position: "absolute" as const,
@@ -57,7 +188,7 @@ export default function Hero() {
   return (
     <section
       id="home"
-      className="relative overflow-x-hidden overflow-y-hidden bg-[#F7FBFA]"
+      className="relative overflow-x-hidden bg-[#F7FBFA]"
     >
       <style>{`
         @keyframes evuddy-poster {
@@ -102,6 +233,14 @@ export default function Hero() {
         .evuddy-pulse { animation: evuddy-pulse 2s ease-out infinite; }
         .evuddy-shine { animation: evuddy-shine 5.5s ease-in-out infinite; }
         .evuddy-bob { animation: evuddy-bob 1.1s ease-in-out infinite; }
+        @keyframes evuddy-road {
+          to { background-position: 80px 0; }
+        }
+        .evuddy-road-scroll {
+          background-image: repeating-linear-gradient(90deg, #18B368 0 18px, transparent 18px 32px);
+          background-size: 80px 3px;
+          animation: evuddy-road 0.7s linear infinite;
+        }
         .evuddy-ink {
           background-image: linear-gradient(90deg, #18B368, #EC2A8C, #18B368);
           background-size: 200% 100%;
@@ -112,7 +251,7 @@ export default function Hero() {
         }
         @media (prefers-reduced-motion: reduce) {
           .evuddy-poster, .evuddy-partners, .evuddy-draw, .evuddy-dash,
-          .evuddy-pulse, .evuddy-shine, .evuddy-bob, .evuddy-ink { animation: none !important; }
+          .evuddy-pulse, .evuddy-shine, .evuddy-bob, .evuddy-ink, .evuddy-road-scroll { animation: none !important; }
         }
       `}</style>
 
@@ -273,6 +412,8 @@ export default function Hero() {
             </div>
           </div>
         </div>
+
+        <ScrollCityRide />
       </div>
     </section>
   );
