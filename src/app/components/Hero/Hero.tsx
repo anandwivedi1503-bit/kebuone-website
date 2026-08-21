@@ -113,9 +113,14 @@ export default function Hero() {
           color: transparent;
           animation: evuddy-ink 5s linear infinite;
         }
+        @keyframes evuddy-gps-ring {
+          0% { transform: scale(0.55); opacity: 0.65; }
+          100% { transform: scale(1.55); opacity: 0; }
+        }
+        .evuddy-gps-ring { animation: evuddy-gps-ring 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
         @media (prefers-reduced-motion: reduce) {
           .evuddy-poster, .evuddy-partners, .evuddy-draw, .evuddy-dash,
-          .evuddy-pulse, .evuddy-shine, .evuddy-bob, .evuddy-ink, .evuddy-road-scroll { animation: none !important; }
+          .evuddy-pulse, .evuddy-shine, .evuddy-bob, .evuddy-ink, .evuddy-road-scroll, .evuddy-gps-ring { animation: none !important; }
         }
       `}</style>
 
@@ -182,55 +187,88 @@ export default function Hero() {
           </motion.a>
         </motion.div>
 
-        <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-white px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
+        <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-[#071510] px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
-              Live GPS route
+            <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-white/55">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#18B368]/80" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18B368]" />
+              </span>
+              Live GPS tracking
             </p>
-            <p className="truncate text-[11px] font-bold text-[#18B368]">
-              Hub to street
+            <p className="truncate text-[11px] font-bold text-[#6EE7A8]">
+              Hub 12.97°N · In ride
             </p>
           </div>
 
-          <div className="relative h-[210px] overflow-hidden sm:h-[200px] lg:h-[220px]">
+          <div className="relative h-[250px] overflow-hidden rounded-[16px] bg-[#0B1C16] sm:h-[270px] lg:h-[300px]">
+            <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(110,231,168,0.22)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.22)_1px,transparent_1px)] [background-size:32px_32px]" />
             <svg
-              viewBox="0 0 960 220"
+              viewBox="0 0 960 300"
               className="absolute inset-0 h-full w-full"
               fill="none"
               preserveAspectRatio="xMidYMid meet"
             >
+              <defs>
+                <filter id="evuddy-gps-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="4" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
               <path
-                d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
-                stroke="#E2E8F0"
-                strokeWidth="12"
+                d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                stroke="#16352c"
+                strokeWidth="18"
                 strokeLinecap="round"
               />
               <path
                 id="evuddy-route"
                 className="evuddy-draw"
-                d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
+                d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
                 stroke="#18B368"
-                strokeWidth="5"
+                strokeWidth="6"
                 strokeLinecap="round"
+                filter="url(#evuddy-gps-glow)"
               />
               <path
                 className="evuddy-dash"
-                d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
+                d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
                 stroke="white"
-                strokeWidth="2.5"
+                strokeWidth="2"
                 strokeLinecap="round"
               />
 
               <g>
-                <animateMotion dur="7s" repeatCount="indefinite" rotate="0">
+                <circle cx="80" cy="170" r="16" fill="#18B368" opacity="0.25" />
+                <circle cx="80" cy="170" r="8" fill="#18B368" />
+                <text x="80" y="198" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">HUB</text>
+              </g>
+              <g>
+                <circle cx="500" cy="140" r="14" fill="#EC2A8C" opacity="0.22" />
+                <circle cx="500" cy="140" r="7" fill="#EC2A8C" />
+              </g>
+              <g>
+                <circle cx="880" cy="155" r="16" fill="#18B368" opacity="0.25" />
+                <circle cx="880" cy="155" r="8" fill="#18B368" />
+                <text x="880" y="183" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">YARD</text>
+              </g>
+
+              <g>
+                <animateMotion dur="8s" repeatCount="indefinite" rotate="0">
                   <mpath href="#evuddy-route" />
                 </animateMotion>
+                <circle className="evuddy-gps-ring" r="34" fill="none" stroke="#6EE7A8" strokeWidth="2" />
+                <circle r="22" fill="#18B368" opacity="0.18" />
+                <circle r="5" fill="#18B368" />
                 <image
                   href="/evuddy-scooter-cutout.png"
-                  x="-52"
-                  y="-40"
-                  width="104"
-                  height="64"
+                  x="-78"
+                  y="-92"
+                  width="156"
+                  height="118"
                   preserveAspectRatio="xMidYMid meet"
                 />
               </g>

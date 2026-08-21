@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 
 function Tree({ size = 1 }: { size?: number }) {
@@ -182,8 +181,6 @@ function Ecosystem() {
 const WORLD = 500 + 880 + 940 + 720 + 400 + 580 + 500;
 
 export default function HeroCityRide() {
-  const [bikeSrc, setBikeSrc] = useState("/evuddy-side.png");
-
   return (
     <div className="relative mx-auto mt-5 w-full max-w-[1280px] overflow-hidden rounded-[20px] border border-white shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:mt-8 sm:rounded-[32px]">
       <style>{`
@@ -206,6 +203,7 @@ export default function HeroCityRide() {
           display: block;
           background: transparent;
           filter: drop-shadow(0 8px 8px rgba(15,23,42,0.22));
+          mix-blend-mode: darken;
         }
         @media (min-width: 640px) {
           .evuddy-city-bike { width: 148px; }
@@ -254,10 +252,9 @@ export default function HeroCityRide() {
           transition={{ duration: 30, repeat: Infinity, ease: "linear", times: [0, 0.46, 0.5, 0.96, 1] }}
         >
           <img
-            src={bikeSrc}
+            src="/evuddy-scooter-cutout.png"
             alt="EVUDDY scooter"
             className="evuddy-city-bike"
-            onError={() => setBikeSrc("/evuddy-scooter-cutout.png")}
           />
         </motion.div>
       </div>
