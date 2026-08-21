@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
 
 type Pt = { sx: number; sy: number };
@@ -128,6 +129,9 @@ function RidingScooter({ delay, src }: { delay: string; src: string }) {
 
 export default function EvuddyEcosystem() {
   const bikeSrc = useEvuddySideSrc();
+  const [pinned, setPinned] = useState(false);
+  const [hover, setHover] = useState(false);
+  const big = pinned || hover;
   const hq = iso(5.2, 4.0, 150);
   const pickup = iso(0.2, 5.4, 10);
   const hub = iso(5.4, 7.6, 78);
@@ -137,33 +141,45 @@ export default function EvuddyEcosystem() {
   const solar = iso(2.6, 10.4, 10);
 
   return (
-    <div className="relative h-[58vh] min-h-[440px] w-full overflow-hidden bg-[linear-gradient(180deg,#EAF4FB_0%,#F7FBFD_42%,#EEF6F2_100%)] sm:h-[68vh] lg:h-[82vh]">
+    <div
+      role="button"
+      tabIndex={0}
+      aria-expanded={big}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={() => setPinned((open) => !open)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setPinned((open) => !open);
+        }
+      }}
+      className={`relative w-full cursor-zoom-in overflow-hidden bg-[linear-gradient(180deg,#EAF4FB_0%,#F7FBFD_46%,#EEF6F2_100%)] transition-[height,min-height] duration-500 ease-out ${
+        big
+          ? "h-[72vh] min-h-[520px] cursor-zoom-out sm:h-[80vh]"
+          : "h-[34vh] min-h-[260px] sm:h-[40vh] sm:min-h-[340px] lg:h-[44vh]"
+      }`}
+    >
       <style>{`
         @keyframes evuddy-net {
           to { stroke-dashoffset: -56; }
-        }
-        @keyframes evuddy-cam {
-          0%, 100% { transform: scale(1.02) translate(0, 0); }
-          50% { transform: scale(1.06) translate(-0.6%, 0.5%); }
         }
         .evuddy-net-line {
           stroke-dasharray: 9 11;
           animation: evuddy-net 1.4s linear infinite;
           filter: drop-shadow(0 0 5px rgba(24,179,104,0.5));
         }
-        .evuddy-cam {
-          transform-origin: 50% 48%;
-          animation: evuddy-cam 22s ease-in-out infinite;
-        }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-net-line, .evuddy-cam { animation: none; }
+          .evuddy-net-line { animation: none; }
         }
       `}</style>
 
       <svg
-        viewBox="80 40 1280 740"
-        preserveAspectRatio="xMidYMid slice"
-        className="evuddy-cam absolute inset-0 h-full w-full"
+        viewBox="0 0 1440 820"
+        preserveAspectRatio="xMidYMid meet"
+        className={`absolute inset-0 h-full w-full transition-transform duration-500 ease-out ${
+          big ? "scale-100" : "scale-[0.92]"
+        }`}
         role="img"
         aria-label="EVUDDY live ecosystem"
       >
@@ -311,17 +327,25 @@ export default function EvuddyEcosystem() {
         <RidingScooter delay="12s" src={bikeSrc} />
       </svg>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#EAF4FB] to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#EEF6F2] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-10 bg-gradient-to-b from-[#EAF4FB] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-[#EEF6F2] to-transparent" />
 
-      <div className="absolute left-4 top-[18%] max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:left-10 sm:max-w-[300px]">
-        <p className="text-sm font-black text-[#0F172A] sm:text-base">Live GPS for riders and partners</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">Every hub, pickup yard and street ride on one network.</p>
-      </div>
-      <div className="absolute bottom-[14%] right-4 max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:right-10 sm:max-w-[300px]">
-        <p className="text-sm font-black text-[#0F172A] sm:text-base">Book. Pickup. Return.</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">EVUDDY hubs with OTP, charge points and a scooter you can ride today.</p>
-      </div>
+      <p className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold tracking-[0.12em] text-slate-500 uppercase">
+        {big ? "Click to shrink" : "Hover or click to expand"}
+      </p>
+
+      {big ? (
+        <>
+          <div className="pointer-events-none absolute left-4 top-[16%] max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:left-10 sm:max-w-[300px]">
+            <p className="text-sm font-black text-[#0F172A] sm:text-base">Live GPS for riders and partners</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">Every hub, pickup yard and street ride on one network.</p>
+          </div>
+          <div className="pointer-events-none absolute bottom-[14%] right-4 max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:right-10 sm:max-w-[300px]">
+            <p className="text-sm font-black text-[#0F172A] sm:text-base">Book. Pickup. Return.</p>
+            <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">EVUDDY hubs with OTP, charge points and a scooter you can ride today.</p>
+          </div>
+        </>
+      ) : null}
     </div>
   );
 }
