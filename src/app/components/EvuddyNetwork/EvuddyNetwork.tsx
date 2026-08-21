@@ -193,7 +193,7 @@ export default function EvuddyNetwork() {
         </div>
       </div>
 
-      <div className="relative mt-10 w-full sm:mt-14">
+      <div className="relative left-1/2 mt-10 w-screen max-w-[100vw] -translate-x-1/2 sm:mt-14">
         <EvuddyEcosystem />
       </div>
     </section>
