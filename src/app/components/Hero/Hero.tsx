@@ -148,6 +148,8 @@ export default function Hero() {
           </Link>
         </div>
 
+        <HeroCityRide />
+
         <motion.div
           style={{ perspective: 1200 }}
           className="mx-auto mt-7 w-full max-w-[1280px] sm:mt-10"
@@ -179,8 +181,6 @@ export default function Hero() {
             </div>
           </motion.a>
         </motion.div>
-
-        <HeroCityRide />
 
         <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-white px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
           <div className="mb-3 flex items-center justify-between gap-3">

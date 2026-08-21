@@ -9,56 +9,152 @@ import {
 } from "framer-motion";
 
 const beats = [
-  {
-    kicker: "01  Book",
-    title: "Your EVUDDY is reserved.",
-    text: "Pick a hub and a plan. The scooter is charged and waiting.",
-  },
-  {
-    kicker: "02  Pickup",
-    title: "Collect it at the hub.",
-    text: "Show your OTP and roll out. GPS stays live from the first metre.",
-  },
-  {
-    kicker: "03  Ride",
-    title: "Quiet power on the street.",
-    text: "A clean electric commute through the city — built for everyday work.",
-  },
-  {
-    kicker: "04  Return",
-    title: "Back when you are done.",
-    text: "Drop it at the hub. The next rider gets a full charge.",
-  },
+  { title: "Out from the yard", text: "Charged at the EVUDDY hub, the scooter rolls onto the street." },
+  { title: "Homes and trees", text: "Quiet lanes, everyday houses, and a tree-lined ride." },
+  { title: "Shops on the way", text: "Local stores, a cafe, and a charge point on the same road." },
+  { title: "Crossing and flyover", text: "Past the railway gate, under the bridge, then the city opens up." },
+  { title: "Back to the yard", text: "Ride done. The scooter returns home for the next booking." },
 ];
 
-const far = [38, 56, 44, 70, 40, 62, 48, 74, 42, 58, 50, 68, 36, 60, 46, 72, 40, 54];
-const near = [58, 82, 64, 94, 54, 78, 70, 90, 60, 84, 66, 88, 52, 76, 72, 92, 58, 80];
-
-function Building({
-  height,
-  shade,
-}: {
-  height: number;
-  shade: string;
-}) {
+function Tree({ size = 1 }: { size?: number }) {
   return (
-    <div
-      className="relative min-w-[58px] flex-1 overflow-hidden rounded-t-[4px] sm:min-w-[78px]"
-      style={{
-        height: `${height}%`,
-        background: shade,
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.65)",
-      }}
-    >
+    <div className="flex flex-col items-center" style={{ transform: `scale(${size})`, transformOrigin: "bottom" }}>
+      <div className="h-11 w-11 rounded-full bg-[#3F9A4F] shadow-[inset_-6px_-4px_0_rgba(0,0,0,0.08)]" />
+      <div className="-mt-1 h-9 w-[7px] rounded-full bg-[#7A4A22]" />
+    </div>
+  );
+}
+
+function House({ wall, roof }: { wall: string; roof: string }) {
+  return (
+    <div className="relative w-[92px] shrink-0">
       <div
-        className="absolute inset-x-[18%] top-[12%] bottom-[14%] opacity-50"
+        className="absolute -top-7 left-[-6px] right-[-6px] h-8"
+        style={{ background: roof, clipPath: "polygon(50% 0, 100% 100%, 0 100%)" }}
+      />
+      <div className="relative h-[72px] overflow-hidden rounded-sm" style={{ background: wall }}>
+        <div className="absolute left-3 top-4 h-[14px] w-[14px] bg-[#7DD3FC]" />
+        <div className="absolute right-3 top-4 h-[14px] w-[14px] bg-[#7DD3FC]" />
+        <div className="absolute bottom-0 left-1/2 h-7 w-5 -translate-x-1/2 bg-[#9A3412]" />
+      </div>
+    </div>
+  );
+}
+
+function Shop({ name, stripe }: { name: string; stripe: string }) {
+  return (
+    <div className="relative w-[118px] shrink-0">
+      <div
+        className="h-3"
         style={{
-          backgroundImage:
-            "linear-gradient(#0F172A22 8px, transparent 8px), linear-gradient(90deg, #0F172A22 8px, transparent 8px)",
-          backgroundSize: "14px 16px",
+          backgroundImage: `repeating-linear-gradient(90deg, ${stripe} 0 12px, #fff 12px 22px)`,
         }}
       />
+      <div className="h-[78px] rounded-b-sm bg-white shadow-[0_8px_16px_rgba(15,23,42,0.06)]">
+        <p className="pt-2 text-center text-[10px] font-black uppercase tracking-[0.12em] text-[#0F172A]">
+          {name}
+        </p>
+        <div className="mx-3 mt-2 h-8 rounded-sm bg-[#E0F2FE]" />
+      </div>
     </div>
+  );
+}
+
+function Yard({ label }: { label: string }) {
+  return (
+    <div className="relative flex h-full w-[520px] shrink-0 items-end px-6">
+      <div className="absolute inset-x-4 bottom-0 top-8 rounded-t-[28px] border border-white/70 bg-white/55" />
+      <div className="relative mb-2 w-full">
+        <div className="mx-auto h-[118px] max-w-[280px] rounded-t-[22px] bg-white shadow-[0_14px_30px_rgba(24,179,104,0.12)]">
+          <div className="mx-6 mt-5 h-2 rounded-full bg-[#18B368]" />
+          <p className="mt-6 text-center text-[11px] font-black uppercase tracking-[0.22em] text-[#18B368]">
+            {label}
+          </p>
+          <div className="mx-auto mt-4 flex w-40 justify-center gap-2">
+            {[0, 1, 2, 3].map((n) => (
+              <span key={n} className="h-8 w-2 rounded-full bg-[#86EFAC]" />
+            ))}
+          </div>
+        </div>
+        <div className="mt-3 flex justify-center gap-6">
+          <Tree size={0.8} />
+          <Tree size={1} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Ecosystem() {
+  return (
+    <>
+      <Yard label="EVUDDY Yard" />
+
+      <div className="relative flex h-full w-[860px] shrink-0 items-end gap-5 px-8 pb-1">
+        <Tree size={1.1} />
+        <House wall="#FFF7ED" roof="#EA580C" />
+        <Tree size={0.85} />
+        <House wall="#F8FAFC" roof="#0F766E" />
+        <House wall="#FDF2F8" roof="#BE185D" />
+        <Tree size={1} />
+        <House wall="#EFF6FF" roof="#1D4ED8" />
+        <Tree size={0.9} />
+      </div>
+
+      <div className="relative flex h-full w-[820px] shrink-0 items-end gap-4 px-6 pb-1">
+        <Tree size={0.75} />
+        <Shop name="Daily Mart" stripe="#18B368" />
+        <Shop name="Cafe Leaf" stripe="#EC2A8C" />
+        <Shop name="Phone Fix" stripe="#0EA5E9" />
+        <div className="relative w-[90px] shrink-0">
+          <div className="h-[86px] rounded-sm bg-[#0F172A]">
+            <p className="pt-3 text-center text-[9px] font-black uppercase tracking-[0.14em] text-[#6EE7A8]">
+              EV Charge
+            </p>
+            <div className="mx-auto mt-3 h-8 w-8 rounded-full border-4 border-[#18B368]" />
+          </div>
+        </div>
+        <Tree size={0.95} />
+      </div>
+
+      <div className="relative flex h-full w-[460px] shrink-0 items-end justify-center px-4">
+        <div className="absolute bottom-[-22%] left-6 right-6 z-20">
+          <div className="h-[3px] bg-[#334155]" />
+          <div className="mt-[6px] h-[3px] bg-[#334155]" />
+          <div className="mt-[6px] h-[3px] bg-[#334155]" />
+        </div>
+        <div className="relative mb-10 flex items-end gap-3">
+          <div className="h-16 w-3 rounded-sm bg-[#DC2626]" />
+          <div className="mb-10 h-2 w-28 origin-left rounded-full bg-[#F8FAFC] shadow-sm rotate-[-18deg] border border-red-400" />
+          <div>
+            <p className="mb-2 text-[10px] font-black uppercase tracking-[0.16em] text-[#B91C1C]">
+              Railway crossing
+            </p>
+            <div className="h-8 w-8 rounded-sm bg-[#111827]">
+              <div className="mx-auto mt-1 h-2 w-2 rounded-full bg-[#FACC15]" />
+              <div className="mx-auto mt-1 h-2 w-2 rounded-full bg-[#22C55E]" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative flex h-full w-[640px] shrink-0 items-end px-8">
+        <div className="absolute bottom-0 left-10 right-10 z-30 h-[58%]">
+          <div className="absolute bottom-8 left-6 h-[70%] w-4 rounded-t-sm bg-[#94A3B8]" />
+          <div className="absolute bottom-8 right-6 h-[70%] w-4 rounded-t-sm bg-[#94A3B8]" />
+          <div className="absolute left-0 right-0 top-4 h-10 rounded-sm bg-[#CBD5E1] shadow-[0_8px_18px_rgba(15,23,42,0.12)]" />
+          <p className="absolute left-0 right-0 top-6 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+            Flyover
+          </p>
+        </div>
+        <div className="relative z-10 mb-2 flex w-full justify-between px-16">
+          <Tree size={0.7} />
+          <Tree size={0.8} />
+        </div>
+      </div>
+
+      <Yard label="EVUDDY Yard" />
+    </>
   );
 }
 
@@ -70,132 +166,78 @@ export default function HeroCityRide() {
     offset: ["start start", "end end"],
   });
 
-  const farX = useTransform(scrollYProgress, [0, 1], ["6%", "-28%"]);
-  const nearX = useTransform(scrollYProgress, [0, 1], ["10%", "-62%"]);
-  const roadX = useTransform(scrollYProgress, [0, 1], ["0%", "-40%"]);
-  const cloudX = useTransform(scrollYProgress, [0, 1], ["0%", "-16%"]);
+  const worldX = useTransform(scrollYProgress, [0, 0.5, 1], ["0%", "-75%", "0%"]);
+  const cloudX = useTransform(scrollYProgress, [0, 1], ["0%", "-12%"]);
+  const flip = useTransform(scrollYProgress, [0.48, 0.54], [1, -1]);
+  const bikeX = useTransform(scrollYProgress, [0, 0.08, 0.5, 0.92, 1], ["10%", "26%", "30%", "26%", "10%"]);
 
   useMotionValueEvent(scrollYProgress, "change", (value) => {
-    if (value < 0.22) setBeat(0);
-    else if (value < 0.48) setBeat(1);
-    else if (value < 0.74) setBeat(2);
+    const along = value <= 0.5 ? value * 2 : (1 - value) * 2;
+    if (value > 0.88) setBeat(4);
+    else if (along < 0.16) setBeat(0);
+    else if (along < 0.4) setBeat(1);
+    else if (along < 0.66) setBeat(2);
     else setBeat(3);
   });
 
   return (
-    <div ref={ref} className="relative left-1/2 mt-8 h-[280vh] w-screen -translate-x-1/2 sm:mt-10 sm:h-[300vh]">
+    <div ref={ref} className="relative left-1/2 mt-8 h-[340vh] w-screen -translate-x-1/2 sm:mt-10 sm:h-[360vh]">
       <style>{`
         @keyframes evuddy-drive {
-          to { background-position: -120px 0; }
+          to { background-position: -140px 0; }
         }
         .evuddy-drive {
-          background-image: repeating-linear-gradient(
-            90deg,
-            rgba(255,255,255,0.95) 0 34px,
-            transparent 34px 68px
-          );
-          animation: evuddy-drive 0.4s linear infinite;
+          background-image: repeating-linear-gradient(90deg, #fff 0 36px, transparent 36px 72px);
+          animation: evuddy-drive 0.38s linear infinite;
         }
         .evuddy-city-bike {
-          width: min(62vw, 380px);
+          width: min(58vw, 300px);
           height: auto;
           max-width: none;
           max-height: none;
           object-fit: contain;
           display: block;
-          filter: drop-shadow(0 20px 18px rgba(15,23,42,0.18));
+          filter: drop-shadow(0 16px 16px rgba(15,23,42,0.18));
         }
         @media (max-width: 640px) {
-          .evuddy-city-bike { width: min(78vw, 250px); }
+          .evuddy-city-bike { width: min(70vw, 220px); }
         }
         @media (prefers-reduced-motion: reduce) {
           .evuddy-drive { animation: none !important; }
         }
       `}</style>
 
-      <div className="sticky top-[4.5rem] h-[calc(100svh-4.5rem)] overflow-hidden bg-[#D9EEFF] sm:top-20 sm:h-[calc(100svh-5rem)]">
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,#9FD4FF_0%,#D9EEFF_34%,#F3FAF6_58%,#D5E3DA_100%)]" />
-        <div className="pointer-events-none absolute right-[12%] top-10 h-16 w-16 rounded-full bg-[#FFE08A] sm:h-[4.5rem] sm:w-[4.5rem]" />
-
-        <motion.div className="pointer-events-none absolute inset-x-0 top-12 h-14" style={{ x: cloudX }}>
-          <div className="absolute left-[10%] h-8 w-28 rounded-full bg-white/80" />
-          <div className="absolute left-[38%] top-3 h-10 w-40 rounded-full bg-white/70" />
-          <div className="absolute left-[66%] h-7 w-24 rounded-full bg-white/75" />
+      <div className="sticky top-[4.5rem] h-[calc(100svh-4.5rem)] overflow-hidden sm:top-20 sm:h-[calc(100svh-5rem)]">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#8ECFFF_0%,#D7EEFF_32%,#F4FAF7_58%,#C8DCCF_100%)]" />
+        <div className="absolute right-[15%] top-9 h-[4.25rem] w-[4.25rem] rounded-full bg-[#FFE08A]" />
+        <motion.div className="absolute inset-x-0 top-12 h-12" style={{ x: cloudX }}>
+          <div className="absolute left-[8%] h-8 w-28 rounded-full bg-white/80" />
+          <div className="absolute left-[36%] top-2 h-10 w-40 rounded-full bg-white/70" />
+          <div className="absolute left-[62%] h-7 w-24 rounded-full bg-white/75" />
         </motion.div>
 
-        <div className="absolute left-5 top-6 z-30 max-w-[18rem] sm:left-10 sm:top-10 sm:max-w-xl">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#15803D]">
-            {beats[beat].kicker}
-          </p>
-          <h2 className="mt-2 text-[1.7rem] font-black leading-[0.95] tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            {beats[beat].title}
-          </h2>
-          <p className="mt-3 max-w-md text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
-            {beats[beat].text}
-          </p>
-        </div>
-
-        <motion.div
-          className="absolute bottom-[31%] left-0 flex h-[28%] w-[180%] items-end gap-2 px-6 opacity-70"
-          style={{ x: farX }}
-        >
-          {far.map((h, i) => (
-            <Building
-              key={`f-${i}`}
-              height={h}
-              shade={i % 2 === 0 ? "#C5D8E6" : "#D2E0D8"}
-            />
-          ))}
-        </motion.div>
-
-        <motion.div
-          className="absolute bottom-[27%] left-0 flex h-[40%] w-[260%] items-end gap-3 px-8"
-          style={{ x: nearX }}
-        >
-          <div className="relative w-40 shrink-0 self-end sm:w-52">
-            <div className="h-32 rounded-t-[20px] bg-white shadow-[0_12px_24px_rgba(15,23,42,0.08)] sm:h-36">
-              <div className="mx-5 mt-5 h-2 rounded-full bg-[#18B368]" />
-              <p className="mt-10 text-center text-[11px] font-black uppercase tracking-[0.2em] text-[#18B368]">
-                EVUDDY Hub
-              </p>
-            </div>
+        <motion.div className="absolute inset-y-0 left-0 w-[400%]" style={{ x: worldX }}>
+          <div className="absolute inset-x-0 bottom-0 h-[22%] bg-[#6B7280]">
+            <div className="absolute inset-x-0 top-0 h-[18%] bg-[#9CA3AF]" />
+            <div className="evuddy-drive absolute inset-x-0 top-[46%] h-[6px]" />
           </div>
-          {near.map((h, i) => (
-            <Building
-              key={`n-${i}`}
-              height={h}
-              shade={i % 3 === 0 ? "#FFFFFF" : i % 3 === 1 ? "#E7F5EE" : "#EEF6FB"}
-            />
-          ))}
-          <div className="relative w-36 shrink-0 self-end sm:w-44">
-            <div className="h-28 rounded-t-[18px] bg-white sm:h-32">
-              <p className="pt-12 text-center text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-                Yard
-              </p>
-            </div>
+          <div className="absolute inset-x-0 bottom-[22%] h-[5%] bg-[#D6D3D1]" />
+          <div className="absolute inset-x-0 bottom-[27%] h-[46%] flex items-stretch">
+            <Ecosystem />
           </div>
         </motion.div>
 
-        <div className="absolute inset-x-0 bottom-0 h-[28%] sm:h-[27%]">
-          <div
-            className="absolute left-1/2 top-0 h-full w-[160%] -translate-x-1/2"
-            style={{
-              clipPath: "polygon(12% 0, 88% 0, 100% 100%, 0 100%)",
-              background: "linear-gradient(180deg,#C9D2D4 0%,#A8B2B6 55%,#8E989C 100%)",
-            }}
-          />
-          <motion.div
-            className="evuddy-drive absolute left-[22%] right-[22%] top-[38%] h-[6px] rounded-full"
-            style={{ x: roadX }}
-          />
-        </div>
-
-        <div className="absolute bottom-[9%] left-1/2 z-20 -translate-x-[46%] sm:bottom-[8%]">
+        <motion.div className="absolute z-20" style={{ left: bikeX, bottom: "8%", scaleX: flip }}>
           <img
             src="/evuddy-scooter.png"
             alt="EVUDDY electric scooter"
             className="evuddy-city-bike"
           />
+        </motion.div>
+
+        <div className="absolute bottom-4 left-1/2 z-30 w-[min(92%,36rem)] -translate-x-1/2 rounded-2xl bg-white/80 px-4 py-3 text-center shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm sm:px-6">
+          <p className="text-sm font-black text-[#0F172A] sm:text-lg">{beats[beat].title}</p>
+          <p className="mt-0.5 text-xs leading-5 text-slate-500 sm:text-sm">{beats[beat].text}</p>
         </div>
       </div>
     </div>
