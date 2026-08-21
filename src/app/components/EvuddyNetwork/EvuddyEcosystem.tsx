@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useId, useState, useSyncExternalStore } from "react";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
 
 /**
@@ -330,21 +330,23 @@ function MovingScooter({
   );
 }
 
+function subscribeHover(onChange: () => void) {
+  const mq = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)");
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+
 export default function EvuddyEcosystem() {
   const src = useEvuddySideSrc();
   const uid = useId().replace(/:/g, "");
   const scootPath = `${uid}-scoot`;
   const carPath = `${uid}-car`;
   const [expanded, setExpanded] = useState(false);
-  const [canHover, setCanHover] = useState(false);
-
-  useEffect(() => {
-    const mq = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)");
-    const sync = () => setCanHover(mq.matches);
-    sync();
-    mq.addEventListener("change", sync);
-    return () => mq.removeEventListener("change", sync);
-  }, []);
+  const canHover = useSyncExternalStore(
+    subscribeHover,
+    () => window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches,
+    () => false
+  );
 
   const s0 = iso(-21, 5.8);
   const s1 = iso(41, 5.8);

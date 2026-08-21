@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
 import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
@@ -196,17 +196,18 @@ function Ecosystem() {
 
 const WORLD = 500 + 880 + 940 + 720 + 400 + 580 + 500;
 
+function subscribeWidth(onChange: () => void) {
+  window.addEventListener("resize", onChange);
+  return () => window.removeEventListener("resize", onChange);
+}
+
 export default function HeroCityRide() {
   const bikeSrc = useEvuddySideSrc();
-  const [viewW, setViewW] = useState(360);
-
-  useEffect(() => {
-    const read = () => setViewW(window.innerWidth);
-    read();
-    window.addEventListener("resize", read);
-    return () => window.removeEventListener("resize", read);
-  }, []);
-
+  const viewW = useSyncExternalStore(
+    subscribeWidth,
+    () => window.innerWidth,
+    () => 360
+  );
   const travel = Math.max(WORLD - Math.min(viewW, 1280), 900);
 
   return (
