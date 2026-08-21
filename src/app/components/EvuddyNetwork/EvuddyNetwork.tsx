@@ -4,53 +4,64 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import EvuddyEcosystem from "./EvuddyEcosystem";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
+import { googleMapsUrl, openGoogleMaps } from "./maps";
 
 type CityMark = {
   name: string;
   x: number;
   y: number;
   hubs: string;
+  lat: number;
+  lng: number;
 };
 
-/** Projected from real lon/lat onto the India mainland SVG. */
-const CITY_COORDS: Record<string, { x: number; y: number }> = {
-  Srinagar: { x: 117.8, y: 107.04 },
-  Delhi: { x: 154.05, y: 189.31 },
-  Noida: { x: 156.76, y: 190.36 },
-  Gurugram: { x: 151.34, y: 191.57 },
-  Mathura: { x: 160.97, y: 206.16 },
-  Agra: { x: 166.08, y: 210.82 },
-  Jaipur: { x: 132.69, y: 214.88 },
-  Lucknow: { x: 210.3, y: 215.78 },
-  Kanpur: { x: 200.97, y: 221.8 },
-  Ahmedabad: { x: 84.26, y: 273.38 },
-  Surat: { x: 88.17, y: 301.21 },
-  Mumbai: { x: 88.93, y: 332.64 },
-  Pune: { x: 103.67, y: 341.06 },
-  Indore: { x: 133.74, y: 277.89 },
-  Bhopal: { x: 157.06, y: 269.77 },
-  Hyderabad: { x: 173.3, y: 358.06 },
-  Bengaluru: { x: 159.76, y: 424.53 },
-  Bangalore: { x: 159.76, y: 424.53 },
-  Chennai: { x: 200.07, y: 422.88 },
-  Kolkata: { x: 321.74, y: 280.15 },
-  Patna: { x: 273.31, y: 234.73 },
-  Chandigarh: { x: 147.58, y: 157.43 },
+type LiveHub = {
+  hubName?: string;
+  city?: string;
+  latitude?: number;
+  longitude?: number;
+  hubLocation?: string;
+};
+
+const CITY_COORDS: Record<string, { x: number; y: number; lat: number; lng: number }> = {
+  Srinagar: { x: 117.8, y: 107.04, lat: 34.0837, lng: 74.7973 },
+  Delhi: { x: 154.05, y: 189.31, lat: 28.6139, lng: 77.209 },
+  Noida: { x: 156.76, y: 190.36, lat: 28.5355, lng: 77.391 },
+  Gurugram: { x: 151.34, y: 191.57, lat: 28.4595, lng: 77.0266 },
+  Mathura: { x: 160.97, y: 206.16, lat: 27.4924, lng: 77.6737 },
+  Agra: { x: 166.08, y: 210.82, lat: 27.1767, lng: 78.0081 },
+  Jaipur: { x: 132.69, y: 214.88, lat: 26.9124, lng: 75.7873 },
+  Lucknow: { x: 210.3, y: 215.78, lat: 26.8467, lng: 80.9462 },
+  Kanpur: { x: 200.97, y: 221.8, lat: 26.4499, lng: 80.3319 },
+  Ahmedabad: { x: 84.26, y: 273.38, lat: 23.0225, lng: 72.5714 },
+  Surat: { x: 88.17, y: 301.21, lat: 21.1702, lng: 72.8311 },
+  Mumbai: { x: 88.93, y: 332.64, lat: 19.076, lng: 72.8777 },
+  Pune: { x: 103.67, y: 341.06, lat: 18.5204, lng: 73.8567 },
+  Indore: { x: 133.74, y: 277.89, lat: 22.7196, lng: 75.8577 },
+  Bhopal: { x: 157.06, y: 269.77, lat: 23.2599, lng: 77.4126 },
+  Hyderabad: { x: 173.3, y: 358.06, lat: 17.385, lng: 78.4867 },
+  Bengaluru: { x: 159.76, y: 424.53, lat: 12.9716, lng: 77.5946 },
+  Bangalore: { x: 159.76, y: 424.53, lat: 12.9716, lng: 77.5946 },
+  Chennai: { x: 200.07, y: 422.88, lat: 13.0827, lng: 80.2707 },
+  Kolkata: { x: 321.74, y: 280.15, lat: 22.5726, lng: 88.3639 },
+  Patna: { x: 273.31, y: 234.73, lat: 25.5941, lng: 85.1376 },
+  Chandigarh: { x: 147.58, y: 157.43, lat: 30.7333, lng: 76.7794 },
 };
 
 const FALLBACK_CITIES: CityMark[] = [
-  { name: "Delhi", x: 154.05, y: 189.31, hubs: "Capital hub live" },
-  { name: "Mathura", x: 160.97, y: 206.16, hubs: "EVUDDY pickup hub" },
-  { name: "Jaipur", x: 132.69, y: 214.88, hubs: "City hub live" },
-  { name: "Lucknow", x: 210.3, y: 215.78, hubs: "Ride & return yard" },
-  { name: "Mumbai", x: 88.93, y: 332.64, hubs: "Coastal hub live" },
-  { name: "Hyderabad", x: 173.3, y: 358.06, hubs: "South hub live" },
-  { name: "Bengaluru", x: 159.76, y: 424.53, hubs: "Tech city hub" },
+  { name: "Delhi", x: 154.05, y: 189.31, hubs: "Capital hub live", lat: 28.6139, lng: 77.209 },
+  { name: "Mathura", x: 160.97, y: 206.16, hubs: "EVUDDY pickup hub", lat: 27.4924, lng: 77.6737 },
+  { name: "Jaipur", x: 132.69, y: 214.88, hubs: "City hub live", lat: 26.9124, lng: 75.7873 },
+  { name: "Lucknow", x: 210.3, y: 215.78, hubs: "Ride & return yard", lat: 26.8467, lng: 80.9462 },
+  { name: "Mumbai", x: 88.93, y: 332.64, hubs: "Coastal hub live", lat: 19.076, lng: 72.8777 },
+  { name: "Hyderabad", x: 173.3, y: 358.06, hubs: "South hub live", lat: 17.385, lng: 78.4867 },
+  { name: "Bengaluru", x: 159.76, y: 424.53, hubs: "Tech city hub", lat: 12.9716, lng: 77.5946 },
 ];
 
 export default function EvuddyNetwork() {
   const [active, setActive] = useState<CityMark>(FALLBACK_CITIES[1]);
   const [liveCities, setLiveCities] = useState<string[]>([]);
+  const [liveHubs, setLiveHubs] = useState<LiveHub[]>([]);
 
   useEffect(() => {
     fetch("/api/cities")
@@ -62,6 +73,11 @@ export default function EvuddyNetwork() {
         setLiveCities(names);
       })
       .catch(() => setLiveCities([]));
+
+    fetch("/api/hubs")
+      .then((res) => res.json())
+      .then((json) => setLiveHubs(json.data || []))
+      .catch(() => setLiveHubs([]));
   }, []);
 
   const marks = useMemo(() => {
@@ -70,12 +86,25 @@ export default function EvuddyNetwork() {
         const hit = Object.keys(CITY_COORDS).find((key) => key.toLowerCase() === name.toLowerCase());
         if (!hit) return null;
         const point = CITY_COORDS[hit];
-        return { name, x: point.x, y: point.y, hubs: "EVUDDY hub live" };
+        const cityHubs = liveHubs.filter((hub) => String(hub.city || "").toLowerCase() === name.toLowerCase());
+        return {
+          name,
+          x: point.x,
+          y: point.y,
+          lat: cityHubs[0]?.latitude || point.lat,
+          lng: cityHubs[0]?.longitude || point.lng,
+          hubs: cityHubs[0]?.hubName ? `${cityHubs[0].hubName} · open in Maps` : "EVUDDY hub live · open in Maps",
+        };
       })
       .filter((item): item is CityMark => Boolean(item));
 
     return fromApi.length > 0 ? fromApi : FALLBACK_CITIES;
-  }, [liveCities]);
+  }, [liveCities, liveHubs]);
+
+  const selectCity = (city: CityMark, openMaps: boolean) => {
+    setActive(city);
+    if (openMaps) openGoogleMaps(city.lat, city.lng, `EVUDDY ${city.name}`);
+  };
 
   return (
     <section id="network" className="relative overflow-hidden bg-[#F3F6F8] py-16 sm:py-24">
@@ -95,17 +124,26 @@ export default function EvuddyNetwork() {
               </span>
             </h2>
             <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-lg">
-              Tap a city on the map — then see the EVUDDY ecosystem on the ground: branded hub, pickup yard, live GPS
-              street and the same scooter you book today.
+              Tap a city to see the hub, then it opens in Google Maps — pickup yards you can actually navigate to.
             </p>
-            <div className="mt-6 flex items-center gap-4 rounded-2xl border border-white bg-white px-5 py-4 shadow-sm">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-[#0F172A] text-sm font-black text-[#6EE7A8]">
-                {active.name.slice(0, 1)}
-              </span>
-              <div>
-                <p className="text-lg font-black text-[#0F172A]">{active.name}</p>
-                <p className="mt-0.5 text-sm font-semibold text-[#18B368]">{active.hubs}</p>
+            <div className="mt-6 rounded-2xl border border-white bg-white px-5 py-4 shadow-sm">
+              <div className="flex items-center gap-4">
+                <span className="grid h-11 w-11 place-items-center rounded-full bg-[#0F172A] text-sm font-black text-[#6EE7A8]">
+                  {active.name.slice(0, 1)}
+                </span>
+                <div>
+                  <p className="text-lg font-black text-[#0F172A]">{active.name}</p>
+                  <p className="mt-0.5 text-sm font-semibold text-[#18B368]">{active.hubs}</p>
+                </div>
               </div>
+              <a
+                href={googleMapsUrl(active.lat, active.lng, `EVUDDY ${active.name}`)}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-full bg-[#18B368] text-sm font-bold text-white"
+              >
+                Open {active.name} in Google Maps
+              </a>
             </div>
           </div>
 
@@ -123,24 +161,27 @@ export default function EvuddyNetwork() {
               {marks.map((city) => {
                 const on = active.name === city.name;
                 const tipX = city.x > 300 ? city.x - 162 : city.x + 14;
-                const tipY = city.y < 70 ? city.y + 14 : city.y - 38;
+                const tipY = city.y < 70 ? city.y + 14 : city.y - 52;
                 return (
                   <g
                     key={city.name}
                     className="cursor-pointer"
-                    onClick={() => setActive(city)}
                     onMouseEnter={() => setActive(city)}
+                    onClick={() => selectCity(city, true)}
                   >
                     <circle cx={city.x} cy={city.y} r={on ? 18 : 12} fill="#18B368" opacity={on ? 0.28 : 0.16} />
                     <circle cx={city.x} cy={city.y} r={on ? 7 : 5} fill="#18B368" />
                     {on ? (
                       <g>
-                        <rect x={tipX} y={tipY} width="148" height="46" rx="10" fill="#E7F8EE" />
+                        <rect x={tipX} y={tipY} width="158" height="58" rx="10" fill="#E7F8EE" />
                         <text x={tipX + 12} y={tipY + 20} fill="#0F172A" fontSize="13" fontWeight="800">
                           {city.name}
                         </text>
                         <text x={tipX + 12} y={tipY + 36} fill="#15803D" fontSize="10" fontWeight="600">
                           {city.hubs}
+                        </text>
+                        <text x={tipX + 12} y={tipY + 50} fill="#0F172A" fontSize="9" fontWeight="700">
+                          Open Google Maps →
                         </text>
                       </g>
                     ) : null}

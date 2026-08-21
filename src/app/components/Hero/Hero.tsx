@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import HeroCityRide from "./HeroCityRide";
-import { useEvuddySideSrc } from "./useEvuddySideSrc";
+import { googleMapsUrl } from "../EvuddyNetwork/maps";
 
 const partners = [
   { name: "Flipkart", color: "#2874F0" },
@@ -243,20 +243,20 @@ export default function Hero() {
                 strokeLinecap="round"
               />
 
-              <g>
+              <a href={googleMapsUrl(27.4924, 77.6737, "EVUDDY Hub Mathura")} target="_blank" rel="noreferrer">
                 <circle cx="80" cy="170" r="16" fill="#18B368" opacity="0.25" />
                 <circle cx="80" cy="170" r="8" fill="#18B368" />
                 <text x="80" y="198" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">HUB</text>
-              </g>
+              </a>
               <g>
                 <circle cx="500" cy="140" r="14" fill="#EC2A8C" opacity="0.22" />
                 <circle cx="500" cy="140" r="7" fill="#EC2A8C" />
               </g>
-              <g>
+              <a href={googleMapsUrl(26.8467, 80.9462, "EVUDDY Yard Lucknow")} target="_blank" rel="noreferrer">
                 <circle cx="880" cy="155" r="16" fill="#18B368" opacity="0.25" />
                 <circle cx="880" cy="155" r="8" fill="#18B368" />
                 <text x="880" y="183" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">YARD</text>
-              </g>
+              </a>
 
               <g>
                 <animateMotion dur="8s" repeatCount="indefinite" rotate="0">
@@ -265,16 +265,25 @@ export default function Hero() {
                 <circle className="evuddy-gps-ring" r="34" fill="none" stroke="#6EE7A8" strokeWidth="2" />
                 <circle r="22" fill="#18B368" opacity="0.18" />
                 <circle r="5" fill="#18B368" />
-                <g transform="scale(-1 1)">
-                  <image
-                    href={bikeSrc}
-                    x="-110"
-                    y="-78"
-                    width="220"
-                    height="120"
-                    preserveAspectRatio="xMidYMid meet"
-                  />
-                </g>
+                {bikeSrc ? (
+                  <g transform="scale(-1 1)">
+                    <image
+                      href={bikeSrc}
+                      x="-110"
+                      y="-78"
+                      width="220"
+                      height="120"
+                      preserveAspectRatio="xMidYMid meet"
+                    />
+                  </g>
+                ) : (
+                  <g transform="translate(-28 -8)">
+                    <ellipse cx="10" cy="18" rx="8" ry="4" fill="#111" />
+                    <ellipse cx="46" cy="18" rx="8" ry="4" fill="#111" />
+                    <rect x="8" y="8" width="40" height="8" rx="3" fill="#EC2A8C" />
+                    <rect x="40" y="-6" width="4" height="18" fill="#18B368" />
+                  </g>
+                )}
               </g>
             </svg>
           </div>
