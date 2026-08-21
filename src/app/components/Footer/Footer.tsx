@@ -59,17 +59,19 @@ export default function Footer() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: .8 }}
           viewport={{ once: true }}
-          className="py-24"
+          className="py-12 sm:py-24"
         >
 
           <div
             className="
-            rounded-[40px]
+            rounded-[28px]
+            sm:rounded-[40px]
             border
             border-white/10
             bg-white/5
             backdrop-blur-2xl
-            p-10
+            p-6
+            sm:p-10
             md:p-16
             "
           >
@@ -88,14 +90,15 @@ export default function Footer() {
                 text-sm
                 font-semibold
                 uppercase
-                tracking-[0.25em]
+                tracking-[0.12em]
+                sm:tracking-[0.25em]
                 text-[#6EE7A8]
                 "
               >
                 Ready For The Future?
               </span>
 
-              <h2 className="mt-8 text-4xl font-black leading-tight sm:text-5xl md:text-7xl">
+              <h2 className="mt-8 text-3xl font-black leading-tight sm:text-5xl md:text-7xl">
                 Move Smarter.
                 <br />
                 Move Electric.
@@ -155,7 +158,7 @@ export default function Footer() {
       Footer Main Grid
 ======================================= */}
 
-<div className="grid gap-16 pb-20 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+<div className="grid gap-10 pb-16 sm:gap-16 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
 
   {/* ================= Brand ================= */}
 

@@ -126,14 +126,30 @@ export default function EvuddyNetwork() {
             <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-lg">
               Tap a city to see the hub, then it opens in Google Maps — pickup yards you can actually navigate to.
             </p>
-            <div className="mt-6 rounded-2xl border border-white bg-white px-5 py-4 shadow-sm">
-              <div className="flex items-center gap-4">
-                <span className="grid h-11 w-11 place-items-center rounded-full bg-[#0F172A] text-sm font-black text-[#6EE7A8]">
+            <div className="mt-6 -mx-1 flex gap-2 overflow-x-auto pb-1 sm:mx-0 sm:flex-wrap">
+              {marks.map((city) => (
+                <button
+                  key={city.name}
+                  type="button"
+                  onClick={() => setActive(city)}
+                  className={`shrink-0 rounded-full px-3.5 py-2 text-sm font-bold ${
+                    active.name === city.name
+                      ? "bg-[#18B368] text-white"
+                      : "bg-white text-[#0F172A] shadow-sm"
+                  }`}
+                >
+                  {city.name}
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 rounded-2xl border border-white bg-white px-4 py-4 shadow-sm sm:px-5">
+              <div className="flex min-w-0 items-center gap-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#0F172A] text-sm font-black text-[#6EE7A8]">
                   {active.name.slice(0, 1)}
                 </span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-lg font-black text-[#0F172A]">{active.name}</p>
-                  <p className="mt-0.5 text-sm font-semibold text-[#18B368]">{active.hubs}</p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-[#18B368]">{active.hubs}</p>
                 </div>
               </div>
               <a
@@ -167,12 +183,12 @@ export default function EvuddyNetwork() {
                     key={city.name}
                     className="cursor-pointer"
                     onMouseEnter={() => setActive(city)}
-                    onClick={() => selectCity(city, true)}
+                    onClick={() => selectCity(city, active.name === city.name)}
                   >
                     <circle cx={city.x} cy={city.y} r={on ? 18 : 12} fill="#18B368" opacity={on ? 0.28 : 0.16} />
                     <circle cx={city.x} cy={city.y} r={on ? 7 : 5} fill="#18B368" />
                     {on ? (
-                      <g>
+                      <g className="hidden sm:block">
                         <rect x={tipX} y={tipY} width="158" height="58" rx="10" fill="#E7F8EE" />
                         <text x={tipX + 12} y={tipY + 20} fill="#0F172A" fontSize="13" fontWeight="800">
                           {city.name}
@@ -193,7 +209,7 @@ export default function EvuddyNetwork() {
         </div>
       </div>
 
-      <div className="relative left-1/2 mt-10 w-screen max-w-[100vw] -translate-x-1/2 sm:mt-14">
+      <div className="relative mt-10 w-full overflow-hidden sm:mt-14">
         <EvuddyEcosystem />
       </div>
     </section>

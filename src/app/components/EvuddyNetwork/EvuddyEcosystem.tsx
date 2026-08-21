@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
 
 /**
@@ -336,6 +336,15 @@ export default function EvuddyEcosystem() {
   const scootPath = `${uid}-scoot`;
   const carPath = `${uid}-car`;
   const [expanded, setExpanded] = useState(false);
+  const [canHover, setCanHover] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)");
+    const sync = () => setCanHover(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
 
   const s0 = iso(-21, 5.8);
   const s1 = iso(41, 5.8);
@@ -344,16 +353,26 @@ export default function EvuddyEcosystem() {
 
   return (
     <div
-      className={`relative w-full overflow-hidden bg-[#EEF3F8] transition-[height] duration-500 ease-out ${
-        expanded ? "h-[100dvh] min-h-[680px]" : "h-[68vh] min-h-[440px] sm:h-[76vh] lg:h-[82vh]"
+      className={`relative w-full max-w-full overflow-hidden bg-[#EEF3F8] transition-[height] duration-500 ease-out ${
+        expanded
+          ? "h-[72dvh] min-h-[320px] sm:h-[85dvh] lg:h-[100dvh] lg:min-h-[680px]"
+          : "h-[240px] min-h-[220px] sm:h-[420px] lg:h-[82vh] lg:min-h-[440px]"
       }`}
-      onMouseEnter={() => setExpanded(true)}
-      onMouseLeave={() => setExpanded(false)}
+      onMouseEnter={() => {
+        if (canHover) setExpanded(true);
+      }}
+      onMouseLeave={() => {
+        if (canHover) setExpanded(false);
+      }}
+      onClick={() => {
+        if (!canHover) setExpanded((open) => !open);
+      }}
+      role="presentation"
     >
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="absolute inset-0 h-full w-full"
-        preserveAspectRatio="xMidYMid slice"
+        preserveAspectRatio={expanded || canHover ? "xMidYMid slice" : "xMidYMid meet"}
         aria-hidden
       >
         <defs>
@@ -630,7 +649,7 @@ export default function EvuddyEcosystem() {
 
       {!expanded ? (
         <p className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-1.5 text-[11px] font-semibold tracking-wide text-slate-600 shadow-sm">
-          Hover to expand full screen
+          {canHover ? "Hover to expand full screen" : "Tap to expand the city"}
         </p>
       ) : null}
     </div>

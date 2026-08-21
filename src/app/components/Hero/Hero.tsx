@@ -204,7 +204,7 @@ export default function Hero() {
             </p>
           </div>
 
-          <div className="relative h-[250px] overflow-hidden rounded-[16px] bg-[#0B1C16] sm:h-[270px] lg:h-[300px]">
+          <div className="relative h-[190px] overflow-hidden rounded-[16px] bg-[#0B1C16] sm:h-[270px] lg:h-[300px]">
             <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(110,231,168,0.22)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.22)_1px,transparent_1px)] [background-size:32px_32px]" />
             <svg
               viewBox="0 0 960 300"
@@ -263,17 +263,17 @@ export default function Hero() {
                 <animateMotion dur="8s" repeatCount="indefinite" rotate="0">
                   <mpath href="#evuddy-route" />
                 </animateMotion>
-                <circle className="evuddy-gps-ring" r="34" fill="none" stroke="#6EE7A8" strokeWidth="2" />
+                <circle className="evuddy-gps-ring hidden sm:inline" r="34" fill="none" stroke="#6EE7A8" strokeWidth="2" />
                 <circle r="22" fill="#18B368" opacity="0.18" />
                 <circle r="5" fill="#18B368" />
                 {bikeSrc ? (
                   <g transform="scale(-1 1)">
                     <image
                       href={bikeSrc}
-                      x="-110"
-                      y="-78"
-                      width="220"
-                      height="120"
+                      x="-58"
+                      y="-40"
+                      width="116"
+                      height="64"
                       preserveAspectRatio="xMidYMid meet"
                     />
                   </g>

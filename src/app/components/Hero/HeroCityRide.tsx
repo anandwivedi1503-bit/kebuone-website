@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
@@ -197,6 +198,16 @@ const WORLD = 500 + 880 + 940 + 720 + 400 + 580 + 500;
 
 export default function HeroCityRide() {
   const bikeSrc = useEvuddySideSrc();
+  const [viewW, setViewW] = useState(360);
+
+  useEffect(() => {
+    const read = () => setViewW(window.innerWidth);
+    read();
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
+  }, []);
+
+  const travel = Math.max(WORLD - Math.min(viewW, 1280), 900);
 
   return (
     <div className="relative mx-auto mt-5 w-full max-w-[1280px] overflow-hidden rounded-[20px] border border-white shadow-[0_20px_50px_rgba(15,23,42,0.08)] sm:mt-8 sm:rounded-[32px]">
@@ -248,7 +259,7 @@ export default function HeroCityRide() {
         <motion.div
           className="absolute bottom-0 left-0 h-full"
           style={{ width: WORLD }}
-          animate={{ x: [0, -(WORLD - 640), 0] }}
+          animate={{ x: [0, -travel, 0] }}
           transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         >
           <div className="absolute inset-x-0 bottom-0 h-[58px] bg-gradient-to-b from-[#6B7280] to-[#3F4651] sm:h-[96px] lg:h-[110px]">
