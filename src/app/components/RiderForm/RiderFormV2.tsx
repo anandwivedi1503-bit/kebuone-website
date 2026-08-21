@@ -1231,11 +1231,14 @@ className="
 relative
 overflow-hidden
 rounded-[28px]
-h-[220px]
-sm:h-[320px]
+h-[300px]
+sm:h-[380px]
 lg:h-[720px]
 lg:rounded-[42px]
 bg-[#081C15]
+p-4
+sm:p-5
+lg:p-0
 shadow-[0_40px_120px_rgba(0,0,0,0.18)]
 "
 >
@@ -1243,17 +1246,14 @@ shadow-[0_40px_120px_rgba(0,0,0,0.18)]
     <img
       src="/trans.png"
       alt="EVUDDY Bike"
-      className="
-w-full
-h-full
-object-contain
-lg:object-cover
-object-center
-lg:object-[48%_center]
-scale-[1.02]
-transition-all
-duration-700
-"
+      className="object-contain lg:object-cover lg:object-[48%_center] lg:scale-[1.02]"
+      style={{
+        width: "100%",
+        height: "100%",
+        maxWidth: "none",
+        maxHeight: "none",
+        display: "block",
+      }}
     />
 
     <div className="absolute inset-0 bg-gradient-to-br from-[#081C15]/35 via-[#0B2A20]/20 to-transparent lg:from-[#081C15]/82 lg:via-[#0B2A20]/58 lg:to-[#18B368]/22" />

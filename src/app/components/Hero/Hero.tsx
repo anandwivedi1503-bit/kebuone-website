@@ -93,7 +93,10 @@ export default function Hero() {
           100% { background-position: 100% 50%; }
         }
         .evuddy-poster { animation: evuddy-poster 16s ease-in-out infinite; }
-        .evuddy-partners { animation: evuddy-partners 18s linear infinite; }
+        .evuddy-partners { animation: evuddy-partners 22s linear infinite; }
+        @media (max-width: 640px) {
+          .evuddy-partners { animation-duration: 14s; }
+        }
         .evuddy-draw { stroke-dasharray: 900; animation: evuddy-draw 3.2s ease forwards; }
         .evuddy-dash { stroke-dasharray: 10 14; animation: evuddy-dash 1s linear infinite; }
         .evuddy-pulse { animation: evuddy-pulse 2s ease-out infinite; }
@@ -175,46 +178,46 @@ export default function Hero() {
         </motion.div>
 
         <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-white px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
-          <div className="mb-2 flex items-center justify-between gap-3">
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 sm:text-[11px] sm:tracking-[0.22em]">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 sm:text-[11px] sm:tracking-[0.22em]">
               Live GPS route
             </p>
-            <p className="truncate text-[10px] font-bold text-[#18B368] sm:text-[11px]">
+            <p className="truncate text-[11px] font-bold text-[#18B368]">
               Hub to street
             </p>
           </div>
 
-          <div className="relative h-[120px] overflow-hidden sm:h-[180px]">
+          <div className="relative h-[210px] overflow-hidden sm:h-[200px] lg:h-[220px]">
             <svg
-              viewBox="0 0 960 180"
+              viewBox="0 0 960 220"
               className="absolute inset-0 h-full w-full"
               fill="none"
               preserveAspectRatio="xMidYMid meet"
             >
               <path
-                d="M40 108 C 180 48, 320 168, 480 88 S 760 158, 920 100"
+                d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
                 stroke="#E2E8F0"
-                strokeWidth="10"
+                strokeWidth="12"
                 strokeLinecap="round"
               />
               <path
                 id="evuddy-route"
                 className="evuddy-draw"
-                d="M40 108 C 180 48, 320 168, 480 88 S 760 158, 920 100"
+                d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
                 stroke="#18B368"
-                strokeWidth="4"
+                strokeWidth="5"
                 strokeLinecap="round"
               />
               <path
                 className="evuddy-dash"
-                d="M40 108 C 180 48, 320 168, 480 88 S 760 158, 920 100"
+                d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
                 stroke="white"
-                strokeWidth="2"
+                strokeWidth="2.5"
                 strokeLinecap="round"
               />
-              <circle cx="40" cy="108" r="7" fill="#18B368" />
-              <circle cx="480" cy="88" r="7" fill="#EC2A8C" />
-              <circle cx="920" cy="100" r="7" fill="#18B368" />
+              <circle cx="70" cy="130" r="9" fill="#18B368" />
+              <circle cx="500" cy="110" r="9" fill="#EC2A8C" />
+              <circle cx="890" cy="125" r="9" fill="#18B368" />
 
               <g className="evuddy-bob">
                 <animateMotion dur="7s" repeatCount="indefinite" rotate="0">
@@ -222,10 +225,10 @@ export default function Hero() {
                 </animateMotion>
                 <image
                   href="/evuddy-scooter.png"
-                  x="-40"
-                  y="-52"
-                  width="80"
-                  height="60"
+                  x="-84"
+                  y="-108"
+                  width="168"
+                  height="126"
                 />
               </g>
             </svg>
@@ -240,7 +243,7 @@ export default function Hero() {
                   className="evuddy-pulse absolute left-1/2 top-1 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#18B368]/50 sm:h-3 sm:w-3"
                   style={{ animationDelay: hub.delay }}
                 />
-                <span className="relative text-[8px] font-bold uppercase tracking-[0.12em] text-slate-500 sm:text-[10px] sm:tracking-[0.16em]">
+                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 sm:text-[10px] sm:tracking-[0.16em]">
                   {hub.label}
                 </span>
               </div>
@@ -249,18 +252,18 @@ export default function Hero() {
         </div>
 
         <div className="relative mt-6 overflow-hidden sm:mt-8">
-          <p className="text-center text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400 sm:text-[11px] sm:tracking-[0.28em]">
+          <p className="text-center text-[12px] font-bold uppercase tracking-[0.18em] text-slate-400 sm:text-[11px] sm:tracking-[0.28em]">
             Delivery partners
           </p>
           <div className="pointer-events-none absolute bottom-0 left-0 top-7 z-10 w-8 bg-gradient-to-r from-[#F7FBFA] to-transparent sm:w-16" />
           <div className="pointer-events-none absolute bottom-0 right-0 top-7 z-10 w-8 bg-gradient-to-l from-[#F7FBFA] to-transparent sm:w-16" />
           <div className="mt-3 overflow-hidden sm:mt-4">
-            <div className="evuddy-partners flex w-max items-center gap-3 sm:gap-4">
+            <div className="evuddy-partners flex w-max items-center gap-4 sm:gap-5">
               {[...partners, ...partners, ...partners, ...partners].map(
                 (item, index) => (
                   <span
                     key={`${item.name}-${index}`}
-                    className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black tracking-wide sm:px-6 sm:py-2.5 sm:text-sm"
+                    className="rounded-full border border-slate-200 bg-white px-6 py-3 text-base font-black tracking-wide shadow-sm sm:px-7 sm:py-3.5 sm:text-lg"
                     style={{ color: item.color }}
                   >
                     {item.name}
