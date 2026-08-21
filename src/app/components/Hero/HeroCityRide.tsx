@@ -136,65 +136,6 @@ function Ecosystem() {
   );
 }
 
-function EvuddySideRide() {
-  return (
-    <svg
-      className="evuddy-city-bike"
-      viewBox="0 0 340 168"
-      fill="none"
-      aria-label="Cartoon rider on an EVUDDY scooter"
-    >
-      <ellipse cx="168" cy="160" rx="108" ry="7" fill="rgba(15,23,42,0.16)" />
-
-      <g>
-        <circle cx="78" cy="128" r="30" fill="#111827" />
-        <circle cx="78" cy="128" r="20" fill="#1F2937" />
-        <circle cx="78" cy="128" r="7" fill="#6EE7A8" />
-        <path d="M78 108 V148 M58 128 H98" stroke="#374151" strokeWidth="3" />
-        <animateTransform attributeName="transform" type="rotate" from="0 78 128" to="360 78 128" dur="0.55s" repeatCount="indefinite" />
-      </g>
-      <g>
-        <circle cx="258" cy="128" r="30" fill="#111827" />
-        <circle cx="258" cy="128" r="20" fill="#1F2937" />
-        <circle cx="258" cy="128" r="7" fill="#6EE7A8" />
-        <path d="M258 108 V148 M238 128 H278" stroke="#374151" strokeWidth="3" />
-        <animateTransform attributeName="transform" type="rotate" from="0 258 128" to="360 258 128" dur="0.55s" repeatCount="indefinite" />
-      </g>
-
-      <path d="M96 118 H214" stroke="#111827" strokeWidth="10" strokeLinecap="round" />
-      <path d="M108 112 H168 Q190 112 206 92" stroke="#EC2A8C" strokeWidth="16" strokeLinecap="round" />
-      <path d="M168 108 Q186 78 214 70" stroke="#0F172A" strokeWidth="8" strokeLinecap="round" />
-      <rect x="118" y="78" width="62" height="14" rx="7" fill="#111827" />
-      <path d="M206 92 L248 58" stroke="#111827" strokeWidth="8" strokeLinecap="round" />
-      <circle cx="252" cy="54" r="11" fill="#F8FAFC" stroke="#EC2A8C" strokeWidth="4" />
-      <rect x="236" y="48" width="22" height="7" rx="3" fill="#111827" />
-      <path d="M168 108 L176 128" stroke="#4ADE80" strokeWidth="5" strokeLinecap="round" />
-      <rect x="128" y="94" width="36" height="10" rx="2" fill="#FFFFFF" />
-      <text x="146" y="102" textAnchor="middle" fontSize="7" fontWeight="800" fontFamily="Arial, sans-serif">
-        <tspan fill="#18B368">EV</tspan>
-        <tspan fill="#EC2A8C">UDDY</tspan>
-      </text>
-      <path d="M248 58 L268 52" stroke="#111827" strokeWidth="4" strokeLinecap="round" />
-      <circle cx="274" cy="50" r="5" fill="#111827" />
-
-      <g>
-        <path d="M156 92 L128 118" stroke="#1E3A5F" strokeWidth="8" strokeLinecap="round" />
-        <path d="M148 92 L118 118" stroke="#1E3A5F" strokeWidth="8" strokeLinecap="round" />
-        <ellipse cx="122" cy="120" rx="9" ry="5" fill="#111827" />
-        <ellipse cx="132" cy="120" rx="9" ry="5" fill="#111827" />
-        <path d="M150 78 Q168 62 214 56" stroke="#0F172A" strokeWidth="8" strokeLinecap="round" />
-        <rect x="138" y="58" width="36" height="34" rx="12" fill="#18B368" />
-        <circle cx="168" cy="46" r="14" fill="#F8C9A8" />
-        <path d="M154 42 Q168 28 184 42 Q184 54 168 56 Q152 54 154 42" fill="#EC2A8C" />
-        <path d="M176 38 Q186 32 192 40" stroke="#EC2A8C" strokeWidth="4" strokeLinecap="round" />
-        <circle cx="164" cy="46" r="1.6" fill="#0F172A" />
-        <circle cx="172" cy="46" r="1.6" fill="#0F172A" />
-        <path d="M164 51 Q168 53 172 51" stroke="#0F172A" strokeWidth="1.4" strokeLinecap="round" />
-      </g>
-    </svg>
-  );
-}
-
 const WORLD = 520 + 860 + 820 + 460 + 640 + 520;
 
 export default function HeroCityRide() {
@@ -209,15 +150,17 @@ export default function HeroCityRide() {
           animation: evuddy-drive 0.38s linear infinite;
         }
         .evuddy-city-bike {
-          width: 168px;
+          width: 120px;
           height: auto;
           max-width: none;
           max-height: none;
+          object-fit: contain;
           display: block;
-          overflow: visible;
+          background: transparent;
+          filter: drop-shadow(0 10px 10px rgba(15,23,42,0.22));
         }
         @media (min-width: 640px) {
-          .evuddy-city-bike { width: 210px; }
+          .evuddy-city-bike { width: 150px; }
         }
         @media (prefers-reduced-motion: reduce) {
           .evuddy-drive { animation: none !important; }
@@ -254,11 +197,15 @@ export default function HeroCityRide() {
         </motion.div>
 
         <motion.div
-          className="absolute bottom-[18px] left-[14%] z-20 origin-center sm:bottom-[22px] sm:left-[16%]"
+          className="absolute bottom-[20px] left-[16%] z-20 origin-center sm:bottom-[24px] sm:left-[18%]"
           animate={{ scaleX: [1, 1, -1, -1, 1] }}
           transition={{ duration: 28, repeat: Infinity, ease: "linear", times: [0, 0.46, 0.5, 0.96, 1] }}
         >
-          <EvuddySideRide />
+          <img
+            src="/evuddy-scooter-cutout.png"
+            alt="EVUDDY electric scooter"
+            className="evuddy-city-bike"
+          />
         </motion.div>
       </div>
     </div>
