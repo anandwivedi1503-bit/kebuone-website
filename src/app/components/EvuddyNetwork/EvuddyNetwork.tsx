@@ -107,7 +107,7 @@ export default function EvuddyNetwork() {
   };
 
   return (
-    <section id="network" className="relative overflow-hidden bg-[#F3F6F8] py-16 sm:py-24">
+    <section id="network" className="relative bg-[#F3F6F8] pt-16 sm:pt-24">
       <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:linear-gradient(135deg,#E5E7EB_1px,transparent_1px)] [background-size:22px_22px]" />
 
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
@@ -191,10 +191,10 @@ export default function EvuddyNetwork() {
             </svg>
           </motion.div>
         </div>
+      </div>
 
-        <div className="-mx-4 mt-8 overflow-hidden rounded-none border-y border-white bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-[28px] sm:border">
-          <EvuddyEcosystem />
-        </div>
+      <div className="relative mt-10 w-full sm:mt-14">
+        <EvuddyEcosystem />
       </div>
     </section>
   );

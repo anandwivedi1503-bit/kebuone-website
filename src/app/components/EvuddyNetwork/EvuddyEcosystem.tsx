@@ -95,40 +95,6 @@ function Scooter({ x, y, flip }: { x: number; y: number; flip?: boolean }) {
   );
 }
 
-function Tag({
-  at,
-  dx,
-  dy,
-  title,
-  note,
-  accent,
-}: {
-  at: Pt;
-  dx: number;
-  dy: number;
-  title: string;
-  note: string;
-  accent: string;
-}) {
-  const x = at.sx + dx;
-  const y = at.sy + dy;
-  return (
-    <g>
-      <path d={`M${at.sx} ${at.sy} L${x + 18} ${y + 22}`} stroke={accent} strokeWidth="1.6" strokeDasharray="5 5" opacity="0.7" />
-      <g transform={`translate(${x} ${y})`}>
-        <rect width="168" height="50" rx="14" fill="white" stroke="#E2E8F0" />
-        <circle cx="20" cy="25" r="7" fill={accent} />
-        <text x="36" y="22" fill="#0F172A" fontSize="14" fontWeight="800">
-          {title}
-        </text>
-        <text x="36" y="38" fill="#64748B" fontSize="11" fontWeight="600">
-          {note}
-        </text>
-      </g>
-    </g>
-  );
-}
-
 function Line({ from, to }: { from: Pt; to: Pt }) {
   const mx = (from.sx + to.sx) / 2;
   const my = (from.sy + to.sy) / 2 - 40;
@@ -143,6 +109,23 @@ function Line({ from, to }: { from: Pt; to: Pt }) {
   );
 }
 
+function RidingScooter({ delay, flip }: { delay: string; flip?: boolean }) {
+  return (
+    <g>
+      <animateMotion dur="16s" begin={delay} repeatCount="indefinite" rotate="0">
+        <mpath href="#evuddy-eco-road" />
+      </animateMotion>
+      <g transform={`scale(${flip ? -1.45 : 1.45} 1.45) translate(${flip ? 12 : -12} -6)`}>
+        <ellipse cx="-13" cy="3" rx="6" ry="3.2" fill="#111827" />
+        <ellipse cx="15" cy="3" rx="6" ry="3.2" fill="#111827" />
+        <path d="M-11 1 L17 1 L15 -5 L-7 -5 Z" fill="#EC2A8C" />
+        <path d="M13 -5 L16 1 L18 -12 L14 -18 L11 -11 Z" fill="#18B368" />
+        <rect x="12" y="-20" width="11" height="3" rx="1" fill="#0F172A" />
+      </g>
+    </g>
+  );
+}
+
 export default function EvuddyEcosystem() {
   const hq = iso(5.2, 4.0, 150);
   const pickup = iso(0.2, 5.4, 10);
@@ -153,26 +136,35 @@ export default function EvuddyEcosystem() {
   const solar = iso(2.6, 10.4, 10);
 
   return (
-    <div className="relative bg-white">
+    <div className="relative h-[58vh] min-h-[440px] w-full overflow-hidden bg-[linear-gradient(180deg,#EAF4FB_0%,#F7FBFD_42%,#EEF6F2_100%)] sm:h-[68vh] lg:h-[82vh]">
       <style>{`
         @keyframes evuddy-net {
           to { stroke-dashoffset: -56; }
+        }
+        @keyframes evuddy-cam {
+          0%, 100% { transform: scale(1.08) translate(0, 0); }
+          50% { transform: scale(1.16) translate(-1.4%, 1.1%); }
         }
         .evuddy-net-line {
           stroke-dasharray: 9 11;
           animation: evuddy-net 1.4s linear infinite;
           filter: drop-shadow(0 0 5px rgba(24,179,104,0.5));
         }
+        .evuddy-cam {
+          transform-origin: 50% 48%;
+          animation: evuddy-cam 22s ease-in-out infinite;
+        }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-net-line { animation: none; }
+          .evuddy-net-line, .evuddy-cam { animation: none; }
         }
       `}</style>
 
       <svg
-        viewBox="0 0 1440 820"
-        className="h-auto w-full"
+        viewBox="80 40 1280 740"
+        preserveAspectRatio="xMidYMid slice"
+        className="evuddy-cam absolute inset-0 h-full w-full"
         role="img"
-        aria-label="EVUDDY ecosystem: hub, pickup yard, live GPS, partners and riders on one connected network"
+        aria-label="EVUDDY live ecosystem"
       >
         <defs>
           <pattern id="evuddy-big-grid" width="36" height="20" patternUnits="userSpaceOnUse">
@@ -196,6 +188,7 @@ export default function EvuddyEcosystem() {
         <path d={poly([iso(5.55, -0.4), iso(6.85, -0.4), iso(6.85, 12.2), iso(5.55, 12.2)])} fill="#D5DDE4" />
         <path d={poly([iso(5.8, -0.1), iso(6.6, -0.1), iso(6.6, 11.9), iso(5.8, 11.9)])} fill="#9AA3AE" />
         <path
+          id="evuddy-eco-road"
           d={`M${iso(-1.6, 6.85).sx} ${iso(-1.6, 6.85).sy} L${iso(12.4, 6.85).sx} ${iso(12.4, 6.85).sy}`}
           fill="none"
           stroke="white"
@@ -311,19 +304,23 @@ export default function EvuddyEcosystem() {
         <Scooter x={-0.2} y={5.55} />
         <Scooter x={1.1} y={5.85} flip />
         <Scooter x={2.0} y={5.5} />
-        <Scooter x={7.15} y={6.55} />
-        <Scooter x={8.3} y={6.85} flip />
         <Scooter x={10.2} y={2.55} />
-        <Scooter x={6.2} y={3.4} flip />
-
-        <Tag at={partner} dx={-190} dy={-70} title="Partner" note="Fleet & hub ops" accent="#18B368" />
-        <Tag at={pickup} dx={-200} dy={-30} title="Pickup yard" note="OTP · scooters ready" accent="#EC2A8C" />
-        <Tag at={hq} dx={-70} dy={-92} title="EVUDDY network" note="Live GPS · every hub" accent="#18B368" />
-        <Tag at={hub} dx={-40} dy={48} title="EVUDDY Hub" note="Book · pickup · return" accent="#18B368" />
-        <Tag at={gps} dx={40} dy={-78} title="Rider app" note="Track the ride" accent="#EC2A8C" />
-        <Tag at={charge} dx={36} dy={-20} title="EV Charge" note="Street top-up" accent="#22C55E" />
-        <Tag at={solar} dx={-30} dy={36} title="Clean energy" note="Solar on the yard" accent="#38BDF8" />
+        <RidingScooter delay="0s" />
+        <RidingScooter delay="5.5s" flip />
+        <RidingScooter delay="11s" />
       </svg>
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-[#EAF4FB] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#EEF6F2] to-transparent" />
+
+      <div className="absolute left-4 top-[18%] max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:left-10 sm:max-w-[300px]">
+        <p className="text-sm font-black text-[#0F172A] sm:text-base">Live GPS for riders and partners</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">Every hub, pickup yard and street ride on one network.</p>
+      </div>
+      <div className="absolute bottom-[14%] right-4 max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:right-10 sm:max-w-[300px]">
+        <p className="text-sm font-black text-[#0F172A] sm:text-base">Book. Pickup. Return.</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">EVUDDY hubs with OTP, charge points and a scooter you can ride today.</p>
+      </div>
     </div>
   );
 }
