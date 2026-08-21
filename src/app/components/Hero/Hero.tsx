@@ -1,16 +1,10 @@
 "use client";
 
-import { useRef, useState, type MouseEvent } from "react";
+import { useRef, type MouseEvent } from "react";
 import Link from "next/link";
-import {
-  motion,
-  useMotionValue,
-  useMotionValueEvent,
-  useScroll,
-  useSpring,
-  useTransform,
-} from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import ScrollCityRide from "./ScrollCityRide";
 
 const partners = [
   { name: "Flipkart", color: "#2874F0" },
@@ -24,130 +18,6 @@ const hubs = [
   { label: "In ride", x: "46%", delay: "0.8s" },
   { label: "Return", x: "78%", delay: "1.6s" },
 ];
-
-const beats = [
-  {
-    title: "Leaves the hub",
-    text: "Your EVUDDY scooter rolls out from the yard, charged and ready.",
-  },
-  {
-    title: "Rider on the street",
-    text: "A quiet electric ride through the city.",
-  },
-  {
-    title: "Streetlights and open road",
-    text: "Live GPS on a clean, lit route.",
-  },
-  {
-    title: "Back to the yard",
-    text: "Ride done. Scooter returns home.",
-  },
-];
-
-function ScrollCityRide() {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [beat, setBeat] = useState(0);
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start start", "end end"],
-  });
-
-  const x = useTransform(scrollYProgress, [0, 0.32, 0.68, 1], ["2%", "42%", "58%", "6%"]);
-  const flip = useTransform(scrollYProgress, [0.7, 0.78], [1, -1]);
-  const riderFade = useTransform(scrollYProgress, [0.18, 0.32, 0.62, 0.74], [0, 1, 1, 0]);
-  const lightGlow = useTransform(scrollYProgress, [0.45, 0.62, 0.82], [0.25, 1, 0.35]);
-
-  useMotionValueEvent(scrollYProgress, "change", (value) => {
-    if (value < 0.25) setBeat(0);
-    else if (value < 0.5) setBeat(1);
-    else if (value < 0.75) setBeat(2);
-    else setBeat(3);
-  });
-
-  const bikeStyle = {
-    width: "min(58vw, 280px)",
-    height: "auto",
-    maxWidth: "none",
-    maxHeight: "none",
-    objectFit: "contain" as const,
-    display: "block",
-    filter: "drop-shadow(0 16px 24px rgba(15,23,42,0.18))",
-  };
-
-  return (
-    <div ref={ref} className="relative mt-4 h-[280vh] sm:mt-8 sm:h-[300vh]">
-      <div className="sticky top-[4.75rem] flex h-[calc(100svh-5.25rem)] flex-col justify-center overflow-hidden px-4 sm:top-24 sm:h-[70vh] sm:px-6 lg:px-10">
-        <div className="mx-auto w-full max-w-[1280px] overflow-hidden rounded-[24px] border border-white bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] sm:rounded-[32px]">
-          <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-6 sm:pt-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
-              Scroll the ride
-            </p>
-            <p className="text-[11px] font-bold text-[#18B368]">{beats[beat].title}</p>
-          </div>
-
-          <div className="relative mx-4 mb-3 mt-3 h-[46vh] min-h-[280px] overflow-hidden rounded-[20px] bg-[#F7FBFA] sm:mx-6 sm:mb-5 sm:h-[48vh] sm:min-h-[320px] sm:rounded-[24px]">
-            <div className="absolute left-2 top-3 rounded-2xl bg-white/90 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-[#18B368] shadow-sm sm:left-4 sm:text-[11px]">
-              Hub
-            </div>
-            <div className="absolute right-2 top-3 rounded-2xl bg-white/90 px-3 py-2 text-[10px] font-black uppercase tracking-[0.14em] text-slate-500 shadow-sm sm:right-4 sm:text-[11px]">
-              Yard
-            </div>
-
-            <div className="absolute bottom-[34%] left-2 h-16 w-20 rounded-t-[18px] bg-[#D7EEE2] sm:left-4 sm:h-20 sm:w-28" />
-            <div className="absolute bottom-[34%] right-2 h-16 w-20 rounded-t-[18px] bg-[#E8EEF2] sm:right-4 sm:h-20 sm:w-28" />
-
-            <motion.div className="absolute inset-x-0 top-[12%] flex justify-around px-10 sm:px-24" style={{ opacity: lightGlow }}>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <span className="h-3 w-3 rounded-full bg-[#FDE68A] shadow-[0_0_18px_rgba(253,230,138,0.9)] sm:h-4 sm:w-4" />
-                  <span className="h-16 w-[2px] bg-slate-300 sm:h-24" />
-                </div>
-              ))}
-            </motion.div>
-
-            <div className="absolute inset-x-0 bottom-[22%] h-2 bg-slate-200">
-              <div className="evuddy-road-scroll absolute inset-x-4 top-1/2 h-[3px] -translate-y-1/2 rounded-full" />
-            </div>
-
-            <motion.div
-              className="absolute bottom-[18%] z-20"
-              style={{ left: x, scaleX: flip }}
-            >
-              <img src="/evuddy-scooter.png" alt="" style={bikeStyle} />
-            </motion.div>
-
-            <motion.div
-              className="absolute bottom-[36%] right-[8%] z-10 hidden w-[34%] overflow-hidden rounded-[18px] border border-white shadow-lg sm:block"
-              style={{ opacity: riderFade }}
-            >
-              <img
-                src="/biker-rent.jpeg"
-                alt="Rider on EVUDDY scooter"
-                style={{
-                  width: "100%",
-                  height: "120px",
-                  maxWidth: "none",
-                  maxHeight: "none",
-                  objectFit: "cover",
-                  display: "block",
-                }}
-              />
-            </motion.div>
-          </div>
-
-          <div className="px-4 pb-5 text-center sm:px-6">
-            <h2 className="text-lg font-black tracking-tight text-[#0F172A] sm:text-2xl">
-              {beats[beat].title}
-            </h2>
-            <p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500">
-              {beats[beat].text}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const contain = {
   position: "absolute" as const,
@@ -316,17 +186,18 @@ export default function Hero() {
           </motion.a>
         </motion.div>
 
-        <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-white px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
+        <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-[#071018] px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.12)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 sm:text-[11px] sm:tracking-[0.22em]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">
               Live GPS route
             </p>
-            <p className="truncate text-[11px] font-bold text-[#18B368]">
-              Hub to street
+            <p className="truncate text-[11px] font-bold text-[#6EE7A8]">
+              Hub → street → yard
             </p>
           </div>
 
-          <div className="relative h-[210px] overflow-hidden sm:h-[200px] lg:h-[220px]">
+          <div className="relative h-[210px] overflow-hidden rounded-[16px] bg-[#0b1614] sm:h-[200px] lg:h-[220px]">
+            <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(110,231,168,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.35)_1px,transparent_1px)] [background-size:28px_28px]" />
             <svg
               viewBox="0 0 960 220"
               className="absolute inset-0 h-full w-full"
@@ -335,8 +206,8 @@ export default function Hero() {
             >
               <path
                 d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
-                stroke="#E2E8F0"
-                strokeWidth="12"
+                stroke="#16352c"
+                strokeWidth="14"
                 strokeLinecap="round"
               />
               <path
@@ -344,45 +215,46 @@ export default function Hero() {
                 className="evuddy-draw"
                 d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
                 stroke="#18B368"
-                strokeWidth="5"
+                strokeWidth="4"
                 strokeLinecap="round"
               />
               <path
                 className="evuddy-dash"
                 d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
                 stroke="white"
-                strokeWidth="2.5"
+                strokeWidth="1.6"
                 strokeLinecap="round"
               />
-              <circle cx="70" cy="130" r="9" fill="#18B368" />
-              <circle cx="500" cy="110" r="9" fill="#EC2A8C" />
-              <circle cx="890" cy="125" r="9" fill="#18B368" />
+              <circle cx="70" cy="130" r="8" fill="#18B368" />
+              <circle cx="500" cy="110" r="7" fill="#EC2A8C" />
+              <circle cx="890" cy="125" r="8" fill="#18B368" />
 
               <g className="evuddy-bob">
-                <animateMotion dur="7s" repeatCount="indefinite" rotate="0">
+                <animateMotion dur="7s" repeatCount="indefinite" rotate="auto">
                   <mpath href="#evuddy-route" />
                 </animateMotion>
-                <image
-                  href="/evuddy-scooter.png"
-                  x="-84"
-                  y="-108"
-                  width="168"
-                  height="126"
-                />
+                <g transform="translate(-22 -18)">
+                  <ellipse cx="22" cy="30" rx="16" ry="4" fill="rgba(0,0,0,0.35)" />
+                  <rect x="6" y="10" width="32" height="12" rx="6" fill="#EC2A8C" />
+                  <rect x="18" y="4" width="14" height="8" rx="3" fill="#0F172A" />
+                  <circle cx="12" cy="24" r="5" fill="#0F172A" stroke="#6EE7A8" strokeWidth="1.5" />
+                  <circle cx="32" cy="24" r="5" fill="#0F172A" stroke="#6EE7A8" strokeWidth="1.5" />
+                  <circle cx="38" cy="12" r="2" fill="#FDE68A" />
+                </g>
               </g>
             </svg>
 
             {hubs.map((hub) => (
               <div
                 key={hub.label}
-                className="absolute top-1 sm:top-2"
+                className="absolute top-2 sm:top-3"
                 style={{ left: hub.x }}
               >
                 <span
                   className="evuddy-pulse absolute left-1/2 top-1 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#18B368]/50 sm:h-3 sm:w-3"
                   style={{ animationDelay: hub.delay }}
                 />
-                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 sm:text-[10px] sm:tracking-[0.16em]">
+                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-white/60 sm:tracking-[0.16em]">
                   {hub.label}
                 </span>
               </div>
