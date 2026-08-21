@@ -192,7 +192,7 @@ export default function EvuddyNetwork() {
           </motion.div>
         </div>
 
-        <div className="mt-8 overflow-hidden rounded-[28px] border border-white bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)]">
+        <div className="-mx-4 mt-8 overflow-hidden rounded-none border-y border-white bg-white shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:mx-0 sm:rounded-[28px] sm:border">
           <EvuddyEcosystem />
         </div>
       </div>
