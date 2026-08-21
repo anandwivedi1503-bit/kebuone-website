@@ -975,7 +975,7 @@ if (checkingRegistration) {
   return (
 
     <section
-      className="py-40 bg-white text-center"
+      className="py-16 px-4 bg-white text-center sm:py-40"
     >
 
       <div className="max-w-xl mx-auto">
@@ -1014,7 +1014,7 @@ if (submitted) {
   return (
   <section
     id="rider-registration"
-    className="py-32 bg-gradient-to-b from-white via-[#FFF7FA] to-white"
+    className="py-16 px-4 bg-gradient-to-b from-white via-[#FFF7FA] to-white sm:py-32"
   >
 
       <div className="max-w-3xl mx-auto px-6">
@@ -1028,11 +1028,11 @@ if (submitted) {
         border border-pink-100
         ">
 
-          <div className="text-8xl mb-6 animate-bounce">
+          <div className="text-6xl mb-6 animate-bounce sm:text-8xl">
 ✅
 </div>
 
-          <h2 className="text-5xl font-black text-[#0A1134] mb-4">
+          <h2 className="text-3xl font-black text-[#0A1134] mb-4 sm:text-5xl">
             Waiting for admin approval
           </h2>
 
@@ -1218,7 +1218,7 @@ to-[#F2FFF7]
 overflow-hidden
 "
 >
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
 
         <div className="grid gap-8 lg:grid-cols-[1fr_0.95fr] lg:gap-10 items-start">
 
@@ -1494,7 +1494,8 @@ animate-pulse
 
             <h2
 className="
-text-[50px]
+text-[32px]
+sm:text-[50px]
 md:text-[64px]
 leading-[0.95]
 font-black
@@ -1508,7 +1509,8 @@ Start Your Journey
 <h3
 className="
 mt-3
-text-[38px]
+text-[28px]
+sm:text-[38px]
 md:text-[52px]
 font-black
 tracking-tight
@@ -1549,7 +1551,8 @@ bg-white
 border
 border-slate-200
 shadow-sm
-px-6
+px-3
+sm:px-6
 py-5
 "
 >

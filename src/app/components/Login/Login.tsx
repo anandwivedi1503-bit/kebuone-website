@@ -2,11 +2,11 @@
 
 export default function Login() {
   return (
-    <section className="min-h-screen bg-[#F8F9FC] flex items-center justify-center px-6">
+    <section className="min-h-screen bg-[#F8F9FC] flex items-center justify-center px-4 py-10 sm:px-6">
 
-      <div className="w-full max-w-md bg-white rounded-[40px] p-10 shadow-xl">
+      <div className="w-full max-w-md bg-white rounded-[28px] p-6 shadow-xl sm:rounded-[40px] sm:p-10">
 
-        <h1 className="text-5xl font-black text-[#0A1134] mb-3">
+        <h1 className="text-3xl font-black text-[#0A1134] mb-3 sm:text-5xl">
           Login
         </h1>
 

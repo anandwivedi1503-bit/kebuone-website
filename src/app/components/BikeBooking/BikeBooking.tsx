@@ -702,7 +702,7 @@ bg-gradient-to-br
 from-[#F6FFF9]
 via-white
 to-[#F3FFF8]
-py-20
+py-10
 md:py-28
 "
 >
@@ -756,7 +756,8 @@ shadow-[0_10px_35px_rgba(15,23,42,.08)]
 className="
 text-sm
 font-bold
-tracking-[0.18em]
+tracking-[0.12em]
+sm:tracking-[0.18em]
 uppercase
 text-[#18B368]
 "
@@ -771,7 +772,8 @@ EVUDDY ELECTRIC MOBILITY
 <h1
 className="
 mt-8
-text-5xl
+text-3xl
+sm:text-5xl
 md:text-7xl
 font-black
 leading-[1.05]
@@ -806,8 +808,10 @@ className="
 mx-auto
 mt-8
 max-w-3xl
-text-[19px]
-leading-9
+text-[16px]
+leading-8
+sm:text-[19px]
+sm:leading-9
 text-slate-600
 "
 >

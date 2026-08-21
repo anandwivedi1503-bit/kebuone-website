@@ -1,5 +1,6 @@
 import Navbar from "./Navbar/Navbar";
 import Hero from "./components/Hero/Hero";
+import EvuddyNetwork from "./components/EvuddyNetwork/EvuddyNetwork";
 import Services from "./components/Services/Services";
 import WhyKebu from "./components/WhyKebu/WhyKebu";
 import HowItWorks from "./components/HowItWorks/HowItWorks";
@@ -13,6 +14,7 @@ export default function Home() {
             <Navbar />
 
                   <Hero />
+                  <EvuddyNetwork />
                   <Services />
 
 

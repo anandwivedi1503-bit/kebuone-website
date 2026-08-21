@@ -49,7 +49,7 @@ export default function Services() {
             <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Daily ₹230</span>
             <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Weekly ₹1,610</span>
             <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Monthly ₹6,900</span>
-            <span className="rounded-full bg-[#0B1B16] px-4 py-2 text-sm font-semibold text-white">Rent to Own ₹280/day · 18 months</span>
+            <span className="w-full rounded-full bg-[#0B1B16] px-4 py-2 text-center text-sm font-semibold text-white sm:w-auto">Rent to Own ₹280/day · 18 months</span>
           </div>
         </div>
 

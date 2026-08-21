@@ -166,7 +166,7 @@ export default function Leadership() {
       </section>
 
       <section className="px-4 py-20 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-6xl overflow-hidden rounded-[36px] bg-[#08112F] px-8 py-14 text-white sm:px-14">
+        <div className="mx-auto max-w-6xl overflow-hidden rounded-[28px] bg-[#08112F] px-5 py-10 text-white sm:rounded-[36px] sm:px-14 sm:py-14">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#6EE7A8]">
             Join the team
           </p>

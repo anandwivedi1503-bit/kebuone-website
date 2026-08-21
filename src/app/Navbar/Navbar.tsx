@@ -124,7 +124,8 @@ lg:top-4
 left-1/2
 -translate-x-1/2
 z-[999]
-w-[calc(100%-24px)]
+w-[calc(100%-16px)]
+sm:w-[calc(100%-24px)]
 max-w-[1700px]
 transition-all
 duration-500
@@ -160,9 +161,11 @@ mx-auto
 flex
 items-center
 justify-between
-h-[74px]
+h-[64px]
+sm:h-[74px]
 lg:h-[90px]
-px-5
+px-3
+sm:px-5
 lg:px-6
 xl:px-8
 "
@@ -176,7 +179,8 @@ flex
 items-center
 justify-start
 shrink-0
-w-[175px]
+w-[128px]
+sm:w-[175px]
 xl:w-[190px]
 group
 "
@@ -189,7 +193,8 @@ width={320}
 height={95}
 priority
 className="
-h-[52px]
+h-[40px]
+sm:h-[52px]
 lg:h-[58px]
 xl:h-[60px]
 w-auto

@@ -79,7 +79,7 @@ export default function DashboardHeader({
 
         <div className="flex-1">
 
-          <p className="uppercase tracking-[5px] text-[#00B853] font-bold mb-3">
+          <p className="uppercase tracking-[0.16em] text-[#00B853] font-bold mb-3">
             {greeting}
           </p>
 
@@ -114,7 +114,8 @@ export default function DashboardHeader({
           from-white
           to-slate-50
           shadow-lg
-          p-7
+          p-5
+          sm:p-7
           "
         >
           <div className="flex items-center gap-3">

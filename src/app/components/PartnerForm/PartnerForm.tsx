@@ -110,15 +110,15 @@ consentAccepted: false,
 
         {/* ================= Premium EVUDDY Header ================= */}
 
-<div className="text-center mb-20">
+<div className="text-center mb-10 sm:mb-20">
 
   {/* Premium Badge */}
 
-  <div className="inline-flex items-center gap-3 rounded-full border border-[#18B368]/20 bg-white px-7 py-3 shadow-[0_15px_40px_rgba(15,23,42,0.08)]">
+  <div className="inline-flex max-w-full items-center gap-3 rounded-full border border-[#18B368]/20 bg-white px-4 py-3 shadow-[0_15px_40px_rgba(15,23,42,0.08)] sm:px-7">
 
     <div className="w-3 h-3 rounded-full bg-[#18B368] animate-pulse" />
 
-    <span className="text-[15px] font-semibold tracking-wide text-[#18B368] uppercase">
+    <span className="text-[12px] font-semibold tracking-wide text-[#18B368] uppercase sm:text-[15px]">
       EVUDDY PARTNERSHIP PROGRAM
     </span>
 
@@ -126,7 +126,7 @@ consentAccepted: false,
 
   {/* Heading */}
 
-  <h2 className="mt-8 text-5xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-[-0.04em]">
+  <h2 className="mt-8 text-3xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-[-0.04em]">
 
     <span className="text-[#0F172A]">
       Build the Future
@@ -142,7 +142,7 @@ consentAccepted: false,
 
   {/* Description */}
 
-  <p className="mt-8 max-w-3xl mx-auto text-[19px] leading-9 text-slate-600">
+  <p className="mt-8 max-w-3xl mx-auto text-[16px] leading-8 text-slate-600 sm:text-[19px] sm:leading-9">
 
     Join India's next-generation electric mobility ecosystem.
 
