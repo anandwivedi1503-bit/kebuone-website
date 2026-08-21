@@ -265,14 +265,16 @@ export default function Hero() {
                 <circle className="evuddy-gps-ring" r="34" fill="none" stroke="#6EE7A8" strokeWidth="2" />
                 <circle r="22" fill="#18B368" opacity="0.18" />
                 <circle r="5" fill="#18B368" />
-                <image
-                  href={bikeSrc}
-                  x="-110"
-                  y="-78"
-                  width="220"
-                  height="120"
-                  preserveAspectRatio="xMidYMid meet"
-                />
+                <g transform="scale(-1 1)">
+                  <image
+                    href={bikeSrc}
+                    x="-110"
+                    y="-78"
+                    width="220"
+                    height="120"
+                    preserveAspectRatio="xMidYMid meet"
+                  />
+                </g>
               </g>
             </svg>
           </div>
