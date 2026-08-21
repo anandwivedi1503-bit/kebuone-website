@@ -186,18 +186,18 @@ export default function Hero() {
           </motion.a>
         </motion.div>
 
-        <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-[#071018] px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.12)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
+        <div className="relative mx-auto mt-4 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-white px-3 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:mt-5 sm:rounded-[28px] sm:px-6 sm:py-5">
           <div className="mb-3 flex items-center justify-between gap-3">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/45">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
               Live GPS route
             </p>
-            <p className="truncate text-[11px] font-bold text-[#6EE7A8]">
+            <p className="truncate text-[11px] font-bold text-[#18B368]">
               Hub → street → yard
             </p>
           </div>
 
-          <div className="relative h-[210px] overflow-hidden rounded-[16px] bg-[#0b1614] sm:h-[200px] lg:h-[220px]">
-            <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:linear-gradient(rgba(110,231,168,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.35)_1px,transparent_1px)] [background-size:28px_28px]" />
+          <div className="relative h-[210px] overflow-hidden rounded-[16px] bg-[#F4FAF7] sm:h-[200px] lg:h-[220px]">
+            <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(rgba(15,23,42,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.06)_1px,transparent_1px)] [background-size:28px_28px]" />
             <svg
               viewBox="0 0 960 220"
               className="absolute inset-0 h-full w-full"
@@ -206,7 +206,7 @@ export default function Hero() {
             >
               <path
                 d="M70 130 C 210 70, 340 180, 500 110 S 760 175, 890 125"
-                stroke="#16352c"
+                stroke="#D7E4DC"
                 strokeWidth="14"
                 strokeLinecap="round"
               />
@@ -234,12 +234,11 @@ export default function Hero() {
                   <mpath href="#evuddy-route" />
                 </animateMotion>
                 <g transform="translate(-22 -18)">
-                  <ellipse cx="22" cy="30" rx="16" ry="4" fill="rgba(0,0,0,0.35)" />
+                  <ellipse cx="22" cy="30" rx="16" ry="4" fill="rgba(15,23,42,0.12)" />
                   <rect x="6" y="10" width="32" height="12" rx="6" fill="#EC2A8C" />
                   <rect x="18" y="4" width="14" height="8" rx="3" fill="#0F172A" />
-                  <circle cx="12" cy="24" r="5" fill="#0F172A" stroke="#6EE7A8" strokeWidth="1.5" />
-                  <circle cx="32" cy="24" r="5" fill="#0F172A" stroke="#6EE7A8" strokeWidth="1.5" />
-                  <circle cx="38" cy="12" r="2" fill="#FDE68A" />
+                  <circle cx="12" cy="24" r="5" fill="#0F172A" stroke="#18B368" strokeWidth="1.5" />
+                  <circle cx="32" cy="24" r="5" fill="#0F172A" stroke="#18B368" strokeWidth="1.5" />
                 </g>
               </g>
             </svg>
@@ -254,7 +253,7 @@ export default function Hero() {
                   className="evuddy-pulse absolute left-1/2 top-1 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-[#18B368]/50 sm:h-3 sm:w-3"
                   style={{ animationDelay: hub.delay }}
                 />
-                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-white/60 sm:tracking-[0.16em]">
+                <span className="relative text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500 sm:tracking-[0.16em]">
                   {hub.label}
                 </span>
               </div>
