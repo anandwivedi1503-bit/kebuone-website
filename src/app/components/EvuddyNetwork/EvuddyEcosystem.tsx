@@ -1,52 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
 
-type Pt = { sx: number; sy: number };
+/**
+ * Full-width EVUDDY operations strip.
+ *
+ * Why it used to look “squeezed”: a 1440×820 viewBox inside a short band
+ * scales by HEIGHT, so the city sat in the middle third with empty sides.
+ *
+ * Fix: wide shallow viewBox + preserveAspectRatio slice so the scene always
+ * fills the viewport width. Expand on hover/click to show more height.
+ *
+ * Scooters only on the avenue, pickup yard, and charge bays — never on the hub roof.
+ */
 
-const OX = 720;
-const OY = 370;
-const UX = 46;
-const UY = 26.5;
+const OX = 960;
+const OY = 70;
+const UX = 38;
+const UY = 16;
 
-function iso(x: number, y: number, z = 0): Pt {
-  return {
-    sx: OX + (x - y) * UX,
-    sy: OY + (x + y) * UY - z,
-  };
+function iso(x: number, y: number) {
+  return { x: OX + (x - y) * UX, y: OY + (x + y) * UY };
 }
 
-function poly(pts: Pt[]) {
-  return pts.map((p, i) => `${i ? "L" : "M"}${p.sx.toFixed(1)} ${p.sy.toFixed(1)}`).join(" ") + " Z";
-}
-
-function Slab({
-  x,
-  y,
-  w,
-  d,
-  fill,
-  stroke,
-  dash,
-}: {
-  x: number;
-  y: number;
-  w: number;
-  d: number;
-  fill: string;
-  stroke?: string;
-  dash?: string;
-}) {
-  return (
-    <path
-      d={poly([iso(x, y), iso(x + w, y), iso(x + w, y + d), iso(x, y + d)])}
-      fill={fill}
-      stroke={stroke}
-      strokeWidth={stroke ? 1.6 : 0}
-      strokeDasharray={dash}
-    />
-  );
+function diamond(x: number, y: number, s = 1) {
+  const a = iso(x, y);
+  const b = iso(x + s, y);
+  const c = iso(x + s, y + s);
+  const d = iso(x, y + s);
+  return `${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y} ${d.x},${d.y}`;
 }
 
 function Box({
@@ -56,9 +39,9 @@ function Box({
   d,
   h,
   top,
-  front,
-  side,
-  windows,
+  left,
+  right,
+  stroke = "rgba(15,23,42,0.1)",
 }: {
   x: number;
   y: number;
@@ -66,49 +49,65 @@ function Box({
   d: number;
   h: number;
   top: string;
-  front: string;
-  side: string;
-  windows?: boolean;
+  left: string;
+  right: string;
+  stroke?: string;
 }) {
-  const a = iso(x, y, h);
-  const b = iso(x + w, y, h);
-  const c = iso(x + w, y + d, h);
-  const e = iso(x, y + d, h);
-  const af = iso(x, y, 0);
-  const bf = iso(x + w, y, 0);
-  const cf = iso(x + w, y + d, 0);
-  const ef = iso(x, y + d, 0);
-  const cols = Math.max(2, Math.round(w * 2));
-  const rows = Math.max(2, Math.round(h / 22));
-  const panes = [];
-  if (windows) {
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        const u0 = (col + 0.18) / cols;
-        const u1 = (col + 0.78) / cols;
-        const v0 = (row + 0.22) / rows;
-        const v1 = (row + 0.72) / rows;
-        const lerp = (p: Pt, q: Pt, t: number) => ({ sx: p.sx + (q.sx - p.sx) * t, sy: p.sy + (q.sy - p.sy) * t });
-        const topL = lerp(a, e, u0);
-        const topR = lerp(a, e, u1);
-        const botL = lerp(af, ef, u0);
-        const botR = lerp(af, ef, u1);
-        const p0 = lerp(topL, botL, v0);
-        const p1 = lerp(topR, botR, v0);
-        const p2 = lerp(topR, botR, v1);
-        const p3 = lerp(topL, botL, v1);
-        panes.push(<path key={`${row}-${col}`} d={poly([p0, p1, p2, p3])} fill="#9BD7F0" opacity="0.85" />);
-      }
-    }
-  }
+  const p = [
+    iso(x, y),
+    iso(x + w, y),
+    iso(x + w, y + d),
+    iso(x, y + d),
+  ];
+  const q = p.map((pt) => ({ x: pt.x, y: pt.y - h }));
   return (
     <g>
-      <path d={poly([iso(x - 0.04, y - 0.04), iso(x + w + 0.08, y - 0.04), iso(x + w + 0.08, y + d + 0.08), iso(x - 0.04, y + d + 0.08)])} fill="#0F172A" opacity="0.07" />
-      <path d={poly([e, c, cf, ef])} fill={side} />
-      <path d={poly([a, e, ef, af])} fill={front} />
-      <path d={poly([b, c, cf, bf])} fill={side} opacity="0.9" />
-      <path d={poly([a, b, c, e])} fill={top} />
-      {panes}
+      <polygon
+        points={`${p[3].x},${p[3].y} ${p[2].x},${p[2].y} ${q[2].x},${q[2].y} ${q[3].x},${q[3].y}`}
+        fill={left}
+        stroke={stroke}
+        strokeWidth="0.6"
+      />
+      <polygon
+        points={`${p[1].x},${p[1].y} ${p[2].x},${p[2].y} ${q[2].x},${q[2].y} ${q[1].x},${q[1].y}`}
+        fill={right}
+        stroke={stroke}
+        strokeWidth="0.6"
+      />
+      <polygon
+        points={`${q[0].x},${q[0].y} ${q[1].x},${q[1].y} ${q[2].x},${q[2].y} ${q[3].x},${q[3].y}`}
+        fill={top}
+        stroke={stroke}
+        strokeWidth="0.6"
+      />
+    </g>
+  );
+}
+
+function RoofSolar({ x, y, elev }: { x: number; y: number; elev: number }) {
+  const origin = iso(x, y);
+  return (
+    <g transform={`translate(${origin.x} ${origin.y - elev})`}>
+      <polygon points="-28,-6 10,-22 48,-6 10,10" fill="#0B3B22" />
+      {[-18, -6, 6].map((dx) => (
+        <g key={dx}>
+          <polygon
+            points={`${dx},-2 ${dx + 12},-8 ${dx + 22},-2 ${dx + 10},4`}
+            fill="#14532D"
+            stroke="#86EFAC"
+            strokeWidth="0.7"
+          />
+          <line
+            x1={dx + 4}
+            y1={-4}
+            x2={dx + 16}
+            y2={0}
+            stroke="#4ADE80"
+            strokeWidth="0.5"
+            opacity="0.7"
+          />
+        </g>
+      ))}
     </g>
   );
 }
@@ -117,246 +116,395 @@ function Tree({ x, y }: { x: number; y: number }) {
   const p = iso(x, y);
   return (
     <g>
-      <ellipse cx={p.sx} cy={p.sy + 8} rx="18" ry="7" fill="#0F172A" opacity="0.1" />
-      <path d={`M${p.sx - 3} ${p.sy + 4} L${p.sx + 3} ${p.sy + 4} L${p.sx + 2} ${p.sy - 18} L${p.sx - 2} ${p.sy - 18} Z`} fill="#6B3F1F" />
-      <ellipse cx={p.sx} cy={p.sy - 28} rx="16" ry="14" fill="#3FA35A" />
-      <ellipse cx={p.sx - 8} cy={p.sy - 24} rx="10" ry="9" fill="#5BC56F" />
-      <ellipse cx={p.sx + 8} cy={p.sy - 24} rx="9" ry="8" fill="#2F8F4A" />
+      <ellipse cx={p.x} cy={p.y + 6} rx="11" ry="4" fill="rgba(15,23,42,0.1)" />
+      <rect x={p.x - 2.5} y={p.y - 14} width="5" height="18" rx="1.5" fill="#7C4A2A" />
+      <ellipse cx={p.x} cy={p.y - 22} rx="16" ry="13" fill="#166534" />
+      <ellipse cx={p.x + 5} cy={p.y - 28} rx="11" ry="9" fill="#22C55E" />
+      <ellipse cx={p.x - 6} cy={p.y - 26} rx="9" ry="7" fill="#15803D" />
     </g>
   );
 }
 
-function Person({ x, y, shirt }: { x: number; y: number; shirt: string }) {
+function Person({
+  x,
+  y,
+  shirt,
+  flip,
+}: {
+  x: number;
+  y: number;
+  shirt: string;
+  flip?: boolean;
+}) {
+  const p = iso(x, y);
+  return (
+    <g transform={`translate(${p.x} ${p.y}) scale(${flip ? -1 : 1} 1)`}>
+      <ellipse cx="0" cy="4" rx="7" ry="2.4" fill="rgba(15,23,42,0.14)" />
+      <rect x="-3.2" y="-18" width="6.4" height="14" rx="2.4" fill={shirt} />
+      <circle cx="0" cy="-23" r="4.4" fill="#F4C7A5" />
+      <rect x="-5" y="-16" width="3.2" height="8" rx="1.4" fill={shirt} />
+      <rect x="1.8" y="-16" width="3.2" height="8" rx="1.4" fill={shirt} />
+      <rect x="-3" y="-5" width="2.6" height="9" rx="1.2" fill="#1E3A5F" />
+      <rect x="0.6" y="-5" width="2.6" height="9" rx="1.2" fill="#1E3A5F" />
+    </g>
+  );
+}
+
+function ChargePost({ x, y }: { x: number; y: number }) {
   const p = iso(x, y);
   return (
     <g>
-      <ellipse cx={p.sx} cy={p.sy + 5} rx="8" ry="3.2" fill="#0F172A" opacity="0.12" />
-      <circle cx={p.sx} cy={p.sy - 24} r="5.2" fill="#F3C7A4" />
-      <path d={`M${p.sx - 6} ${p.sy - 18} Q${p.sx} ${p.sy - 20} ${p.sx + 6} ${p.sy - 18} L${p.sx + 5} ${p.sy - 4} L${p.sx - 5} ${p.sy - 4} Z`} fill={shirt} />
-      <rect x={p.sx - 5} y={p.sy - 4} width="4" height="10" rx="1.2" fill="#1E293B" />
-      <rect x={p.sx + 1} y={p.sy - 4} width="4" height="10" rx="1.2" fill="#1E293B" />
+      <ellipse cx={p.x} cy={p.y + 4} rx="10" ry="3.5" fill="rgba(15,23,42,0.12)" />
+      <rect x={p.x - 7} y={p.y - 28} width="14" height="30" rx="3" fill="#0F172A" />
+      <rect x={p.x - 5} y={p.y - 24} width="10" height="8" rx="1.5" fill="#18B368" />
+      <text
+        x={p.x}
+        y={p.y - 18}
+        textAnchor="middle"
+        fill="#fff"
+        fontSize="5.5"
+        fontWeight="800"
+        fontFamily="system-ui,sans-serif"
+      >
+        EV
+      </text>
+      <rect x={p.x + 6} y={p.y - 16} width="10" height="2.5" rx="1" fill="#94A3B8" />
+      <circle cx={p.x} cy={p.y - 32} r="3.2" fill="#EC2A8C" />
     </g>
   );
 }
 
-function Scooter({ x, y, flip, src }: { x: number; y: number; flip?: boolean; src: string }) {
+function Windows({
+  x,
+  y,
+  cols,
+  rows,
+  h,
+  tone = "#BFDBFE",
+}: {
+  x: number;
+  y: number;
+  cols: number;
+  rows: number;
+  h: number;
+  tone?: string;
+}) {
+  const origin = iso(x, y);
+  const items = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      items.push(
+        <rect
+          key={`${r}-${c}`}
+          x={origin.x + 8 + c * 11 - r * 1.5}
+          y={origin.y - h + 10 + r * 14}
+          width="7"
+          height="9"
+          rx="1"
+          fill={tone}
+          opacity="0.9"
+        />
+      );
+    }
+  }
+  return <g>{items}</g>;
+}
+
+function RealScooter({
+  src,
+  x,
+  y,
+  scale = 0.2,
+  flip,
+}: {
+  src: string;
+  x: number;
+  y: number;
+  scale?: number;
+  flip?: boolean;
+}) {
   const p = iso(x, y);
-  if (!src) return null;
+  const w = 520 * scale;
+  const h = 290 * scale;
   return (
-    <g transform={`translate(${p.sx} ${p.sy})`}>
-      <ellipse cx="0" cy="7" rx="22" ry="5" fill="#0F172A" opacity="0.16" />
-      <g transform={`scale(${flip ? -1 : 1} 1)`}>
-        <image href={src} x="-38" y="-34" width="76" height="40" preserveAspectRatio="xMidYMid meet" />
-      </g>
-    </g>
-  );
-}
-
-function Line({ from, to }: { from: Pt; to: Pt }) {
-  const mx = (from.sx + to.sx) / 2;
-  const my = Math.min(from.sy, to.sy) - 36;
-  return (
-    <path
-      d={`M${from.sx} ${from.sy} Q ${mx} ${my} ${to.sx} ${to.sy}`}
-      fill="none"
-      stroke="#18B368"
-      strokeWidth="1.8"
-      opacity="0.45"
-      className="evuddy-net-line"
+    <image
+      href={src}
+      x={p.x - w * 0.52}
+      y={p.y - h * 0.88}
+      width={w}
+      height={h}
+      preserveAspectRatio="xMidYMid meet"
+      transform={flip ? `translate(${p.x} ${p.y}) scale(-1 1) translate(${-p.x} ${-p.y})` : undefined}
+      style={{ filter: "drop-shadow(8px 10px 8px rgba(15,23,42,0.22))" }}
     />
   );
 }
 
-function RidingScooter({ delay, src }: { delay: string; src: string }) {
-  if (!src) return null;
+function MovingScooter({
+  src,
+  pathId,
+  dur,
+  delay,
+  scale = 0.17,
+}: {
+  src: string;
+  pathId: string;
+  dur: string;
+  delay: string;
+  scale?: number;
+}) {
+  const w = 520 * scale;
+  const h = 290 * scale;
   return (
     <g>
-      <animateMotion dur="18s" begin={delay} repeatCount="indefinite" rotate="0">
-        <mpath href="#evuddy-eco-road" />
-      </animateMotion>
-      <ellipse cx="0" cy="8" rx="22" ry="5" fill="#0F172A" opacity="0.16" />
-      <g transform="scale(-1 1)">
-        <image href={src} x="-40" y="-36" width="80" height="42" preserveAspectRatio="xMidYMid meet" />
-      </g>
+      <image
+        href={src}
+        x={-w * 0.5}
+        y={-h * 0.86}
+        width={w}
+        height={h}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ filter: "drop-shadow(6px 8px 7px rgba(15,23,42,0.2))" }}
+      >
+        <animateMotion dur={dur} begin={delay} repeatCount="indefinite" rotate="auto">
+          <mpath href={`#${pathId}`} />
+        </animateMotion>
+      </image>
     </g>
   );
 }
 
 export default function EvuddyEcosystem() {
-  const bikeSrc = useEvuddySideSrc();
-  const [pinned, setPinned] = useState(false);
-  const [hover, setHover] = useState(false);
-  const big = pinned || hover;
-  const hq = iso(5.1, 3.6, 132);
-  const pickup = iso(0.4, 4.9, 8);
-  const hub = iso(5.15, 7.15, 62);
-  const charge = iso(9.7, 5.7, 36);
-  const partner = iso(0.7, 1.15, 10);
-  const gps = iso(9.6, 2.05, 8);
-  const solar = iso(2.4, 9.7, 8);
+  const src = useEvuddySideSrc();
+  const uid = useId().replace(/:/g, "");
+  const roadId = `${uid}-road`;
+  const [expanded, setExpanded] = useState(false);
+
+  const a0 = iso(-7.2, 5.35);
+  const a1 = iso(20.4, 5.35);
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      aria-expanded={big}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      onClick={() => setPinned((open) => !open)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          setPinned((open) => !open);
-        }
-      }}
-      className={`relative w-full cursor-zoom-in overflow-hidden bg-[linear-gradient(180deg,#E8F3FB_0%,#F6FBFE_48%,#EEF7F2_100%)] transition-[height,min-height] duration-500 ease-out ${
-        big
-          ? "h-[72vh] min-h-[520px] cursor-zoom-out sm:h-[80vh]"
-          : "h-[34vh] min-h-[260px] sm:h-[40vh] sm:min-h-[340px] lg:h-[44vh]"
+      className={`relative w-full overflow-hidden bg-[#EEF3F8] transition-[height] duration-500 ease-out ${
+        expanded ? "h-[min(82vh,780px)]" : "h-[42vh] min-h-[280px] sm:h-[48vh] lg:h-[52vh]"
       }`}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+      onClick={() => setExpanded((v) => !v)}
     >
-      <style>{`
-        @keyframes evuddy-net {
-          to { stroke-dashoffset: -56; }
-        }
-        .evuddy-net-line {
-          stroke-dasharray: 8 12;
-          animation: evuddy-net 1.6s linear infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .evuddy-net-line { animation: none; }
-        }
-      `}</style>
-
       <svg
-        viewBox="0 0 1440 820"
-        preserveAspectRatio="xMidYMid meet"
-        className={`absolute inset-0 h-full w-full transition-transform duration-500 ease-out ${
-          big ? "scale-100" : "scale-[0.94]"
-        }`}
-        role="img"
-        aria-label="EVUDDY live ecosystem"
+        viewBox="0 0 1920 520"
+        className="absolute inset-0 h-full w-full"
+        preserveAspectRatio="xMidYMid slice"
+        aria-hidden
       >
         <defs>
-          <linearGradient id="iso-sky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#E7F2FB" />
-            <stop offset="1" stopColor="#F4FAF7" />
+          <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#F7FAFC" />
+            <stop offset="55%" stopColor="#EEF3F8" />
+            <stop offset="100%" stopColor="#E4ECF4" />
           </linearGradient>
+          <filter id={`${uid}-soft`} x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="10" stdDeviation="8" floodColor="#0F172A" floodOpacity="0.08" />
+          </filter>
         </defs>
 
-        <rect width="1440" height="820" fill="url(#iso-sky)" />
-        <path d={poly([iso(-3.2, -1.6), iso(14.6, -1.6), iso(14.6, 12.4), iso(-3.2, 12.4)])} fill="#E6EEF4" />
-        <path d={poly([iso(-2.4, -0.7), iso(13.6, -0.7), iso(13.6, 11.5), iso(-2.4, 11.5)])} fill="#F3F7FA" />
+        <rect width="1920" height="520" fill={`url(#${uid}-sky)`} />
 
-        {/* Avenue + cross street with curbs */}
-        <Slab x={-2.6} y={5.85} w={16.2} d={1.55} fill="#C9D3DC" />
-        <Slab x={-2.4} y={6.05} w={15.8} d={1.15} fill="#AAB4BE" />
-        <Slab x={4.95} y={-0.9} w={1.45} d={12.4} fill="#C9D3DC" />
-        <Slab x={5.15} y={-0.7} w={1.05} d={12} fill="#AAB4BE" />
-        <path
-          id="evuddy-eco-road"
-          d={`M${iso(-2.1, 6.62).sx} ${iso(-2.1, 6.62).sy} L${iso(12.8, 6.62).sx} ${iso(12.8, 6.62).sy}`}
-          fill="none"
-          stroke="white"
-          strokeWidth="3.2"
-          strokeDasharray="16 12"
-          strokeLinecap="round"
+        {[-8, -4, 0, 4, 8, 12, 16].map((gx) =>
+          [0, 3, 6, 9].map((gy) => (
+            <polygon
+              key={`${gx}-${gy}`}
+              points={diamond(gx, gy, 4)}
+              fill="none"
+              stroke="rgba(148,163,184,0.18)"
+              strokeWidth="1"
+            />
+          ))
+        )}
+
+        {/* Long avenue — scooters ride HERE only */}
+        <polygon
+          points={`${iso(-7.4, 4.85).x},${iso(-7.4, 4.85).y} ${iso(20.6, 4.85).x},${iso(20.6, 4.85).y} ${iso(20.6, 5.95).x},${iso(20.6, 5.95).y} ${iso(-7.4, 5.95).x},${iso(-7.4, 5.95).y}`}
+          fill="#CBD5E1"
         />
+        <polygon
+          points={`${iso(-7.4, 5.22).x},${iso(-7.4, 5.22).y} ${iso(20.6, 5.22).x},${iso(20.6, 5.22).y} ${iso(20.6, 5.58).x},${iso(20.6, 5.58).y} ${iso(-7.4, 5.58).x},${iso(-7.4, 5.58).y}`}
+          fill="#94A3B8"
+        />
+        <path
+          d={`M ${iso(-7.2, 5.4).x} ${iso(-7.2, 5.4).y} L ${iso(20.4, 5.4).x} ${iso(20.4, 5.4).y}`}
+          stroke="#fff"
+          strokeWidth="2.2"
+          strokeDasharray="14 16"
+          opacity="0.95"
+        />
+        <path id={roadId} d={`M ${a0.x} ${a0.y} L ${a1.x} ${a1.y}`} fill="none" />
 
-        <g>
-          <Line from={hq} to={pickup} />
-          <Line from={hq} to={hub} />
-          <Line from={hq} to={charge} />
-          <Line from={hq} to={partner} />
-          <Line from={hq} to={gps} />
-          <Line from={hq} to={solar} />
-        </g>
-
-        <Box x={-1.7} y={-0.35} w={1.55} d={1.4} h={86} top="#FFFFFF" front="#EDF3F8" side="#C8D6E2" windows />
-        <Box x={0.15} y={-0.5} w={1.45} d={1.35} h={112} top="#FBFDFF" front="#F2F7FB" side="#C3D2DF" windows />
-        <Box x={1.85} y={-0.2} w={1.3} d={1.2} h={74} top="#FFFFFF" front="#EEF4F9" side="#CAD7E2" windows />
-        <Box x={7.7} y={-0.45} w={1.7} d={1.45} h={128} top="#F5FBF8" front="#EAF5EF" side="#BFD4C8" windows />
-        <Box x={9.6} y={0.15} w={1.4} d={1.25} h={92} top="#FFFFFF" front="#F3F7FB" side="#C7D5E0" windows />
-        <Box x={11.2} y={1.25} w={1.25} d={1.15} h={68} top="#FAFCFE" front="#F0F5F8" side="#CCD7E0" windows />
-        <Box x={9.5} y={8.05} w={1.75} d={1.4} h={70} top="#F7FBFF" front="#ECF3F8" side="#C5D3DE" windows />
-        <Box x={-2.05} y={7.85} w={2.05} d={1.6} h={58} top="#E6EDF3" front="#3A4858" side="#24303C" />
-
-        {/* Partner kiosk */}
-        <Box x={0.2} y={0.85} w={1.4} d={1.2} h={42} top="#DCFCE7" front="#0F172A" side="#16A34A" />
-
-        {/* Pickup yard */}
-        <Slab x={-1.55} y={4.15} w={4.15} d={1.95} fill="#D7E0E8" />
-        <Slab x={-1.4} y={4.3} w={3.85} d={1.65} fill="#F7FAFC" stroke="#18B368" dash="7 6" />
-        <Box x={-1.15} y={4.4} w={1.15} d={0.95} h={24} top="#E2E8F0" front="#94A3B8" side="#64748B" />
-
-        {/* HQ */}
-        <Box x={3.95} y={2.35} w={2.55} d={2.15} h={132} top="#F2FAF5" front="#E4F3EA" side="#B7D4C2" windows />
-        <Box x={4.2} y={2.6} w={2.05} d={1.65} h={86} top="#FFFFFF" front="#0F172A" side="#16A34A" />
-        <circle cx={hq.sx} cy={hq.sy - 8} r="8" fill="#18B368" />
-        <circle cx={hq.sx} cy={hq.sy - 8} r="16" fill="#18B368" opacity="0.18" />
-
-        {/* Hub kiosk + canopy */}
-        <Box x={4.25} y={6.45} w={2.0} d={1.7} h={66} top="#22C55E" front="#0F172A" side="#16A34A" />
-        <Box x={4.05} y={6.25} w={2.4} d={2.05} h={14} top="#86EFAC" front="#16A34A" side="#15803D" />
-
-        {/* Charge bay */}
-        <Box x={9.15} y={5.15} w={1.85} d={1.4} h={40} top="#ECFDF5" front="#D1FAE5" side="#6EE7B7" />
-
-        {/* Solar row */}
-        <Box x={1.05} y={9.25} w={1.05} d={0.8} h={12} top="#93C5FD" front="#1E3A8A" side="#1D4ED8" />
-        <Box x={2.25} y={9.4} w={1.05} d={0.8} h={12} top="#93C5FD" front="#1E3A8A" side="#1D4ED8" />
-        <Box x={3.45} y={9.25} w={1.05} d={0.8} h={12} top="#93C5FD" front="#1E3A8A" side="#1D4ED8" />
-
-        <text x={iso(5.2, 4.35, 52).sx} y={iso(5.2, 4.35, 52).sy} textAnchor="middle" fill="#6EE7A8" fontSize="15" fontWeight="800">
-          EVUDDY
+        {/* NORTH of road: pickup yard + charge — never on buildings */}
+        <polygon points={diamond(3.15, 2.15, 3.55)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.2" />
+        <text
+          x={iso(4.7, 2.2).x}
+          y={iso(4.7, 2.2).y - 8}
+          textAnchor="middle"
+          fill="#0F172A"
+          fontSize="11"
+          fontWeight="800"
+          fontFamily="system-ui,sans-serif"
+        >
+          PICKUP YARD
         </text>
-        <text x={iso(5.25, 7.25, 36).sx} y={iso(5.25, 7.25, 36).sy} textAnchor="middle" fill="#18B368" fontSize="16" fontWeight="800" letterSpacing="2">
-          HUB
-        </text>
-        <text x={iso(10.05, 5.85, 20).sx} y={iso(10.05, 5.85, 20).sy} textAnchor="middle" fill="#15803D" fontSize="11" fontWeight="800">
+        {src ? (
+          <>
+            <RealScooter src={src} x={3.55} y={3.05} scale={0.175} />
+            <RealScooter src={src} x={4.55} y={3.35} scale={0.175} />
+            <RealScooter src={src} x={5.55} y={3.65} scale={0.175} />
+          </>
+        ) : null}
+
+        <polygon points={diamond(11.05, 2.35, 2.7)} fill="#ECFDF5" stroke="#18B368" strokeWidth="1.4" />
+        <text
+          x={iso(12.3, 2.4).x}
+          y={iso(12.3, 2.4).y - 10}
+          textAnchor="middle"
+          fill="#0F172A"
+          fontSize="11"
+          fontWeight="800"
+          fontFamily="system-ui,sans-serif"
+        >
           EV CHARGE
         </text>
-        <text x={iso(-1.0, 8.65, 28).sx} y={iso(-1.0, 8.65, 28).sy} textAnchor="middle" fill="#E2E8F0" fontSize="10" fontWeight="700">
-          NAGAR STN
-        </text>
+        <ChargePost x={11.45} y={3.15} />
+        <ChargePost x={12.55} y={3.55} />
+        {src ? (
+          <>
+            <RealScooter src={src} x={11.85} y={3.85} scale={0.16} />
+            <RealScooter src={src} x={12.85} y={4.15} scale={0.16} />
+          </>
+        ) : null}
 
-        <Tree x={-1.85} y={1.55} />
-        <Tree x={1.85} y={0.7} />
-        <Tree x={7.05} y={0.25} />
-        <Tree x={12.15} y={2.05} />
-        <Tree x={12.35} y={8.45} />
-        <Tree x={-1.55} y={9.55} />
-        <Tree x={6.55} y={10.05} />
+        {/* Buildings with rooftop solar — north and south of the road, not on it */}
+        <g filter={`url(#${uid}-soft)`}>
+          <Box x={-5.4} y={0.35} w={2.15} d={1.55} h={86} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
+          <Windows x={-5.4} y={0.35} cols={4} rows={4} h={86} />
+          <RoofSolar x={-4.35} y={1.05} elev={86} />
 
-        <Person x={0.85} y={1.45} shirt="#18B368" />
-        <Person x={3.55} y={6.15} shirt="#EC2A8C" />
-        <Person x={8.75} y={6.25} shirt="#0F172A" />
-        <Person x={9.85} y={2.35} shirt="#22C55E" />
+          <Box x={-2.35} y={0.55} w={2.35} d={1.7} h={118} top="#F1F5F9" left="#E2E8F0" right="#94A3B8" />
+          <Windows x={-2.35} y={0.55} cols={5} rows={5} h={118} />
+          <RoofSolar x={-1.2} y={1.25} elev={118} />
 
-        <Scooter x={-0.35} y={5.05} src={bikeSrc} />
-        <Scooter x={0.7} y={5.25} src={bikeSrc} flip />
-        <Scooter x={1.7} y={5.05} src={bikeSrc} />
-        <Scooter x={9.55} y={2.45} src={bikeSrc} />
-        <RidingScooter delay="0s" src={bikeSrc} />
-        <RidingScooter delay="6s" src={bikeSrc} />
-        <RidingScooter delay="12s" src={bikeSrc} />
+          <Box x={7.15} y={0.25} w={2.5} d={1.65} h={102} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
+          <Windows x={7.15} y={0.25} cols={5} rows={5} h={102} />
+          <RoofSolar x={8.35} y={1.0} elev={102} />
+
+          <Box x={14.55} y={0.45} w={2.2} d={1.5} h={92} top="#F1F5F9" left="#E2E8F0" right="#94A3B8" />
+          <Windows x={14.55} y={0.45} cols={4} rows={4} h={92} />
+          <RoofSolar x={15.6} y={1.1} elev={92} />
+
+          {/* SOUTH of road: neighbourhood + HUB (hub is NOT on the avenue) */}
+          <Box x={-4.8} y={7.15} w={2.05} d={1.45} h={78} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
+          <Windows x={-4.8} y={7.15} cols={4} rows={3} h={78} />
+          <RoofSolar x={-3.8} y={7.8} elev={78} />
+
+          <Box x={7.35} y={7.25} w={2.15} d={1.5} h={88} top="#F1F5F9" left="#E2E8F0" right="#94A3B8" />
+          <Windows x={7.35} y={7.25} cols={4} rows={4} h={88} />
+          <RoofSolar x={8.4} y={7.9} elev={88} />
+
+          <Box x={14.2} y={7.05} w={2.4} d={1.55} h={96} top="#F8FAFC" left="#E2E8F0" right="#CBD5E1" />
+          <Windows x={14.2} y={7.05} cols={5} rows={4} h={96} />
+          <RoofSolar x={15.35} y={7.75} elev={96} />
+        </g>
+
+        {/* EVUDDY hub campus — south of the avenue */}
+        <polygon
+          points={`${iso(0.85, 6.95).x},${iso(0.85, 6.95).y} ${iso(5.55, 6.95).x},${iso(5.55, 6.95).y} ${iso(5.55, 9.05).x},${iso(5.55, 9.05).y} ${iso(0.85, 9.05).x},${iso(0.85, 9.05).y}`}
+          fill="#D1FAE5"
+          stroke="#18B368"
+          strokeWidth="1.6"
+        />
+        <Box x={1.35} y={7.2} w={3.55} d={1.55} h={70} top="#ECFDF5" left="#6EE7B7" right="#18B368" />
+        <Windows x={1.35} y={7.2} cols={6} rows={3} h={70} tone="#BBF7D0" />
+        <RoofSolar x={3.05} y={7.85} elev={70} />
+        <g>
+          {(() => {
+            const t = iso(3.1, 7.15);
+            return (
+              <>
+                <rect x={t.x - 38} y={t.y - 96} width="76" height="22" rx="11" fill="#0F172A" />
+                <text
+                  x={t.x}
+                  y={t.y - 81}
+                  textAnchor="middle"
+                  fill="#fff"
+                  fontSize="11"
+                  fontWeight="800"
+                  fontFamily="system-ui,sans-serif"
+                >
+                  EVUDDY HUB
+                </text>
+              </>
+            );
+          })()}
+        </g>
+
+        <Tree x={-6.2} y={2.4} />
+        <Tree x={0.15} y={1.85} />
+        <Tree x={6.35} y={2.05} />
+        <Tree x={10.15} y={1.55} />
+        <Tree x={16.95} y={2.15} />
+        <Tree x={-6.05} y={6.55} />
+        <Tree x={6.25} y={6.75} />
+        <Tree x={13.15} y={6.55} />
+        <Tree x={17.35} y={6.85} />
+
+        <Person x={-5.55} y={4.35} shirt="#18B368" />
+        <Person x={-3.85} y={4.55} shirt="#EC2A8C" flip />
+        <Person x={2.15} y={4.25} shirt="#0F172A" />
+        <Person x={4.85} y={1.85} shirt="#18B368" />
+        <Person x={8.15} y={4.45} shirt="#2563EB" flip />
+        <Person x={10.55} y={4.25} shirt="#EC2A8C" />
+        <Person x={13.35} y={2.05} shirt="#0F172A" />
+        <Person x={16.25} y={4.55} shirt="#18B368" flip />
+        <Person x={1.55} y={6.55} shirt="#EC2A8C" />
+        <Person x={4.25} y={6.65} shirt="#18B368" flip />
+        <Person x={9.15} y={6.55} shirt="#0F172A" />
+
+        {src ? (
+          <>
+            <MovingScooter src={src} pathId={roadId} dur="11s" delay="0s" scale={0.165} />
+            <MovingScooter src={src} pathId={roadId} dur="13.5s" delay="3.6s" scale={0.155} />
+            <MovingScooter src={src} pathId={roadId} dur="16s" delay="7.2s" scale={0.15} />
+          </>
+        ) : null}
+
+        {expanded ? (
+          <>
+            <g transform={`translate(${iso(4.7, 2.05).x} ${iso(4.7, 2.05).y - 118})`}>
+              <rect x="-92" y="-28" width="184" height="52" rx="18" fill="#fff" stroke="#E2E8F0" />
+              <text x="0" y="-6" textAnchor="middle" fill="#0F172A" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">
+                Pickup yard
+              </text>
+              <text x="0" y="14" textAnchor="middle" fill="#475569" fontSize="11" fontFamily="system-ui,sans-serif">
+                Booked EVUDDY scooters ready to go
+              </text>
+            </g>
+            <g transform={`translate(${iso(3.1, 7.15).x} ${iso(3.1, 7.15).y + 58})`}>
+              <rect x="-100" y="-28" width="200" height="52" rx="18" fill="#fff" stroke="#E2E8F0" />
+              <text x="0" y="-6" textAnchor="middle" fill="#0F172A" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">
+                Neighbourhood hub
+              </text>
+              <text x="0" y="14" textAnchor="middle" fill="#475569" fontSize="11" fontFamily="system-ui,sans-serif">
+                Ops, solar roof, charging — off the road
+              </text>
+            </g>
+          </>
+        ) : null}
       </svg>
 
-      <p className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">
-        {big ? "Click to shrink" : "Hover or click to expand"}
-      </p>
-
-      {big ? (
-        <>
-          <div className="pointer-events-none absolute left-4 top-[16%] max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:left-10 sm:max-w-[300px]">
-            <p className="text-sm font-black text-[#0F172A] sm:text-base">Live GPS for riders and partners</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">Every hub, pickup yard and street ride on one network.</p>
-          </div>
-          <div className="pointer-events-none absolute bottom-[14%] right-4 max-w-[260px] rounded-2xl bg-white/95 px-5 py-4 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:right-10 sm:max-w-[300px]">
-            <p className="text-sm font-black text-[#0F172A] sm:text-base">Book. Pickup. Return.</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">EVUDDY hubs with OTP, charge points and a scooter you can ride today.</p>
-          </div>
-        </>
+      {!expanded ? (
+        <p className="pointer-events-none absolute bottom-3 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-1.5 text-[11px] font-semibold tracking-wide text-slate-600 shadow-sm">
+          Hover or click to expand
+        </p>
       ) : null}
     </div>
   );
