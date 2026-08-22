@@ -123,10 +123,12 @@ const filteredRefunds = refunds.filter((refund) => {
 
 });
 
-const approveRefund = async (id: string) => {
+const approveRefund = async (id: string, sendToRazorpay = false) => {
 
   const confirmApprove = confirm(
-    "Approve this refund?"
+    sendToRazorpay
+      ? "Send this refund back through Razorpay to the rider's original payment? Wallet will not be credited."
+      : "Credit this refund to the rider WALLET?"
   );
 
   if (!confirmApprove) return;
@@ -142,6 +144,7 @@ const approveRefund = async (id: string) => {
   },
   body: JSON.stringify({
     refundStatus: "REFUNDED",
+    sendToRazorpay,
   }),
 });
 
@@ -155,7 +158,11 @@ if (!data.success) {
 
 }
 
-alert("Refund approved successfully.");
+alert(
+    sendToRazorpay
+      ? "Refund sent via Razorpay."
+      : "Refund credited to rider wallet."
+  );
 
 await fetchRefunds();
 
@@ -601,9 +608,10 @@ View
 {refund.refundStatus === "PROCESSING" ||
 refund.refundStatus === "PENDING" ? (
 
+<div className="flex flex-col gap-2">
 <button
 disabled={processingId===refund._id}
-onClick={()=>approveRefund(refund._id)}
+onClick={()=>approveRefund(refund._id, false)}
 className="
 px-5
 py-2
@@ -617,8 +625,25 @@ transition
 >
 {processingId===refund._id
 ? "Processing..."
-: "Approve"}
+: "To wallet"}
 </button>
+<button
+disabled={processingId===refund._id}
+onClick={()=>approveRefund(refund._id, true)}
+className="
+px-5
+py-2
+rounded-xl
+bg-slate-800
+text-white
+font-semibold
+hover:bg-slate-900
+transition
+"
+>
+To Razorpay
+</button>
+</div>
 
 ) : refund.refundStatus === "REFUNDED" ? (
 

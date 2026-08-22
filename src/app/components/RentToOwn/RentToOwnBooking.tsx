@@ -111,6 +111,7 @@ export default function RentToOwnBooking() {
   const [riderEmail, setRiderEmail] = useState("");
   const [riderId, setRiderId] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
+  const [walletAvailable, setWalletAvailable] = useState(0);
 
   const [city, setCity] = useState("");
   const [hub, setHub] = useState("");
@@ -202,6 +203,7 @@ export default function RentToOwnBooking() {
         setRiderName(data.data.fullName || "");
         setRiderId(data.data.riderId || "");
         setRiderEmail(data.data.email || "");
+        setWalletAvailable(Number(data.data.walletAvailable ?? data.data.walletBalance ?? 0));
       }
     });
     return () => unsubscribe();
@@ -374,7 +376,7 @@ export default function RentToOwnBooking() {
           setPaymentLoading(false);
           setError(response.error?.description || "Payment failed. Please try again.");
         });
-        razorpay.open();
+    razorpay.open();
       };
 
       if (!window.Razorpay) {
@@ -387,6 +389,46 @@ export default function RentToOwnBooking() {
       }
     } catch {
       setError("Payment could not be started.");
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const payWithWallet = async () => {
+    setError("");
+    setPaymentLoading(true);
+    try {
+      const payNow = Number(pendingAmount || payableAmount);
+      if (walletAvailable < payNow) {
+        setError(`Wallet has ${formatINR(walletAvailable)}. Pay with Razorpay or recharge.`);
+        return;
+      }
+      const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
+      const orderRes = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bookingMongoId,
+          amount: payNow,
+          useWallet: true,
+          firebaseIdToken: token,
+        }),
+      });
+      const orderData = await orderRes.json();
+      if (!orderData.success) {
+        setError(orderData.message || "Wallet payment failed.");
+        return;
+      }
+      setWalletAvailable((old) => Number(Math.max(0, old - payNow).toFixed(2)));
+      setPaymentSuccess(true);
+      setPendingAmount(Number(orderData.pendingAmount ?? 0));
+      setPickupOtp(orderData.pickupOTP || "");
+      setMessage(orderData.message || "Rent to Own activated from wallet. Collect the scooter with your pickup OTP.");
+    } catch {
+      setError("Wallet payment could not be started.");
     } finally {
       setPaymentLoading(false);
     }
@@ -659,6 +701,7 @@ export default function RentToOwnBooking() {
               <p className="mt-2 font-semibold">Pay now: {formatINR(pendingAmount || payableAmount)}</p>
             </div>
             {!paymentSuccess ? (
+              <>
               <button
                 type="button"
                 disabled={paymentLoading}
@@ -666,9 +709,23 @@ export default function RentToOwnBooking() {
                 className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white disabled:bg-slate-300"
               >
                 {paymentLoading
-                  ? "Opening Razorpay..."
-                  : `Pay ${formatINR(pendingAmount || payableAmount)}`}
+                  ? "Processing..."
+                  : `Pay ${formatINR(pendingAmount || payableAmount)} with Razorpay`}
               </button>
+              <button
+                type="button"
+                disabled={
+                  paymentLoading ||
+                  walletAvailable < Number(pendingAmount || payableAmount)
+                }
+                onClick={() => void payWithWallet()}
+                className="h-14 w-full rounded-full border border-[#18B368] bg-white font-bold text-[#0F172A] disabled:opacity-50"
+              >
+                {walletAvailable < Number(pendingAmount || payableAmount)
+                  ? `Wallet ${formatINR(walletAvailable)} — not enough`
+                  : `Pay ${formatINR(pendingAmount || payableAmount)} from wallet`}
+              </button>
+              </>
             ) : (
               <div className="rounded-2xl bg-emerald-50 p-5">
                 <p className="flex items-center gap-2 font-black text-emerald-700">

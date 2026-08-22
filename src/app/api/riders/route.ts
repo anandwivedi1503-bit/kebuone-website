@@ -1674,10 +1674,32 @@ export async function GET(req: Request) {
 
       void firebaseUid;
 
+      const wallet = await Wallet.findOne({
+        riderId: rider.riderId,
+        $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+      })
+        .select("balance freezeAmount status adminBlocked")
+        .lean<{
+          balance?: number;
+          freezeAmount?: number;
+          status?: string;
+          adminBlocked?: boolean;
+        } | null>();
+
+      const walletBalance = Number(wallet?.balance || 0);
+      const walletFreeze = Number(wallet?.freezeAmount || 0);
+      const walletAvailable = Math.max(0, walletBalance - walletFreeze);
+
       return NextResponse.json({
         success: true,
 
-        data: safeRider,
+        data: {
+          ...safeRider,
+          walletBalance,
+          walletFreeze,
+          walletAvailable,
+          walletStatus: wallet?.adminBlocked ? "Blocked" : wallet?.status || "Blocked",
+        },
       });
     }
 

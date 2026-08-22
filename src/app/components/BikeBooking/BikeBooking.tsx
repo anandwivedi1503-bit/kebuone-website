@@ -10,6 +10,7 @@ import {
   MapPin,
   ReceiptText,
   ShieldCheck,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { gstBreakdown } from "@/lib/gst";
@@ -168,6 +169,10 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [error, setError] = useState("");
   const [riderId, setRiderId] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
+  const [walletAvailable, setWalletAvailable] = useState(0);
+  const [helpText, setHelpText] = useState("");
+  const [helpStatus, setHelpStatus] = useState("");
+  const [helpLoading, setHelpLoading] = useState(false);
 
   const loadData = async (selectedCity = "") => {
   try {
@@ -247,6 +252,7 @@ useEffect(() => {
       setRiderPhone(rider.phone || "");
       setRiderEmail(rider.email || "");
       setRiderId(rider.riderId || "");
+      setWalletAvailable(Number(rider.walletAvailable ?? rider.walletBalance ?? 0));
     } catch (error) {
       console.error(error);
     }
@@ -700,6 +706,135 @@ await loadData();
     });
 
     razorpay.open();
+  };
+
+  const applyPaidResult = (payNow: number, data: {
+    pendingAmount?: number;
+    remainingAmount?: number;
+    pickupOTP?: string;
+    message?: string;
+  }) => {
+    const remaining = Number(data.pendingAmount ?? data.remainingAmount ?? 0);
+    setPaidAmount((oldAmount) => Number((oldAmount + payNow).toFixed(2)));
+    setPendingAmount(remaining);
+    if (remaining > 0) {
+      setPaymentMessage(
+        `Partial payment received. Pending: ${formatINR(remaining)}`
+      );
+      setPaymentAmount(String(remaining));
+      setPaymentLoading(false);
+      return;
+    }
+    setPaymentSuccess(true);
+    if (data.pickupOTP) setPickupOtp(String(data.pickupOTP));
+    setPaymentMessage(
+      data.pickupOTP
+        ? `Payment successful. Your pickup OTP is ${data.pickupOTP}.`
+        : data.message || "Payment successful. Booking confirmed."
+    );
+    setPaymentLoading(false);
+  };
+
+  const payWithWallet = async () => {
+    setError("");
+    setPaymentMessage("");
+    setPaymentLoading(true);
+
+    if (!bookingMongoId) {
+      setError("Reserve Scooter first.");
+      setPaymentLoading(false);
+      return;
+    }
+
+    const payNow = Number(paymentAmount || amountDue);
+    if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
+      setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
+      setPaymentLoading(false);
+      return;
+    }
+
+    if (walletAvailable < payNow) {
+      setError(
+        `Wallet has ${formatINR(walletAvailable)}. Recharge it or pay with Razorpay.`
+      );
+      setPaymentLoading(false);
+      return;
+    }
+
+    const user = auth.currentUser;
+    const token = firebaseIdToken || (await user?.getIdToken());
+    if (!token) {
+      setError("Please verify your phone number before payment.");
+      setPaymentLoading(false);
+      return;
+    }
+    setFirebaseIdToken(token);
+    setPaymentMessage("Paying from wallet...");
+
+    const orderRes = await fetch("/api/razorpay/create-order", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        bookingMongoId,
+        amount: payNow,
+        useWallet: true,
+        firebaseIdToken: token,
+      }),
+    });
+    const orderData = await orderRes.json();
+    if (!orderData.success) {
+      setPaymentMessage("");
+      setError(orderData.message || "Wallet payment failed.");
+      setPaymentLoading(false);
+      return;
+    }
+
+    setWalletAvailable((old) => Number(Math.max(0, old - payNow).toFixed(2)));
+    applyPaidResult(payNow, orderData);
+  };
+
+  const sendHelpTicket = async () => {
+    setHelpStatus("");
+    const description = helpText.trim();
+    if (description.length < 10) {
+      setHelpStatus("Describe the issue in at least 10 characters.");
+      return;
+    }
+    const token = firebaseIdToken || (await auth.currentUser?.getIdToken());
+    if (!token || !bookingId) {
+      setHelpStatus("Sign in and complete booking first.");
+      return;
+    }
+    setHelpLoading(true);
+    try {
+      const res = await fetch("/api/tickets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          ticketId: `BK-${Date.now()}`,
+          bookingId,
+          userId: riderPhone || riderId,
+          category: "BOOKING_ISSUE",
+          description: description.slice(0, 500),
+          firebaseIdToken: token,
+        }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setHelpStatus(data.errors?.join(" ") || data.message || "Could not send ticket.");
+        return;
+      }
+      setHelpText("");
+      setHelpStatus("Support ticket sent. Hub staff can see it on the Support dashboard.");
+    } finally {
+      setHelpLoading(false);
+    }
   };
 
   return (
@@ -2015,6 +2150,46 @@ disabled:opacity-60
  : "Pay Securely with Razorpay"}
                 </button>
 
+                <button
+                  type="button"
+                  disabled={
+                    !bookingDone ||
+                    paymentSuccess ||
+                    amountDue <= 0 ||
+                    paymentLoading ||
+                    walletAvailable < Number(paymentAmount || amountDue)
+                  }
+                  onClick={() => void payWithWallet()}
+                  className="
+mt-3
+flex
+h-16
+w-full
+items-center
+justify-center
+gap-3
+rounded-2xl
+border
+border-[#18B368]
+bg-white
+font-bold
+tracking-wide
+text-[#0F172A]
+transition-all
+duration-300
+hover:-translate-y-0.5
+disabled:opacity-60
+"
+                >
+                  <Wallet size={18} />
+                  {walletAvailable < Number(paymentAmount || amountDue)
+                    ? `Wallet ${formatINR(walletAvailable)} — not enough`
+                    : `Pay ${formatINR(Number(paymentAmount || amountDue))} from wallet`}
+                </button>
+                <p className="mt-2 text-center text-xs text-slate-500">
+                  Wallet is your EVUDDY balance (returned deposits and admin credits). Razorpay is still the card/UPI path.
+                </p>
+
                 {paymentMessage && (
 
 <div
@@ -2161,6 +2336,29 @@ tone="green"
 Show this Booking ID while collecting your scooter from the selected hub.
 </p>
 
+</div>
+
+<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
+  <p className="font-bold text-[#0F172A]">Need help with this booking?</p>
+  <p className="mt-1 text-sm text-slate-500">
+    This opens a support ticket on your booking. Hub staff see it immediately.
+  </p>
+  <textarea
+    value={helpText}
+    onChange={(e) => setHelpText(e.target.value)}
+    rows={3}
+    className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#18B368]"
+    placeholder="Unlock issue, wrong hub, payment question..."
+  />
+  <button
+    type="button"
+    disabled={helpLoading}
+    onClick={() => void sendHelpTicket()}
+    className="mt-3 h-11 rounded-full bg-[#0F172A] px-5 text-sm font-bold text-white disabled:opacity-60"
+  >
+    {helpLoading ? "Sending..." : "Send to support"}
+  </button>
+  {helpStatus ? <p className="mt-2 text-sm text-slate-600">{helpStatus}</p> : null}
 </div>
 
 </div>

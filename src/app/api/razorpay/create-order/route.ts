@@ -43,15 +43,6 @@ function getRazorpayErrorMessage(error: unknown) {
 
 export async function POST(req: Request) {
   try {
-    const loaded = getRazorpayConfig();
-    if (!loaded.ok) {
-      return NextResponse.json(
-        { success: false, message: loaded.message },
-        { status: 500 }
-      );
-    }
-    const { keyId, checkoutImage, isLive } = loaded.config;
-
     const body = await req.json();
     if (!rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 60, 10 * 60 * 1000)) {
       return NextResponse.json(
@@ -61,6 +52,9 @@ export async function POST(req: Request) {
     }
     const bookingMongoId = clean(body.bookingMongoId);
     const requestedAmount = parseAmount(body.amount);
+    const wantsWallet =
+      body.useWallet === true ||
+      clean(body.paymentMethod).toLowerCase() === "wallet";
 
     if (!bookingMongoId) {
       return NextResponse.json(
@@ -241,10 +235,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const wantsWallet =
-      body.useWallet === true ||
-      clean(body.paymentMethod).toLowerCase() === "wallet";
-
     if (wantsWallet) {
       const walletResult = await applyWalletBookingPayment({
         bookingMongoId,
@@ -261,15 +251,24 @@ export async function POST(req: Request) {
       return NextResponse.json({
         success: true,
         paidWithWallet: true,
-        live: isLive,
         payableAmount,
         remainingAmount: walletResult.pendingAmount,
+        pendingAmount: walletResult.pendingAmount,
         paymentStatus: walletResult.paymentStatus,
         pickupOTP: walletResult.pickupOTP,
         booking: walletResult.booking,
         message: walletResult.message,
       });
     }
+
+    const loaded = getRazorpayConfig();
+    if (!loaded.ok) {
+      return NextResponse.json(
+        { success: false, message: loaded.message },
+        { status: 500 }
+      );
+    }
+    const { keyId, checkoutImage, isLive } = loaded.config;
 
     const razorpay = getRazorpayClient();
 
