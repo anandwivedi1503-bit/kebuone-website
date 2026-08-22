@@ -21,12 +21,20 @@ const [editingTicket,setEditingTicket]=useState<any>(null);
 const [showEditModal,setShowEditModal]=useState(false);
 const [statusFilter,setStatusFilter]=useState("ALL");
 const [search,setSearch]=useState("");
+const [ticketQueue,setTicketQueue]=useState<"riders" | "website">("riders");
+
+const isWebsiteEnquiry = (ticket: { bookingId?: string; ticketSource?: string }) =>
+  !String(ticket.bookingId || "").trim() || ticket.ticketSource === "Website";
+
+const queueTickets = tickets.filter((ticket) =>
+  ticketQueue === "website" ? isWebsiteEnquiry(ticket) : !isWebsiteEnquiry(ticket)
+);
 
 useEffect(() => {
 
 const loadData = async () => {
 
-const ticketRes = await fetch("/api/tickets");
+const ticketRes = await fetch("/api/tickets?limit=500");
 const ticketData = await ticketRes.json();
 setTickets(ticketData.data || []);
 
@@ -63,7 +71,7 @@ const data = await res.json();
 
 if (data.success) {
 
-  const ticketRes = await fetch("/api/tickets");
+  const ticketRes = await fetch("/api/tickets?limit=500");
 
   const ticketData = await ticketRes.json();
 
@@ -83,15 +91,15 @@ if (data.success) {
 
 };
 
-const openTickets=tickets.filter(
+const openTickets=queueTickets.filter(
 (ticket)=>ticket.status==="OPEN"
 ).length;
 
-const inProgressTickets=tickets.filter(
+const inProgressTickets=queueTickets.filter(
 (ticket)=>ticket.status==="IN-PROGRESS"
 ).length;
 
-const resolvedTickets=tickets.filter(
+const resolvedTickets=queueTickets.filter(
 (ticket)=>ticket.status==="RESOLVED"
 ).length;
 
@@ -99,7 +107,7 @@ const pendingRefunds=refunds.filter(
 (refund)=>refund.refundStatus==="PROCESSING"
 ).length;
 
-const criticalTickets=tickets.filter(
+const criticalTickets=queueTickets.filter(
 (ticket)=>ticket.priority==="Critical"
 ).length;
 
@@ -108,7 +116,7 @@ const totalRefundAmount=refunds.reduce(
 0
 );
 
-const closedTickets=tickets.filter(
+const closedTickets=queueTickets.filter(
 (ticket)=>ticket.status==="CLOSED"
 ).length;
 
@@ -120,7 +128,7 @@ return(
 
 title="Support Dashboard"
 
-subtitle="Manage customer support tickets, refunds and service operations."
+subtitle="Rider booking complaints and website Contact Us are stored separately in this CRM (same tickets database, different queue)."
 
 />
 
@@ -186,8 +194,10 @@ rightContent={
   <DashboardActions
     filename="SupportTickets.csv"
     onRefresh={() => window.location.reload()}
-    rows={tickets.map((ticket) => ({
+    rows={queueTickets.map((ticket) => ({
       TicketID: ticket.ticketId,
+      Source: ticket.ticketSource || (ticket.bookingId ? "Booking" : "Website"),
+      BookingID: ticket.bookingId || "",
       User: ticket.userId,
       Category: ticket.category,
       Priority: ticket.priority,
@@ -206,6 +216,27 @@ title="Ticket Management"
 subtitle="Live Support Tickets"
 
 >
+
+  <div className="mb-4 flex flex-wrap gap-2">
+    <button
+      type="button"
+      onClick={() => setTicketQueue("riders")}
+      className={`rounded-full px-4 py-2 text-sm font-bold ${
+        ticketQueue === "riders" ? "bg-[#18B368] text-white" : "bg-white text-slate-600"
+      }`}
+    >
+      Rider complaints
+    </button>
+    <button
+      type="button"
+      onClick={() => setTicketQueue("website")}
+      className={`rounded-full px-4 py-2 text-sm font-bold ${
+        ticketQueue === "website" ? "bg-[#0F172A] text-white" : "bg-white text-slate-600"
+      }`}
+    >
+      Contact Us / website
+    </button>
+  </div>
 
   <div
 className="
@@ -296,6 +327,14 @@ Ticket ID
 </th>
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
+Source
+</th>
+
+<th className="px-6 py-5 text-left font-bold text-[#0A1134]">
+Booking
+</th>
+
+<th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 User ID
 </th>
 
@@ -333,7 +372,7 @@ Action
 
 <tbody>
 
-  {tickets
+  {queueTickets
 .filter((ticket)=>{
 
 const keyword = search.toLowerCase();
@@ -356,7 +395,7 @@ return matchesSearch && matchesStatus;
 <tr>
 
 <td
-colSpan={9}
+colSpan={11}
 className="py-16 text-center"
 >
 
@@ -420,6 +459,14 @@ transition
 {ticket.ticketId}
 </td>
 
+<td className="px-6 py-5 text-sm">
+{ticket.ticketSource || (ticket.bookingId ? "Mobile App" : "Website")}
+</td>
+
+<td className="px-6 py-5 text-sm">
+{ticket.bookingId || "—"}
+</td>
+
 <td className="px-6 py-5">
 {ticket.userId}
 </td>
@@ -475,7 +522,7 @@ status:e.target.value
 
 });
 
- const ticketRes = await fetch("/api/tickets");
+ const ticketRes = await fetch("/api/tickets?limit=500");
 const ticketData = await ticketRes.json();
 
 setTickets(ticketData.data || []);
@@ -551,7 +598,7 @@ await fetch(`/api/tickets/${ticket._id}`,{
 method:"DELETE",
 });
 
-const ticketRes = await fetch("/api/tickets");
+const ticketRes = await fetch("/api/tickets?limit=500");
 const ticketData = await ticketRes.json();
 
 setTickets(ticketData.data || []);

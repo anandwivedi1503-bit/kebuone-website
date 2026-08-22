@@ -17,6 +17,7 @@ type Vehicle = {
   vehicleId: string;
   registrationNumber?: string;
   currentHub?: string;
+  vehicleStatus?: string;
 };
 
 type Swap = {
@@ -215,7 +216,7 @@ const vehicle = vehicles.find(
   (v) => v.vehicleId === formData.vehicleId
 );
 
-if (vehicle?._id) {
+if (vehicle?._id && !["Booked", "Ready For Pickup", "In Ride"].includes(String(vehicle.vehicleStatus))) {
   await fetch(`/api/vehicles/${vehicle._id}`, {
     method: "PATCH",
     headers: {
@@ -223,10 +224,6 @@ if (vehicle?._id) {
     },
     body: JSON.stringify({
       batteryPercentage: 100,
-      vehicleStatus: "Available",
-      gpsStatus: "ONLINE",
-      lockStatus: "Locked",
-      currentHub: formData.hubName,
     }),
   });
 }

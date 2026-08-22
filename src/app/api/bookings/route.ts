@@ -93,7 +93,7 @@ export async function GET(req: Request) {
     void maybeSweepUnpaidBookings();
 
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q, rideStatus, paymentStatus } = parsed;
+    const { page, limit, skip, q, rideStatus, paymentStatus, rentalMode } = parsed;
     const filter: Record<string, unknown> = {
   $or: [
     { isDeleted: false },
@@ -102,6 +102,7 @@ export async function GET(req: Request) {
 };
     if (rideStatus) filter.rideStatus = rideStatus;
     if (paymentStatus) filter.paymentStatus = paymentStatus;
+    if (rentalMode) filter.rentalMode = rentalMode;
     applyOpsListFilters(filter, parsed, {
       hub: ["currentHub", "startHub"],
       city: "pickupCity",

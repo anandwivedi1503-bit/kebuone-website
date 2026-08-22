@@ -13,6 +13,7 @@ export function parseListQuery(req: Request) {
   const city = String(searchParams.get("city") || "").trim();
   const riderId = String(searchParams.get("riderId") || "").trim();
   const vehicleId = String(searchParams.get("vehicleId") || "").trim();
+  const rentalMode = String(searchParams.get("rentalMode") || "").trim();
   const from = String(searchParams.get("from") || "").trim();
   const to = String(searchParams.get("to") || "").trim();
 
@@ -27,6 +28,7 @@ export function parseListQuery(req: Request) {
     city,
     riderId,
     vehicleId,
+    rentalMode,
     from,
     to,
   };

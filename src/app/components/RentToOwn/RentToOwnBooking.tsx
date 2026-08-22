@@ -155,11 +155,29 @@ export default function RentToOwnBooking() {
     return status === "available" || status === "";
   });
 
-  const bikes = availableBikes;
+  const selectedHubKeys = [
+    selectedHub?.hubCode,
+    selectedHub?.hubName,
+    selectedHub?.hubLocation,
+    hub,
+  ]
+    .map(normalizeText)
+    .filter(Boolean);
 
-  const loadData = async (selectedCity = "") => {
+  const bikes = availableBikes.filter((bike) => {
+    if (selectedHubKeys.length === 0) return false;
+    const bikeHub = normalizeText(bike.currentHub);
+    return selectedHubKeys.some(
+      (hubKey) =>
+        bikeHub === hubKey ||
+        bikeHub.includes(hubKey) ||
+        hubKey.includes(bikeHub)
+    );
+  });
+
+  const loadData = async (selectedCity = "", silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const hubUrl = selectedCity
         ? `/api/hubs?city=${encodeURIComponent(selectedCity)}`
         : "/api/hubs";
@@ -175,9 +193,9 @@ export default function RentToOwnBooking() {
       if (cityData.success) setCities(cityData.data || []);
       if (hubData.success) setHubs(hubData.data || []);
     } catch {
-      setError("Unable to load Rent to Own data.");
+      if (!silent) setError("Unable to load Rent to Own data.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -188,6 +206,14 @@ export default function RentToOwnBooking() {
   useEffect(() => {
     if (city) void loadData(city);
   }, [city]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (step > 1) return;
+      void loadData(city, true);
+    }, 12000);
+    return () => window.clearInterval(timer);
+  }, [city, step]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

@@ -175,10 +175,12 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [helpStatus, setHelpStatus] = useState("");
   const [helpLoading, setHelpLoading] = useState(false);
 
-  const loadData = async (selectedCity = "") => {
+  const loadData = async (selectedCity = "", silent = false) => {
   try {
+    if (!silent) {
     setLoading(true);
     setError("");
+    }
 
     const hubUrl = selectedCity
       ? `/api/hubs?city=${encodeURIComponent(selectedCity)}`
@@ -216,13 +218,15 @@ const [pickupOtp, setPickupOtp] = useState("");
       setError("No cities available. Admin must add cities and active hubs first.");
     }
   } catch (loadError) {
+    if (!silent) {
     setError(
       loadError instanceof Error
         ? loadError.message
         : "Unable to load booking data. Please refresh."
     );
+    }
   } finally {
-    setLoading(false);
+    if (!silent) setLoading(false);
   }
 };
 
@@ -234,6 +238,14 @@ useEffect(() => {
   if (!city) return;
   void loadData(city);
 }, [city]);
+
+useEffect(() => {
+  const timer = window.setInterval(() => {
+    if (bookingDone) return;
+    void loadData(city, true);
+  }, 12000);
+  return () => window.clearInterval(timer);
+}, [city, bookingDone]);
 
  useEffect(() => {
   const loadRider = async (phone: string, token: string) => {
@@ -328,10 +340,13 @@ const filteredBikes =
     ? []
     : availableBikes
         .filter((bike) => {
+          const bikeHub = normalizeText(bike.currentHub);
+          const matchesHub = selectedHubKeys.some((hubKey) =>
+            hubValuesMatch(bikeHub, hubKey)
+          );
+          if (!matchesHub) return false;
           if (!bikeSearch.trim()) return true;
-
           const search = bikeSearch.toLowerCase();
-
           return (
             bike.vehicleId?.toLowerCase().includes(search) ||
             bike.registrationNumber?.toLowerCase().includes(search)
@@ -342,6 +357,14 @@ const filteredBikes =
             amount(b.batteryPercentage) -
             amount(a.batteryPercentage)
         );
+
+useEffect(() => {
+  if (bookingDone || !selectedBike) return;
+  if (!filteredBikes.some((bike) => bike.vehicleId === selectedBike)) {
+    setSelectedBike("");
+  }
+}, [filteredBikes, selectedBike, bookingDone]);
+
 const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
   if (mode === "Hourly") return catalogRate("Hourly", bike?.hourlyRate);
   if (mode === "Daily") return catalogRate("Daily", bike?.dailyRate);

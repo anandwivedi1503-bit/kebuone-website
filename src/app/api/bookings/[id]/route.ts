@@ -925,6 +925,37 @@ export async function PATCH(
       booking.completedAt = undefined;
     } else if (rideStatus !== undefined) {
       booking.rideStatus = requestedRideStatus;
+
+      const vehiclePatch: Record<string, unknown> = {};
+      if (requestedRideStatus === "Ready For Pickup") {
+        vehiclePatch.vehicleStatus = "Ready For Pickup";
+        vehiclePatch.currentBookingId = booking.bookingId;
+        vehiclePatch.assignedRider = booking.riderId;
+      } else if (requestedRideStatus === "In Ride") {
+        vehiclePatch.vehicleStatus = "In Ride";
+        vehiclePatch.currentBookingId = booking.bookingId;
+      } else if (requestedRideStatus === "Completed") {
+        vehiclePatch.vehicleStatus =
+          Number(vehicle.batteryPercentage || 0) < 20 ? "Low Battery" : "Available";
+        vehiclePatch.currentBookingId = "";
+        vehiclePatch.assignedRider = "";
+        vehiclePatch.currentRiderId = "";
+        vehiclePatch.lockStatus = "Locked";
+      } else if (
+        requestedRideStatus === "Booked" ||
+        requestedRideStatus === "Payment Pending"
+      ) {
+        vehiclePatch.vehicleStatus = "Booked";
+        vehiclePatch.currentBookingId = booking.bookingId;
+      }
+
+      if (Object.keys(vehiclePatch).length > 0) {
+        await Vehicle.updateOne(
+          { vehicleId: booking.vehicleId },
+          { $set: vehiclePatch },
+          { session }
+        );
+      }
     }
 
     /* ---------------------------------------------------------------------- */
