@@ -260,6 +260,7 @@ export async function POST(req: Request) {
         paymentDue: Number(walletBooking.paymentDue || payableAmount),
         paymentStatus: walletResult.paymentStatus,
         pickupOTP: walletResult.pickupOTP,
+        rideEndOTP: walletResult.ok ? walletResult.rideEndOTP : undefined,
         booking: walletResult.booking,
         data: walletResult.booking,
         message: walletResult.message,

@@ -11,14 +11,17 @@ export type BookingNotifyInput = {
   pendingAmount: number;
   paymentStatus: string;
   pickupOTP?: string;
+  rideEndOTP?: string;
   paymentMethod: "Razorpay" | "Wallet";
 };
 
 function messageFor(input: BookingNotifyInput) {
-  const otpLine = input.pickupOTP
+  const otpLine = input.rideEndOTP
+    ? ` Ride end OTP: ${input.rideEndOTP}. Tell this to the yard when you return the scooter.`
+    : input.pickupOTP
     ? ` Pickup OTP: ${input.pickupOTP}. Show this at the hub.`
     : input.pendingAmount > 0
-      ? ` Pending: INR ${input.pendingAmount}.`
+      ? ` Pending: INR ${input.pendingAmount}. Pay remaining before ride end OTP is issued.`
       : "";
   return `EVUDDY booking ${input.bookingId} is ${input.paymentStatus}. Paid INR ${input.amount} via ${input.paymentMethod}.${otpLine} https://www.evuddy.com/book-bike`;
 }

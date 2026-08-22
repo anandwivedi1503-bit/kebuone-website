@@ -44,6 +44,7 @@ export type ApplyCapturedPaymentResult =
       pendingAmount: number;
       paymentStatus: string;
       pickupOTP?: string;
+      rideEndOTP?: string;
       message: string;
     }
   | {
@@ -168,7 +169,7 @@ export async function applyCapturedRazorpayPayment(
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
-    const { paymentStatus, rideStatus, pickupOTP } = progress;
+    const { paymentStatus, rideStatus, pickupOTP, rideEndOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}`;
     const taxOnPayment = gstShareForPayment({
       rentalAmount: booking.rateApplied || booking.totalAmount,
@@ -394,6 +395,7 @@ Verified : ${new Date().toLocaleString("en-IN")}
       paymentStatus,
       pickupOTP: issuedPickupOtp,
       paymentMethod: "Razorpay",
+      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
     });
 
     return {
@@ -404,12 +406,15 @@ Verified : ${new Date().toLocaleString("en-IN")}
       pendingAmount,
       paymentStatus,
       pickupOTP: issuedPickupOtp,
+      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
       message:
         paymentStatus === "Paid"
-          ? rideStatus === "In Ride" || rideStatus === "Completed"
+          ? rideStatus === "In Ride"
+            ? "Remaining payment received. Ride end OTP is ready on Book EV."
+            : rideStatus === "Completed"
             ? "Remaining payment received."
             : "Payment verified. Pickup OTP is ready."
-          : "Partial payment verified. Pickup OTP is ready. Remaining can be paid during the ride or at ride end.",
+          : "Partial payment verified. Pickup OTP is ready. Remaining must be paid before ride end OTP is issued.",
     };
   } catch (error) {
     await rollback(session);

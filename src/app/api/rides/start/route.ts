@@ -6,7 +6,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
-import { isOtpExpired, generateSixDigitOtp } from "@/lib/otp";
+import { isOtpExpired, generateSixDigitOtp, rideEndOtpExpiry } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -246,7 +246,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const rideEndOTP = generateRideEndOTP();
+    const pending = Number(booking.pendingAmount || 0);
+    const fullyPaid =
+      booking.paymentStatus === "Paid" || pending <= 0;
+    const existingEnd = String(booking.rideEndOTP || "").trim();
+    const rideEndOTP = fullyPaid
+      ? existingEnd || generateRideEndOTP()
+      : "";
 
     booking.rideStatus = "In Ride";
     booking.actualRideStart = new Date();
@@ -256,9 +262,7 @@ export async function POST(req: Request) {
     booking.pickupOTP = "";
     booking.pickupOTPExpiry = null;
     booking.rideEndOTP = rideEndOTP;
-    booking.rideEndOTPExpiry = new Date(
-      Date.now() + 24 * 60 * 60 * 1000
-    );
+    booking.rideEndOTPExpiry = fullyPaid ? rideEndOtpExpiry() : null;
     booking.rideEndOTPVerified = false;
     booking.rideEndOTPVerifiedAt = null;
 
@@ -306,8 +310,11 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: "Ride started successfully.",
-      rideEndOTP,
+      message: fullyPaid
+        ? "Ride started. Vehicle unlocked. Ride end OTP is on the rider Book EV page."
+        : "Ride started. Vehicle unlocked. Ride end OTP is issued only after the remaining amount is paid.",
+      rideEndOTP: fullyPaid ? rideEndOTP : undefined,
+      pendingAmount: pending,
       data: booking,
     });
   } catch (error) {

@@ -9,6 +9,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import ActionButton from "../DashboardUI/ActionButton";
+import YardRideDesk from "../YardRideDesk/YardRideDesk";
 
 export default function VehicleManagement() {
 
@@ -218,6 +219,8 @@ title="Vehicle Management"
 subtitle="Register, configure and manage every vehicle across the Kebu One mobility platform."
 
 />
+
+<YardRideDesk />
 
 <KPIGrid>
 

@@ -132,7 +132,7 @@ export async function applyWalletBookingPayment(input: {
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
-    const { paymentStatus, rideStatus, pickupOTP } = progress;
+    const { paymentStatus, rideStatus, pickupOTP, rideEndOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}`;
     const taxOnPayment = gstShareForPayment({
       rentalAmount: booking.rateApplied || booking.totalAmount,
@@ -313,6 +313,7 @@ export async function applyWalletBookingPayment(input: {
       paymentStatus,
       pickupOTP: issuedPickupOtp,
       paymentMethod: "Wallet",
+      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
     });
 
     return {
@@ -323,12 +324,15 @@ export async function applyWalletBookingPayment(input: {
       pendingAmount,
       paymentStatus,
       pickupOTP: issuedPickupOtp,
+      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
       message:
         paymentStatus === "Paid"
-          ? rideStatus === "In Ride" || rideStatus === "Completed"
+          ? rideStatus === "In Ride"
+            ? "Remaining wallet payment received. Ride end OTP is ready on Book EV."
+            : rideStatus === "Completed"
             ? "Remaining wallet payment received."
             : "Wallet payment complete. Pickup OTP is ready."
-          : "Partial wallet payment applied. Pickup OTP is ready. Remaining can be paid during the ride or at ride end.",
+          : "Partial wallet payment applied. Pickup OTP is ready. Remaining must be paid before ride end OTP is issued.",
     };
   } catch (error) {
     await rollback(session);

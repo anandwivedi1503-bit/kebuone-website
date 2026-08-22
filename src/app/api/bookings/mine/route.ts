@@ -64,7 +64,7 @@ export async function GET(req: Request) {
         },
       ],
     })
-      .select("-rideStartOTP -rideEndOTP")
+      .select("-rideStartOTP")
       .sort({ createdAt: -1 })
       .lean();
 

@@ -9,6 +9,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import ActionButton from "../DashboardUI/ActionButton";
+import YardRideDesk from "../YardRideDesk/YardRideDesk";
 
 export default function HubManagement() {
 
@@ -154,6 +155,8 @@ title="Hub Management"
 subtitle="Register and configure operational hubs across the Kebu One network."
 
 />
+
+<YardRideDesk />
 
 <KPIGrid>
 

@@ -164,6 +164,7 @@ const [loading, setLoading] = useState(true);
   const [pendingAmount, setPendingAmount] = useState(0);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 const [pickupOtp, setPickupOtp] = useState("");
+  const [rideEndOtp, setRideEndOtp] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [bookingPaymentStatus, setBookingPaymentStatus] = useState("");
@@ -251,6 +252,30 @@ useEffect(() => {
   return () => window.clearInterval(timer);
 }, [city, bookingDone]);
 
+useEffect(() => {
+  if (!bookingDone || !firebaseIdToken) return;
+  const refreshMine = async () => {
+    try {
+      const mineRes = await fetch("/api/bookings/mine", {
+        headers: { Authorization: `Bearer ${firebaseIdToken}` },
+        cache: "no-store",
+      });
+      const mineData = await mineRes.json();
+      const active = mineData.data;
+      if (!mineData.success || !active) return;
+      setPaidAmount(Number(active.receivedAmount || 0));
+      setPendingAmount(Number(active.pendingAmount || 0));
+      setBookingPaymentStatus(String(active.paymentStatus || ""));
+      if (active.pickupOTP) setPickupOtp(String(active.pickupOTP));
+      if (active.rideEndOTP) setRideEndOtp(String(active.rideEndOTP));
+      if (Number(active.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
+    } catch {}
+  };
+  void refreshMine();
+  const timer = window.setInterval(() => void refreshMine(), 12000);
+  return () => window.clearInterval(timer);
+}, [bookingDone, firebaseIdToken]);
+
  useEffect(() => {
   const loadRider = async (phone: string, token: string) => {
     try {
@@ -299,6 +324,7 @@ useEffect(() => {
         setBookingPaymentStatus(String(active.paymentStatus || "Pending"));
         setPaymentSuccess(pending <= 0.009 && received > 0);
         if (active.pickupOTP) setPickupOtp(String(active.pickupOTP));
+        if (active.rideEndOTP) setRideEndOtp(String(active.rideEndOTP));
         setReservedBike({
           _id: String(active.vehicleId || ""),
           vehicleId: String(active.vehicleId || ""),
@@ -309,7 +335,7 @@ useEffect(() => {
         });
         setMessage(
           pending > 0.009
-            ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pickup OTP is ready after the first payment; remaining can be paid now, during the ride, or at ride end.`
+            ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pickup OTP starts the ride. Ride end OTP is issued only after remaining is paid.`
             : `Open booking ${active.bookingId}. Payment is complete.`
         );
       }
@@ -789,6 +815,7 @@ setStep(4);
     receivedAmount?: number;
     paymentDue?: number;
     pickupOTP?: string;
+    rideEndOTP?: string;
     message?: string;
     paymentStatus?: string;
     booking?: {
@@ -851,13 +878,14 @@ setStep(4);
         : "Paid"
     );
     if (data.pickupOTP) setPickupOtp(String(data.pickupOTP));
+    if (data.rideEndOTP) setRideEndOtp(String(data.rideEndOTP));
     if (remaining > 0.009) {
       setPaymentSuccess(false);
       setPaymentMessage(
-        `Partial payment received. Paid ${formatINR(received)}. Pending ${formatINR(remaining)}. Your pickup OTP is ready — remaining can be paid during the ride or at ride end.`
+        `Partial payment received. Paid ${formatINR(received)}. Pending ${formatINR(remaining)}. Pickup OTP is ready. Ride end OTP is issued only after this remaining is paid.`
       );
       setMessage(
-        `Partial payment saved. Pickup OTP is on this page. Pending ${formatINR(remaining)} also shows on the booking dashboard. Pay the rest now, mid-ride, or when the ride ends.`
+        `Partial payment saved. Show pickup OTP at the yard to start. Pay remaining ${formatINR(remaining)} before return — ride end OTP is created only after full payment.`
       );
       setPaymentAmount(String(Number(remaining.toFixed(2))));
       if (data.pickupOTP) {
@@ -871,13 +899,17 @@ setStep(4);
     }
     setPaymentSuccess(true);
     setPaymentMessage(
-      data.pickupOTP
+      data.rideEndOTP
+        ? `Payment complete. Ride end OTP is ${data.rideEndOTP}. Tell this to the yard when you return.`
+        : data.pickupOTP
         ? `Payment successful. Your pickup OTP is ${data.pickupOTP}.`
         : data.message || "Payment successful. Booking confirmed."
     );
     notifyBrowser(
-      "EVUDDY booking confirmed",
-      data.pickupOTP
+      "EVUDDY booking update",
+      data.rideEndOTP
+        ? `Ride end OTP ${data.rideEndOTP}. Tell this at the yard to return the scooter.`
+        : data.pickupOTP
         ? `Pickup OTP ${data.pickupOTP}. Show this at the hub.`
         : "Payment successful. Your scooter is reserved."
     );
@@ -2222,7 +2254,7 @@ PAYMENT AMOUNT
 
 </p>
 <p className="mt-2 text-sm text-slate-500">
-Pay any amount from ₹1 up to the total. The first payment issues pickup OTP. Remaining can be paid during the ride or at ride end — same figures here and on dashboards.
+Pay any amount from ₹1 up to the total. First payment issues pickup OTP. Remaining must be paid before ride end OTP is issued for return.
 </p>
 <input
   type="number"
@@ -2277,8 +2309,8 @@ focus:ring-[#18B368]/10
                     <p className="font-bold">Next step</p>
                     <p className="mt-1">
                       {paidAmount > 0
-                        ? `Pickup OTP is ready. Remaining ${formatINR(pendingAmount)} can be paid now, during the ride, or at ride end.`
-                        : "Reserve is holding the scooter. Pay at least ₹1 to get pickup OTP. Remaining can wait until mid-ride or ride end."}
+                        ? `Pickup OTP is ready. Remaining ${formatINR(pendingAmount)} must be paid before ride end OTP is issued.`
+                        : "Reserve is holding the scooter. Pay at least ₹1 to get pickup OTP."}
                     </p>
                   </div>
                 ) : null}
@@ -2390,7 +2422,7 @@ Payment Status
 
 )}
 
-{(pickupOtp || paymentSuccess) && (
+{(pickupOtp || rideEndOtp || paymentSuccess) && (
 
 <div
 className="
@@ -2424,8 +2456,8 @@ Booking Confirmed
 
 <p className="mt-3 text-gray-600">
 {paymentSuccess
-  ? "Payment completed. Show your pickup OTP at the hub."
-  : "Pickup OTP is ready. Remaining balance can be paid during the ride or at ride end."}
+  ? "Payment completed."
+  : "Pickup OTP is ready. Pay remaining before ride end OTP is issued."}
 </p>
 
 {pickupOtp && (
@@ -2437,7 +2469,21 @@ Booking Confirmed
       {pickupOtp}
     </p>
     <p className="mt-2 text-sm text-green-700">
-      Show this OTP at the hub to collect your scooter.
+      Tell this OTP to the yard to unlock and collect your scooter.
+    </p>
+  </div>
+)}
+
+{rideEndOtp && (
+  <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 px-6 py-4 text-white">
+    <p className="text-sm font-semibold text-green-300">
+      Ride end OTP
+    </p>
+    <p className="mt-2 text-4xl font-black tracking-[0.3em]">
+      {rideEndOtp}
+    </p>
+    <p className="mt-2 text-sm text-slate-200">
+      Tell this OTP to the yard when you return the scooter.
     </p>
   </div>
 )}

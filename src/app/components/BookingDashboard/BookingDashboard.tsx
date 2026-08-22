@@ -219,11 +219,7 @@ const startRide = async (
 
 }
 
-    alert(
-      data.rideEndOTP
-        ? `Ride started successfully.\nRide End OTP: ${data.rideEndOTP}`
-        : "Ride started successfully."
-    );
+    alert(data.message || "Ride started. Vehicle unlocked.");
 
 setOtpModalOpen(false);
 
@@ -273,8 +269,8 @@ const endRide = async (
   const pendingDue = Number(booking.pendingAmount || 0);
   const confirmEnd = confirm(
     pendingDue > 0
-      ? `Complete this ride? Remaining ₹${pendingDue.toFixed(2)} can still be collected on Book EV after ride end.`
-      : "Complete this ride?"
+      ? `Remaining ₹${pendingDue.toFixed(2)} is still unpaid. Ride end OTP is not issued until it is paid.`
+      : "Complete this ride with the ride end OTP from the rider?"
   );
 
   if (!confirmEnd) return;
@@ -1361,6 +1357,11 @@ className="rounded-lg bg-blue-600 px-3 py-2 text-white font-semibold"
 View
 </button>
 
+{Number(booking.pendingAmount || 0) > 0.009 ? (
+  <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-900">
+    Pay remaining {rupees(booking.pendingAmount)} before ride end OTP
+  </div>
+) : (
 <button
 disabled={processingId === booking._id}
 onClick={() => {
@@ -1387,8 +1388,9 @@ disabled:opacity-50
 disabled:cursor-not-allowed
 "
 >
-{processingId === booking._id ? "Ending..." : "End Ride"}
+{processingId === booking._id ? "Ending..." : "Enter Ride End OTP"}
 </button>
+)}
 
 </>
 

@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
+import YardRideDesk from "../YardRideDesk/YardRideDesk";
 
 export default function FleetDashboard() {
 
@@ -136,6 +137,8 @@ return (
 title="Fleet Dashboard"
 subtitle="Monitor every vehicle, hub, battery status and fleet operation across the complete Kebu One ecosystem."
 />
+
+<YardRideDesk />
 
 <KPIGrid>
 

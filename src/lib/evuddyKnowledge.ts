@@ -12,8 +12,8 @@ How booking works:
 3. Reserve scooter (locks that rider + that vehicle).
 4. Pay rent + 5% GST (CGST 2.5% + SGST 2.5%) + refundable security deposit (typically ₹2500 on rentals).
 5. Pay with Razorpay (UPI/card) or EVUDDY wallet if the wallet has enough (returned deposits / credits).
-6. First payment (even a partial amount) issues Pickup OTP. Show it at the hub to collect the scooter. Remaining balance can be paid during the ride or when the ride ends (Ride End OTP).
-7. Start/end the ride with hub OTPs. After the ride, deposit refund is admin-approved only once the booking is fully paid: usually back to wallet, or Razorpay if admin chooses.
+6. First payment (even a partial amount) issues Pickup OTP. Tell it to the yard to unlock the scooter.
+7. Remaining must be paid before Ride End OTP is issued. Tell that OTP to the yard to return the scooter. Deposit refund is admin-approved only after full payment.
 
 Catalog rates (vehicle may override): Hourly ₹60, Daily ₹230, Weekly ₹1610, Monthly ₹6900.
 Rent to Own: ₹280 per day, 18 months, billed 30 days, 5% GST, NO security deposit. Ownership after successful tenure.

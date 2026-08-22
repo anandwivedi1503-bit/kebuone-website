@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
+import YardRideDesk from "../YardRideDesk/YardRideDesk";
 
 export default function HubDashboard() {
 
@@ -122,6 +123,8 @@ return(
 title="Hub Dashboard"
 subtitle="Manage every operational hub, parking capacity and battery inventory across Kebu One."
 />
+
+<YardRideDesk />
 
 <KPIGrid>
 

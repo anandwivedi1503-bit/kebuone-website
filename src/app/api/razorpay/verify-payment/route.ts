@@ -171,6 +171,7 @@ export async function POST(req: Request) {
       paymentDue: Number(bookingRecord.paymentDue || 0),
       paymentStatus: result.paymentStatus,
       pickupOTP: result.pickupOTP,
+      rideEndOTP: result.ok ? result.rideEndOTP : undefined,
     });
   } catch (error) {
     console.error("RAZORPAY VERIFY PAYMENT ERROR:", error);

@@ -66,6 +66,28 @@ export async function POST(req: Request) {
       );
     }
 
+    if (Number(booking.pendingAmount || 0) > 0.009) {
+      await rollback(session);
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Pay remaining ₹${Number(booking.pendingAmount).toFixed(2)} before ride end OTP can be used.`,
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!booking.rideEndOTP) {
+      await rollback(session);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Ride end OTP is issued only after the booking is fully paid.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (booking.rideEndOTPVerified) {
       await rollback(session);
       return NextResponse.json(
