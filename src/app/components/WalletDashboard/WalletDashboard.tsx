@@ -394,7 +394,7 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="Manage rider wallets, balances, recharges and deductions."
+subtitle="Rider EVUDDY credit (admin top-ups and returned deposits). Razorpay rental payments do not add to this balance. Deposit hold is not spendable wallet cash."
 />
 
 <KPIGrid>
@@ -683,6 +683,8 @@ const headers = [
 
 "Balance",
 
+"Spendable",
+
 "Deposit Hold",
 
 "Status",
@@ -698,6 +700,8 @@ w.userName,
 w.phone,
 
 w.balance,
+
+Math.max(0, Number(w.balance || 0) - Number(w.freezeAmount || 0)),
 
 w.securityDepositHold,
 
@@ -779,7 +783,9 @@ Export CSV
 
 <th className="px-6 py-5 text-center">Balance</th>
 
-<th className="px-6 py-5 text-center">Deposit</th>
+<th className="px-6 py-5 text-center">Spendable</th>
+
+<th className="px-6 py-5 text-center">Deposit Hold</th>
 
 <th className="px-6 py-5 text-center">Status</th>
 
@@ -811,11 +817,15 @@ className="border-b border-pink-50 hover:bg-pink-50/40 transition"
 </td>
 
 <td className="px-6 py-5 text-center font-bold text-green-600">
-₹{Number(wallet.balance).toLocaleString("en-IN")}
+₹{Number(wallet.balance || 0).toLocaleString("en-IN")}
+</td>
+
+<td className="px-6 py-5 text-center font-bold text-sky-700">
+₹{Math.max(0, Number(wallet.balance || 0) - Number(wallet.freezeAmount || 0)).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
-₹{Number(wallet.securityDepositHold).toLocaleString("en-IN")}
+₹{Number(wallet.securityDepositHold || 0).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1274,6 +1284,8 @@ Wallet
 </h3>
 
 <p><b>Balance :</b> ₹{selectedWallet.balance}</p>
+
+<p><b>Spendable :</b> ₹{Math.max(0, Number(selectedWallet.balance || 0) - Number(selectedWallet.freezeAmount || 0))}</p>
 
 <p><b>Deposit Hold :</b> ₹{selectedWallet.securityDepositHold}</p>
 

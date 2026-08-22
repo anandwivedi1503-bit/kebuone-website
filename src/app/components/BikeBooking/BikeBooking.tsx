@@ -100,7 +100,8 @@ const formatINR = (amount: number) =>
   new Intl.NumberFormat("en-IN", {
     style: "currency",
     currency: "INR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(Number.isFinite(amount) ? amount : 0);
 
 const cleanName = (value: string) => value.trim().replace(/\s+/g, " ");
@@ -165,6 +166,9 @@ const [loading, setLoading] = useState(true);
 const [pickupOtp, setPickupOtp] = useState("");
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [bookingPaymentStatus, setBookingPaymentStatus] = useState("");
+  const [bookingTotal, setBookingTotal] = useState(0);
+  const [reservedBike, setReservedBike] = useState<Vehicle | null>(null);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -288,7 +292,9 @@ useEffect(() => {
   return () => unsubscribe();
 }, []);
 
-  const currentBike = vehicles.find((bike) => bike.vehicleId === selectedBike);
+  const currentBike =
+    reservedBike ||
+    vehicles.find((bike) => bike.vehicleId === selectedBike);
 
   const cityOptions = useMemo(() => {
   return cities
@@ -375,8 +381,18 @@ const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
 const rentalAmount = getPlanRate(currentBike, rentalMode);
 const tax = gstBreakdown(rentalAmount);
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
-const payableAmount = tax.totalWithGst + securityDeposit;
+const payableAmount =
+  bookingTotal > 0
+    ? bookingTotal
+    : Number((tax.totalWithGst + securityDeposit).toFixed(2));
 const amountDue = bookingDone ? pendingAmount : payableAmount;
+const hubLabel = selectedHubData
+  ? `${selectedHubData.hubName || selectedHubData.hubLocation || hub}${
+      selectedHubData.hubCode ? ` (${selectedHubData.hubCode})` : ""
+    }`
+  : hub || "-";
+const walletPayNow = Number(paymentAmount || amountDue);
+const walletCoversPay = walletAvailable >= walletPayNow && walletPayNow > 0;
 
   useEffect(() => {
     if (payableAmount > 0 && !bookingDone) {
@@ -566,12 +582,29 @@ referenceBy,
 
       setBookingId(newBookingId);
       setBookingMongoId(bookingData.data._id);
-      setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
-      setPaymentAmount(String(bookingData.data.pendingAmount || payableAmount));
+      const reservedTotal = Number(
+        bookingData.data.paymentDue ||
+          bookingData.data.pendingAmount ||
+          payableAmount
+      );
+      setBookingTotal(reservedTotal);
+      setPendingAmount(Number(bookingData.data.pendingAmount || reservedTotal));
+      setPaymentAmount(String(bookingData.data.pendingAmount || reservedTotal));
+      setPaidAmount(Number(bookingData.data.receivedAmount || 0));
+      setBookingPaymentStatus(String(bookingData.data.paymentStatus || "Pending"));
+      setReservedBike({
+        ...(currentBike || ({} as Vehicle)),
+        vehicleId: bookingData.data.vehicleId || currentBike?.vehicleId || selectedBike,
+        vehicleModel: bookingData.data.vehicleModel || currentBike?.vehicleModel,
+        registrationNumber:
+          bookingData.data.vehicleNumber || currentBike?.registrationNumber,
+        batteryPercentage:
+          bookingData.data.batteryPercentage ?? currentBike?.batteryPercentage,
+        currentHub: bookingData.data.currentHub || currentBike?.currentHub,
+      });
       setBookingDone(true);
-setMessage("🎉 Your scooter has been reserved successfully. Complete the secure payment below to confirm your booking.");
+setMessage("Scooter reserved. Pay in full for pickup OTP, or pay a smaller amount now and the rest later. Pickup OTP is created only after the booking is fully paid. Pending updates here and on the booking dashboard.");
 setStep(4);
-await loadData();
     } catch (error) {
   console.error("CREATE BOOKING ERROR:", error);
   setError("Booking failed. Please check your connection and try again.");
@@ -688,32 +721,7 @@ await loadData();
           return;
         }
 
-        setPaidAmount((oldAmount) => Number((oldAmount + payNow).toFixed(2)));
-        setPendingAmount(Number(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0));
-
-        if (Number(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0) > 0) {
-  setPaymentMessage(
-    `Partial payment received. Pending: ${formatINR(Number(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0))}`
-  );
-
-  setPaymentAmount(String(verifyData.pendingAmount ?? verifyData.data?.pendingAmount ?? 0));
-
-  setPaymentLoading(false);
-} else {
-  setPaymentSuccess(true);
-
-  if (verifyData.pickupOTP) {
-    setPickupOtp(String(verifyData.pickupOTP));
-  }
-
-  setPaymentMessage(
-    verifyData.pickupOTP
-      ? `Payment successful. Your pickup OTP is ${verifyData.pickupOTP}.`
-      : "Payment successful. Booking confirmed."
-  );
-
-  setPaymentLoading(false);
-}
+        applyPaidResult(payNow, verifyData);
       },
       modal: {
   ondismiss: () => {
@@ -735,17 +743,78 @@ await loadData();
   const applyPaidResult = (payNow: number, data: {
     pendingAmount?: number;
     remainingAmount?: number;
+    receivedAmount?: number;
+    paymentDue?: number;
     pickupOTP?: string;
     message?: string;
+    paymentStatus?: string;
+    booking?: {
+      receivedAmount?: number;
+      pendingAmount?: number;
+      paymentStatus?: string;
+      paymentDue?: number;
+      vehicleModel?: string;
+      vehicleNumber?: string;
+      batteryPercentage?: number;
+    };
+    data?: {
+      receivedAmount?: number;
+      pendingAmount?: number;
+      paymentStatus?: string;
+      paymentDue?: number;
+      vehicleModel?: string;
+      vehicleNumber?: string;
+      batteryPercentage?: number;
+    };
   }) => {
-    const remaining = Number(data.pendingAmount ?? data.remainingAmount ?? 0);
-    setPaidAmount((oldAmount) => Number((oldAmount + payNow).toFixed(2)));
-    setPendingAmount(remaining);
-    if (remaining > 0) {
+    const bookingRecord = data.booking || data.data || {};
+    const remaining = Number(
+      Number(
+        data.pendingAmount ??
+          data.remainingAmount ??
+          bookingRecord.pendingAmount ??
+          0
+      ).toFixed(2)
+    );
+    const receivedRaw = Number(
+      data.receivedAmount ?? bookingRecord.receivedAmount
+    );
+    const received = Number.isFinite(receivedRaw)
+      ? Number(receivedRaw.toFixed(2))
+      : Number((paidAmount + payNow).toFixed(2));
+    const due = Number(
+      data.paymentDue ?? bookingRecord.paymentDue ?? bookingTotal ?? payableAmount
+    );
+    if (Number.isFinite(due) && due > 0) {
+      setBookingTotal(Number(due.toFixed(2)));
+    }
+    setPaidAmount(received);
+    setPendingAmount(Number(remaining.toFixed(2)));
+    setReservedBike((prev) =>
+      prev
+        ? {
+            ...prev,
+            vehicleModel: bookingRecord.vehicleModel || prev.vehicleModel,
+            registrationNumber:
+              bookingRecord.vehicleNumber || prev.registrationNumber,
+            batteryPercentage:
+              bookingRecord.batteryPercentage ?? prev.batteryPercentage,
+          }
+        : prev
+    );
+    setBookingPaymentStatus(
+      remaining > 0.009
+        ? String(data.paymentStatus || bookingRecord.paymentStatus || "Partial")
+        : "Paid"
+    );
+    if (remaining > 0.009) {
       setPaymentMessage(
-        `Partial payment received. Pending: ${formatINR(remaining)}`
+        `Partial payment received. Paid ${formatINR(received)}. Pending ${formatINR(remaining)}. Pay the rest to get your pickup OTP.`
       );
-      setPaymentAmount(String(remaining));
+      setMessage(
+        `Partial payment saved. Paid ${formatINR(received)}. Pending ${formatINR(remaining)} — same figures on the booking dashboard. Pickup OTP is issued only after the booking is fully paid.`
+      );
+      setPaymentAmount(String(Number(remaining.toFixed(2))));
       setPaymentLoading(false);
       return;
     }
@@ -824,6 +893,19 @@ await loadData();
 
     setWalletAvailable((old) => Number(Math.max(0, old - payNow).toFixed(2)));
     applyPaidResult(payNow, orderData);
+    try {
+      const riderRes = await fetch(`/api/riders?phone=${riderPhone}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const riderData = await riderRes.json();
+      if (riderData.success) {
+        setWalletAvailable(
+          Number(
+            riderData.data.walletAvailable ?? riderData.data.walletBalance ?? 0
+          )
+        );
+      }
+    } catch {}
   };
 
   const sendHelpTicket = async () => {
@@ -1072,7 +1154,9 @@ gap-4
       },
     ].map((item, index) => {
 
-      const active = step >= index + 1;
+      const done =
+        index + 1 < step || (index === 3 && paymentSuccess);
+      const onStep = step === index + 1 && !(index === 3 && paymentSuccess);
 
       return (
 
@@ -1096,14 +1180,16 @@ transition-all
 duration-500
 shadow-lg
 ${
-active
+done
+? "bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white scale-110"
+: onStep
 ? "bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white scale-110"
 : "bg-white border border-slate-200 text-slate-500"
 }
 `}
             >
 
-              {active ? "✓" : item.icon}
+              {done ? "✓" : item.icon}
 
             </div>
 
@@ -1115,7 +1201,7 @@ font-bold
 transition-all
 duration-300
 ${
-active
+done || onStep
 ? "text-[#16A34A]"
 : "text-slate-500"
 }
@@ -1884,13 +1970,9 @@ text-[#0F172A]
     <Summary label="Pickup City" value={city} />
 
     <Summary
-  label="Pickup Hub"
-  value={
-    selectedHubData?.hubName
-      ? `${selectedHubData.hubName} (${hub})`
-      : hub
-  }
-/>
+      label="Pickup Hub"
+      value={hubLabel}
+    />
 
     <Summary label="Rental Mode" value={rentalMode} />
 
@@ -2090,7 +2172,7 @@ PAYMENT AMOUNT
 
 </p>
 <p className="mt-2 text-sm text-slate-500">
-Pay the full total or a smaller amount. Remaining pending updates here and on admin dashboards.
+Pay the full total or a smaller amount. Paid and pending update here immediately and on the booking dashboard. Pickup OTP is created only after the remaining balance is ₹0.00.
 </p>
 <input
   type="number"
@@ -2135,10 +2217,21 @@ focus:ring-[#18B368]/10
 
   <AmountBox
     label="Pending"
-    value={formatINR(pendingAmount || payableAmount - paidAmount)}
+    value={formatINR(pendingAmount || Math.max(0, payableAmount - paidAmount))}
     tone="amber"
   />
 </div>
+
+                {bookingDone && !paymentSuccess ? (
+                  <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                    <p className="font-bold">Next step</p>
+                    <p className="mt-1">
+                      {paidAmount > 0
+                        ? `Partial payment is saved. Pay the remaining ${formatINR(pendingAmount)} with Razorpay (or wallet if you have enough credit). Pickup OTP is generated only after this booking is fully paid.`
+                        : "Reserve is holding the scooter. Complete payment below. Pickup OTP is generated only after full payment."}
+                    </p>
+                  </div>
+                ) : null}
 
                 <button
                   type="button"
@@ -2187,7 +2280,7 @@ disabled:opacity-60
                     paymentSuccess ||
                     amountDue <= 0 ||
                     paymentLoading ||
-                    walletAvailable < Number(paymentAmount || amountDue)
+                    !walletCoversPay
                   }
                   onClick={() => void payWithWallet()}
                   className="
@@ -2212,12 +2305,14 @@ disabled:opacity-60
 "
                 >
                   <Wallet size={18} />
-                  {walletAvailable < Number(paymentAmount || amountDue)
-                    ? `Wallet ${formatINR(walletAvailable)} — not enough`
-                    : `Pay ${formatINR(Number(paymentAmount || amountDue))} from wallet`}
+                  {walletAvailable < 1
+                    ? "Wallet ₹0.00 — use Razorpay"
+                    : walletCoversPay
+                    ? `Pay ${formatINR(walletPayNow)} from wallet`
+                    : `Wallet ${formatINR(walletAvailable)} — not enough for this amount`}
                 </button>
                 <p className="mt-2 text-center text-xs text-slate-500">
-                  Wallet is your EVUDDY balance (returned deposits and admin credits). Razorpay is still the card/UPI path.
+                  Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal payment path. A ₹0.00 wallet cannot pay this booking.
                 </p>
 
                 {paymentMessage && (
@@ -2334,7 +2429,7 @@ value={city}
 
 <Summary
 label="Pickup Hub"
-value={hub}
+value={hubLabel}
 />
 
 <Summary
@@ -2432,7 +2527,7 @@ text-[#0F172A]
                 <Summary label="Rider" value={riderName || "-"} />
                 <Summary label="Phone" value={riderPhone || "-"} />
                 <Summary label="City" value={city || "-"} />
-                <Summary label="Hub" value={hub || "-"} />
+                <Summary label="Hub" value={hubLabel} />
                 <Summary label="Bike" value={selectedBike || "-"} />
                 <Summary
   label="Model"
@@ -2451,6 +2546,12 @@ text-[#0F172A]
                 <Summary label="SGST 2.5%" value={formatINR(tax.sgstAmount)} />
                 <Summary label="Deposit (no GST)" value={formatINR(securityDeposit)} />
                 <Summary label="Grand Total" value={formatINR(payableAmount)} strong />
+                {bookingDone ? (
+                  <>
+                    <Summary label="Paid" value={formatINR(paidAmount)} />
+                    <Summary label="Pending" value={formatINR(pendingAmount)} />
+                  </>
+                ) : null}
                 <div
   className="
   flex
@@ -2483,6 +2584,8 @@ text-[#0F172A]
     ${
       paymentSuccess
         ? "bg-green-100 text-green-700"
+        : bookingPaymentStatus === "Partial" || (bookingDone && paidAmount > 0)
+        ? "bg-sky-100 text-sky-800"
         : bookingDone
         ? "bg-amber-100 text-amber-700"
         : "bg-slate-100 text-slate-600"
@@ -2492,6 +2595,8 @@ text-[#0F172A]
     {
       paymentSuccess
         ? "PAID"
+        : bookingPaymentStatus === "Partial" || (bookingDone && paidAmount > 0)
+        ? "PARTIAL"
         : bookingDone
         ? "PENDING"
         : "NOT STARTED"

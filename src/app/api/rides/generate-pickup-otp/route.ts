@@ -55,7 +55,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Booking payment is pending.",
+          message: "Pickup OTP is issued only after the booking is fully paid.",
         },
         { status: 400 }
       );
@@ -73,20 +73,14 @@ export async function POST(req: Request) {
 
     let otp = booking.pickupOTP;
 
-if (!otp) {
-
-  otp = generateSixDigitOtp();
-
-  booking.pickupOTP = otp;
-  booking.pickupOTPExpiry = pickupOtpExpiry();
-
-}
-
-    // Temporary: keep generated time for audit
-    booking.pickupOTPVerified = false;
-    booking.pickupOTPVerifiedAt = null;
-
-    await booking.save();
+    if (!otp) {
+      otp = generateSixDigitOtp();
+      booking.pickupOTP = otp;
+      booking.pickupOTPExpiry = pickupOtpExpiry();
+      booking.pickupOTPVerified = false;
+      booking.pickupOTPVerifiedAt = null;
+      await booking.save();
+    }
 
     return NextResponse.json({
       success: true,

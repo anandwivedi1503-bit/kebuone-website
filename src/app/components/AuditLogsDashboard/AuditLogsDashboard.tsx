@@ -49,7 +49,7 @@ export default function AuditLogsDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const auditRes = await fetch("/api/audit-logs?limit=300", { cache: "no-store" });
+        const auditRes = await fetch("/api/audit-logs?limit=500", { cache: "no-store" });
         const auditData = await auditRes.json();
         if (auditRes.ok && Array.isArray(auditData.data) && auditData.data.length > 0) {
           setAuditLogs(auditData.data);
@@ -59,8 +59,8 @@ export default function AuditLogsDashboard() {
         }
 
         const [bookingRes, txnRes] = await Promise.all([
-          fetch("/api/bookings?limit=300", { cache: "no-store" }),
-          fetch("/api/transactions?limit=300", { cache: "no-store" }),
+          fetch("/api/bookings?limit=500", { cache: "no-store" }),
+          fetch("/api/transactions?limit=500", { cache: "no-store" }),
         ]);
         const bookingData = await bookingRes.json();
         const txnData = await txnRes.json();

@@ -248,15 +248,23 @@ export async function POST(req: Request) {
         );
       }
 
+      const walletBooking = (walletResult.booking || {}) as {
+        receivedAmount?: number;
+        paymentDue?: number;
+      };
+
       return NextResponse.json({
         success: true,
         paidWithWallet: true,
         payableAmount,
         remainingAmount: walletResult.pendingAmount,
         pendingAmount: walletResult.pendingAmount,
+        receivedAmount: Number(walletBooking.receivedAmount || 0),
+        paymentDue: Number(walletBooking.paymentDue || payableAmount),
         paymentStatus: walletResult.paymentStatus,
         pickupOTP: walletResult.pickupOTP,
         booking: walletResult.booking,
+        data: walletResult.booking,
         message: walletResult.message,
       });
     }

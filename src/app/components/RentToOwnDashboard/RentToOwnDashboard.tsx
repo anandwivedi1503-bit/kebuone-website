@@ -88,6 +88,7 @@ export default function RentToOwnDashboard() {
             Rider: item.userName,
             Vehicle: item.vehicleId,
             Certificate: item.rtoCertificateNumber,
+            Received: item.receivedAmount,
             Pending: item.pendingAmount,
             Status: item.rideStatus,
           }))}
@@ -104,6 +105,7 @@ export default function RentToOwnDashboard() {
                 <th className="px-4 py-3">Vehicle</th>
                 <th className="px-4 py-3">Certificate</th>
                 <th className="px-4 py-3">Installments</th>
+                <th className="px-4 py-3">Received</th>
                 <th className="px-4 py-3">Pending</th>
                 <th className="px-4 py-3">Days left</th>
                 <th className="px-4 py-3">Status</th>
@@ -112,13 +114,13 @@ export default function RentToOwnDashboard() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="px-4 py-8" colSpan={8}>
+                    <td className="px-4 py-8" colSpan={9}>
                     Loading...
                   </td>
                 </tr>
               ) : rto.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-slate-500" colSpan={8}>
+                    <td className="px-4 py-8 text-slate-500" colSpan={9}>
                     No Rent to Own contracts yet. They appear here after a rider completes the RTO flow.
                   </td>
                 </tr>
@@ -134,6 +136,7 @@ export default function RentToOwnDashboard() {
                     <td className="px-4 py-3">{item.vehicleId}</td>
                     <td className="px-4 py-3">{item.rtoCertificateNumber || "-"}</td>
                     <td className="px-4 py-3">{item.rtoInstallmentsPaid || 0}</td>
+                    <td className="px-4 py-3">₹{Number(item.receivedAmount || 0).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">₹{Number(item.pendingAmount || 0).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">{item.remainingRentToOwnDays || 0}</td>
                     <td className="px-4 py-3">

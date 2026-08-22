@@ -31,8 +31,8 @@ const fetchRevenue = async () => {
 
     const [transactionRes, refundRes, walletRes] =
       await Promise.all([
-        fetch("/api/transactions?limit=300"),
-        fetch("/api/refunds"),
+        fetch("/api/transactions?limit=500"),
+        fetch("/api/refunds?limit=500"),
         fetch("/api/wallet?limit=500"),
       ]);
 

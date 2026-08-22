@@ -153,12 +153,22 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: result.message }, { status: result.status });
     }
 
+    const bookingRecord = (result.booking || {}) as {
+      receivedAmount?: number;
+      pendingAmount?: number;
+      paymentStatus?: string;
+      paymentDue?: number;
+    };
+
     return NextResponse.json({
       success: true,
       message: result.message,
       data: result.booking,
+      booking: result.booking,
       paidAmount: result.paidAmount,
+      receivedAmount: Number(bookingRecord.receivedAmount || 0),
       pendingAmount: result.pendingAmount,
+      paymentDue: Number(bookingRecord.paymentDue || 0),
       paymentStatus: result.paymentStatus,
       pickupOTP: result.pickupOTP,
     });

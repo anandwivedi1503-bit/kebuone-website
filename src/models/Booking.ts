@@ -299,6 +299,12 @@ endOdometer: {
   default: "",
 },
 
+pickupHubName: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
 currentHub: {
   type: String,
   trim: true,

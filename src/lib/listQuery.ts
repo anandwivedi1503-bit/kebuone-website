@@ -91,6 +91,22 @@ export function dateRangeFilter(from: string, to: string) {
   return Object.keys(createdAt).length ? { createdAt } : null;
 }
 
+export function redactBookingOtps<T extends Record<string, unknown>>(booking: T) {
+  const pickupOTP = String(booking.pickupOTP || "").trim();
+  const rideStartOTP = String(booking.rideStartOTP || "").trim();
+  const rideEndOTP = String(booking.rideEndOTP || "").trim();
+  const rest = { ...booking };
+  delete rest.pickupOTP;
+  delete rest.rideStartOTP;
+  delete rest.rideEndOTP;
+  return {
+    ...rest,
+    pickupOTPGenerated: pickupOTP.length > 0,
+    rideStartOTPGenerated: rideStartOTP.length > 0,
+    rideEndOTPGenerated: rideEndOTP.length > 0,
+  };
+}
+
 export function listResponse<T>(
   data: T[],
   total: number,

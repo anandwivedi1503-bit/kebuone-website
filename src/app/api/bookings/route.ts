@@ -21,7 +21,7 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
-import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponse, parseListQuery, redactBookingOtps } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
@@ -125,7 +125,6 @@ export async function GET(req: Request) {
 
     const [bookings, total] = await Promise.all([
       Booking.find(filter)
-        .select("-pickupOTP -rideStartOTP -rideEndOTP")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -133,7 +132,16 @@ export async function GET(req: Request) {
       Booking.countDocuments(filter),
     ]);
 
-    return NextResponse.json(listResponse(bookings, total, page, limit));
+    return NextResponse.json(
+      listResponse(
+        bookings.map((booking) =>
+          redactBookingOtps(booking as Record<string, unknown>)
+        ),
+        total,
+        page,
+        limit
+      )
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -885,6 +893,10 @@ rentalEndDate,
 rateApplied: rentalAmount,
 
 startHub:
+  startHub ||
+  vehicle.currentHub,
+
+pickupHubName:
   pickupHubName ||
   startHub ||
   vehicle.currentHub,

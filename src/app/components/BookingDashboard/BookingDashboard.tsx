@@ -15,6 +15,7 @@ export default function BookingDashboard(){
 
 const [bookings,setBookings]=useState<any[]>([]);
 const [loading,setLoading]=useState(true);
+const [loadError,setLoadError]=useState("");
 const [search,setSearch]=useState("");
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [paymentFilter, setPaymentFilter] = useState("ALL");
@@ -52,13 +53,17 @@ const data=await res.json();
 
 if(data.success){
 
-setBookings(data.data);
+setBookings(data.data || []);
+setLoadError("");
 
+} else {
+  setLoadError(data.message || "Unable to load bookings.");
 }
 
 }catch(error){
 
 console.log(error);
+setLoadError("Unable to load bookings. Check the admin session and refresh.");
 
 }
 
@@ -338,8 +343,10 @@ const filteredBookings = bookings.filter((booking) => {
     booking.userPhone?.toLowerCase().includes(keyword) ||
 
     booking.vehicleId?.toLowerCase().includes(keyword) ||
-
-    booking.startHub?.toLowerCase().includes(keyword);
+    booking.vehicleNumber?.toLowerCase().includes(keyword) ||
+    booking.vehicleModel?.toLowerCase().includes(keyword) ||
+    booking.startHub?.toLowerCase().includes(keyword) ||
+    booking.pickupHubName?.toLowerCase().includes(keyword);
 
   const matchesStatus =
 statusFilter === "ALL" ||
@@ -383,7 +390,7 @@ const cancelledBookings = bookings.filter(
 ).length;
 
 const getBookingAmount = (booking: any) =>
-  Number(booking.receivedAmount || 0);
+  getBookingPayableAmount(booking);
 const totalRevenue = bookings
   .filter(
     (booking) => booking.rideStatus !== "Cancelled"
@@ -418,6 +425,26 @@ const partialPayments = bookings.filter(
 (booking)=>booking.paymentStatus==="Partial"
 ).length;
 
+const rupees = (value: unknown) =>
+  `₹${money(value).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const hubDisplay = (booking: any) => {
+  const name = String(booking.pickupHubName || "").trim();
+  const code = String(booking.startHub || booking.currentHub || "").trim();
+  if (name && code && name !== code) return `${name} (${code})`;
+  return name || code || "-";
+};
+
+const pickupOtpReady = (booking: any) =>
+  Boolean(
+    booking.pickupOTP ||
+      booking.pickupOTPGenerated ||
+      generatedPickupOTP[booking._id]
+  );
+
 return(
 
 <PageContainer>
@@ -426,9 +453,15 @@ return(
 
 title="Booking Management"
 
-subtitle="Monitor all bike bookings, ride status and booking revenue."
+subtitle="Monitor all bike bookings, ride status, paid vs pending, and pickup OTP after full payment."
 
 />
+
+{loadError ? (
+  <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 font-semibold text-red-700">
+    {loadError}
+  </div>
+) : null}
 
 <KPIGrid>
 
@@ -458,7 +491,7 @@ color="blue"
 
 <KPICard
 title="Revenue"
-value={`₹${totalRevenue}`}
+value={rupees(totalRevenue)}
 subtitle="Bookings"
 icon="💰"
 color="yellow"
@@ -525,13 +558,23 @@ Phone:b.userPhone,
 
 Vehicle:b.vehicleId,
 
+Model:b.vehicleModel,
+
+Registration:b.vehicleNumber,
+
+Hub:b.pickupHubName || b.startHub,
+
 RideStatus:b.rideStatus,
 
 PaymentStatus:b.paymentStatus,
 
-Amount:b.totalAmount,
+Total:getBookingPayableAmount(b),
 
 Received:b.receivedAmount,
+
+Pending:b.pendingAmount,
+
+PickupOTP:b.pickupOTPGenerated || b.pickupOTP ? "Generated" : "Not generated",
 
 }));
 
@@ -831,6 +874,10 @@ Ride Time
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Total
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
 Received
 </th>
 
@@ -860,7 +907,7 @@ Action
 
 <tr>
   <td
-    colSpan={17}
+    colSpan={18}
     className="py-14"
   >
     <div className="flex flex-col items-center justify-center">
@@ -874,7 +921,7 @@ Action
       </h2>
 
       <p className="mt-2 text-gray-500">
-        Bookings will appear here automatically.
+        Bookings will appear here automatically. Partial payments show as Payment Pending with Paid vs Pending amounts. Pickup OTP is listed after full payment.
       </p>
 
     </div>
@@ -914,7 +961,13 @@ transition
 </td>
 
 <td className="px-6 py-5">
-{booking.vehicleId || "-"}
+  <div className="font-semibold">{booking.vehicleId || "-"}</div>
+  <div className="text-xs text-slate-500">
+    {booking.vehicleModel || "Model -"}
+  </div>
+  <div className="text-xs text-slate-500">
+    {booking.vehicleNumber || "Reg -"}
+  </div>
 </td>
 
 <td className="px-6 py-5">
@@ -922,7 +975,7 @@ transition
 </td>
 
 <td className="px-6 py-5">
-{booking.startHub || "-"}
+{hubDisplay(booking)}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -976,6 +1029,21 @@ transition
   />
 )}
 
+{![
+  "Completed",
+  "Ready For Pickup",
+  "In Ride",
+  "Booked",
+  "Reserved",
+  "Payment Pending",
+  "Cancelled",
+].includes(String(booking.rideStatus || "")) && (
+  <StatusBadge
+    status="inactive"
+    label={booking.rideStatus || "Unknown"}
+  />
+)}
+
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1001,6 +1069,13 @@ transition
   />
 )}
 
+{!["Paid", "Partial", "Pending"].includes(String(booking.paymentStatus || "")) && (
+  <StatusBadge
+    status="inactive"
+    label={booking.paymentStatus || "Unknown"}
+  />
+)}
+
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1012,11 +1087,18 @@ status="active"
 label="Verified"
 />
 
-) : booking.pickupOTP ? (
+) : pickupOtpReady(booking) ? (
 
 <StatusBadge
 status="warning"
 label="Generated"
+/>
+
+) : booking.paymentStatus === "Partial" || booking.paymentStatus === "Pending" ? (
+
+<StatusBadge
+status="inactive"
+label="After full pay"
 />
 
 ) : (
@@ -1039,7 +1121,7 @@ status="active"
 label="Verified"
 />
 
-) : booking.rideStartOTP ? (
+) : booking.rideStartOTPGenerated || booking.rideStartOTP ? (
 
 <StatusBadge
 status="warning"
@@ -1095,19 +1177,19 @@ booking.actualRideEnd
 
 
 <td className="px-6 py-5 text-center font-bold">
-₹{getBookingAmount(booking).toLocaleString("en-IN")}
+{rupees(getBookingAmount(booking))}
 </td>
 
 <td className="px-6 py-5 text-center font-bold text-green-700">
-₹{Number(booking.receivedAmount || 0).toLocaleString("en-IN")}
+{rupees(booking.receivedAmount)}
 </td>
 
 <td className="px-6 py-5 text-center font-bold text-orange-600">
-₹{Number(booking.pendingAmount || 0).toLocaleString("en-IN")}
+{rupees(booking.pendingAmount)}
 </td>
 
 <td className="px-6 py-5 text-center">
-₹{Number(booking.securityDeposit || 0).toLocaleString("en-IN")}
+{rupees(booking.securityDeposit)}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1185,7 +1267,7 @@ disabled:cursor-not-allowed
 {booking.rideStatus === "Ready For Pickup" && (
 
 <>
-{!(booking.pickupOTP || generatedPickupOTP[booking._id]) ? (
+{!(generatedPickupOTP[booking._id]) ? (
 
 <button
 disabled={processingId===booking._id}
@@ -1203,7 +1285,9 @@ disabled:cursor-not-allowed
 >
 
 {processingId===booking._id
-? "Generating..."
+? "Loading..."
+: pickupOtpReady(booking)
+? "Show Pickup OTP"
 : "Generate Pickup OTP"}
 
 </button>
@@ -1463,7 +1547,7 @@ Booking Details
   </>
 ) : null}
 
-<p><b>Start Hub :</b> {selectedBooking.startHub}</p>
+<p><b>Start Hub :</b> {hubDisplay(selectedBooking)}</p>
 
 <p><b>End Hub :</b> {selectedBooking.endHub || "-"}</p>
 
@@ -1624,7 +1708,14 @@ OTP Details
 </h3>
 
 <p>
-  <b>Pickup OTP :</b> {selectedBooking.pickupOTP || "-"}
+  <b>Pickup OTP :</b>{" "}
+  {generatedPickupOTP[selectedBooking._id] ||
+    selectedBooking.pickupOTP ||
+    (selectedBooking.pickupOTPGenerated
+      ? "Generated — use Show Pickup OTP on the row"
+      : selectedBooking.paymentStatus === "Paid"
+      ? "Ready — generate from the row"
+      : "After full payment")}
 </p>
 
 <p>

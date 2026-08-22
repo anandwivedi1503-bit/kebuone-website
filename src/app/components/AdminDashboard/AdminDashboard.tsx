@@ -148,18 +148,18 @@ const [refreshing, setRefreshing] = useState(false);
    const loadDashboard = async () => {
     try {
       const urls = [
-        "/api/riders",
+        "/api/riders?limit=500",
         "/api/vehicles",
         "/api/hubs",
-        "/api/bookings",
-        "/api/tickets",
-        "/api/transactions",
+        "/api/bookings?limit=500",
+        "/api/tickets?limit=500",
+        "/api/transactions?limit=500",
         "/api/iot",
-        "/api/refunds",
+        "/api/refunds?limit=500",
         "/api/batteries",
         "/api/battery-swaps",
         "/api/partners",
-        "/api/wallet?limit=300",
+        "/api/wallet?limit=500",
         "/api/analytics?period=all",
       ];
 
@@ -314,8 +314,8 @@ dot:"bg-red-500",
   const recentActivities: ActivityItem[] = [
   ...bookings.slice(0, 3).map((booking: any) => ({
     icon: Bike,
-    title: `${booking.userName || booking.userPhone || "Rider"} booked ${booking.vehicleId || "Vehicle"}`,
-    subtitle: booking.bookingId || "Booking",
+    title: `${booking.userName || booking.userPhone || "Rider"} · ${booking.bookingId || "Booking"} · ${booking.paymentStatus || "Pending"} ₹${Number(booking.receivedAmount || 0)}/${Number(booking.pendingAmount || 0)} pending`,
+    subtitle: `${booking.vehicleId || "Vehicle"} · ${booking.rideStatus || ""}`,
     time: formatActivityTime(booking.createdAt),
     tone: "bg-sky-50 text-sky-600",
   })),
