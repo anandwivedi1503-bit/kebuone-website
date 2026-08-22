@@ -170,6 +170,7 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [bookingPaymentStatus, setBookingPaymentStatus] = useState("");
   const [bookingTotal, setBookingTotal] = useState(0);
   const [reservedBike, setReservedBike] = useState<Vehicle | null>(null);
+  const [reservedHub, setReservedHub] = useState<Hub | null>(null);
 
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -333,6 +334,11 @@ useEffect(() => {
           batteryPercentage: active.batteryPercentage,
           currentHub: active.currentHub || active.startHub,
         });
+        setReservedHub({
+          hubName: active.pickupHubName || active.startHub,
+          hubCode: active.startHub,
+          hubLocation: active.pickupHubName || active.startHub,
+        });
         setMessage(
           pending > 0.009
             ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pickup OTP starts the ride. Ride end OTP is issued only after remaining is paid.`
@@ -455,12 +461,16 @@ const payableAmount =
     ? bookingTotal
     : Number((tax.totalWithGst + securityDeposit).toFixed(2));
 const amountDue = bookingDone ? pendingAmount : payableAmount;
-const hubLabel = selectedHubData
-  ? `${selectedHubData.hubName || selectedHubData.hubLocation || hub}${
-      selectedHubData.hubCode ? ` (${selectedHubData.hubCode})` : ""
+const remainingPayLocked = bookingDone && paidAmount > 0;
+const walletPayNow = remainingPayLocked
+  ? Number(pendingAmount)
+  : Number(paymentAmount || amountDue);
+const displayHub = reservedHub || selectedHubData;
+const hubLabel = displayHub
+  ? `${displayHub.hubName || displayHub.hubLocation || hub}${
+      displayHub.hubCode ? ` (${displayHub.hubCode})` : ""
     }`
   : hub || "-";
-const walletPayNow = Number(paymentAmount || amountDue);
 const walletCoversPay = walletAvailable >= walletPayNow && walletPayNow > 0;
 
   useEffect(() => {
@@ -671,6 +681,13 @@ referenceBy,
           bookingData.data.batteryPercentage ?? currentBike?.batteryPercentage,
         currentHub: bookingData.data.currentHub || currentBike?.currentHub,
       });
+      setReservedHub(
+        selectedHubData || {
+          hubName: hub,
+          hubCode: hub,
+          hubLocation: hub,
+        }
+      );
       setBookingDone(true);
 setMessage("Scooter reserved. Pay any amount (minimum ₹1) to get your pickup OTP. Remaining can be paid during the ride or at ride end.");
 setStep(4);
@@ -693,7 +710,9 @@ setStep(4);
       return;
     }
 
-    const payNow = Number(paymentAmount || amountDue);
+    const payNow = remainingPayLocked
+      ? Number(pendingAmount)
+      : Number(paymentAmount || amountDue);
 
     if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
       setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
@@ -826,6 +845,8 @@ setStep(4);
       vehicleModel?: string;
       vehicleNumber?: string;
       batteryPercentage?: number;
+      pickupOTP?: string;
+      rideEndOTP?: string;
     };
     data?: {
       receivedAmount?: number;
@@ -835,6 +856,8 @@ setStep(4);
       vehicleModel?: string;
       vehicleNumber?: string;
       batteryPercentage?: number;
+      pickupOTP?: string;
+      rideEndOTP?: string;
     };
   }) => {
     const bookingRecord = data.booking || data.data || {};
@@ -877,22 +900,36 @@ setStep(4);
         ? String(data.paymentStatus || bookingRecord.paymentStatus || "Partial")
         : "Paid"
     );
-    if (data.pickupOTP) setPickupOtp(String(data.pickupOTP));
-    if (data.rideEndOTP) setRideEndOtp(String(data.rideEndOTP));
+    const nextPickup = String(data.pickupOTP || bookingRecord.pickupOTP || "");
+    const nextRideEnd = String(data.rideEndOTP || bookingRecord.rideEndOTP || "");
+    if (nextPickup) setPickupOtp(nextPickup);
+    if (nextRideEnd) setRideEndOtp(nextRideEnd);
+    void (async () => {
+      try {
+        const token = firebaseIdToken || (await auth.currentUser?.getIdToken());
+        if (!token) return;
+        const mineRes = await fetch("/api/bookings/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const mineData = await mineRes.json();
+        if (mineData.data?.pickupOTP) setPickupOtp(String(mineData.data.pickupOTP));
+        if (mineData.data?.rideEndOTP) setRideEndOtp(String(mineData.data.rideEndOTP));
+      } catch {}
+    })();
     if (remaining > 0.009) {
       setPaymentSuccess(false);
       setPaymentMessage(
-        `Partial payment received. Paid ${formatINR(received)}. Pending ${formatINR(remaining)}. Pickup OTP is ready. Ride end OTP is issued only after this remaining is paid.`
+        `Partial payment received. Paid ${formatINR(received)}. Pending ${formatINR(remaining)}.`
       );
       setMessage(
-        `Partial payment saved. Show pickup OTP at the yard to start. Pay remaining ${formatINR(remaining)} before return — ride end OTP is created only after full payment.`
+        nextPickup
+          ? `Pickup OTP ${nextPickup}. Tell this to the yard. Remaining ${formatINR(remaining)} must be paid before ride end OTP.`
+          : `Payment saved. Pickup OTP is shown below and sent to your registered mobile. Remaining ${formatINR(remaining)}.`
       );
       setPaymentAmount(String(Number(remaining.toFixed(2))));
-      if (data.pickupOTP) {
-        notifyBrowser(
-          "EVUDDY pickup OTP ready",
-          `Pickup OTP ${data.pickupOTP}. Remaining ${formatINR(remaining)} can be paid later.`
-        );
+      if (nextPickup) {
+        notifyBrowser("EVUDDY pickup OTP", `Pickup OTP ${nextPickup}`);
       }
       setPaymentLoading(false);
       return;
@@ -927,7 +964,9 @@ setStep(4);
       return;
     }
 
-    const payNow = Number(paymentAmount || amountDue);
+    const payNow = remainingPayLocked
+      ? Number(pendingAmount)
+      : Number(paymentAmount || amountDue);
     if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
       setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
       setPaymentLoading(false);
@@ -2254,8 +2293,15 @@ PAYMENT AMOUNT
 
 </p>
 <p className="mt-2 text-sm text-slate-500">
-Pay any amount from ₹1 up to the total. First payment issues pickup OTP. Remaining must be paid before ride end OTP is issued for return.
+{remainingPayLocked
+  ? "Remaining due only. This is the amount Razorpay will charge now."
+  : "First payment can be any amount from ₹1 up to the total. Pickup OTP is issued after the first payment."}
 </p>
+{remainingPayLocked ? (
+  <div className="mt-4 flex h-16 items-center rounded-2xl border border-slate-200 bg-slate-50 px-6 text-[22px] font-black text-[#16A34A]">
+    {formatINR(pendingAmount)}
+  </div>
+) : (
 <input
   type="number"
   value={paymentAmount}
@@ -2274,14 +2320,13 @@ text-[22px]
 font-black
 text-[#16A34A]
 outline-none
-transition-all
-duration-300
 focus:border-[#18B368]
 focus:ring-4
 focus:ring-[#18B368]/10
 "
   placeholder="Pay now amount"
 />
+)}
 
 </div>
                  
@@ -2304,14 +2349,41 @@ focus:ring-[#18B368]/10
   />
 </div>
 
-                {bookingDone && !paymentSuccess ? (
+                {bookingDone && paidAmount > 0 ? (
+                  <div className="mt-4 space-y-3">
+                    {pickupOtp ? (
+                      <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-5">
+                        <p className="text-xs font-bold uppercase tracking-widest text-green-800">
+                          Pickup OTP — tell this to the yard
+                        </p>
+                        <p className="mt-2 text-5xl font-black tracking-[0.28em] text-green-700">
+                          {pickupOtp}
+                        </p>
+                        <p className="mt-2 text-sm text-green-800">
+                          Also sent to your registered mobile {riderPhone || ""}.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                        Pickup OTP is being prepared. Keep this page open — it appears here and on SMS.
+                      </div>
+                    )}
+                    {rideEndOtp ? (
+                      <div className="rounded-2xl bg-slate-900 px-5 py-5 text-white">
+                        <p className="text-xs font-bold uppercase tracking-widest text-green-300">
+                          Ride end OTP — tell this to the yard on return
+                        </p>
+                        <p className="mt-2 text-5xl font-black tracking-[0.28em]">{rideEndOtp}</p>
+                      </div>
+                    ) : pendingAmount > 0.009 ? (
+                      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+                        Remaining {formatINR(pendingAmount)} must be paid before ride end OTP is issued.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : bookingDone ? (
                   <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    <p className="font-bold">Next step</p>
-                    <p className="mt-1">
-                      {paidAmount > 0
-                        ? `Pickup OTP is ready. Remaining ${formatINR(pendingAmount)} must be paid before ride end OTP is issued.`
-                        : "Reserve is holding the scooter. Pay at least ₹1 to get pickup OTP."}
-                    </p>
+                    Reserve is holding the scooter. Pay at least ₹1 to get pickup OTP.
                   </div>
                 ) : null}
 
@@ -2351,6 +2423,8 @@ disabled:opacity-60
 
 {paymentLoading
  ? "Processing..."
+ : remainingPayLocked
+ ? `Pay remaining ${formatINR(pendingAmount)} with Razorpay`
  : "Pay Securely with Razorpay"}
                 </button>
 
@@ -2623,6 +2697,9 @@ text-[#0F172A]
                 <Summary label="Phone" value={riderPhone || "-"} />
                 <Summary label="City" value={city || "-"} />
                 <Summary label="Hub" value={hubLabel} />
+                {displayHub?.hubLocation ? (
+                  <Summary label="Yard" value={String(displayHub.hubLocation)} />
+                ) : null}
                 <Summary label="Bike" value={selectedBike || "-"} />
                 <Summary
   label="Model"
@@ -2726,7 +2803,7 @@ p-6
 )}
             </div>
 
-            {selectedHubData && (
+            {displayHub && (
               <div
 className="
 rounded-[32px]
@@ -2745,15 +2822,17 @@ size={26}
 className="mt-1 text-[#18B368]"
 />
                   <div>
-                    <h3 className="font-black text-[#0A1134]">{selectedHubData.hubName}</h3>
-                    <p className="mt-1 text-sm text-gray-600">{selectedHubData.hubLocation}</p>
-                    <p className="mt-3 text-sm text-gray-600">
-  📍 {selectedHubData.hubLocation}
-</p>
+                    <h3 className="font-black text-[#0A1134]">{displayHub.hubName || hubLabel}</h3>
+                    <p className="mt-1 text-sm leading-6 text-gray-600 break-words">
+                      {displayHub.hubLocation || displayHub.hubName || hubLabel}
+                    </p>
+                    {displayHub.city ? (
+                      <p className="mt-1 text-sm text-gray-500">{displayHub.city}</p>
+                    ) : null}
 
-{selectedHubData.latitude && selectedHubData.longitude && (
+{displayHub.latitude && displayHub.longitude && (
   <a
-    href={`https://www.google.com/maps?q=${selectedHubData.latitude},${selectedHubData.longitude}`}
+    href={`https://www.google.com/maps?q=${displayHub.latitude},${displayHub.longitude}`}
     target="_blank"
     rel="noopener noreferrer"
     className="
@@ -2972,28 +3051,30 @@ function Summary({
     <div
 className="
 flex
-items-center
+items-start
 justify-between
 gap-4
 border-b
 border-slate-100
-py-4
+py-3
 "
 >
       <span
 className="
-text-[13px]
+shrink-0
+max-w-[42%]
+text-[12px]
 font-semibold
 uppercase
-tracking-[0.08em]
+tracking-[0.06em]
 text-slate-500
 "
 >{label}</span>
       <span
 className={
 strong
-? "text-lg font-black text-[#16A34A]"
-: "font-semibold text-[#0F172A]"
+? "text-right text-base font-black text-[#16A34A] break-words"
+: "text-right font-semibold text-[#0F172A] break-words"
 }
 >
         {value}

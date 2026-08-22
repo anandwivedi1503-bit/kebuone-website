@@ -10,11 +10,12 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
-import YardRideDesk from "../YardRideDesk/YardRideDesk";
+import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
 
 export default function FleetDashboard() {
 
 const [vehicles, setVehicles] = useState<any[]>([]);
+const [bookings, setBookings] = useState<any[]>([]);
 const [editingVehicle, setEditingVehicle] = useState<any>(null);
 
 const [searchTerm, setSearchTerm] = useState("");
@@ -22,21 +23,22 @@ const [searchTerm, setSearchTerm] = useState("");
 const [statusFilter, setStatusFilter] =
 useState("All");
 
-useEffect(() => {
-
 const loadFleet = () => {
-  fetch("/api/vehicles")
-    .then((res) => res.json())
-    .then((data) => {
-      setVehicles(data.data || []);
+  Promise.all([
+    fetch("/api/vehicles").then((res) => res.json()),
+    fetch("/api/bookings?limit=500", { cache: "no-store" }).then((res) => res.json()),
+  ])
+    .then(([vehicleData, bookingData]) => {
+      if (vehicleData.success) setVehicles(vehicleData.data || []);
+      if (bookingData.success) setBookings(bookingData.data || []);
     })
     .catch(() => undefined);
 };
 
+useEffect(() => {
 loadFleet();
 const timer = window.setInterval(loadFleet, 10000);
 return () => window.clearInterval(timer);
-
 }, []);
 
 const totalVehicles = vehicles.length;
@@ -137,8 +139,6 @@ return (
 title="Fleet Dashboard"
 subtitle="Monitor every vehicle, hub, battery status and fleet operation across the complete Kebu One ecosystem."
 />
-
-<YardRideDesk />
 
 <KPIGrid>
 
@@ -284,6 +284,10 @@ Ready For Pickup
         </th>
 
         <th className="text-left px-6 py-5 font-bold text-[#0A1134]">
+          Yard OTP
+        </th>
+
+        <th className="text-left px-6 py-5 font-bold text-[#0A1134]">
           Actions
         </th>
 
@@ -298,7 +302,7 @@ Ready For Pickup
 <tr>
 
 <td
-colSpan={7}
+colSpan={8}
 className="text-center py-16 text-gray-500"
 >
 
@@ -378,6 +382,18 @@ filteredVehicles.map((vehicle) => (
   <StatusBadge status="danger" />
 )}
 
+          </td>
+
+          <td className="px-6 py-5 align-top">
+            <VehicleRideOtpCell
+              vehicle={vehicle}
+              booking={bookings.find(
+                (item) =>
+                  item.bookingId === vehicle.currentBookingId ||
+                  item.vehicleId === vehicle.vehicleId
+              )}
+              onDone={loadFleet}
+            />
           </td>
 
           <td className="px-6 py-5">

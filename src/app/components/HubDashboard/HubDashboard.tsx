@@ -10,11 +10,13 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
-import YardRideDesk from "../YardRideDesk/YardRideDesk";
+import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
 
 export default function HubDashboard() {
 
 const [hubs,setHubs]=useState<any[]>([]);
+const [vehicles,setVehicles]=useState<any[]>([]);
+const [bookings,setBookings]=useState<any[]>([]);
 
 const [searchTerm,setSearchTerm]=useState("");
 
@@ -26,10 +28,15 @@ const [saving, setSaving] = useState(false);
 useEffect(()=>{
 
 const loadHubs = () => {
-  fetch("/api/hubs")
-    .then((res)=>res.json())
-    .then((data)=>{
-      setHubs(data.data||[]);
+  Promise.all([
+    fetch("/api/hubs").then((res)=>res.json()),
+    fetch("/api/vehicles").then((res)=>res.json()),
+    fetch("/api/bookings?limit=500", { cache: "no-store" }).then((res)=>res.json()),
+  ])
+    .then(([hubData, vehicleData, bookingData])=>{
+      if (hubData?.data) setHubs(hubData.data||[]);
+      if (vehicleData?.success) setVehicles(vehicleData.data||[]);
+      if (bookingData?.success) setBookings(bookingData.data||[]);
     })
     .catch(() => undefined);
 };
@@ -124,8 +131,6 @@ title="Hub Dashboard"
 subtitle="Manage every operational hub, parking capacity and battery inventory across Kebu One."
 />
 
-<YardRideDesk />
-
 <KPIGrid>
 
 <KPICard
@@ -161,6 +166,61 @@ color="yellow"
 />
 
 </KPIGrid>
+
+<DashboardCard>
+  <h2 className="mb-2 text-2xl font-black text-[#0A1134]">Yard vehicles</h2>
+  <p className="mb-4 text-sm text-slate-500">
+    Enter the pickup OTP the rider tells you to unlock. After remaining is paid, enter the ride end OTP to take the bike back.
+  </p>
+  <div className="overflow-x-auto">
+    <table className="min-w-full text-sm">
+      <thead>
+        <tr className="border-b text-left text-slate-500">
+          <th className="px-3 py-3">Vehicle</th>
+          <th className="px-3 py-3">Hub</th>
+          <th className="px-3 py-3">Status</th>
+          <th className="px-3 py-3">OTP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {vehicles.filter((vehicle) =>
+          ["Ready For Pickup", "In Ride", "Booked"].includes(String(vehicle.vehicleStatus))
+        ).length === 0 ? (
+          <tr>
+            <td className="px-3 py-6 text-slate-500" colSpan={4}>
+              No scooters waiting at the yard right now.
+            </td>
+          </tr>
+        ) : (
+          vehicles
+            .filter((vehicle) =>
+              ["Ready For Pickup", "In Ride", "Booked"].includes(String(vehicle.vehicleStatus))
+            )
+            .map((vehicle) => (
+              <tr key={vehicle._id} className="border-b border-slate-100">
+                <td className="px-3 py-3 font-semibold">
+                  {vehicle.vehicleId}
+                  <div className="text-xs text-slate-500">{vehicle.registrationNumber || ""}</div>
+                </td>
+                <td className="px-3 py-3">{vehicle.currentHub}</td>
+                <td className="px-3 py-3">{vehicle.vehicleStatus}</td>
+                <td className="px-3 py-3">
+                  <VehicleRideOtpCell
+                    vehicle={vehicle}
+                    booking={bookings.find(
+                      (item) =>
+                        item.bookingId === vehicle.currentBookingId ||
+                        item.vehicleId === vehicle.vehicleId
+                    )}
+                  />
+                </td>
+              </tr>
+            ))
+        )}
+      </tbody>
+    </table>
+  </div>
+</DashboardCard>
 
 <SectionHeader
 title="Hub Management"

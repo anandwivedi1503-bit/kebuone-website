@@ -54,6 +54,12 @@ async function sendSms(input: BookingNotifyInput, text: string) {
   const phone = String(input.riderPhone || "").replace(/\D/g, "").slice(-10);
   if (!phone) return;
 
+  const smsBody = input.rideEndOTP
+    ? `EVUDDY Ride End OTP ${input.rideEndOTP} for ${input.bookingId}. Tell the yard to return the scooter.`
+    : input.pickupOTP
+    ? `EVUDDY Pickup OTP ${input.pickupOTP} for ${input.bookingId}. Tell the yard to unlock.`
+    : text.slice(0, 300);
+
   const msg91 = env("MSG91_AUTH_KEY");
   const twilioSid = env("TWILIO_ACCOUNT_SID");
   const twilioToken = env("TWILIO_AUTH_TOKEN");
@@ -74,7 +80,7 @@ async function sendSms(input: BookingNotifyInput, text: string) {
             {
               mobiles: `91${phone}`,
               booking: input.bookingId,
-              otp: input.pickupOTP || "",
+              otp: input.rideEndOTP || input.pickupOTP || "",
               status: input.paymentStatus,
             },
           ],
@@ -83,7 +89,7 @@ async function sendSms(input: BookingNotifyInput, text: string) {
       if (res.ok) return;
     }
     const simple = await fetch(
-      `https://api.msg91.com/api/sendhttp.php?authkey=${encodeURIComponent(msg91)}&mobiles=91${phone}&message=${encodeURIComponent(text.slice(0, 300))}&sender=${encodeURIComponent(env("MSG91_SENDER_ID") || "EVUDDY")}&route=4&country=91`
+      `https://api.msg91.com/api/sendhttp.php?authkey=${encodeURIComponent(msg91)}&mobiles=91${phone}&message=${encodeURIComponent(smsBody)}&sender=${encodeURIComponent(env("MSG91_SENDER_ID") || "EVUDDY")}&route=4&country=91`
     );
     if (!simple.ok) throw new Error("msg91");
     return;
@@ -102,7 +108,7 @@ async function sendSms(input: BookingNotifyInput, text: string) {
         body: new URLSearchParams({
           To: `+91${phone}`,
           From: twilioFrom,
-          Body: text.slice(0, 320),
+          Body: smsBody.slice(0, 320),
         }),
       }
     );
