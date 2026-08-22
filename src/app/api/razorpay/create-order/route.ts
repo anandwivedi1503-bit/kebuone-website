@@ -169,10 +169,7 @@ export async function POST(req: Request) {
     }
 
     if (
-      booking.rideStatus === "Cancelled" ||
-      booking.rideStatus === "Completed" ||
-      booking.rideStatus === "Ready For Pickup" ||
-      booking.rideStatus === "In Ride"
+      booking.rideStatus === "Cancelled"
     ) {
       return NextResponse.json(
         {

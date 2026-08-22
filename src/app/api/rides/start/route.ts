@@ -87,14 +87,14 @@ export async function POST(req: Request) {
       );
     }
 
-    if (booking.paymentStatus !== "Paid") {
+    if (Number(booking.receivedAmount || 0) < 1) {
       await rollback(session);
       session = null;
 
       return NextResponse.json(
         {
           success: false,
-          message: "Complete payment first.",
+          message: "At least one payment is required before starting the ride.",
         },
         { status: 400 }
       );

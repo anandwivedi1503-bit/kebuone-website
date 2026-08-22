@@ -557,7 +557,7 @@ export async function PATCH(
 
     if (
       requestedRideStatus === "Ready For Pickup" &&
-      finalPaymentStatus !== "Paid"
+      Number(booking.receivedAmount || finalReceivedAmount || 0) < 1
     ) {
       await session.abortTransaction();
       session.endSession();
@@ -567,7 +567,7 @@ export async function PATCH(
         {
           success: false,
           message:
-            "Booking cannot be marked Ready For Pickup until payment is fully paid.",
+            "Booking cannot be marked Ready For Pickup until a payment is received.",
         },
         { status: 409 }
       );

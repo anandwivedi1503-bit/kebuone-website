@@ -6,7 +6,7 @@ import {
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 
-import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
+import { generateSixDigitOtp, isOtpExpired, pickupOtpExpiry } from "@/lib/otp";
 import Booking from "@/models/Booking";
 
 export async function POST(req: Request) {
@@ -51,14 +51,22 @@ export async function POST(req: Request) {
       );
     }
 
-    if (booking.paymentStatus !== "Paid") {
+    if (Number(booking.receivedAmount || 0) < 1) {
       return NextResponse.json(
         {
           success: false,
-          message: "Pickup OTP is issued only after the booking is fully paid.",
+          message: "At least one payment is required before pickup OTP.",
         },
         { status: 400 }
       );
+    }
+
+    if (
+      booking.rideStatus !== "Ready For Pickup" &&
+      Number(booking.receivedAmount || 0) >= 1 &&
+      ["Booked", "Reserved", "Payment Pending"].includes(String(booking.rideStatus))
+    ) {
+      booking.rideStatus = "Ready For Pickup";
     }
 
     if (booking.rideStatus !== "Ready For Pickup") {
@@ -73,12 +81,14 @@ export async function POST(req: Request) {
 
     let otp = booking.pickupOTP;
 
-    if (!otp) {
+    if (!otp || isOtpExpired(booking.pickupOTPExpiry)) {
       otp = generateSixDigitOtp();
       booking.pickupOTP = otp;
       booking.pickupOTPExpiry = pickupOtpExpiry();
       booking.pickupOTPVerified = false;
       booking.pickupOTPVerifiedAt = null;
+      await booking.save();
+    } else if (booking.isModified && booking.isModified()) {
       await booking.save();
     }
 

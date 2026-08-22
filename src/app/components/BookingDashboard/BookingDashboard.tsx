@@ -270,8 +270,11 @@ const endRide = async (
 
   }
 
+  const pendingDue = Number(booking.pendingAmount || 0);
   const confirmEnd = confirm(
-    "Complete this ride?"
+    pendingDue > 0
+      ? `Complete this ride? Remaining ₹${pendingDue.toFixed(2)} can still be collected on Book EV after ride end.`
+      : "Complete this ride?"
   );
 
   if (!confirmEnd) return;
@@ -307,7 +310,7 @@ const endRide = async (
 
     }
 
-    alert("Ride completed successfully.");
+    alert(data.message || "Ride completed successfully.");
 
 setRideEndModalOpen(false);
 
@@ -921,7 +924,7 @@ Action
       </h2>
 
       <p className="mt-2 text-gray-500">
-        Bookings will appear here automatically. Partial payments show as Payment Pending with Paid vs Pending amounts. Pickup OTP is listed after full payment.
+        Bookings will appear here automatically. First payment issues pickup OTP. Remaining shows as Pending until paid mid-ride or at ride end.
       </p>
 
     </div>
@@ -1094,11 +1097,11 @@ status="warning"
 label="Generated"
 />
 
-) : booking.paymentStatus === "Partial" || booking.paymentStatus === "Pending" ? (
+) : Number(booking.receivedAmount || 0) < 1 ? (
 
 <StatusBadge
 status="inactive"
-label="After full pay"
+label="After first pay"
 />
 
 ) : (
@@ -1713,9 +1716,9 @@ OTP Details
     selectedBooking.pickupOTP ||
     (selectedBooking.pickupOTPGenerated
       ? "Generated — use Show Pickup OTP on the row"
-      : selectedBooking.paymentStatus === "Paid"
-      ? "Ready — generate from the row"
-      : "After full payment")}
+      : Number(selectedBooking.receivedAmount || 0) > 0
+      ? "Ready — use Show Pickup OTP on the row"
+      : "After first payment")}
 </p>
 
 <p>
@@ -2003,6 +2006,11 @@ Booking :
 {selectedEndRideBooking.bookingId}
 </strong>
 </p>
+{Number(selectedEndRideBooking.pendingAmount || 0) > 0 ? (
+  <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+    Remaining due {rupees(selectedEndRideBooking.pendingAmount)}. Ride can still end. Collect remaining on Book EV now or after ride end.
+  </p>
+) : null}
 
 <div className="mt-6">
 

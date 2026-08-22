@@ -506,7 +506,7 @@ const existingPendingBooking = await Booking.findOne(
         $in: ["Pending", "Partial"],
     },
     rideStatus: {
-        $nin: ["Cancelled", "Completed"],
+        $nin: ["Cancelled"],
     },
 },
 null,
@@ -522,7 +522,7 @@ if (existingPendingBooking) {
     {
         success:false,
         errors:[
-            "Previous booking payment is still pending."
+            "Previous booking payment is still pending. Pay the remaining amount on Book EV first."
         ]
     },
     {status:409}

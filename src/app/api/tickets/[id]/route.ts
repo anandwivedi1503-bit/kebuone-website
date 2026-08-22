@@ -176,7 +176,8 @@ if (
     if (
       existingTicket.category === "UNLOCK_ISSUE" &&
       booking.rideStatus === "Ready For Pickup" &&
-      booking.paymentStatus === "Paid"
+      booking.paymentStatus === "Paid" ||
+      booking.paymentStatus === "Partial"
     ) {
       booking.pickupOTP = generateSixDigitOtp();
       booking.pickupOTPExpiry = pickupOtpExpiry();

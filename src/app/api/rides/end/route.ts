@@ -12,7 +12,7 @@ import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
-import Refund from "@/models/Refund";
+import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
 
 async function rollback(session: mongoose.ClientSession | null) {
   if (!session) return;
@@ -225,37 +225,21 @@ export async function POST(req: Request) {
       }
     }
 
-    if (Number(booking.securityDeposit || 0) > 0) {
-      const existingRefund = await Refund.findOne({
-        bookingId: booking.bookingId,
-      }).session(session);
-
-      if (!existingRefund) {
-        await Refund.create(
-          [
-            {
-              refundId: "RF-" + Date.now(),
-              bookingId: booking.bookingId,
-              riderId: booking.riderId,
-              amount: booking.securityDeposit,
-              refundStatus: "PENDING",
-              remarks: "Security deposit refund pending admin approval",
-            },
-          ],
-          { session }
-        );
-        booking.refundAmount = Number(booking.securityDeposit || 0);
-        booking.securityDepositRefunded = false;
-      }
-    }
+    await queueDepositRefundIfEligible(booking, session);
 
     await booking.save({ session });
     await session.commitTransaction();
     session.endSession();
 
+    const pending = Number(booking.pendingAmount || 0);
     return NextResponse.json({
       success: true,
-      message: "Ride completed successfully.",
+      message:
+        pending > 0
+          ? `Ride completed. Remaining ${pending.toFixed(2)} is still due — collect on Book EV or pay now.`
+          : "Ride completed successfully.",
+      pendingAmount: pending,
+      paymentStatus: booking.paymentStatus,
       data: booking,
     });
   } catch (error) {

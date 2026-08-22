@@ -2,9 +2,13 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
-import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
+import {
+  isBookingStillPayable,
+  nextPaymentProgress,
+} from "@/lib/bookingPaymentProgress";
+import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
@@ -66,17 +70,12 @@ export async function applyWalletBookingPayment(input: {
       return { ok: false as const, status: 403, message: "Rider account is not active." };
     }
 
-    if (booking.paymentStatus === "Paid" || Number(booking.pendingAmount) <= 0) {
+    if (!isBookingStillPayable(booking)) {
       await rollback(session);
       return { ok: false as const, status: 400, message: "This booking has already been fully paid." };
     }
 
-    if (
-      booking.rideStatus === "Cancelled" ||
-      booking.rideStatus === "Completed" ||
-      booking.rideStatus === "Ready For Pickup" ||
-      booking.rideStatus === "In Ride"
-    ) {
+    if (booking.rideStatus === "Cancelled") {
       await rollback(session);
       return { ok: false as const, status: 400, message: "This booking is no longer payable." };
     }
@@ -132,9 +131,8 @@ export async function applyWalletBookingPayment(input: {
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
-    const paymentStatus = pendingAmount <= 0 ? "Paid" : "Partial";
-    const rideStatus = pendingAmount <= 0 ? "Ready For Pickup" : "Payment Pending";
-    const pickupOTP = pendingAmount <= 0 ? generateSixDigitOtp() : "";
+    const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
+    const { paymentStatus, rideStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}`;
     const taxOnPayment = gstShareForPayment({
       rentalAmount: booking.rateApplied || booking.totalAmount,
@@ -224,15 +222,8 @@ export async function applyWalletBookingPayment(input: {
       },
       {
         $set: {
-          receivedAmount: newReceivedAmount,
-          pendingAmount,
+          ...progress.bookingPatch,
           paymentMode: "Wallet",
-          paymentStatus,
-          rideStatus,
-          pickupOTP,
-          pickupOTPExpiry: pendingAmount <= 0 ? pickupOtpExpiry() : null,
-          pickupOTPVerified: false,
-          pickupOTPVerifiedAt: null,
           paymentDate: new Date(),
           paymentVerifiedAt: new Date(),
           invoiceNumber,
@@ -247,49 +238,60 @@ export async function applyWalletBookingPayment(input: {
       return { ok: false as const, status: 409, message: "Booking was already paid." };
     }
 
-    const updatedVehicle = await Vehicle.findOneAndUpdate(
-      {
-        vehicleId: booking.vehicleId,
-        $or: [
-          { currentBookingId: "" },
-          { currentBookingId: booking.bookingId },
-          { currentBookingId: null },
-        ],
-      },
-      {
-        $set: {
-          vehicleStatus: pendingAmount <= 0 ? "Ready For Pickup" : "Booked",
-          currentBookingId: booking.bookingId,
-          currentRiderId: booking.riderId,
-          assignedRider: booking.riderId,
-          lockStatus: "Locked",
+    if (progress.updateVehicle && progress.vehicleStatus) {
+      const updatedVehicle = await Vehicle.findOneAndUpdate(
+        {
+          vehicleId: booking.vehicleId,
+          $or: [
+            { currentBookingId: "" },
+            { currentBookingId: booking.bookingId },
+            { currentBookingId: null },
+          ],
         },
-      },
-      { session }
-    );
+        {
+          $set: {
+            vehicleStatus: progress.vehicleStatus,
+            currentBookingId: booking.bookingId,
+            currentRiderId: booking.riderId,
+            assignedRider: booking.riderId,
+            lockStatus: progress.vehicleLockStatus,
+          },
+        },
+        { session }
+      );
 
-    if (!updatedVehicle) {
-      await rollback(session);
-      return {
-        ok: false as const,
-        status: 409,
-        message: "Vehicle has already been assigned to another booking.",
-      };
+      if (!updatedVehicle) {
+        await rollback(session);
+        return {
+          ok: false as const,
+          status: 409,
+          message: "Vehicle has already been assigned to another booking.",
+        };
+      }
     }
 
-    await Rider.findOneAndUpdate(
-      { riderId: booking.riderId },
-      {
-        $set: {
-          activeRide: false,
-          currentBookingId: booking.bookingId,
+    if (progress.updateRiderLock) {
+      await Rider.findOneAndUpdate(
+        { riderId: booking.riderId },
+        {
+          $set: {
+            activeRide: false,
+            currentBookingId: booking.bookingId,
+          },
         },
-      },
-      { session }
-    );
+        { session }
+      );
+    }
+
+    await queueDepositRefundIfEligible(updatedBooking, session);
 
     await session.commitTransaction();
     await session.endSession();
+
+    const issuedPickupOtp =
+      updatedBooking.pickupOTPVerified
+        ? undefined
+        : pickupOTP || String(updatedBooking.pickupOTP || "") || undefined;
 
     void writeAudit({
       actor: "Rider",
@@ -309,7 +311,7 @@ export async function applyWalletBookingPayment(input: {
       amount: paidAmount,
       pendingAmount,
       paymentStatus,
-      pickupOTP: pendingAmount <= 0 ? pickupOTP : undefined,
+      pickupOTP: issuedPickupOtp,
       paymentMethod: "Wallet",
     });
 
@@ -320,11 +322,13 @@ export async function applyWalletBookingPayment(input: {
       paidAmount,
       pendingAmount,
       paymentStatus,
-      pickupOTP: pendingAmount <= 0 ? pickupOTP : undefined,
+      pickupOTP: issuedPickupOtp,
       message:
         paymentStatus === "Paid"
-          ? "Wallet payment complete. Bike is ready for pickup."
-          : "Partial wallet payment applied.",
+          ? rideStatus === "In Ride" || rideStatus === "Completed"
+            ? "Remaining wallet payment received."
+            : "Wallet payment complete. Pickup OTP is ready."
+          : "Partial wallet payment applied. Pickup OTP is ready. Remaining can be paid during the ride or at ride end.",
     };
   } catch (error) {
     await rollback(session);
