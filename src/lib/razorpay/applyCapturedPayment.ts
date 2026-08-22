@@ -10,6 +10,7 @@ import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import { writeAudit } from "@/lib/writeAudit";
+import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 
 function generateWalletTransactionId() {
   return `WTX-${crypto.randomUUID().toUpperCase()}`;
@@ -386,6 +387,18 @@ Verified : ${new Date().toLocaleString("en-IN")}
       riderId: booking.riderId,
       bookingId: booking.bookingId,
       detail: `INR ${paidAmount} · ${paymentStatus} · ${razorpayPaymentId}`,
+    });
+
+    void notifyBookingPayment({
+      bookingId: booking.bookingId,
+      riderName: String(booking.userName || ""),
+      riderPhone: String(booking.userPhone || rider.phone || ""),
+      riderEmail: String(booking.userEmail || ""),
+      amount: paidAmount,
+      pendingAmount,
+      paymentStatus,
+      pickupOTP: pendingAmount <= 0 ? pickupOTP : undefined,
+      paymentMethod: "Razorpay",
     });
 
     return {

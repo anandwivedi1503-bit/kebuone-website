@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
 import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
 import { writeAudit } from "@/lib/writeAudit";
+import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
@@ -298,6 +299,18 @@ export async function applyWalletBookingPayment(input: {
       riderId: booking.riderId,
       bookingId: booking.bookingId,
       detail: `INR ${paidAmount} · ${paymentStatus}`,
+    });
+
+    void notifyBookingPayment({
+      bookingId: booking.bookingId,
+      riderName: String(booking.userName || ""),
+      riderPhone: String(booking.userPhone || rider.phone || ""),
+      riderEmail: String(booking.userEmail || ""),
+      amount: paidAmount,
+      pendingAmount,
+      paymentStatus,
+      pickupOTP: pendingAmount <= 0 ? pickupOTP : undefined,
+      paymentMethod: "Wallet",
     });
 
     return {

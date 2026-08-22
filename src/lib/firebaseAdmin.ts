@@ -3,7 +3,7 @@ import { getAuth } from "firebase-admin/auth";
 
 const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
 
-const firebaseAdminApp = getApps().length
+export const firebaseAdminApp = getApps().length
   ? getApps()[0]
   : initializeApp({
       credential: cert({

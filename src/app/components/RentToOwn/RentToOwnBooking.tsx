@@ -5,6 +5,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
+import { notifyBrowser } from "@/lib/notifyBrowser";
 import { gstBreakdown } from "@/lib/gst";
 import {
   RTO_PLAN,
@@ -364,6 +365,10 @@ export default function RentToOwnBooking() {
             setPendingAmount(0);
             setPickupOtp(verifyData.data?.pickupOTP || verifyData.pickupOTP || "");
             setMessage("Rent to Own activated. Collect the scooter with your pickup OTP.");
+            notifyBrowser(
+              "EVUDDY Rent to Own",
+              "Payment successful. Collect the scooter with your pickup OTP."
+            );
           },
           modal: {
             ondismiss: () => {
@@ -427,6 +432,10 @@ export default function RentToOwnBooking() {
       setPendingAmount(Number(orderData.pendingAmount ?? 0));
       setPickupOtp(orderData.pickupOTP || "");
       setMessage(orderData.message || "Rent to Own activated from wallet. Collect the scooter with your pickup OTP.");
+      notifyBrowser(
+        "EVUDDY Rent to Own",
+        "Wallet payment successful. Collect the scooter with your pickup OTP."
+      );
     } catch {
       setError("Wallet payment could not be started.");
     } finally {

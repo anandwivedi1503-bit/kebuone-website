@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { gstBreakdown } from "@/lib/gst";
+import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, RTO_PLAN, catalogRate } from "@/lib/rentalPlans";
 
 type RazorpayResponse = {
@@ -731,6 +732,12 @@ await loadData();
       data.pickupOTP
         ? `Payment successful. Your pickup OTP is ${data.pickupOTP}.`
         : data.message || "Payment successful. Booking confirmed."
+    );
+    notifyBrowser(
+      "EVUDDY booking confirmed",
+      data.pickupOTP
+        ? `Pickup OTP ${data.pickupOTP}. Show this at the hub.`
+        : "Payment successful. Your scooter is reserved."
     );
     setPaymentLoading(false);
   };
