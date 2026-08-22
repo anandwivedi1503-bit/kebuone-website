@@ -182,6 +182,7 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [helpLoading, setHelpLoading] = useState(false);
   const [otpSmsStatus, setOtpSmsStatus] = useState("");
   const otpSmsKeyRef = useRef("");
+  const recoverPayRef = useRef(false);
 
   const loadData = async (selectedCity = "", silent = false) => {
   try {
@@ -272,6 +273,39 @@ useEffect(() => {
       if (active.pickupOTP) setPickupOtp(String(active.pickupOTP));
       if (active.rideEndOTP) setRideEndOtp(String(active.rideEndOTP));
       if (Number(active.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
+      if (
+        Number(active.receivedAmount || 0) <= 0.009 &&
+        Number(active.pendingAmount || 0) > 0.009 &&
+        !recoverPayRef.current
+      ) {
+        recoverPayRef.current = true;
+        const recoverRes = await fetch("/api/razorpay/verify-payment", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${firebaseIdToken}`,
+          },
+          body: JSON.stringify({
+            bookingMongoId: String(active._id || ""),
+            recover: true,
+            firebaseIdToken,
+          }),
+        });
+        const recoverData = await recoverRes.json();
+        if (recoverData.success) {
+          setPaidAmount(Number(recoverData.receivedAmount || recoverData.paidAmount || 0));
+          setPendingAmount(Number(recoverData.pendingAmount || 0));
+          setBookingPaymentStatus(String(recoverData.paymentStatus || ""));
+          if (recoverData.pickupOTP) setPickupOtp(String(recoverData.pickupOTP));
+          if (recoverData.rideEndOTP) setRideEndOtp(String(recoverData.rideEndOTP));
+          if (Number(recoverData.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
+          setError("");
+          setMessage(
+            recoverData.message ||
+              "Payment found on Razorpay and attached to this booking."
+          );
+        }
+      }
     } catch {}
   };
   void refreshMine();
@@ -839,32 +873,71 @@ setStep(4);
 },
       handler: async (response) => {
         setPaymentMessage("Verifying payment...");
-
-        const verifyRes = await fetch("/api/razorpay/verify-payment", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            bookingMongoId,
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-            firebaseIdToken: token,
-          }),
-        });
-
-        const verifyData = await verifyRes.json();
-
-        if (!verifyData.success) {
+        const verifyBody = {
+          bookingMongoId,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_signature: response.razorpay_signature,
+          firebaseIdToken: token,
+        };
+        try {
+          let verifyData: { success?: boolean; message?: string } | null = null;
+          for (let attempt = 0; attempt < 3; attempt += 1) {
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify(verifyBody),
+            });
+            verifyData = await verifyRes.json();
+            if (verifyData?.success) break;
+            await new Promise((resolve) => window.setTimeout(resolve, 1200));
+          }
+          if (!verifyData?.success) {
+            const recoverRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                bookingMongoId,
+                recover: true,
+                razorpay_order_id: response.razorpay_order_id,
+                firebaseIdToken: token,
+              }),
+            });
+            verifyData = await recoverRes.json();
+          }
+          if (!verifyData?.success) {
+            const mineRes = await fetch("/api/bookings/mine", {
+              headers: { Authorization: `Bearer ${token}` },
+              cache: "no-store",
+            });
+            const mineData = await mineRes.json();
+            if (Number(mineData.data?.receivedAmount || 0) > 0) {
+              applyPaidResult(payNow, mineData.data);
+              return;
+            }
+            setPaymentMessage("");
+            setError(
+              verifyData?.message ||
+                "Razorpay received the payment. Refresh this page and it will attach to your booking."
+            );
+            setPaymentLoading(false);
+            return;
+          }
+          applyPaidResult(payNow, verifyData);
+        } catch (error) {
+          console.error(error);
           setPaymentMessage("");
-          setError(verifyData.message || "Payment verification failed.");
+          setError(
+            "Razorpay received the payment. Refresh this page and it will attach to your booking."
+          );
           setPaymentLoading(false);
-          return;
         }
-
-        applyPaidResult(payNow, verifyData);
       },
       modal: {
   ondismiss: () => {

@@ -287,6 +287,7 @@ export async function applyWalletBookingPayment(input: {
 
     await session.commitTransaction();
     await session.endSession();
+    session = null;
 
     const issuedPickupOtp =
       updatedBooking.pickupOTPVerified
@@ -303,18 +304,22 @@ export async function applyWalletBookingPayment(input: {
       detail: `INR ${paidAmount} · ${paymentStatus}`,
     });
 
-    await notifyBookingPayment({
-      bookingId: booking.bookingId,
-      riderName: String(booking.userName || ""),
-      riderPhone: String(booking.userPhone || rider.phone || ""),
-      riderEmail: String(booking.userEmail || ""),
-      amount: paidAmount,
-      pendingAmount,
-      paymentStatus,
-      pickupOTP: issuedPickupOtp,
-      paymentMethod: "Wallet",
-      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
-    });
+    try {
+      await notifyBookingPayment({
+        bookingId: booking.bookingId,
+        riderName: String(booking.userName || ""),
+        riderPhone: String(booking.userPhone || rider.phone || ""),
+        riderEmail: String(booking.userEmail || ""),
+        amount: paidAmount,
+        pendingAmount,
+        paymentStatus,
+        pickupOTP: issuedPickupOtp,
+        paymentMethod: "Wallet",
+        rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
+      });
+    } catch (notifyError) {
+      console.error("WALLET PAYMENT NOTIFY ERROR:", notifyError);
+    }
 
     return {
       ok: true as const,

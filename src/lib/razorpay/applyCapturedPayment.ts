@@ -15,9 +15,28 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
+import { normalizeIndianPhone } from "@/lib/requestAuth";
 
 function generateWalletTransactionId() {
   return `WTX-${crypto.randomUUID().toUpperCase()}`;
+}
+
+function razorpayIdVariants(value: string) {
+  const id = String(value || "").trim();
+  return Array.from(new Set([id, id.toUpperCase(), id.toLowerCase()].filter(Boolean)));
+}
+
+async function findExistingRazorpayTransaction(
+  razorpayPaymentId: string,
+  session?: mongoose.ClientSession | null
+) {
+  const ids = razorpayIdVariants(razorpayPaymentId);
+  const query = {
+    $or: [{ transactionId: { $in: ids } }, { razorpayPaymentId: { $in: ids } }],
+  };
+  return session
+    ? Transaction.findOne(query).session(session)
+    : Transaction.findOne(query);
 }
 
 async function rollback(session: mongoose.ClientSession | null) {
@@ -60,9 +79,7 @@ export async function applyCapturedRazorpayPayment(
   let session: mongoose.ClientSession | null = null;
 
   try {
-    const existingTransaction = await Transaction.findOne({
-      transactionId: razorpayPaymentId,
-    });
+    const existingTransaction = await findExistingRazorpayTransaction(razorpayPaymentId);
 
     if (existingTransaction) {
       const booking = await Booking.findById(bookingMongoId).lean();
@@ -102,9 +119,10 @@ export async function applyCapturedRazorpayPayment(
       return { ok: false, status: 404, message: "Rider not found." };
     }
 
-    const duplicateTransaction = await Transaction.findOne({
-      transactionId: razorpayPaymentId,
-    }).session(session);
+    const duplicateTransaction = await findExistingRazorpayTransaction(
+      razorpayPaymentId,
+      session
+    );
 
     if (duplicateTransaction) {
       await session.commitTransaction();
@@ -170,7 +188,7 @@ export async function applyCapturedRazorpayPayment(
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, rideStatus, pickupOTP, rideEndOTP } = progress;
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}`;
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-${razorpayIdVariants(razorpayPaymentId)[0].slice(-8)}`;
     const taxOnPayment = gstShareForPayment({
       rentalAmount: booking.rateApplied || booking.totalAmount,
       gstAmount: booking.gstAmount,
@@ -209,28 +227,36 @@ export async function applyCapturedRazorpayPayment(
     }).session(session);
 
     if (!wallet) {
-      const [createdWallet] = await Wallet.create(
-        [
-          {
-            riderId: rider.riderId,
-            userId: rider._id,
-            userName: rider.fullName,
-            phone: rider.phone,
-            balance: 0,
-            securityDepositHold: 0,
-            freezeAmount: 0,
-            totalRecharge: 0,
-            totalSpent: 0,
-            totalRefund: 0,
-            status: rider.bookingEnabled ? "Active" : "Blocked",
-            adminBlocked: false,
-            isDeleted: false,
-            updatedBy: "System",
-          },
-        ],
-        { session }
-      );
-      wallet = createdWallet;
+      const walletPhone = normalizeIndianPhone(rider.phone);
+      if (/^[6-9]\d{9}$/.test(walletPhone)) {
+        try {
+          const [createdWallet] = await Wallet.create(
+            [
+              {
+                riderId: rider.riderId,
+                userId: rider._id,
+                userName: rider.fullName,
+                phone: walletPhone,
+                balance: 0,
+                securityDepositHold: 0,
+                freezeAmount: 0,
+                totalRecharge: 0,
+                totalSpent: 0,
+                totalRefund: 0,
+                status: rider.bookingEnabled ? "Active" : "Blocked",
+                adminBlocked: false,
+                isDeleted: false,
+                updatedBy: "System",
+              },
+            ],
+            { session }
+          );
+          wallet = createdWallet;
+        } catch (walletError) {
+          console.error("WALLET CREATE DURING RAZORPAY CAPTURE:", walletError);
+          wallet = await Wallet.findOne({ riderId: rider.riderId }).session(session);
+        }
+      }
     }
 
     const existingDepositHold = await WalletTransaction.findOne({
@@ -238,7 +264,12 @@ export async function applyCapturedRazorpayPayment(
       transactionType: "Security Deposit Hold",
     }).session(session);
 
-    if (!existingDepositHold && pendingAmount <= 0 && Number(booking.securityDeposit || 0) > 0) {
+    if (
+      wallet &&
+      !existingDepositHold &&
+      pendingAmount <= 0 &&
+      Number(booking.securityDeposit || 0) > 0
+    ) {
       wallet.securityDepositHold = Math.max(
         Number(wallet.securityDepositHold || 0),
         Number(booking.securityDeposit || 0)
@@ -369,6 +400,7 @@ Verified : ${new Date().toLocaleString("en-IN")}
 
     await session.commitTransaction();
     await session.endSession();
+    session = null;
 
     const issuedPickupOtp =
       updatedBooking.pickupOTPVerified
@@ -385,18 +417,22 @@ Verified : ${new Date().toLocaleString("en-IN")}
       detail: `INR ${paidAmount} · ${paymentStatus} · ${razorpayPaymentId}`,
     });
 
-    await notifyBookingPayment({
-      bookingId: booking.bookingId,
-      riderName: String(booking.userName || ""),
-      riderPhone: String(booking.userPhone || rider.phone || ""),
-      riderEmail: String(booking.userEmail || ""),
-      amount: paidAmount,
-      pendingAmount,
-      paymentStatus,
-      pickupOTP: issuedPickupOtp,
-      paymentMethod: "Razorpay",
-      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
-    });
+    try {
+      await notifyBookingPayment({
+        bookingId: booking.bookingId,
+        riderName: String(booking.userName || ""),
+        riderPhone: String(booking.userPhone || rider.phone || ""),
+        riderEmail: String(booking.userEmail || ""),
+        amount: paidAmount,
+        pendingAmount,
+        paymentStatus,
+        pickupOTP: issuedPickupOtp,
+        paymentMethod: "Razorpay",
+        rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
+      });
+    } catch (notifyError) {
+      console.error("BOOKING PAYMENT NOTIFY ERROR:", notifyError);
+    }
 
     return {
       ok: true,
