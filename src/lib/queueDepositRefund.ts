@@ -10,12 +10,12 @@ type BookingDoc = {
   securityDeposit?: number;
   refundAmount?: number;
   securityDepositRefunded?: boolean;
-  save?: (opts: { session: mongoose.ClientSession }) => Promise<unknown>;
+  save?: (opts?: { session?: mongoose.ClientSession }) => Promise<unknown>;
 };
 
 export async function queueDepositRefundIfEligible(
   booking: BookingDoc,
-  session: mongoose.ClientSession
+  session?: mongoose.ClientSession | null
 ) {
   if (String(booking.rideStatus || "") !== "Completed") {
     return false;
@@ -27,31 +27,42 @@ export async function queueDepositRefundIfEligible(
     return false;
   }
 
-  const existingRefund = await Refund.findOne({
-    bookingId: booking.bookingId,
-  }).session(session);
+  const existingRefund = session
+    ? await Refund.findOne({ bookingId: booking.bookingId }).session(session)
+    : await Refund.findOne({ bookingId: booking.bookingId });
 
   if (existingRefund) {
     return false;
   }
 
-  await Refund.create(
-    [
-      {
-        refundId: "RF-" + Date.now(),
-        bookingId: booking.bookingId,
-        riderId: booking.riderId,
-        amount: booking.securityDeposit,
-        refundStatus: "PENDING",
-        remarks: "Security deposit refund pending admin approval",
-      },
-    ],
-    { session }
-  );
+  if (session) {
+    await Refund.create(
+      [
+        {
+          refundId: "RF-" + Date.now(),
+          bookingId: booking.bookingId,
+          riderId: booking.riderId,
+          amount: booking.securityDeposit,
+          refundStatus: "PENDING",
+          remarks: "Security deposit refund pending admin approval",
+        },
+      ],
+      { session }
+    );
+  } else {
+    await Refund.create({
+      refundId: "RF-" + Date.now(),
+      bookingId: booking.bookingId,
+      riderId: booking.riderId,
+      amount: booking.securityDeposit,
+      refundStatus: "PENDING",
+      remarks: "Security deposit refund pending admin approval",
+    });
+  }
   booking.refundAmount = Number(booking.securityDeposit || 0);
   booking.securityDepositRefunded = false;
   if (typeof booking.save === "function") {
-    await booking.save({ session });
+    await booking.save(session ? { session } : {});
   }
   return true;
 }

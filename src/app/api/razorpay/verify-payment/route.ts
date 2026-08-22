@@ -47,15 +47,8 @@ async function waitForCapturedPayment(
       return payment;
     }
     if (payment?.status === "authorized") {
-      try {
-        await razorpay.payments.capture(
-          razorpayPaymentId,
-          payment.amount,
-          String(payment.currency || "INR")
-        );
-      } catch (error) {
-        console.error("RAZORPAY CAPTURE WAIT:", error);
-      }
+      await sleep(800);
+      continue;
     }
     await sleep(800);
   }
@@ -249,7 +242,10 @@ export async function POST(req: Request) {
       notes?: Record<string, string | number | boolean>;
     };
 
-    if (String(order.notes?.bookingMongoId || "") !== bookingMongoId) {
+    if (
+      String(order.notes?.bookingMongoId || "") &&
+      String(order.notes?.bookingMongoId || "") !== bookingMongoId
+    ) {
       return NextResponse.json(
         { success: false, message: "Payment booking mismatch." },
         { status: 400 }
@@ -266,8 +262,12 @@ export async function POST(req: Request) {
     return applyResultResponse(result);
   } catch (error) {
     console.error("RAZORPAY VERIFY PAYMENT ERROR:", error);
+    const message =
+      error instanceof Error && error.message
+        ? error.message.slice(0, 180)
+        : "Payment verification failed.";
     return NextResponse.json(
-      { success: false, message: "Payment verification failed." },
+      { success: false, message },
       { status: 500 }
     );
   }

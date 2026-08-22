@@ -235,8 +235,8 @@ TransactionSchema.index({
 TransactionSchema.pre("save", function (next) {
 
   if (this.transactionId) {
-    this.transactionId =
-      this.transactionId.trim().toUpperCase();
+    const id = this.transactionId.trim();
+    this.transactionId = /^(pay_|order_)/i.test(id) ? id : id.toUpperCase();
   }
 
   if (this.bookingId) {
