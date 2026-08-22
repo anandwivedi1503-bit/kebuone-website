@@ -1,11 +1,11 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
 
 import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
 import { connectDB } from "@/lib/mongodb";
 import {
   firebaseUserOwnsRider,
@@ -33,15 +33,14 @@ function signaturesMatch(expected: string, received: string) {
 
 export async function POST(req: Request) {
   try {
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-    if (!keyId || !keySecret) {
+    const loaded = getRazorpayConfig();
+    if (!loaded.ok) {
       return NextResponse.json(
-        { success: false, message: "Razorpay keys are not configured." },
+        { success: false, message: loaded.message },
         { status: 500 }
       );
     }
+    const { keySecret } = loaded.config;
 
     const body = await req.json();
     const bookingMongoId = clean(body.bookingMongoId);
@@ -107,7 +106,7 @@ export async function POST(req: Request) {
       }
     }
 
-    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+    const razorpay = getRazorpayClient();
     const payment = await razorpay.payments.fetch(razorpayPaymentId);
 
     if (!payment || payment.status !== "captured") {

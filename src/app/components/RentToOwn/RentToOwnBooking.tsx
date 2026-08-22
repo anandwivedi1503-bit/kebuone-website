@@ -22,6 +22,7 @@ type RazorpayResponse = {
 
 type RazorpayInstance = {
   open: () => void;
+  on: (event: string, handler: (response: { error?: { description?: string } }) => void) => void;
 };
 
 type RazorpayOptions = {
@@ -30,6 +31,7 @@ type RazorpayOptions = {
   currency: string;
   name: string;
   description: string;
+  image?: string;
   order_id: string;
   prefill: { name: string; contact: string };
   notes: Record<string, string>;
@@ -329,7 +331,8 @@ export default function RentToOwnBooking() {
           key: keyId,
           amount: orderAmount,
           currency: orderData.currency || "INR",
-          name: "EVUDDY Rent to Own",
+          name: orderData.name || "EVUDDY Rent to Own",
+          image: orderData.image,
           description: bookingId,
           order_id: orderId,
           prefill: { name: riderName, contact: riderPhone },
@@ -361,8 +364,15 @@ export default function RentToOwnBooking() {
             setMessage("Rent to Own activated. Collect the scooter with your pickup OTP.");
           },
           modal: {
-            ondismiss: () => undefined,
+            ondismiss: () => {
+              setPaymentLoading(false);
+              setError("Payment cancelled. You can try again.");
+            },
           },
+        });
+        razorpay.on("payment.failed", (response) => {
+          setPaymentLoading(false);
+          setError(response.error?.description || "Payment failed. Please try again.");
         });
         razorpay.open();
       };

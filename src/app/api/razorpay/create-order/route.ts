@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
-
 import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
 import { connectDB } from "@/lib/mongodb";
 import {
   firebaseUserOwnsRider,
@@ -43,18 +42,14 @@ function getRazorpayErrorMessage(error: unknown) {
 
 export async function POST(req: Request) {
   try {
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
-
-    if (!keyId || !keySecret) {
+    const loaded = getRazorpayConfig();
+    if (!loaded.ok) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Razorpay key id or key secret is missing.",
-        },
+        { success: false, message: loaded.message },
         { status: 500 }
       );
     }
+    const { keyId, checkoutImage, isLive } = loaded.config;
 
     const body = await req.json();
     if (!rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 60, 10 * 60 * 1000)) {
@@ -245,14 +240,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const razorpay = new Razorpay({
-      key_id: keyId,
-      key_secret: keySecret,
-    });
+    const razorpay = getRazorpayClient();
 
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100),
       currency: "INR",
+      payment_capture: true,
       receipt: String(`booking_${booking.bookingId}_${Date.now()}`).slice(
         0,
         40
@@ -261,6 +254,7 @@ export async function POST(req: Request) {
         bookingMongoId,
         bookingId: booking.bookingId,
         vehicleId: booking.vehicleId || "",
+        riderPhone: rider.phone || "",
         payableAmount: String(payableAmount),
         remainingAmount: String(remainingAmount),
       },
@@ -272,6 +266,9 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       keyId,
+      live: isLive,
+      image: checkoutImage,
+      name: "EVUDDY",
       orderId: order.id,
       amount: order.amount,
       currency: order.currency,
