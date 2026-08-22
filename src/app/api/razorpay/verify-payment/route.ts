@@ -1,15 +1,13 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
-import {
-  isAdminAuthenticated,
-  unauthorizedResponse,
-} from "@/lib/adminAuth";
+import { isAdminAuthenticated } from "@/lib/adminAuth";
 import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
 import { connectDB } from "@/lib/mongodb";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
+  riderPayUnauthorizedResponse,
 } from "@/lib/requestAuth";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 import Booking from "@/models/Booking";
@@ -97,12 +95,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const isAdminRequest = await isAdminAuthenticated();
+    const isAdminRequest = await isAdminAuthenticated().catch(() => false);
 
     if (!isAdminRequest) {
       const firebaseUser = await getVerifiedFirebaseUser(req, body.firebaseIdToken);
-      if (!firebaseUserOwnsRider(firebaseUser, authRider)) {
-        return unauthorizedResponse();
+      if (
+        !firebaseUserOwnsRider(firebaseUser, {
+          firebaseUid: authRider.firebaseUid,
+          phone: authRider.phone,
+          userPhone: authBooking.userPhone,
+        })
+      ) {
+        return riderPayUnauthorizedResponse();
       }
     }
 

@@ -1,4 +1,5 @@
 import type { DecodedIdToken } from "firebase-admin/auth";
+import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
 
 export type VerifiedFirebaseUser = {
@@ -11,7 +12,19 @@ export type VerifiedFirebaseUser = {
 export type RiderOwnershipRecord = {
   firebaseUid?: string;
   phone?: string;
+  userPhone?: string;
 };
+
+export function riderPayUnauthorizedResponse() {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Please sign in again with your registered mobile number to pay.",
+    },
+    { status: 401 }
+  );
+}
 
 /*
  * =========================================================
@@ -22,38 +35,29 @@ export type RiderOwnershipRecord = {
 export function normalizeIndianPhone(
   value: unknown
 ): string {
-  const digits = String(value ?? "").replace(
-    /\D/g,
-    ""
-  );
+  const digits = String(value ?? "").replace(/\D/g, "");
 
   if (!digits) {
     return "";
   }
 
-  /*
-   * +91XXXXXXXXXX
-   */
-  if (
-    digits.length === 12 &&
-    digits.startsWith("91")
-  ) {
+  if (digits.length === 12 && digits.startsWith("91")) {
     return digits.slice(2);
   }
 
-  /*
-   * 10-digit Indian number.
-   */
+  if (digits.length === 11 && digits.startsWith("0")) {
+    return digits.slice(1);
+  }
+
   if (digits.length === 10) {
     return digits;
   }
 
-  /*
-   * IMPORTANT:
-   *
-   * Do not silently accept arbitrary long numbers
-   * by taking the last 10 digits.
-   */
+  const lastTen = digits.slice(-10);
+  if (/^[6-9]\d{9}$/.test(lastTen)) {
+    return lastTen;
+  }
+
   return "";
 }
 
@@ -194,21 +198,13 @@ export function firebaseUserOwnsRider(
    * fallback ownership match.
    */
 
-  const firebasePhone =
-    normalizeIndianPhone(
-      firebaseUser.phone
-    );
-
-  const riderPhone =
-    normalizeIndianPhone(
-      rider.phone
-    );
+  const firebasePhone = normalizeIndianPhone(firebaseUser.phone);
+  const riderPhones = [rider.phone, rider.userPhone]
+    .map((value) => normalizeIndianPhone(value))
+    .filter(Boolean);
 
   return Boolean(
-    firebasePhone &&
-      riderPhone &&
-      firebasePhone ===
-        riderPhone
+    firebasePhone && riderPhones.includes(firebasePhone)
   );
 }
 

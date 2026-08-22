@@ -784,7 +784,7 @@ setStep(4);
     }
 
     const user = auth.currentUser;
-    const token = firebaseIdToken || (await user?.getIdToken());
+    const token = await user?.getIdToken(true);
 
     if (!token) {
       setError("Please verify your phone number before payment.");
@@ -1072,7 +1072,7 @@ setStep(4);
     }
 
     const user = auth.currentUser;
-    const token = firebaseIdToken || (await user?.getIdToken());
+    const token = await user?.getIdToken(true);
     if (!token) {
       setError("Please verify your phone number before payment.");
       setPaymentLoading(false);
