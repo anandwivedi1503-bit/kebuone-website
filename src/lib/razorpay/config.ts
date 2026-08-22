@@ -51,14 +51,6 @@ export function getRazorpayConfig():
     };
   }
 
-  if (isLive && !webhookSecret) {
-    return {
-      ok: false,
-      message:
-        "RAZORPAY_WEBHOOK_SECRET is required for live payments. Create a webhook in Razorpay for https://www.evuddy.com/api/razorpay/webhook and paste the secret in .env.",
-    };
-  }
-
   return {
     ok: true,
     config: {

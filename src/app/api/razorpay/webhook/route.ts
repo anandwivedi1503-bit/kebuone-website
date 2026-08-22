@@ -31,6 +31,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: false, message: loaded.message }, { status: 500 });
   }
 
+  if (!loaded.config.webhookSecret) {
+    return NextResponse.json({ success: true, ignored: true });
+  }
+
   const rawBody = await req.text();
   const signature = req.headers.get("x-razorpay-signature") || "";
   const expected = crypto
