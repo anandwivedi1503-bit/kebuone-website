@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -8,7 +8,7 @@ import {
   CheckCircle2,
   CreditCard,
   MapPin,
-  ReceiptText,
+  Printer,
   ShieldCheck,
   Wallet,
 } from "lucide-react";
@@ -180,6 +180,8 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [helpText, setHelpText] = useState("");
   const [helpStatus, setHelpStatus] = useState("");
   const [helpLoading, setHelpLoading] = useState(false);
+  const [otpSmsStatus, setOtpSmsStatus] = useState("");
+  const otpSmsKeyRef = useRef("");
 
   const loadData = async (selectedCity = "", silent = false) => {
   try {
@@ -337,7 +339,7 @@ useEffect(() => {
         setReservedHub({
           hubName: active.pickupHubName || active.startHub,
           hubCode: active.startHub,
-          hubLocation: active.pickupHubName || active.startHub,
+          hubLocation: "",
         });
         setMessage(
           pending > 0.009
@@ -389,9 +391,47 @@ const filteredHubs = useMemo(() => {
   );
 }, [city, hubOptions]);
 
-const selectedHubData = hubOptions.find(
-  (item) => normalizeText(item.hubCode) === normalizeText(hub)
-);
+const selectedHubData = hubOptions.find((item) => {
+  const keys = [item.hubCode, item.hubName, item.hubLocation].map(normalizeText);
+  const selected = normalizeText(hub);
+  const reserved = normalizeText(
+    reservedHub?.hubCode || reservedHub?.hubName || ""
+  );
+  return (selected && keys.includes(selected)) || (reserved && keys.includes(reserved));
+});
+
+useEffect(() => {
+  if (!hubs.length) return;
+  const match = hubs.find((item) => {
+    const keys = [item.hubCode, item.hubName, item.hubLocation].map(normalizeText);
+    return (
+      keys.includes(normalizeText(hub)) ||
+      keys.includes(normalizeText(reservedHub?.hubCode || "")) ||
+      keys.includes(normalizeText(reservedHub?.hubName || ""))
+    );
+  });
+  if (!match) return;
+  const alreadyMatched =
+    reservedHub?.hubCode === match.hubCode &&
+    reservedHub?.hubName === match.hubName &&
+    reservedHub?.hubLocation === match.hubLocation &&
+    reservedHub?.latitude === match.latitude &&
+    reservedHub?.longitude === match.longitude;
+  if (!alreadyMatched) {
+    setReservedHub({
+      _id: match._id,
+      hubName: match.hubName,
+      hubCode: match.hubCode,
+      hubLocation: match.hubLocation,
+      city: match.city,
+      latitude: match.latitude,
+      longitude: match.longitude,
+    });
+  }
+  if (match.hubCode && hub !== match.hubCode) {
+    setHub(match.hubCode);
+  }
+}, [hubs, hub, reservedHub?.hubCode, reservedHub?.hubName, reservedHub?.hubLocation, reservedHub?.latitude, reservedHub?.longitude]);
 
 const selectedHubKeys = [
   selectedHubData?.hubCode,
@@ -465,7 +505,22 @@ const remainingPayLocked = bookingDone && paidAmount > 0;
 const walletPayNow = remainingPayLocked
   ? Number(pendingAmount)
   : Number(paymentAmount || amountDue);
-const displayHub = reservedHub || selectedHubData;
+const displayHub =
+  selectedHubData &&
+  (normalizeText(selectedHubData.hubCode) ===
+    normalizeText(reservedHub?.hubCode || hub) ||
+    normalizeText(selectedHubData.hubName) ===
+      normalizeText(reservedHub?.hubName || ""))
+    ? selectedHubData
+    : selectedHubData || reservedHub;
+const hubMapsQuery =
+  displayHub?.latitude && displayHub?.longitude
+    ? `${displayHub.latitude},${displayHub.longitude}`
+    : encodeURIComponent(
+        [displayHub?.hubName, displayHub?.hubLocation, displayHub?.city, hub]
+          .filter(Boolean)
+          .join(", ")
+      );
 const hubLabel = displayHub
   ? `${displayHub.hubName || displayHub.hubLocation || hub}${
       displayHub.hubCode ? ` (${displayHub.hubCode})` : ""
@@ -953,6 +1008,41 @@ setStep(4);
     setPaymentLoading(false);
   };
 
+  const sendOtpSms = async () => {
+    try {
+      const token = firebaseIdToken || (await auth.currentUser?.getIdToken());
+      if (!token || !bookingId) return;
+      setOtpSmsStatus("Sending OTP SMS...");
+      const res = await fetch("/api/notify/booking-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ bookingId }),
+      });
+      const data = await res.json();
+      setOtpSmsStatus(
+        String(
+          data.message ||
+            (data.success
+              ? "OTP SMS sent to your registered mobile."
+              : "SMS could not be sent. Use the OTP on this page.")
+        )
+      );
+    } catch {
+      setOtpSmsStatus("SMS could not be sent. Use the OTP on this page.");
+    }
+  };
+
+  useEffect(() => {
+    if (!bookingId || (!pickupOtp && !rideEndOtp) || !firebaseIdToken) return;
+    const key = `${bookingId}:${pickupOtp}:${rideEndOtp}`;
+    if (otpSmsKeyRef.current === key) return;
+    otpSmsKeyRef.current = key;
+    void sendOtpSms();
+  }, [bookingId, pickupOtp, rideEndOtp, firebaseIdToken]);
+
   const payWithWallet = async () => {
     setError("");
     setPaymentMessage("");
@@ -1110,7 +1200,7 @@ blur-[140px]
 "
 />
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mb-16 text-center">
+        <div className="mb-16 text-center print:hidden">
 
 <div
 className="
@@ -1240,18 +1330,18 @@ gap-4
 </div>
 
         {error && (
-          <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4 font-semibold text-red-700">
+          <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4 font-semibold text-red-700 print:hidden">
             {error}
           </div>
         )}
 
         {message && (
-          <div className="mb-5 rounded-2xl border border-green-100 bg-green-50 p-4 font-semibold text-green-700">
+          <div className="mb-5 rounded-2xl border border-green-100 bg-green-50 p-4 font-semibold text-green-700 print:hidden">
             {message}
           </div>
         )}
 
-        <div className="mb-14">
+        <div className="mb-14 print:hidden">
 
   <div className="overflow-x-auto">
   <div className="flex min-w-[700px] items-center justify-between">
@@ -1370,7 +1460,7 @@ step > index + 1
 <div className="grid gap-10 lg:grid-cols-[1.38fr_0.62fr]">
           <form
             onSubmit={createBooking}
-            className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl md:p-10"
+            className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl print:hidden md:p-10"
           >
             <div className="mb-6 rounded-[24px] border border-[#18B368]/15 bg-[#F7FBF8] p-4">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Rental prices</p>
@@ -2214,57 +2304,29 @@ hover:-translate-y-1
             {step === 4 && (
               <div>
                 <div className="mb-8">
-
 <div className="inline-flex items-center gap-3 rounded-full bg-[#F4FFF8] px-5 py-2">
-
 <div className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
-
-<span
-className="
-text-sm
-font-bold
-uppercase
-tracking-[0.15em]
-text-[#18B368]
-"
->
-
-SECURE PAYMENT
-
+<span className="text-sm font-bold uppercase tracking-[0.15em] text-[#18B368]">
+{paymentSuccess ? "BOOKING CONFIRMED" : remainingPayLocked ? "REMAINING PAYMENT" : "SECURE PAYMENT"}
 </span>
-
 </div>
-
-<h2
-className="
-mt-5
-text-4xl
-font-black
-tracking-[-0.03em]
-text-[#0F172A]
-"
->
-
-Complete Your Payment
-
+<h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[#0F172A]">
+{paymentSuccess
+  ? "You're booked"
+  : remainingPayLocked
+  ? "Pay the remaining amount"
+  : "Complete your payment"}
 </h2>
-
-<p
-className="
-mt-3
-max-w-2xl
-text-[17px]
-leading-8
-text-slate-500
-"
->
-
-Your scooter has been reserved successfully. Complete the payment securely to confirm your EVUDDY booking.
-
+<p className="mt-3 max-w-2xl text-[17px] leading-8 text-slate-500">
+{paymentSuccess
+  ? "Payment is complete. Use the OTP below at the selected yard. Print the summary if you want a copy."
+  : remainingPayLocked
+  ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
+  : "Your scooter is reserved. Pay any amount from ₹1 to get pickup OTP. Remaining can be paid during the ride."}
 </p>
-
 </div>
 
+{!paymentSuccess ? (
 <div
 className="
 mt-8
@@ -2329,7 +2391,8 @@ focus:ring-[#18B368]/10
 )}
 
 </div>
-                 
+) : null}
+
                 <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
   <AmountBox
     label="Total"
@@ -2360,8 +2423,18 @@ focus:ring-[#18B368]/10
                           {pickupOtp}
                         </p>
                         <p className="mt-2 text-sm text-green-800">
-                          Also sent to your registered mobile {riderPhone || ""}.
+                          Tell this OTP at {hubLabel}. We also try SMS to {riderPhone || "your registered mobile"}.
                         </p>
+                        <button
+                          type="button"
+                          onClick={() => void sendOtpSms()}
+                          className="mt-3 rounded-full border border-green-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-green-800"
+                        >
+                          Resend OTP SMS
+                        </button>
+                        {otpSmsStatus ? (
+                          <p className="mt-2 text-xs text-green-900">{otpSmsStatus}</p>
+                        ) : null}
                       </div>
                     ) : (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
@@ -2374,6 +2447,13 @@ focus:ring-[#18B368]/10
                           Ride end OTP — tell this to the yard on return
                         </p>
                         <p className="mt-2 text-5xl font-black tracking-[0.28em]">{rideEndOtp}</p>
+                        <button
+                          type="button"
+                          onClick={() => void sendOtpSms()}
+                          className="mt-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white print:hidden"
+                        >
+                          Resend OTP SMS
+                        </button>
                       </div>
                     ) : pendingAmount > 0.009 ? (
                       <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
@@ -2387,6 +2467,8 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : null}
 
+                {!paymentSuccess ? (
+                <>
                 <button
                   type="button"
                   disabled={
@@ -2468,6 +2550,8 @@ disabled:opacity-60
                 <p className="mt-2 text-center text-xs text-slate-500">
                   Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal payment path. A ₹0.00 wallet cannot pay this booking.
                 </p>
+                </>
+                ) : null}
 
                 {paymentMessage && (
 
@@ -2496,142 +2580,7 @@ Payment Status
 
 )}
 
-{(pickupOtp || rideEndOtp || paymentSuccess) && (
-
-<div
-className="
-mt-10
-rounded-[36px]
-border
-border-[#18B368]/20
-bg-gradient-to-br
-from-[#F6FFF9]
-via-white
-to-[#F1FFF7]
-p-10
-shadow-[0_35px_90px_rgba(24,179,104,.15)]
-"
->
-
-<div className="text-center">
-
-<div className="text-7xl mb-5">
-✅
-</div>
-
-<h2 className="
-text-5xl
-font-black
-tracking-[-0.03em]
-text-[#16A34A]
-">
-Booking Confirmed
-</h2>
-
-<p className="mt-3 text-gray-600">
-{paymentSuccess
-  ? "Payment completed."
-  : "Pickup OTP is ready. Pay remaining before ride end OTP is issued."}
-</p>
-
-{pickupOtp && (
-  <div className="mt-6 rounded-2xl border border-green-200 bg-green-50 px-6 py-4">
-    <p className="text-sm font-semibold text-green-800">
-      Pickup OTP
-    </p>
-    <p className="mt-2 text-4xl font-black tracking-[0.3em] text-green-700">
-      {pickupOtp}
-    </p>
-    <p className="mt-2 text-sm text-green-700">
-      Tell this OTP to the yard to unlock and collect your scooter.
-    </p>
-  </div>
-)}
-
-{rideEndOtp && (
-  <div className="mt-6 rounded-2xl border border-slate-800 bg-slate-900 px-6 py-4 text-white">
-    <p className="text-sm font-semibold text-green-300">
-      Ride end OTP
-    </p>
-    <p className="mt-2 text-4xl font-black tracking-[0.3em]">
-      {rideEndOtp}
-    </p>
-    <p className="mt-2 text-sm text-slate-200">
-      Tell this OTP to the yard when you return the scooter.
-    </p>
-  </div>
-)}
-
-</div>
-
-<div className="mt-8 space-y-3">
-
-<Summary
-label="Booking ID"
-value={bookingId}
-/>
-
-<Summary
-label="Rider ID"
-value={riderId}
-/>
-
-<Summary
-label="Vehicle ID"
-value={selectedBike}
-/>
-
-<Summary
-label="Vehicle Model"
-value={currentBike?.vehicleModel || "-"}
-/>
-
-<Summary
-label="Registration Number"
-value={currentBike?.registrationNumber || "-"}
-/>
-
-<Summary
-label="Pickup City"
-value={city}
-/>
-
-<Summary
-label="Pickup Hub"
-value={hubLabel}
-/>
-
-<Summary
-label="Rental Mode"
-value={rentalMode}
-/>
-
-</div>
-
-<div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-
-<AmountBox
-label="Paid"
-value={formatINR(paidAmount)}
-tone="green"
-/>
-
-<AmountBox
-label="Pending"
-value={formatINR(0)}
-tone="green"
-/>
-
-</div>
-
-<div className="mt-8 rounded-2xl border border-green-200 bg-green-100 p-5">
-
-<p className="font-bold text-green-800">
-Show this Booking ID while collecting your scooter from the selected hub.
-</p>
-
-</div>
-
+{(bookingDone && paidAmount > 0) && (
 <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
   <p className="font-bold text-[#0F172A]">Need help with this booking?</p>
   <p className="mt-1 text-sm text-slate-500">
@@ -2654,15 +2603,12 @@ Show this Booking ID while collecting your scooter from the selected hub.
   </button>
   {helpStatus ? <p className="mt-2 text-sm text-slate-600">{helpStatus}</p> : null}
 </div>
-
-</div>
-
 )}
               </div>
             )}
           </form>
 
-          <aside className="space-y-6 lg:sticky lg:top-24 xl:top-28 self-start">
+          <aside id="booking-print-summary" className="space-y-6 lg:sticky lg:top-24 xl:top-28 self-start">
             <div
 className="
 rounded-[36px]
@@ -2674,22 +2620,26 @@ p-8
 shadow-[0_35px_90px_rgba(15,23,42,.10)]
 "
 >
-              <div className="mb-5 flex items-center justify-between">
-                <h2
-className="
-text-[32px]
-font-black
-tracking-[-0.03em]
-text-[#0F172A]
-"
->
-    Booking Summary
-</h2>
-
-<p className="mt-1 text-sm text-gray-500">
-    Review your reservation before completing payment.
-</p>
-                <ReceiptText className="text-[#18B368]" />
+              <div className="mb-6 flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-800">
+                    Reservation
+                  </p>
+                  <h2 className="mt-1 text-2xl font-black tracking-[-0.03em] text-[#0F172A]">
+                    Booking summary
+                  </h2>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+                    Dates, hub, vehicle, and amounts for this booking.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 shadow-sm print:hidden"
+                >
+                  <Printer size={16} className="text-[#18B368]" />
+                  Print
+                </button>
               </div>
 
               <div className="space-y-3 text-sm">
@@ -2697,8 +2647,9 @@ text-[#0F172A]
                 <Summary label="Phone" value={riderPhone || "-"} />
                 <Summary label="City" value={city || "-"} />
                 <Summary label="Hub" value={hubLabel} />
-                {displayHub?.hubLocation ? (
-                  <Summary label="Yard" value={String(displayHub.hubLocation)} />
+                {displayHub?.hubLocation &&
+                displayHub.hubLocation !== displayHub.hubName ? (
+                  <Summary label="Yard address" value={String(displayHub.hubLocation)} />
                 ) : null}
                 <Summary label="Bike" value={selectedBike || "-"} />
                 <Summary
@@ -2775,6 +2726,8 @@ text-[#0F172A]
     }
   </span>
 </div>
+                {pickupOtp ? <Summary label="Pickup OTP" value={pickupOtp} strong /> : null}
+                {rideEndOtp ? <Summary label="Ride end OTP" value={rideEndOtp} strong /> : null}
               </div>
 
               {bookingId && (
@@ -2830,33 +2783,25 @@ className="mt-1 text-[#18B368]"
                       <p className="mt-1 text-sm text-gray-500">{displayHub.city}</p>
                     ) : null}
 
-{displayHub.latitude && displayHub.longitude && (
+{displayHub.latitude && displayHub.longitude ? (
   <a
-    href={`https://www.google.com/maps?q=${displayHub.latitude},${displayHub.longitude}`}
+    href={`https://www.google.com/maps/search/?api=1&query=${displayHub.latitude},${displayHub.longitude}`}
     target="_blank"
     rel="noopener noreferrer"
-    className="
-mt-5
-inline-flex
-items-center
-gap-2
-rounded-full
-bg-gradient-to-r
-from-[#16A34A]
-to-[#18B368]
-px-6
-py-3
-text-sm
-font-bold
-text-white
-transition-all
-duration-300
-hover:-translate-y-1
-"
+    className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#16A34A] to-[#18B368] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-1 print:hidden"
   >
     Open in Google Maps
   </a>
-)}
+) : hubMapsQuery ? (
+  <a
+    href={`https://www.google.com/maps/search/?api=1&query=${hubMapsQuery}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-5 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#16A34A] to-[#18B368] px-6 py-3 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-1 print:hidden"
+  >
+    Open in Google Maps
+  </a>
+) : null}
                   </div>
                 </div>
               </div>
@@ -2864,6 +2809,17 @@ hover:-translate-y-1
           </aside>
         </div>
       </div>
+      <style>{`
+        @media print {
+          header, nav, footer, .print\\:hidden { display: none !important; }
+          body { background: white !important; }
+          #booking-print-summary {
+            position: static !important;
+            width: 100% !important;
+            box-shadow: none !important;
+          }
+        }
+      `}</style>
     </section>
   );
 }

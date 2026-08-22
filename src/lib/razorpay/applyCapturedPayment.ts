@@ -385,7 +385,7 @@ Verified : ${new Date().toLocaleString("en-IN")}
       detail: `INR ${paidAmount} · ${paymentStatus} · ${razorpayPaymentId}`,
     });
 
-    void notifyBookingPayment({
+    await notifyBookingPayment({
       bookingId: booking.bookingId,
       riderName: String(booking.userName || ""),
       riderPhone: String(booking.userPhone || rider.phone || ""),

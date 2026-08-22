@@ -2010,7 +2010,7 @@ Booking :
 </p>
 {Number(selectedEndRideBooking.pendingAmount || 0) > 0 ? (
   <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-    Remaining due {rupees(selectedEndRideBooking.pendingAmount)}. Ride can still end. Collect remaining on Book EV now or after ride end.
+    Remaining due {rupees(selectedEndRideBooking.pendingAmount)}. Ride end OTP is issued only after this is paid on Book EV.
   </p>
 ) : null}
 

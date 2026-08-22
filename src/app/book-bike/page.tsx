@@ -32,11 +32,15 @@ export default function BookBikePage() {
 
   return (
     <main>
-      <Navbar />
-      <div className="pt-28">
+      <div className="print:hidden">
+        <Navbar />
+      </div>
+      <div className="pt-28 print:pt-0">
         <BikeBooking />
       </div>
-      <Footer />
+      <div className="print:hidden">
+        <Footer />
+      </div>
     </main>
   );
 }

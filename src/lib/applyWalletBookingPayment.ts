@@ -303,7 +303,7 @@ export async function applyWalletBookingPayment(input: {
       detail: `INR ${paidAmount} · ${paymentStatus}`,
     });
 
-    void notifyBookingPayment({
+    await notifyBookingPayment({
       bookingId: booking.bookingId,
       riderName: String(booking.userName || ""),
       riderPhone: String(booking.userPhone || rider.phone || ""),

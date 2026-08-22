@@ -26,11 +26,24 @@ function messageFor(input: BookingNotifyInput) {
   return `EVUDDY booking ${input.bookingId} is ${input.paymentStatus}. Paid INR ${input.amount} via ${input.paymentMethod}.${otpLine} https://www.evuddy.com/book-bike`;
 }
 
+function smsBodyFor(input: BookingNotifyInput) {
+  if (input.pickupOTP && input.rideEndOTP) {
+    return `EVUDDY ${input.bookingId} Pickup OTP ${input.pickupOTP}. Ride end OTP ${input.rideEndOTP}. Tell the yard.`;
+  }
+  if (input.rideEndOTP) {
+    return `EVUDDY Ride End OTP ${input.rideEndOTP} for ${input.bookingId}. Tell the yard to return the scooter.`;
+  }
+  if (input.pickupOTP) {
+    return `EVUDDY Pickup OTP ${input.pickupOTP} for ${input.bookingId}. Tell the yard to unlock.`;
+  }
+  return messageFor(input).slice(0, 300);
+}
+
 async function sendEmail(input: BookingNotifyInput, text: string) {
   const to = String(input.riderEmail || "").trim();
   const resend = env("RESEND_API_KEY");
   const from = env("NOTIFY_FROM_EMAIL") || "EVUDDY <noreply@evuddy.com>";
-  if (!to || !resend) return;
+  if (!to || !resend) return false;
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -41,29 +54,42 @@ async function sendEmail(input: BookingNotifyInput, text: string) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: input.pickupOTP
-        ? `EVUDDY booking ${input.bookingId} — pickup OTP`
+      subject: input.rideEndOTP
+        ? `EVUDDY ride end OTP ${input.bookingId}`
+        : input.pickupOTP
+        ? `EVUDDY pickup OTP ${input.bookingId}`
         : `EVUDDY booking ${input.bookingId} payment`,
       text,
     }),
   });
   if (!res.ok) throw new Error(`resend ${res.status}`);
+  return true;
 }
 
-async function sendSms(input: BookingNotifyInput, text: string) {
+function msg91Failed(body: string) {
+  const text = body.toLowerCase();
+  return (
+    text.includes("error") ||
+    text.includes("invalid") ||
+    text.includes("missing") ||
+    text.includes("fail") ||
+    text.includes("dlt")
+  );
+}
+
+async function sendSms(input: BookingNotifyInput) {
   const phone = String(input.riderPhone || "").replace(/\D/g, "").slice(-10);
-  if (!phone) return;
+  if (!phone || phone.length !== 10) {
+    console.error("BOOKING SMS SKIPPED: no 10-digit registered phone");
+    return false;
+  }
 
-  const smsBody = input.rideEndOTP
-    ? `EVUDDY Ride End OTP ${input.rideEndOTP} for ${input.bookingId}. Tell the yard to return the scooter.`
-    : input.pickupOTP
-    ? `EVUDDY Pickup OTP ${input.pickupOTP} for ${input.bookingId}. Tell the yard to unlock.`
-    : text.slice(0, 300);
-
+  const smsBody = smsBodyFor(input);
   const msg91 = env("MSG91_AUTH_KEY");
   const twilioSid = env("TWILIO_ACCOUNT_SID");
   const twilioToken = env("TWILIO_AUTH_TOKEN");
   const twilioFrom = env("TWILIO_FROM_NUMBER");
+  const fast2sms = env("FAST2SMS_API_KEY");
 
   if (msg91) {
     const templateId = env("MSG91_TEMPLATE_ID");
@@ -86,13 +112,54 @@ async function sendSms(input: BookingNotifyInput, text: string) {
           ],
         }),
       });
-      if (res.ok) return;
+      const body = await res.text();
+      if (res.ok && !msg91Failed(body)) return true;
+      console.error("MSG91 FLOW SMS FAILED:", res.status, body.slice(0, 200));
     }
     const simple = await fetch(
       `https://api.msg91.com/api/sendhttp.php?authkey=${encodeURIComponent(msg91)}&mobiles=91${phone}&message=${encodeURIComponent(smsBody)}&sender=${encodeURIComponent(env("MSG91_SENDER_ID") || "EVUDDY")}&route=4&country=91`
     );
-    if (!simple.ok) throw new Error("msg91");
-    return;
+    const simpleBody = await simple.text();
+    if (simple.ok && !msg91Failed(simpleBody)) return true;
+    console.error("MSG91 HTTP SMS FAILED:", simple.status, simpleBody.slice(0, 200));
+  }
+
+  if (fast2sms) {
+    const otpValue = String(input.pickupOTP || input.rideEndOTP || "").trim();
+    if (otpValue && /^\d{4,8}$/.test(otpValue) && !(input.pickupOTP && input.rideEndOTP)) {
+      const otpRes = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+        method: "POST",
+        headers: {
+          authorization: fast2sms,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          route: "otp",
+          variables_values: otpValue,
+          numbers: phone,
+        }),
+      });
+      const otpBody = await otpRes.text();
+      if (otpRes.ok && !/false|error|invalid/i.test(otpBody)) return true;
+      console.error("FAST2SMS OTP FAILED:", otpRes.status, otpBody.slice(0, 200));
+    }
+    const res = await fetch("https://www.fast2sms.com/dev/bulkV2", {
+      method: "POST",
+      headers: {
+        authorization: fast2sms,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        route: "q",
+        message: smsBody,
+        language: "english",
+        flash: 0,
+        numbers: phone,
+      }),
+    });
+    const body = await res.text();
+    if (res.ok && !/false|error|invalid/i.test(body)) return true;
+    console.error("FAST2SMS FAILED:", res.status, body.slice(0, 200));
   }
 
   if (twilioSid && twilioToken && twilioFrom) {
@@ -112,8 +179,16 @@ async function sendSms(input: BookingNotifyInput, text: string) {
         }),
       }
     );
-    if (!res.ok) throw new Error(`twilio sms ${res.status}`);
+    if (res.ok) return true;
+    console.error("TWILIO SMS FAILED:", res.status, (await res.text()).slice(0, 200));
   }
+
+  if (!msg91 && !fast2sms && !(twilioSid && twilioToken && twilioFrom)) {
+    console.error(
+      "BOOKING SMS SKIPPED: set MSG91_AUTH_KEY, FAST2SMS_API_KEY, or Twilio SMS keys on the server."
+    );
+  }
+  return false;
 }
 
 async function sendWhatsApp(input: BookingNotifyInput, text: string) {
@@ -121,7 +196,7 @@ async function sendWhatsApp(input: BookingNotifyInput, text: string) {
   const twilioSid = env("TWILIO_ACCOUNT_SID");
   const twilioToken = env("TWILIO_AUTH_TOKEN");
   const from = env("TWILIO_WHATSAPP_FROM");
-  if (!phone || !twilioSid || !twilioToken || !from) return;
+  if (!phone || !twilioSid || !twilioToken || !from) return false;
 
   const auth = Buffer.from(`${twilioSid}:${twilioToken}`).toString("base64");
   const res = await fetch(
@@ -139,18 +214,26 @@ async function sendWhatsApp(input: BookingNotifyInput, text: string) {
       }),
     }
   );
-  if (!res.ok) throw new Error(`twilio whatsapp ${res.status}`);
+  if (!res.ok) {
+    console.error("TWILIO WHATSAPP FAILED:", res.status);
+    return false;
+  }
+  return true;
 }
 
 export async function notifyBookingPayment(input: BookingNotifyInput) {
-  try {
-    const text = messageFor(input);
-    await Promise.allSettled([
-      sendEmail(input, text),
-      sendSms(input, text),
-      sendWhatsApp(input, text),
-    ]);
-  } catch (error) {
-    console.error("BOOKING NOTIFY SKIPPED:", error);
+  const text = messageFor(input);
+  const [email, sms, whatsapp] = await Promise.allSettled([
+    sendEmail(input, text),
+    sendSms(input),
+    sendWhatsApp(input, text),
+  ]);
+  if (sms.status === "rejected") {
+    console.error("BOOKING SMS ERROR:", sms.reason);
   }
+  return {
+    email: email.status === "fulfilled" && Boolean(email.value),
+    sms: sms.status === "fulfilled" && Boolean(sms.value),
+    whatsapp: whatsapp.status === "fulfilled" && Boolean(whatsapp.value),
+  };
 }
