@@ -12,6 +12,8 @@ import Wallet from "@/models/Wallet";
 
 import mongoose from "mongoose";
 
+import { writeAudit } from "@/lib/writeAudit";
+
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
@@ -1115,6 +1117,15 @@ export async function PATCH(
     /* =====================================================
        RESPONSE
     ===================================================== */
+
+    void writeAudit({
+      actor: auditActor || "Admin",
+      action: "RIDER_UPDATED",
+      entity: "Rider",
+      entityId: String(rider.riderId || ""),
+      riderId: String(rider.riderId || ""),
+      detail: `kyc=${String(rider.kycStatus || "")} bookingEnabled=${String(rider.bookingEnabled)}`,
+    });
 
     return NextResponse.json({
       success: true,

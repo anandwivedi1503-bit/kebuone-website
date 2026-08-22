@@ -8,6 +8,9 @@ import WalletTransaction from "@/models/WalletTransaction";
 import Transaction from "@/models/Transaction";
 import Rider from "@/models/Rider";
 import mongoose from "mongoose";
+import { refundRazorpayPayment } from "@/lib/razorpay/refundRazorpayPayment";
+import { appendBoundedText } from "@/lib/listQuery";
+import { writeAudit } from "@/lib/writeAudit";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -276,20 +279,121 @@ if (!rider) {
 
 }
 
+const sendToRazorpay = body.sendToRazorpay === true;
+
+if (sendToRazorpay) {
+  const paymentId = String(booking.razorpayPaymentId || "");
+
+  await session.abortTransaction();
+  session.endSession();
+  session = null;
+
+  if (!paymentId) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "This booking has no Razorpay payment. Use the wallet refund.",
+      },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const razorpayRefund = await refundRazorpayPayment(
+      paymentId,
+      Number(refund.amount)
+    );
+    updateData.razorpayRefundId = String(
+      (razorpayRefund as { id?: string }).id || ""
+    );
+    updateData.gatewayTxnId = String(
+      (razorpayRefund as { id?: string }).id || paymentId
+    );
+    updateData.paymentGateway = "Razorpay";
+  } catch (error) {
+    console.error("RAZORPAY REFUND ERROR:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Razorpay refund failed. Wallet was not credited.",
+      },
+      { status: 502 }
+    );
+  }
+
+  session = await mongoose.startSession();
+  session.startTransaction();
+
+  const liveRefund = await Refund.findById(id).session(session);
+  const liveBooking = await Booking.findOne({
+    bookingId: refund.bookingId,
+  }).session(session);
+
+  if (!liveRefund || !liveBooking) {
+    await session.abortTransaction();
+    session.endSession();
+    return NextResponse.json(
+      { success: false, message: "Refund or booking not found after gateway refund." },
+      { status: 404 }
+    );
+  }
+
+  if (liveRefund.refundStatus === "REFUNDED") {
+    await session.abortTransaction();
+    session.endSession();
+    return NextResponse.json(
+      { success: false, message: "This refund has already been processed." },
+      { status: 400 }
+    );
+  }
+
+  liveBooking.refundAmount = Number(liveRefund.amount);
+  liveBooking.securityDepositRefunded = true;
+  liveBooking.remarks = appendBoundedText(
+    liveBooking.remarks,
+    `Refund Completed via Razorpay\nRefund ID : ${liveRefund.refundId}\nAmount : ₹${liveRefund.amount}`
+  );
+  await liveBooking.save({ session });
+
+  await Rider.findOneAndUpdate(
+    { riderId: liveBooking.riderId },
+    { securityDeposit: 0 },
+    { session }
+  );
+
+  const existingRefundTransaction = await Transaction.findOne({
+    bookingId: liveBooking.bookingId,
+    transactionType: "Refund",
+  }).session(session);
+
+  if (!existingRefundTransaction) {
+    await Transaction.create(
+      [
+        {
+          transactionId: "RF-" + Date.now(),
+          bookingId: liveBooking.bookingId,
+          userId: String(liveBooking.userId),
+          userName: liveBooking.userName,
+          amount: liveRefund.amount,
+          paymentMethod: "Razorpay",
+          transactionType: "Refund",
+          status: "Success",
+          refundStatus: "Completed",
+        },
+      ],
+      { session }
+    );
+  }
+} else {
+
 booking.refundAmount = Number(refund.amount);
 
 booking.securityDepositRefunded = true;
 
-booking.remarks = `${booking.remarks || ""}
-
-Refund Completed
-
-Refund ID : ${refund.refundId}
-
-Amount : ₹${refund.amount}
-
-Date : ${new Date().toLocaleString("en-IN")}
- `;
+booking.remarks = appendBoundedText(
+  booking.remarks,
+  `Refund Completed\nRefund ID : ${refund.refundId}\nAmount : ₹${refund.amount}`
+);
 
 await booking.save({
   session,
@@ -423,6 +527,8 @@ if (!existingRefundTransaction) {
     }
   );
 }
+}
+
     }
 
     const updatedRefund =
@@ -455,6 +561,16 @@ if (!updatedRefund) {
 
 await session.commitTransaction();
 session.endSession();
+
+void writeAudit({
+  actor: "Admin",
+  action: String(updateData.refundStatus || "REFUND_UPDATED"),
+  entity: "Refund",
+  entityId: String(updatedRefund.refundId || id),
+  riderId: String(updatedRefund.riderId || ""),
+  bookingId: String(updatedRefund.bookingId || ""),
+  detail: body.sendToRazorpay === true ? "Razorpay" : "Wallet",
+});
 
 return NextResponse.json({
   success: true,

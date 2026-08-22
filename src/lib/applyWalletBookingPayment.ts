@@ -3,13 +3,13 @@ import mongoose from "mongoose";
 
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
 import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
+import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
-import { writeAudit } from "@/lib/writeAudit";
 
 function generateWalletTransactionId() {
   return `WTX-${crypto.randomUUID().toUpperCase()}`;
@@ -23,67 +23,21 @@ async function rollback(session: mongoose.ClientSession | null) {
   await session.endSession();
 }
 
-export type ApplyCapturedPaymentInput = {
+export async function applyWalletBookingPayment(input: {
   bookingMongoId: string;
-  razorpayOrderId: string;
-  razorpayPaymentId: string;
   paidAmount: number;
-};
-
-export type ApplyCapturedPaymentResult =
-  | {
-      ok: true;
-      alreadyVerified: boolean;
-      booking: Record<string, unknown> | null;
-      paidAmount: number;
-      pendingAmount: number;
-      paymentStatus: string;
-      pickupOTP?: string;
-      message: string;
-    }
-  | {
-      ok: false;
-      status: number;
-      message: string;
-    };
-
-export async function applyCapturedRazorpayPayment(
-  input: ApplyCapturedPaymentInput
-): Promise<ApplyCapturedPaymentResult> {
-  const { bookingMongoId, razorpayOrderId, razorpayPaymentId, paidAmount } = input;
+}) {
+  const { bookingMongoId, paidAmount } = input;
   let session: mongoose.ClientSession | null = null;
 
   try {
-    const existingTransaction = await Transaction.findOne({
-      transactionId: razorpayPaymentId,
-    });
-
-    if (existingTransaction) {
-      const booking = await Booking.findById(bookingMongoId).lean();
-      return {
-        ok: true,
-        alreadyVerified: true,
-        booking: booking as Record<string, unknown> | null,
-        paidAmount: Number(existingTransaction.amount || paidAmount),
-        pendingAmount: Number((booking as { pendingAmount?: number } | null)?.pendingAmount || 0),
-        paymentStatus: String((booking as { paymentStatus?: string } | null)?.paymentStatus || "Paid"),
-        message: "Payment already verified.",
-      };
-    }
-
     session = await mongoose.startSession();
     session.startTransaction();
 
     const booking = await Booking.findById(bookingMongoId).session(session);
-
     if (!booking) {
       await rollback(session);
-      return { ok: false, status: 404, message: "Booking not found." };
-    }
-
-    if (booking.razorpayOrderId !== razorpayOrderId) {
-      await rollback(session);
-      return { ok: false, status: 400, message: "Booking payment order mismatch." };
+      return { ok: false as const, status: 404, message: "Booking not found." };
     }
 
     const rider = await Rider.findOne({
@@ -93,45 +47,27 @@ export async function applyCapturedRazorpayPayment(
 
     if (!rider) {
       await rollback(session);
-      return { ok: false, status: 404, message: "Rider not found." };
-    }
-
-    const duplicateTransaction = await Transaction.findOne({
-      transactionId: razorpayPaymentId,
-    }).session(session);
-
-    if (duplicateTransaction) {
-      await session.commitTransaction();
-      await session.endSession();
-      return {
-        ok: true,
-        alreadyVerified: true,
-        booking: booking.toObject(),
-        paidAmount: Number(duplicateTransaction.amount || paidAmount),
-        pendingAmount: Number(booking.pendingAmount || 0),
-        paymentStatus: String(booking.paymentStatus || "Paid"),
-        message: "Payment already verified.",
-      };
+      return { ok: false as const, status: 404, message: "Rider not found." };
     }
 
     if (rider.currentBookingId && rider.currentBookingId !== booking.bookingId) {
       await rollback(session);
-      return { ok: false, status: 400, message: "Rider already has another booking." };
+      return { ok: false as const, status: 400, message: "Rider already has another booking." };
     }
 
     if (!rider.bookingEnabled) {
       await rollback(session);
-      return { ok: false, status: 403, message: "Booking is disabled for this rider." };
+      return { ok: false as const, status: 403, message: "Booking is disabled for this rider." };
     }
 
     if (rider.status !== "Active") {
       await rollback(session);
-      return { ok: false, status: 403, message: "Rider account is not active." };
+      return { ok: false as const, status: 403, message: "Rider account is not active." };
     }
 
     if (booking.paymentStatus === "Paid" || Number(booking.pendingAmount) <= 0) {
       await rollback(session);
-      return { ok: false, status: 400, message: "This booking has already been fully paid." };
+      return { ok: false as const, status: 400, message: "This booking has already been fully paid." };
     }
 
     if (
@@ -141,7 +77,7 @@ export async function applyCapturedRazorpayPayment(
       booking.rideStatus === "In Ride"
     ) {
       await rollback(session);
-      return { ok: false, status: 400, message: "This booking is no longer payable." };
+      return { ok: false as const, status: 400, message: "This booking is no longer payable." };
     }
 
     const payableAmount = getBookingPayableAmount(booking);
@@ -150,7 +86,7 @@ export async function applyCapturedRazorpayPayment(
 
     if (paidAmount < 1 || paidAmount > remainingAmount) {
       await rollback(session);
-      return { ok: false, status: 400, message: "Payment amount does not match booking balance." };
+      return { ok: false as const, status: 400, message: "Payment amount does not match booking balance." };
     }
 
     if (
@@ -159,11 +95,39 @@ export async function applyCapturedRazorpayPayment(
     ) {
       await rollback(session);
       return {
-        ok: false,
+        ok: false as const,
         status: 400,
         message: "Rent to Own requires the full installment in one payment.",
       };
     }
+
+    const wallet = await Wallet.findOne({
+      riderId: rider.riderId,
+      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+    }).session(session);
+
+    if (!wallet || wallet.status !== "Active" || wallet.adminBlocked) {
+      await rollback(session);
+      return { ok: false as const, status: 400, message: "Wallet is not available for this rider." };
+    }
+
+    const available = Math.max(
+      0,
+      Number(wallet.balance || 0) - Number(wallet.freezeAmount || 0)
+    );
+    if (available < paidAmount) {
+      await rollback(session);
+      return {
+        ok: false as const,
+        status: 400,
+        message: `Wallet balance is INR ${available.toFixed(2)}. Pay with Razorpay or recharge the wallet.`,
+      };
+    }
+
+    wallet.balance = Number((Number(wallet.balance || 0) - paidAmount).toFixed(2));
+    wallet.totalSpent = Number((Number(wallet.totalSpent || 0) + paidAmount).toFixed(2));
+    wallet.lastDebitAt = new Date();
+    await wallet.save({ session });
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
@@ -177,11 +141,12 @@ export async function applyCapturedRazorpayPayment(
       previousReceived: oldReceivedAmount,
       paidNow: paidAmount,
     });
+    const transactionId = generateWalletTransactionId();
 
     await Transaction.create(
       [
         {
-          transactionId: razorpayPaymentId,
+          transactionId,
           bookingId: booking.bookingId,
           userId: String(booking.userId || booking.userPhone || "Rider"),
           userName: booking.userName || "Rider",
@@ -191,9 +156,7 @@ export async function applyCapturedRazorpayPayment(
           sgstAmount: taxOnPayment.sgstAmount,
           cgstRate: CGST_RATE,
           sgstRate: SGST_RATE,
-          paymentMethod: "Razorpay",
-          razorpayOrderId,
-          razorpayPaymentId,
+          paymentMethod: "Wallet",
           transactionType: "Booking Payment",
           invoiceNumber,
           invoiceGenerated: true,
@@ -203,35 +166,24 @@ export async function applyCapturedRazorpayPayment(
       { session }
     );
 
-    let wallet = await Wallet.findOne({
-      riderId: rider.riderId,
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    }).session(session);
-
-    if (!wallet) {
-      const [createdWallet] = await Wallet.create(
-        [
-          {
-            riderId: rider.riderId,
-            userId: rider._id,
-            userName: rider.fullName,
-            phone: rider.phone,
-            balance: 0,
-            securityDepositHold: 0,
-            freezeAmount: 0,
-            totalRecharge: 0,
-            totalSpent: 0,
-            totalRefund: 0,
-            status: rider.bookingEnabled ? "Active" : "Blocked",
-            adminBlocked: false,
-            isDeleted: false,
-            updatedBy: "System",
-          },
-        ],
-        { session }
-      );
-      wallet = createdWallet;
-    }
+    await WalletTransaction.create(
+      [
+        {
+          transactionId: generateWalletTransactionId(),
+          riderId: booking.riderId,
+          userId: booking.userId,
+          userName: booking.userName,
+          amount: paidAmount,
+          transactionType: "Booking Payment",
+          paymentMethod: "Wallet",
+          bookingId: booking.bookingId,
+          balanceAfter: Number(wallet.balance || 0),
+          remarks: "Booking paid from wallet.",
+          status: "Success",
+        },
+      ],
+      { session }
+    );
 
     const existingDepositHold = await WalletTransaction.findOne({
       bookingId: booking.bookingId,
@@ -253,10 +205,8 @@ export async function applyCapturedRazorpayPayment(
             userName: booking.userName,
             amount: Number(booking.securityDeposit || 0),
             transactionType: "Security Deposit Hold",
-            paymentMethod: "Razorpay",
+            paymentMethod: "Wallet",
             bookingId: booking.bookingId,
-            razorpayOrderId,
-            razorpayPaymentId,
             balanceAfter: Number(wallet.balance || 0),
             remarks: "Security deposit held for bike booking.",
             status: "Success",
@@ -270,68 +220,30 @@ export async function applyCapturedRazorpayPayment(
       {
         _id: bookingMongoId,
         paymentStatus: { $ne: "Paid" },
-        razorpayOrderId,
       },
       {
         $set: {
           receivedAmount: newReceivedAmount,
           pendingAmount,
-          paymentMode: "Razorpay",
+          paymentMode: "Wallet",
           paymentStatus,
           rideStatus,
           pickupOTP,
           pickupOTPExpiry: pendingAmount <= 0 ? pickupOtpExpiry() : null,
           pickupOTPVerified: false,
           pickupOTPVerifiedAt: null,
-          rideStartOTP: "",
-          rideStartOTPExpiry: null,
-          rideStartOTPVerified: false,
-          rideEndOTP: "",
-          rideEndOTPExpiry: null,
-          rideEndOTPVerified: false,
-          rideEndOTPVerifiedAt: null,
           paymentDate: new Date(),
           paymentVerifiedAt: new Date(),
           invoiceNumber,
           invoiceGenerated: true,
-          razorpayOrderId,
-          razorpayPaymentId,
-          ...(booking.rentalMode === "Rent To Own" && pendingAmount <= 0
-            ? {
-                rtoInstallmentsPaid: Number(booking.rtoInstallmentsPaid || 0) + 1,
-                rentToOwnCompletedDays: Number(booking.rentToOwnCompletedDays || 0) + 30,
-                remainingRentToOwnDays: Math.max(
-                  0,
-                  Number(booking.remainingRentToOwnDays || 0) - 30
-                ),
-              }
-            : {}),
-          remarks: `${booking.remarks || ""}
-
-Payment Verified
-Amount : INR ${paidAmount}
-Order : ${razorpayOrderId}
-Payment : ${razorpayPaymentId}
-Verified : ${new Date().toLocaleString("en-IN")}
-`,
         },
       },
       { new: true, session }
     );
 
     if (!updatedBooking) {
-      const latestBooking = await Booking.findById(bookingMongoId).session(session);
-      await session.commitTransaction();
-      await session.endSession();
-      return {
-        ok: true,
-        alreadyVerified: true,
-        booking: latestBooking?.toObject() || null,
-        paidAmount,
-        pendingAmount: Number(latestBooking?.pendingAmount || 0),
-        paymentStatus: String(latestBooking?.paymentStatus || "Paid"),
-        message: "Payment already verified.",
-      };
+      await rollback(session);
+      return { ok: false as const, status: 409, message: "Booking was already paid." };
     }
 
     const updatedVehicle = await Vehicle.findOneAndUpdate(
@@ -358,7 +270,7 @@ Verified : ${new Date().toLocaleString("en-IN")}
     if (!updatedVehicle) {
       await rollback(session);
       return {
-        ok: false,
+        ok: false as const,
         status: 409,
         message: "Vehicle has already been assigned to another booking.",
       };
@@ -379,17 +291,17 @@ Verified : ${new Date().toLocaleString("en-IN")}
     await session.endSession();
 
     void writeAudit({
-      actor: "System",
-      action: "RAZORPAY_CAPTURED",
+      actor: "Rider",
+      action: "WALLET_PAYMENT",
       entity: "Booking",
       entityId: booking.bookingId,
       riderId: booking.riderId,
       bookingId: booking.bookingId,
-      detail: `INR ${paidAmount} · ${paymentStatus} · ${razorpayPaymentId}`,
+      detail: `INR ${paidAmount} · ${paymentStatus}`,
     });
 
     return {
-      ok: true,
+      ok: true as const,
       alreadyVerified: false,
       booking: updatedBooking.toObject(),
       paidAmount,
@@ -398,12 +310,12 @@ Verified : ${new Date().toLocaleString("en-IN")}
       pickupOTP: pendingAmount <= 0 ? pickupOTP : undefined,
       message:
         paymentStatus === "Paid"
-          ? "Payment verified. Bike is ready for pickup."
-          : "Partial payment verified successfully.",
+          ? "Wallet payment complete. Bike is ready for pickup."
+          : "Partial wallet payment applied.",
     };
   } catch (error) {
     await rollback(session);
-    console.error("APPLY CAPTURED PAYMENT ERROR:", error);
-    return { ok: false, status: 500, message: "Payment verification failed." };
+    console.error("WALLET BOOKING PAYMENT ERROR:", error);
+    return { ok: false as const, status: 500, message: "Wallet payment failed." };
   }
 }

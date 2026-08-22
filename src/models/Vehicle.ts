@@ -168,6 +168,13 @@ const VehicleSchema = new mongoose.Schema(
       type: Date,
     },
 
+    currentBatteryId: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: "",
+    },
+
     gpsStatus: {
       type: String,
       enum: ["ONLINE", "OFFLINE"],

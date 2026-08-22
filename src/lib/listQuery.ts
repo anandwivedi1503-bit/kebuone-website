@@ -9,6 +9,12 @@ export function parseListQuery(req: Request) {
   const q = String(searchParams.get("q") || "").trim();
   const rideStatus = String(searchParams.get("rideStatus") || "").trim();
   const paymentStatus = String(searchParams.get("paymentStatus") || "").trim();
+  const hub = String(searchParams.get("hub") || "").trim();
+  const city = String(searchParams.get("city") || "").trim();
+  const riderId = String(searchParams.get("riderId") || "").trim();
+  const vehicleId = String(searchParams.get("vehicleId") || "").trim();
+  const from = String(searchParams.get("from") || "").trim();
+  const to = String(searchParams.get("to") || "").trim();
 
   return {
     page,
@@ -17,7 +23,70 @@ export function parseListQuery(req: Request) {
     q,
     rideStatus,
     paymentStatus,
+    hub,
+    city,
+    riderId,
+    vehicleId,
+    from,
+    to,
   };
+}
+
+export function applyOpsListFilters(
+  filter: Record<string, unknown>,
+  query: ReturnType<typeof parseListQuery>,
+  fields: {
+    hub?: string | string[];
+    city?: string;
+  } = {}
+) {
+  if (query.riderId) filter.riderId = query.riderId.toUpperCase();
+  if (query.vehicleId) filter.vehicleId = query.vehicleId.toUpperCase();
+
+  const hubFields = fields.hub
+    ? Array.isArray(fields.hub)
+      ? fields.hub
+      : [fields.hub]
+    : [];
+  if (query.hub && hubFields.length === 1) {
+    filter[hubFields[0]] = query.hub.toUpperCase();
+  } else if (query.hub && hubFields.length > 1) {
+    const hub = query.hub.toUpperCase();
+    const hubMatch = { $or: hubFields.map((field) => ({ [field]: hub })) };
+    filter.$and = [
+      ...((filter.$and as unknown[]) || []),
+      hubMatch,
+    ];
+  }
+
+  if (query.city && fields.city) {
+    const escaped = query.city.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    filter[fields.city] = new RegExp(escaped, "i");
+  }
+
+  const range = dateRangeFilter(query.from, query.to);
+  if (range) Object.assign(filter, range);
+}
+
+export function appendBoundedText(existing: unknown, extra: string, max = 500) {
+  return `${String(existing || "").trim()}\n${extra}`.trim().slice(0, max);
+}
+
+export function dateRangeFilter(from: string, to: string) {
+  if (!from && !to) return null;
+  const createdAt: Record<string, Date> = {};
+  if (from) {
+    const start = new Date(from);
+    if (!Number.isNaN(start.getTime())) createdAt.$gte = start;
+  }
+  if (to) {
+    const end = new Date(to);
+    if (!Number.isNaN(end.getTime())) {
+      end.setHours(23, 59, 59, 999);
+      createdAt.$lte = end;
+    }
+  }
+  return Object.keys(createdAt).length ? { createdAt } : null;
 }
 
 export function listResponse<T>(

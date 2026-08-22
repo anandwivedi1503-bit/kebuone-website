@@ -21,7 +21,8 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
-import { listResponse, parseListQuery } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { writeAudit } from "@/lib/writeAudit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
@@ -91,7 +92,8 @@ export async function GET(req: Request) {
     await connectDB();
     void maybeSweepUnpaidBookings();
 
-    const { page, limit, skip, q, rideStatus, paymentStatus } = parseListQuery(req);
+    const parsed = parseListQuery(req);
+    const { page, limit, skip, q, rideStatus, paymentStatus } = parsed;
     const filter: Record<string, unknown> = {
   $or: [
     { isDeleted: false },
@@ -100,19 +102,23 @@ export async function GET(req: Request) {
 };
     if (rideStatus) filter.rideStatus = rideStatus;
     if (paymentStatus) filter.paymentStatus = paymentStatus;
+    applyOpsListFilters(filter, parsed, {
+      hub: ["currentHub", "startHub"],
+      city: "pickupCity",
+    });
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.$and = [
-        { $or: filter.$or as unknown[] },
-        {
+      const and = (filter.$and as unknown[]) || [];
+      if (filter.$or) and.unshift({ $or: filter.$or });
+      and.push({
           $or: [
             { bookingId: new RegExp(escaped, "i") },
             { userName: new RegExp(escaped, "i") },
             { userPhone: new RegExp(escaped, "i") },
             { vehicleId: new RegExp(escaped, "i") },
           ],
-        },
-      ];
+      });
+      filter.$and = and;
       delete filter.$or;
     }
 
@@ -946,6 +952,15 @@ booking = booking.toObject();
 
 await session.commitTransaction();
 await session.endSession();
+void writeAudit({
+  actor: "Rider",
+  action: "BOOKING_CREATED",
+  entity: "Booking",
+  entityId: booking.bookingId,
+  riderId: booking.riderId,
+  bookingId: booking.bookingId,
+  detail: `${booking.vehicleId} · ${booking.pickupCity || ""} · ${booking.startHub || ""}`,
+});
     return NextResponse.json({
   success: true,
   message: "Booking created successfully.",

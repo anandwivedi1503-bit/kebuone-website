@@ -16,6 +16,7 @@ import {
 } from "@/lib/gst";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 
 function clean(value: unknown) {
   return String(value || "").trim();
@@ -238,6 +239,36 @@ export async function POST(req: Request) {
         },
         { status: 400 }
       );
+    }
+
+    const wantsWallet =
+      body.useWallet === true ||
+      clean(body.paymentMethod).toLowerCase() === "wallet";
+
+    if (wantsWallet) {
+      const walletResult = await applyWalletBookingPayment({
+        bookingMongoId,
+        paidAmount: amount,
+      });
+
+      if (!walletResult.ok) {
+        return NextResponse.json(
+          { success: false, message: walletResult.message },
+          { status: walletResult.status }
+        );
+      }
+
+      return NextResponse.json({
+        success: true,
+        paidWithWallet: true,
+        live: isLive,
+        payableAmount,
+        remainingAmount: walletResult.pendingAmount,
+        paymentStatus: walletResult.paymentStatus,
+        pickupOTP: walletResult.pickupOTP,
+        booking: walletResult.booking,
+        message: walletResult.message,
+      });
     }
 
     const razorpay = getRazorpayClient();

@@ -311,6 +311,21 @@ pickupCity: {
   default: "",
 },
 
+lastLatitude: {
+  type: Number,
+  default: null,
+},
+
+lastLongitude: {
+  type: Number,
+  default: null,
+},
+
+lastGpsAt: {
+  type: Date,
+  default: null,
+},
+
 endHub: {
   type: String,
   trim: true,

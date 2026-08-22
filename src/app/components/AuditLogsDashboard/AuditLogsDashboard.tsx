@@ -28,20 +28,43 @@ type TxnRow = {
   createdAt?: string;
 };
 
+type AuditRow = {
+  _id?: string;
+  actor?: string;
+  action?: string;
+  entity?: string;
+  entityId?: string;
+  bookingId?: string;
+  riderId?: string;
+  detail?: string;
+  createdAt?: string;
+};
+
 export default function AuditLogsDashboard() {
   const [bookings, setBookings] = useState<BookingRow[]>([]);
   const [transactions, setTransactions] = useState<TxnRow[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
+        const auditRes = await fetch("/api/audit-logs?limit=300", { cache: "no-store" });
+        const auditData = await auditRes.json();
+        if (auditRes.ok && Array.isArray(auditData.data) && auditData.data.length > 0) {
+          setAuditLogs(auditData.data);
+          setBookings([]);
+          setTransactions([]);
+          return;
+        }
+
         const [bookingRes, txnRes] = await Promise.all([
           fetch("/api/bookings?limit=300", { cache: "no-store" }),
           fetch("/api/transactions?limit=300", { cache: "no-store" }),
         ]);
         const bookingData = await bookingRes.json();
         const txnData = await txnRes.json();
+        setAuditLogs([]);
         setBookings(bookingData.data || []);
         setTransactions(txnData.data || []);
       } finally {
@@ -55,6 +78,15 @@ export default function AuditLogsDashboard() {
   }, []);
 
   const rows = useMemo(() => {
+    if (auditLogs.length > 0) {
+      return auditLogs.map((item) => ({
+        id: String(item._id || `${item.action}-${item.createdAt}`),
+        when: item.createdAt || "",
+        source: item.entity || "Audit",
+        detail: `${item.action || "-"} · ${item.actor || "System"} · ${item.bookingId || item.entityId || "-"} · ${item.detail || ""}`,
+      }));
+    }
+
     const bookingEvents = bookings.map((item) => ({
       id: `B-${item.bookingId}`,
       when: item.updatedAt || item.createdAt || "",
@@ -71,13 +103,13 @@ export default function AuditLogsDashboard() {
     return [...bookingEvents, ...txnEvents]
       .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())
       .slice(0, 80);
-  }, [bookings, transactions]);
+  }, [auditLogs, bookings, transactions]);
 
   return (
     <PageContainer>
       <DashboardHeader
         title="Audit Logs"
-        subtitle="Live activity from the same booking and payment records used across dashboards. Not dummy data."
+        subtitle="Staff actions and booking events from the live database. Falls back to bookings and payments if no audit rows exist yet."
       />
       <div className="mb-6">
         <DashboardActions

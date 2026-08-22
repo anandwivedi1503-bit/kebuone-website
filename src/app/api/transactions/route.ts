@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
 import Booking from "@/models/Booking";
-import { listResponse, parseListQuery } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -50,25 +50,27 @@ export async function GET(req: Request) {
     }
     await connectDB();
 
-    const { page, limit, skip, q } = parseListQuery(req);
+    const parsed = parseListQuery(req);
+    const { page, limit, skip, q } = parsed;
     const filter: Record<string, unknown> = {
       $or: [
         { isDeleted: false },
         { isDeleted: { $exists: false } },
       ],
     };
+    applyOpsListFilters(filter, parsed);
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.$and = [
-        { $or: filter.$or as unknown[] },
-        {
+      const and = (filter.$and as unknown[]) || [];
+      if (filter.$or) and.unshift({ $or: filter.$or });
+      and.push({
           $or: [
             { transactionId: new RegExp(escaped, "i") },
             { bookingId: new RegExp(escaped, "i") },
             { userName: new RegExp(escaped, "i") },
           ],
-        },
-      ];
+      });
+      filter.$and = and;
       delete filter.$or;
     }
 

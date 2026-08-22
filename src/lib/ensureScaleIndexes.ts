@@ -125,4 +125,31 @@ export async function ensureScaleIndexes() {
       ),
     "booking razorpayPaymentId"
   );
+
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { currentHub: 1, createdAt: -1 },
+        { background: true, name: "booking_hub_created" }
+      ),
+    "booking hub createdAt"
+  );
+
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { pickupCity: 1, createdAt: -1 },
+        { background: true, name: "booking_city_created" }
+      ),
+    "booking city createdAt"
+  );
+
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { lastGpsAt: -1 },
+        { background: true, name: "booking_lastGpsAt" }
+      ),
+    "booking lastGpsAt"
+  );
 }

@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
 import Booking from "@/models/Booking";
+import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { writeAudit } from "@/lib/writeAudit";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -159,6 +161,15 @@ if (existingBookingRefund) {
       ? new Date()
       : undefined,
 });
+    void writeAudit({
+      actor: "Admin",
+      action: "REFUND_CREATED",
+      entity: "Refund",
+      entityId: refundId,
+      riderId: clean(body.riderId),
+      bookingId: clean(body.bookingId),
+      detail: String(body.amount),
+    });
     return NextResponse.json({
       success: true,
       data: refund,
@@ -174,21 +185,29 @@ if (existingBookingRefund) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     if (!(await isAdminAuthenticated())) {
   return unauthorizedResponse();
 }
     await connectDB();
 
-    const refunds = await Refund.find().sort({
-      createdAt: -1,
-    }).limit(300);
+    const parsed = parseListQuery(req);
+    const { page, limit, skip, q } = parsed;
+    const filter: Record<string, unknown> = {};
+    applyOpsListFilters(filter, parsed);
+    if (q) {
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const rx = new RegExp(escaped, "i");
+      filter.$or = [{ refundId: rx }, { bookingId: rx }, { riderId: rx }, { ticketId: rx }];
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: refunds,
-    });
+    const [refunds, total] = await Promise.all([
+      Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Refund.countDocuments(filter),
+    ]);
+
+    return NextResponse.json(listResponse(refunds, total, page, limit));
   } catch (error) {
     return NextResponse.json(
       {

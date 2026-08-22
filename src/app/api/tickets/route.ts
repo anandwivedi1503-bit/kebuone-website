@@ -8,6 +8,12 @@ import {
 import { connectDB } from "@/lib/mongodb";
 import { publicApiError } from "@/lib/publicError";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
+import {
+  firebaseUserOwnsRider,
+  getVerifiedFirebaseUser,
+} from "@/lib/requestAuth";
+import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
@@ -156,8 +162,8 @@ export async function POST(req: Request) {
     /*
      * Public website contact/enquiry ticket.
      *
-     * Booking-linked tickets stay admin-only below because they touch
-     * operational rider, vehicle and refund workflows.
+     * Booking-linked tickets can be created by admin or by the rider
+     * who owns that booking (Firebase token).
      */
     if (!bookingId) {
       const ticket = await Ticket.create({
@@ -178,6 +184,14 @@ export async function POST(req: Request) {
         adminRemarks: "",
       });
 
+      void writeAudit({
+        actor: isAdminRequest ? "Admin" : "Website",
+        action: "TICKET_CREATED",
+        entity: "Ticket",
+        entityId: ticketId,
+        detail: category,
+      });
+
       return NextResponse.json(
         {
           success: true,
@@ -187,7 +201,11 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!isAdminRequest) {
+    const firebaseUser = isAdminRequest
+      ? null
+      : await getVerifiedFirebaseUser(req, body.firebaseIdToken);
+
+    if (!isAdminRequest && !firebaseUser) {
       return unauthorizedResponse();
     }
 
@@ -250,6 +268,12 @@ export async function POST(req: Request) {
       );
     }
 
+    if (!isAdminRequest && (!firebaseUser || !firebaseUserOwnsRider(firebaseUser, rider))) {
+      await rollback(session);
+      session = null;
+      return unauthorizedResponse();
+    }
+
     const vehicle = await Vehicle.findOne({
       vehicleId: booking.vehicleId,
     }).session(session);
@@ -282,7 +306,7 @@ export async function POST(req: Request) {
           priority,
           status,
           assignedTo,
-          ticketSource: "Admin Panel",
+          ticketSource: isAdminRequest ? "Admin Panel" : "Mobile App",
           refundRequired: category === "REFUND_REQUEST",
           adminRemarks: "",
         },
@@ -295,6 +319,16 @@ export async function POST(req: Request) {
     await session.commitTransaction();
     await session.endSession();
     session = null;
+
+    void writeAudit({
+      actor: isAdminRequest ? "Admin" : "Rider",
+      action: "TICKET_CREATED",
+      entity: "Ticket",
+      entityId: ticketId,
+      riderId: booking.riderId,
+      bookingId,
+      detail: category,
+    });
 
     return NextResponse.json(
       {
@@ -319,7 +353,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     if (!(await isAdminAuthenticated())) {
       return unauthorizedResponse();
@@ -327,14 +361,30 @@ export async function GET() {
 
     await connectDB();
 
-    const tickets = await Ticket.find().sort({
-      createdAt: -1,
-    }).limit(300).lean();
+    const parsed = parseListQuery(req);
+    const { page, limit, skip, q } = parsed;
+    const filter: Record<string, unknown> = {};
+    applyOpsListFilters(filter, parsed);
 
-    return NextResponse.json({
-      success: true,
-      data: tickets,
-    });
+    if (q) {
+      const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const rx = new RegExp(escaped, "i");
+      filter.$or = [
+        { ticketId: rx },
+        { bookingId: rx },
+        { riderId: rx },
+        { userId: rx },
+        { category: rx },
+        { description: rx },
+      ];
+    }
+
+    const [tickets, total] = await Promise.all([
+      Ticket.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Ticket.countDocuments(filter),
+    ]);
+
+    return NextResponse.json(listResponse(tickets, total, page, limit));
   } catch (error) {
     return NextResponse.json(
       {

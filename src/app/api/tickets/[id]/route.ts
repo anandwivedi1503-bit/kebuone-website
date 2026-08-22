@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Ticket from "@/models/Ticket";
 import Booking from "@/models/Booking";
+import Refund from "@/models/Refund";
 import mongoose from "mongoose";
+import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
+import { appendBoundedText } from "@/lib/listQuery";
+import { writeAudit } from "@/lib/writeAudit";
 
 const allowedStatuses = [
   "OPEN",
@@ -161,23 +165,52 @@ if (
 
   updateData.resolvedAt = new Date();
 
-  await Booking.findOneAndUpdate(
-    {
-      bookingId: existingTicket.bookingId,
-    },
-    {
-      $push: {
-        remarks: `
+  const booking = await Booking.findOne({
+    bookingId: existingTicket.bookingId,
+  }).session(session);
 
-Ticket ${existingTicket.ticketId} resolved on ${new Date().toLocaleString("en-IN")}
+  if (booking) {
+    const note = `Ticket ${existingTicket.ticketId} resolved on ${new Date().toLocaleString("en-IN")}`;
+    booking.remarks = appendBoundedText(booking.remarks, note);
 
-`,
-      },
-    },
-    {
-      session,
+    if (
+      existingTicket.category === "UNLOCK_ISSUE" &&
+      booking.rideStatus === "Ready For Pickup" &&
+      booking.paymentStatus === "Paid"
+    ) {
+      booking.pickupOTP = generateSixDigitOtp();
+      booking.pickupOTPExpiry = pickupOtpExpiry();
+      booking.pickupOTPVerified = false;
+      booking.pickupOTPVerifiedAt = null;
     }
-  );
+
+    if (existingTicket.category === "REFUND_REQUEST") {
+      const existingRefund = await Refund.findOne({
+        bookingId: booking.bookingId,
+        refundStatus: { $ne: "REJECTED" },
+      }).session(session);
+
+      if (!existingRefund && Number(booking.securityDeposit || 0) > 0) {
+        await Refund.create(
+          [
+            {
+              refundId: `RF-${Date.now()}`,
+              bookingId: booking.bookingId,
+              ticketId: existingTicket.ticketId,
+              riderId: booking.riderId,
+              amount: Number(booking.securityDeposit || 0),
+              paymentGateway: "Wallet",
+              refundStatus: "PENDING",
+              remarks: "Opened from resolved refund ticket.",
+            },
+          ],
+          { session }
+        );
+      }
+    }
+
+    await booking.save({ session });
+  }
 
 }
     }
@@ -279,6 +312,15 @@ if (updateData.status === "CLOSED") {
     }
     await session.commitTransaction();
 session.endSession();
+    void writeAudit({
+      actor: "Admin",
+      action: "TICKET_UPDATED",
+      entity: "Ticket",
+      entityId: String(updatedTicket.ticketId || id),
+      riderId: String(updatedTicket.riderId || ""),
+      bookingId: String(updatedTicket.bookingId || ""),
+      detail: String(updatedTicket.status || ""),
+    });
     return NextResponse.json({
       success: true,
       data: updatedTicket,

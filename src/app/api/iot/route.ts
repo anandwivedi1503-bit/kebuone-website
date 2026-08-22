@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import iot from "@/models/IoT";
 import Vehicle from "@/models/Vehicle";
+import Booking from "@/models/Booking";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
@@ -147,6 +148,20 @@ export async function POST(req: Request) {
     lastPingTime: new Date(),
   }
 );
+
+    if (vehicle?.currentBookingId) {
+      await Booking.updateOne(
+        { bookingId: vehicle.currentBookingId },
+        {
+          $set: {
+            lastLatitude: Number(body.currentLat),
+            lastLongitude: Number(body.currentLng),
+            lastGpsAt: new Date(),
+            batteryPercentage: Number(body.batteryPercentage),
+          },
+        }
+      );
+    }
 
 const newIot = await iot.findOneAndUpdate(
   { vehicleId },
