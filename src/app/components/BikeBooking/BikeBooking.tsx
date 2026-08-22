@@ -23,6 +23,7 @@ type RazorpayResponse = {
 
 type RazorpayInstance = {
   open: () => void;
+  on: (event: string, handler: (response: { error?: { description?: string } }) => void) => void;
 };
 
 type RazorpayOptions = {
@@ -31,6 +32,7 @@ type RazorpayOptions = {
   currency: string;
   name: string;
   description: string;
+  image?: string;
   order_id: string;
   prefill: {
     name: string;
@@ -614,7 +616,8 @@ await loadData();
       key: orderData.keyId,
       amount: orderData.amount,
       currency: orderData.currency,
-      name: "EVUDDY",
+      name: orderData.name || "EVUDDY",
+      image: orderData.image,
       description: `Booking Payment - ${bookingId}`,
       order_id: orderData.orderId,
       prefill: {
@@ -688,6 +691,12 @@ await loadData();
     setPaymentMessage("Payment cancelled. You can try again.");
   },
 },
+    });
+
+    razorpay.on("payment.failed", (response) => {
+      setPaymentLoading(false);
+      setPaymentMessage("");
+      setError(response.error?.description || "Payment failed. Please try again.");
     });
 
     razorpay.open();
