@@ -6,7 +6,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
-import { generateSixDigitOtp } from "@/lib/otp";
+import { generateSixDigitOtp, isOtpExpired } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -82,7 +82,18 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Ride end OTP is issued only after the booking is fully paid.",
+          message: "Ride end OTP is issued only after the rider swipes Ride end on Book EV.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (isOtpExpired(booking.rideEndOTPExpiry)) {
+      await rollback(session);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Ride end OTP has expired. Ask the rider to swipe Ride end again on Book EV.",
         },
         { status: 400 }
       );
@@ -256,10 +267,7 @@ export async function POST(req: Request) {
     const pending = Number(booking.pendingAmount || 0);
     return NextResponse.json({
       success: true,
-      message:
-        pending > 0
-          ? `Ride completed. Remaining ${pending.toFixed(2)} is still due — collect on Book EV or pay now.`
-          : "Ride completed successfully.",
+      message: "Ride completed successfully.",
       pendingAmount: pending,
       paymentStatus: booking.paymentStatus,
       data: booking,

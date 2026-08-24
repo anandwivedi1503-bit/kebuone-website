@@ -11,6 +11,7 @@ import WalletTransaction from "@/models/WalletTransaction";
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 import {
+  bookingPaymentApplyFilter,
   isBookingStillPayable,
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
@@ -213,8 +214,8 @@ export async function applyCapturedRazorpayPayment(
       }
     }
 
-    const updatedBooking = await Booking.findByIdAndUpdate(
-      bookingMongoId,
+    const updatedBooking = await Booking.findOneAndUpdate(
+      bookingPaymentApplyFilter(bookingMongoId, oldReceivedAmount, paidAmount),
       {
         $set: {
           ...progress.bookingPatch,
@@ -246,7 +247,11 @@ export async function applyCapturedRazorpayPayment(
     );
 
     if (!updatedBooking) {
-      return { ok: false, status: 404, message: "Booking not found." };
+      return {
+        ok: false,
+        status: 409,
+        message: "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
+      };
     }
 
     try {
@@ -408,11 +413,11 @@ export async function applyCapturedRazorpayPayment(
       message:
         paymentStatus === "Paid"
           ? rideStatus === "In Ride"
-            ? "Remaining payment received. Ride end OTP is ready on Book EV."
+            ? "Remaining payment received. Rider can swipe Ride end on Book EV to get the ride-end OTP."
             : rideStatus === "Completed"
             ? "Remaining payment received."
             : "Payment verified. Pickup OTP is ready."
-          : "Partial payment verified. Pickup OTP is ready. Remaining must be paid before ride end OTP is issued.",
+          : "Partial payment verified. Pickup OTP is ready. Remaining must be paid before the rider can swipe Ride end.",
     };
   } catch (error) {
     console.error("APPLY CAPTURED PAYMENT ERROR:", error);

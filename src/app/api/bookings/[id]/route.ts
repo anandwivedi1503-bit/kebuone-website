@@ -76,10 +76,6 @@ function generateTransactionId(prefix = "WTX"): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
 
-function generateRefundId(): string {
-  return `RF-${crypto.randomUUID()}`;
-}
-
 function normalizeAmount(value: unknown): number {
   const amount = Number(value);
 
@@ -756,8 +752,13 @@ export async function PATCH(
       );
 
       /* -------------------------------------------------------------------- */
-      /* RELEASE SECURITY DEPOSIT HOLD                                        */
+      /* RELEASE SECURITY DEPOSIT HOLD (hold only — not a cash refund)        */
       /* -------------------------------------------------------------------- */
+
+      const existingHold = await WalletTransaction.findOne({
+        bookingId: booking.bookingId,
+        transactionType: "Security Deposit Hold",
+      }).session(session);
 
       const wallet = await Wallet.findOne({
         riderId: booking.riderId,
@@ -765,6 +766,7 @@ export async function PATCH(
       }).session(session);
 
       if (
+        existingHold &&
         wallet &&
         Number(booking.securityDeposit || 0) > 0
       ) {
@@ -793,6 +795,7 @@ export async function PATCH(
         }).session(session);
 
       if (
+        existingHold &&
         !existingRelease &&
         Number(booking.securityDeposit || 0) > 0
       ) {
@@ -835,52 +838,7 @@ export async function PATCH(
         );
       }
 
-      /* -------------------------------------------------------------------- */
-      /* CREATE REFUND REQUEST                                                */
-      /* -------------------------------------------------------------------- */
-
-      if (
-        Number(booking.securityDeposit || 0) > 0
-      ) {
-        const existingRefund =
-          await Refund.findOne({
-            bookingId: booking.bookingId,
-            refundStatus: {
-              $ne: "REJECTED",
-            },
-          }).session(session);
-
-        if (!existingRefund) {
-          await Refund.create(
-            [
-              {
-                refundId: generateRefundId(),
-
-                bookingId:
-                  booking.bookingId,
-
-                riderId:
-                  booking.riderId,
-
-                amount:
-                  Number(
-                    booking.securityDeposit || 0
-                  ),
-
-                refundStatus: "PENDING",
-
-                remarks:
-                  "Security deposit refund pending admin approval.",
-
-                processedBy: "Admin",
-              },
-            ],
-            {
-              session,
-            }
-          );
-        }
-      }
+      /* Deposit cash refund is queued only after a fully paid completed ride. */
 
       /* -------------------------------------------------------------------- */
       /* CANCEL BOOKING                                                       */
@@ -894,9 +852,7 @@ export async function PATCH(
         clean(remarks) ||
         "Cancelled by admin";
 
-      booking.refundAmount = Number(
-        booking.securityDeposit || 0
-      );
+      booking.refundAmount = 0;
 
       booking.securityDepositRefunded = false;
 

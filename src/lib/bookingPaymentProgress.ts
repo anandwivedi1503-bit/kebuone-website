@@ -64,6 +64,8 @@ export function nextPaymentProgress(
         ? "Ready For Pickup"
         : "Booked";
 
+  const unlockedForPickup = Boolean(booking.pickupOTPVerified);
+
   return {
     paymentStatus,
     rideStatus,
@@ -71,8 +73,21 @@ export function nextPaymentProgress(
     pickupOTP,
     rideEndOTP,
     vehicleStatus,
-    vehicleLockStatus: inRide ? "Unlocked" : "Locked",
+    vehicleLockStatus: inRide || unlockedForPickup ? "Unlocked" : "Locked",
     updateVehicle: !completed,
     updateRiderLock: !completed && !inRide,
+  };
+}
+
+export function bookingPaymentApplyFilter(
+  bookingId: unknown,
+  previousReceived: number,
+  paidAmount: number
+) {
+  return {
+    _id: bookingId,
+    paymentStatus: { $ne: "Paid" },
+    pendingAmount: { $gte: paidAmount - 0.009 },
+    receivedAmount: previousReceived,
   };
 }

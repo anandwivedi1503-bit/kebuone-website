@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
-import { generateSixDigitOtp, rideEndOtpExpiry } from "@/lib/otp";
+import { generateSixDigitOtp, isOtpExpired, rideEndOtpExpiry } from "@/lib/otp";
 import { getOwnedActiveBooking } from "@/lib/ownedActiveBooking";
 import { writeAudit } from "@/lib/writeAudit";
 
@@ -43,9 +43,11 @@ export async function POST(req: Request) {
     }
 
     const existing = String(booking.rideEndOTP || "").trim();
-    const rideEndOTP = existing || generateSixDigitOtp();
+    const expired = isOtpExpired(booking.rideEndOTPExpiry);
+    const rideEndOTP = !expired && existing ? existing : generateSixDigitOtp();
     booking.rideEndOTP = rideEndOTP;
-    booking.rideEndOTPExpiry = booking.rideEndOTPExpiry || rideEndOtpExpiry();
+    booking.rideEndOTPExpiry =
+      !expired && booking.rideEndOTPExpiry ? booking.rideEndOTPExpiry : rideEndOtpExpiry();
     booking.rideEndOTPVerified = false;
     booking.riderReturnedAt = booking.riderReturnedAt || new Date();
     await booking.save();

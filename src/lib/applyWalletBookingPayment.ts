@@ -5,6 +5,7 @@ import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } fro
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 import {
+  bookingPaymentApplyFilter,
   isBookingStillPayable,
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
@@ -70,14 +71,14 @@ export async function applyWalletBookingPayment(input: {
       return { ok: false as const, status: 403, message: "Rider account is not active." };
     }
 
-    if (!isBookingStillPayable(booking)) {
-      await rollback(session);
-      return { ok: false as const, status: 400, message: "This booking has already been fully paid." };
-    }
-
     if (booking.rideStatus === "Cancelled") {
       await rollback(session);
       return { ok: false as const, status: 400, message: "This booking is no longer payable." };
+    }
+
+    if (!isBookingStillPayable(booking)) {
+      await rollback(session);
+      return { ok: false as const, status: 400, message: "This booking has already been fully paid." };
     }
 
     const payableAmount = getBookingPayableAmount(booking);
@@ -216,10 +217,7 @@ export async function applyWalletBookingPayment(input: {
     }
 
     const updatedBooking = await Booking.findOneAndUpdate(
-      {
-        _id: bookingMongoId,
-        paymentStatus: { $ne: "Paid" },
-      },
+      bookingPaymentApplyFilter(bookingMongoId, oldReceivedAmount, paidAmount),
       {
         $set: {
           ...progress.bookingPatch,
@@ -228,6 +226,16 @@ export async function applyWalletBookingPayment(input: {
           paymentVerifiedAt: new Date(),
           invoiceNumber,
           invoiceGenerated: true,
+          ...(booking.rentalMode === "Rent To Own" && pendingAmount <= 0
+            ? {
+                rtoInstallmentsPaid: Number(booking.rtoInstallmentsPaid || 0) + 1,
+                rentToOwnCompletedDays: Number(booking.rentToOwnCompletedDays || 0) + 30,
+                remainingRentToOwnDays: Math.max(
+                  0,
+                  Number(booking.remainingRentToOwnDays || 0) - 30
+                ),
+              }
+            : {}),
         },
       },
       { new: true, session }
@@ -235,7 +243,11 @@ export async function applyWalletBookingPayment(input: {
 
     if (!updatedBooking) {
       await rollback(session);
-      return { ok: false as const, status: 409, message: "Booking was already paid." };
+      return {
+        ok: false as const,
+        status: 409,
+        message: "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
+      };
     }
 
     if (progress.updateVehicle && progress.vehicleStatus) {
@@ -333,11 +345,11 @@ export async function applyWalletBookingPayment(input: {
       message:
         paymentStatus === "Paid"
           ? rideStatus === "In Ride"
-            ? "Remaining wallet payment received. Ride end OTP is ready on Book EV."
+            ? "Remaining wallet payment received. Rider can swipe Ride end on Book EV to get the ride-end OTP."
             : rideStatus === "Completed"
             ? "Remaining wallet payment received."
             : "Wallet payment complete. Pickup OTP is ready."
-          : "Partial wallet payment applied. Pickup OTP is ready. Remaining must be paid before ride end OTP is issued.",
+          : "Partial wallet payment applied. Pickup OTP is ready. Remaining must be paid before the rider can swipe Ride end.",
     };
   } catch (error) {
     await rollback(session);
