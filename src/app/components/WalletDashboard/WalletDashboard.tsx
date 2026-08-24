@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import ActionButton from "../DashboardUI/ActionButton";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function WalletDashboard() {
 
@@ -394,8 +395,10 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="Rider EVUDDY credit (admin top-ups and returned deposits). Razorpay rental payments do not add to this balance. Deposit hold is not spendable wallet cash."
+subtitle="Rider EVUDDY credit (admin top-ups and returned deposits). Razorpay rental payments do not add to this balance. Live booking paid/pending comes from the same booking records as Booking Management."
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 
@@ -687,6 +690,10 @@ const headers = [
 
 "Deposit Hold",
 
+"Live booking",
+
+"Booking pending",
+
 "Status",
 
 ];
@@ -704,6 +711,10 @@ w.balance,
 Math.max(0, Number(w.balance || 0) - Number(w.freezeAmount || 0)),
 
 w.securityDepositHold,
+
+w.liveBooking?.bookingId || "",
+
+w.liveBooking?.pendingAmount ?? "",
 
 w.status,
 
@@ -787,6 +798,10 @@ Export CSV
 
 <th className="px-6 py-5 text-center">Deposit Hold</th>
 
+<th className="px-6 py-5 text-center">Live booking</th>
+
+<th className="px-6 py-5 text-center">Booking pending</th>
+
 <th className="px-6 py-5 text-center">Status</th>
 
 <th className="px-6 py-5 text-center">Actions</th>
@@ -826,6 +841,17 @@ className="border-b border-pink-50 hover:bg-pink-50/40 transition"
 
 <td className="px-6 py-5 text-center">
 ₹{Number(wallet.securityDepositHold || 0).toLocaleString("en-IN")}
+</td>
+
+<td className="px-6 py-5 text-center text-xs font-semibold">
+{wallet.liveBooking?.bookingId || "—"}
+{wallet.liveBooking?.paymentStatus ? (
+  <div className="mt-1 text-[11px] text-slate-500">{wallet.liveBooking.paymentStatus} · {wallet.liveBooking.rideStatus}</div>
+) : null}
+</td>
+
+<td className="px-6 py-5 text-center font-bold text-orange-600">
+{wallet.liveBooking ? `₹${Number(wallet.liveBooking.pendingAmount || 0).toLocaleString("en-IN")}` : "—"}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1294,6 +1320,18 @@ Wallet
 <p><b>Total Spent :</b> ₹{selectedWallet.totalSpent}</p>
 
 <p><b>Total Refund :</b> ₹{selectedWallet.totalRefund}</p>
+
+{selectedWallet.liveBooking ? (
+  <>
+    <p className="mt-3 text-sm font-bold text-[#0A1134]">Live booking (same as Booking dashboard)</p>
+    <p><b>Booking :</b> {selectedWallet.liveBooking.bookingId}</p>
+    <p><b>Received :</b> ₹{Number(selectedWallet.liveBooking.receivedAmount || 0).toLocaleString("en-IN")}</p>
+    <p><b>Pending :</b> ₹{Number(selectedWallet.liveBooking.pendingAmount || 0).toLocaleString("en-IN")}</p>
+    <p><b>Deposit on booking :</b> ₹{Number(selectedWallet.liveBooking.securityDeposit || 0).toLocaleString("en-IN")}</p>
+  </>
+) : (
+  <p className="mt-3 text-sm font-semibold text-slate-500">No open booking. Wallet balance is EVUDDY credit only.</p>
+)}
 
 </div>
 

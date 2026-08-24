@@ -11,6 +11,7 @@ import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
 import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function FleetDashboard() {
 
@@ -137,8 +138,10 @@ return (
 
 <DashboardHeader
 title="Fleet Dashboard"
-subtitle="Monitor every vehicle, hub, battery status and fleet operation across the complete Kebu One ecosystem."
+subtitle="Same vehicles and booking money as Hub and Booking Management. Yard cash and Razorpay both update the live booking."
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 

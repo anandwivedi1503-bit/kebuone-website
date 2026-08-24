@@ -9,6 +9,7 @@ import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import DashboardActions from "../DashboardUI/DashboardActions";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 type BookingRow = {
   _id: string;
@@ -72,6 +73,7 @@ export default function RentToOwnDashboard() {
         title="Rent to Own"
         subtitle="18-month ownership plans at ₹280/day. Same live booking records as Booking Management."
       />
+      <OpsMoneyStrip />
 
       <KPIGrid>
         <KPICard title="RTO contracts" value={String(rto.length)} subtitle="All time" icon="🔑" color="green" />

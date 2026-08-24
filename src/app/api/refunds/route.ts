@@ -4,6 +4,7 @@ import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
 import Booking from "@/models/Booking";
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { attachBookingSnapshotsToRefunds } from "@/lib/opsMoneySummary";
 import { writeAudit } from "@/lib/writeAudit";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
@@ -207,7 +208,9 @@ export async function GET(req: Request) {
       Refund.countDocuments(filter),
     ]);
 
-    return NextResponse.json(listResponse(refunds, total, page, limit));
+    const data = await attachBookingSnapshotsToRefunds(refunds as Array<Record<string, unknown>>);
+
+    return NextResponse.json(listResponse(data, total, page, limit));
   } catch (error) {
     return NextResponse.json(
       {

@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function SupportDashboard(){
 
@@ -131,6 +132,8 @@ title="Support Dashboard"
 subtitle="Rider booking complaints and website Contact Us are stored separately in this CRM (same tickets database, different queue)."
 
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 

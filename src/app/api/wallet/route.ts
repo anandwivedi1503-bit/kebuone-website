@@ -8,6 +8,7 @@ import { connectDB } from "@/lib/mongodb";
 
 import Wallet from "@/models/Wallet";
 import Rider from "@/models/Rider";
+import { attachLiveBookingsByRider } from "@/lib/opsMoneySummary";
 
 import mongoose from "mongoose";
 
@@ -154,13 +155,15 @@ export async function GET(req: Request) {
         Wallet.countDocuments(filter),
       ]);
 
+    const data = await attachLiveBookingsByRider(wallets as Array<Record<string, unknown>>);
+
     /*
      * Return paginated wallet data.
      */
     return NextResponse.json({
       success: true,
 
-      data: wallets,
+      data,
 
       pagination: {
         page,

@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function RefundDashboard(){
 
@@ -225,9 +226,11 @@ return(
 
 title="Refund Dashboard"
 
-subtitle="Manage, approve and monitor customer refund requests."
+subtitle="Deposit refunds are queued only after a fully paid completed ride (usually the ₹2,500 security deposit). A ₹100 row is a manual/test refund, not the live booking deposit."
 
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 
@@ -298,6 +301,9 @@ rightContent={
       BookingID: refund.bookingId,
       TicketID: refund.ticketId,
       Amount: refund.amount,
+      Kind: refund.refundKind,
+      BookingPending: refund.bookingSnapshot?.pendingAmount,
+      BookingDeposit: refund.bookingSnapshot?.securityDeposit,
       Status: refund.refundStatus,
       Gateway: refund.paymentGateway,
     }))}
@@ -429,6 +435,10 @@ Amount
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Kind
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
 Gateway Txn
 </th>
 
@@ -466,7 +476,7 @@ Reject
 <tr>
 
 <td
-colSpan={11}
+colSpan={12}
 className="py-12 text-center text-gray-500 text-lg font-semibold"
 >
 
@@ -504,6 +514,15 @@ transition
 
 <td className="px-6 py-5 text-center font-bold">
 ₹{Number(refund.amount).toLocaleString("en-IN")}
+{refund.bookingSnapshot ? (
+  <div className="mt-1 text-[11px] font-semibold text-slate-500">
+    Booking deposit ₹{Number(refund.bookingSnapshot.securityDeposit || 0).toLocaleString("en-IN")} · pending ₹{Number(refund.bookingSnapshot.pendingAmount || 0).toLocaleString("en-IN")}
+  </div>
+) : null}
+</td>
+
+<td className="px-6 py-5 text-center text-xs font-bold">
+{refund.refundKind === "SecurityDeposit" ? "Security deposit" : "Manual / other"}
 </td>
 
 <td className="px-6 py-5 text-center">
