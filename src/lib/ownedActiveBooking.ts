@@ -12,7 +12,7 @@ const NOT_DELETED = {
 export async function getOwnedActiveBooking(req: Request) {
   const firebaseUser = await getVerifiedFirebaseUser(req);
   if (!firebaseUser) {
-    return { error: { status: 401, message: "Sign in required." } as const };
+    return { ok: false as const, status: 401, message: "Sign in required." };
   }
 
   const riderLookups: Array<{ firebaseUid?: string; phone?: string }> = [
@@ -25,7 +25,7 @@ export async function getOwnedActiveBooking(req: Request) {
   });
 
   if (!rider || !firebaseUserOwnsRider(firebaseUser, rider)) {
-    return { error: { status: 404, message: "Rider not found." } as const };
+    return { ok: false as const, status: 404, message: "Rider not found." };
   }
 
   const booking = await Booking.findOne({
@@ -53,8 +53,8 @@ export async function getOwnedActiveBooking(req: Request) {
   }).sort({ createdAt: -1 });
 
   if (!booking) {
-    return { error: { status: 404, message: "No active booking found." } as const };
+    return { ok: false as const, status: 404, message: "No active booking found." };
   }
 
-  return { rider, booking, firebaseUser };
+  return { ok: true as const, rider, booking, firebaseUser };
 }

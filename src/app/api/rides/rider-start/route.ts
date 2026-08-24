@@ -12,10 +12,10 @@ export async function POST(req: Request) {
   try {
     await connectDB();
     const owned = await getOwnedActiveBooking(req);
-    if ("error" in owned) {
+    if (!owned.ok) {
       return NextResponse.json(
-        { success: false, message: owned.error.message },
-        { status: owned.error.status }
+        { success: false, message: owned.message },
+        { status: owned.status }
       );
     }
 
