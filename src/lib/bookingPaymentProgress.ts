@@ -84,10 +84,30 @@ export function bookingPaymentApplyFilter(
   previousReceived: number,
   paidAmount: number
 ) {
+  const receivedMatch =
+    previousReceived <= 0.009
+      ? {
+          $or: [
+            { receivedAmount: previousReceived },
+            { receivedAmount: { $exists: false } },
+            { receivedAmount: null },
+            { receivedAmount: 0 },
+          ],
+        }
+      : { receivedAmount: previousReceived };
+
   return {
     _id: bookingId,
     paymentStatus: { $ne: "Paid" },
-    pendingAmount: { $gte: paidAmount - 0.009 },
-    receivedAmount: previousReceived,
+    $and: [
+      receivedMatch,
+      {
+        $or: [
+          { pendingAmount: { $gte: paidAmount - 0.009 } },
+          { pendingAmount: { $exists: false } },
+          { pendingAmount: null },
+        ],
+      },
+    ],
   };
 }
