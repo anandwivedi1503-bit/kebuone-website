@@ -392,8 +392,8 @@ filteredVehicles.map((vehicle) => (
               vehicle={vehicle}
               booking={bookings.find(
                 (item) =>
-                  item.bookingId === vehicle.currentBookingId ||
-                  item.vehicleId === vehicle.vehicleId
+                  Boolean(vehicle.currentBookingId) &&
+                  item.bookingId === vehicle.currentBookingId
               )}
               onDone={loadFleet}
             />

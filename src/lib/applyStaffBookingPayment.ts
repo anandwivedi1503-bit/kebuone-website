@@ -5,6 +5,7 @@ import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } fro
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 import {
+  bookingPaymentApplyFilter,
   isBookingStillPayable,
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
@@ -191,11 +192,7 @@ export async function applyStaffBookingPayment(input: {
     }
 
     const updatedBooking = await Booking.findOneAndUpdate(
-      {
-        _id: booking._id,
-        paymentStatus: { $ne: "Paid" },
-        pendingAmount: { $gte: paidAmount - 0.009 },
-      },
+      bookingPaymentApplyFilter(booking._id, oldReceivedAmount, paidAmount),
       {
         $set: {
           ...progress.bookingPatch,

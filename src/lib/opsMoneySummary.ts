@@ -28,9 +28,14 @@ export async function getOpsMoneySummary() {
             $sum: {
               $cond: [
                 {
-                  $or: [
-                    { $eq: ["$paymentStatus", "Unpaid"] },
-                    { $eq: ["$paymentStatus", "Pending"] },
+                  $and: [
+                    { $ne: ["$rideStatus", "Cancelled"] },
+                    {
+                      $or: [
+                        { $eq: ["$paymentStatus", "Unpaid"] },
+                        { $eq: ["$paymentStatus", "Pending"] },
+                      ],
+                    },
                   ],
                 },
                 1,
@@ -38,11 +43,28 @@ export async function getOpsMoneySummary() {
               ],
             },
           },
+          pendingLive: {
+            $sum: {
+              $cond: [
+                { $eq: ["$rideStatus", "Cancelled"] },
+                0,
+                { $ifNull: ["$pendingAmount", 0] },
+              ],
+            },
+          },
         },
       },
     ]),
     Transaction.aggregate([
-      { $match: { status: "Success", ...notDeleted } },
+      {
+        $match: {
+          status: "Success",
+          transactionType: {
+            $in: ["Ride Payment", "Booking Payment", "Security Deposit"],
+          },
+          ...notDeleted,
+        },
+      },
       {
         $group: {
           _id: { $ifNull: ["$paymentMethod", "Unknown"] },
@@ -57,9 +79,15 @@ export async function getOpsMoneySummary() {
         $group: {
           _id: {
             $cond: [
-              { $eq: [{ $ifNull: ["$cashHandoverStatus", "DueToCompany"] }, "HandedOver"] },
+              { $eq: ["$cashHandoverStatus", "HandedOver"] },
               "HandedOver",
-              "DueToCompany",
+              {
+                $cond: [
+                  { $eq: ["$cashHandoverStatus", "DueToCompany"] },
+                  "DueToCompany",
+                  "Other",
+                ],
+              },
             ],
           },
           total: { $sum: { $ifNull: ["$amount", 0] } },
@@ -109,7 +137,7 @@ export async function getOpsMoneySummary() {
     bookings: {
       count: Number(booking.count ?? 0),
       received: roundMoney(Number(booking.received ?? 0)),
-      pending: roundMoney(Number(booking.pending ?? 0)),
+      pending: roundMoney(Number(booking.pendingLive ?? booking.pending ?? 0)),
       deposit: roundMoney(Number(booking.deposit ?? 0)),
       fullyPaid: Number(booking.fullyPaid ?? 0),
       partial: Number(booking.partial ?? 0),
@@ -150,7 +178,9 @@ export async function attachLiveBookingsByRider(rows: Array<Record<string, unkno
 
   const bookings = await Booking.find({
     riderId: { $in: riderIds },
-    rideStatus: { $nin: ["Cancelled"] },
+    rideStatus: {
+      $in: ["Booked", "Reserved", "Payment Pending", "Ready For Pickup", "In Ride"],
+    },
     $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
   })
     .select(
