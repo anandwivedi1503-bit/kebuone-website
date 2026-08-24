@@ -16,6 +16,7 @@ import Link from "next/link";
 import { gstBreakdown } from "@/lib/gst";
 import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, RTO_PLAN, catalogRate } from "@/lib/rentalPlans";
+import RideSwipeControl from "./RideSwipeControl";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -165,6 +166,10 @@ const [loading, setLoading] = useState(true);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 const [pickupOtp, setPickupOtp] = useState("");
   const [rideEndOtp, setRideEndOtp] = useState("");
+  const [rideStatus, setRideStatus] = useState("");
+  const [pickupOtpVerified, setPickupOtpVerified] = useState(false);
+  const [riderReturnedAt, setRiderReturnedAt] = useState("");
+  const [rideSwipeBusy, setRideSwipeBusy] = useState(false);
   const [paymentMessage, setPaymentMessage] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [bookingPaymentStatus, setBookingPaymentStatus] = useState("");
@@ -270,8 +275,11 @@ useEffect(() => {
       setPaidAmount(Number(active.receivedAmount || 0));
       setPendingAmount(Number(active.pendingAmount || 0));
       setBookingPaymentStatus(String(active.paymentStatus || ""));
-      if (active.pickupOTP) setPickupOtp(String(active.pickupOTP));
-      if (active.rideEndOTP) setRideEndOtp(String(active.rideEndOTP));
+      setRideStatus(String(active.rideStatus || ""));
+      setPickupOtpVerified(Boolean(active.pickupOTPVerified));
+      setPickupOtp(String(active.pickupOTP || ""));
+      setRideEndOtp(String(active.rideEndOTP || ""));
+      setRiderReturnedAt(active.riderReturnedAt ? String(active.riderReturnedAt) : "");
       if (Number(active.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
       if (
         Number(active.receivedAmount || 0) <= 0.009 &&
@@ -360,8 +368,11 @@ useEffect(() => {
         setPaymentAmount(String(pending > 0 ? pending : due || ""));
         setBookingPaymentStatus(String(active.paymentStatus || "Pending"));
         setPaymentSuccess(pending <= 0.009 && received > 0);
-        if (active.pickupOTP) setPickupOtp(String(active.pickupOTP));
-        if (active.rideEndOTP) setRideEndOtp(String(active.rideEndOTP));
+        setRideStatus(String(active.rideStatus || ""));
+        setPickupOtpVerified(Boolean(active.pickupOTPVerified));
+        setPickupOtp(String(active.pickupOTP || ""));
+        setRideEndOtp(String(active.rideEndOTP || ""));
+        setRiderReturnedAt(active.riderReturnedAt ? String(active.riderReturnedAt) : "");
         setReservedBike({
           _id: String(active.vehicleId || ""),
           vehicleId: String(active.vehicleId || ""),
@@ -1064,17 +1075,13 @@ setStep(4);
     }
     setPaymentSuccess(true);
     setPaymentMessage(
-      data.rideEndOTP
-        ? `Payment complete. Ride end OTP is ${data.rideEndOTP}. Tell this to the yard when you return.`
-        : data.pickupOTP
+      data.pickupOTP
         ? `Payment successful. Your pickup OTP is ${data.pickupOTP}.`
         : data.message || "Payment successful. Booking confirmed."
     );
     notifyBrowser(
       "EVUDDY booking update",
-      data.rideEndOTP
-        ? `Ride end OTP ${data.rideEndOTP}. Tell this at the yard to return the scooter.`
-        : data.pickupOTP
+      data.pickupOTP
         ? `Pickup OTP ${data.pickupOTP}. Show this at the hub.`
         : "Payment successful. Your scooter is reserved."
     );
@@ -1105,6 +1112,48 @@ setStep(4);
       );
     } catch {
       setOtpSmsStatus("SMS could not be sent. Use the OTP on this page.");
+    }
+  };
+
+  const swipeRide = async (path: "/api/rides/rider-start" | "/api/rides/rider-end") => {
+    setRideSwipeBusy(true);
+    setError("");
+    try {
+      const token = await auth.currentUser?.getIdToken(true);
+      if (!token) {
+        setError("Please sign in again with your registered mobile.");
+        return;
+      }
+      setFirebaseIdToken(token);
+      const res = await fetch(path, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.message || "Unable to update ride.");
+        return;
+      }
+      if (data.rideStatus) setRideStatus(String(data.rideStatus));
+      if (data.rideEndOTP) setRideEndOtp(String(data.rideEndOTP));
+      if (data.riderReturnedAt) setRiderReturnedAt(String(data.riderReturnedAt));
+      if (path === "/api/rides/rider-start") {
+        setPickupOtpVerified(true);
+        setPickupOtp("");
+        setMessage("Ride started. Pay any remaining amount before you return.");
+      } else {
+        setMessage(
+          data.message ||
+            "Ride end OTP is ready. Tell this to the yard to return the scooter."
+        );
+      }
+    } catch {
+      setError("Unable to update ride. Try again.");
+    } finally {
+      setRideSwipeBusy(false);
     }
   };
 
@@ -2487,7 +2536,7 @@ focus:ring-[#18B368]/10
 
                 {bookingDone && paidAmount > 0 ? (
                   <div className="mt-4 space-y-3">
-                    {pickupOtp ? (
+                    {pickupOtp && !pickupOtpVerified ? (
                       <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-5">
                         <p className="text-xs font-bold uppercase tracking-widest text-green-800">
                           Pickup OTP — tell this to the yard
@@ -2496,7 +2545,7 @@ focus:ring-[#18B368]/10
                           {pickupOtp}
                         </p>
                         <p className="mt-2 text-sm text-green-800">
-                          Tell this OTP at {hubLabel}. We also try SMS to {riderPhone || "your registered mobile"}.
+                          Tell this OTP at {hubLabel}. After the yard saves it, swipe Ride started below.
                         </p>
                         <button
                           type="button"
@@ -2509,17 +2558,40 @@ focus:ring-[#18B368]/10
                           <p className="mt-2 text-xs text-green-900">{otpSmsStatus}</p>
                         ) : null}
                       </div>
-                    ) : (
+                    ) : pickupOtpVerified && rideStatus !== "In Ride" ? (
+                      <div className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm text-sky-950">
+                        Yard confirmed pickup and unlocked the scooter. Slide to start your ride.
+                      </div>
+                    ) : rideStatus === "In Ride" ? null : (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                        Pickup OTP is being prepared. Keep this page open — it appears here and on SMS.
+                        Pickup OTP is being prepared. Keep this page open — it appears here for the yard.
                       </div>
                     )}
+
+                    {pickupOtpVerified && rideStatus !== "In Ride" && rideStatus !== "Completed" ? (
+                      <RideSwipeControl
+                        label="Slide to start ride"
+                        hint="Yard has saved your pickup OTP. Slide to mark the ride as started."
+                        busy={rideSwipeBusy}
+                        onConfirm={() => swipeRide("/api/rides/rider-start")}
+                      />
+                    ) : null}
+
+                    {rideStatus === "In Ride" && pendingAmount > 0.009 ? (
+                      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+                        Remaining {formatINR(pendingAmount)} must be paid before you can swipe Ride end.
+                      </p>
+                    ) : null}
+
                     {rideEndOtp ? (
                       <div className="rounded-2xl bg-slate-900 px-5 py-5 text-white">
                         <p className="text-xs font-bold uppercase tracking-widest text-green-300">
                           Ride end OTP — tell this to the yard on return
                         </p>
                         <p className="mt-2 text-5xl font-black tracking-[0.28em]">{rideEndOtp}</p>
+                        <p className="mt-2 text-sm text-slate-200">
+                          The yard enters this next to pickup OTP and takes the scooter back.
+                        </p>
                         <button
                           type="button"
                           onClick={() => void sendOtpSms()}
@@ -2528,10 +2600,13 @@ focus:ring-[#18B368]/10
                           Resend OTP SMS
                         </button>
                       </div>
-                    ) : pendingAmount > 0.009 ? (
-                      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
-                        Remaining {formatINR(pendingAmount)} must be paid before ride end OTP is issued.
-                      </p>
+                    ) : rideStatus === "In Ride" && pendingAmount <= 0.009 ? (
+                      <RideSwipeControl
+                        label="Slide to end ride"
+                        hint="You are back at the yard. Slide to generate the ride end OTP for the manager."
+                        busy={rideSwipeBusy}
+                        onConfirm={() => swipeRide("/api/rides/rider-end")}
+                      />
                     ) : null}
                   </div>
                 ) : bookingDone ? (

@@ -264,6 +264,8 @@ rentalEndDate: {
 
 actualRideEnd: Date,
 
+riderReturnedAt: Date,
+
 completedAt: Date,
 
 expectedReturnDate: Date,

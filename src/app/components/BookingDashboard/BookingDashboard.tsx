@@ -182,7 +182,7 @@ const startRide = async (
   }
 
   const confirmStart = confirm(
-    "Start this ride?"
+    "Confirm pickup OTP and unlock for the rider? The rider then swipes Ride started on Book EV."
   );
 
   if (!confirmStart) return;
@@ -219,7 +219,7 @@ const startRide = async (
 
 }
 
-    alert(data.message || "Ride started. Vehicle unlocked.");
+    alert(data.message || "Pickup OTP saved. Rider will swipe Ride started.");
 
 setOtpModalOpen(false);
 

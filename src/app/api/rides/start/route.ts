@@ -6,17 +6,13 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
-import { isOtpExpired, generateSixDigitOtp, rideEndOtpExpiry } from "@/lib/otp";
+import { isOtpExpired } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
 
 function clean(value: unknown) {
   return String(value || "").trim();
-}
-
-function generateRideEndOTP() {
-  return generateSixDigitOtp();
 }
 
 async function rollback(session: mongoose.ClientSession | null) {
@@ -104,13 +100,16 @@ export async function POST(req: Request) {
       await rollback(session);
       session = null;
 
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Pickup OTP already used.",
-        },
-        { status: 400 }
-      );
+      return NextResponse.json({
+        success: true,
+        alreadyVerified: true,
+        message:
+          booking.rideStatus === "In Ride"
+            ? "Pickup already confirmed. Ride is in progress."
+            : "Pickup OTP already confirmed. Waiting for the rider to swipe Ride started.",
+        pendingAmount: Number(booking.pendingAmount || 0),
+        data: booking,
+      });
     }
 
     if (booking.pickupOTP !== normalizedPickupOTP) {
@@ -247,24 +246,12 @@ export async function POST(req: Request) {
     }
 
     const pending = Number(booking.pendingAmount || 0);
-    const fullyPaid =
-      booking.paymentStatus === "Paid" || pending <= 0;
-    const existingEnd = String(booking.rideEndOTP || "").trim();
-    const rideEndOTP = fullyPaid
-      ? existingEnd || generateRideEndOTP()
-      : "";
 
-    booking.rideStatus = "In Ride";
-    booking.actualRideStart = new Date();
-    booking.completedAt = undefined;
     booking.pickupOTPVerified = true;
     booking.pickupOTPVerifiedAt = new Date();
     booking.pickupOTP = "";
     booking.pickupOTPExpiry = null;
-    booking.rideEndOTP = rideEndOTP;
-    booking.rideEndOTPExpiry = fullyPaid ? rideEndOtpExpiry() : null;
-    booking.rideEndOTPVerified = false;
-    booking.rideEndOTPVerifiedAt = null;
+    booking.rideStatus = "Ready For Pickup";
 
     await Vehicle.updateOne(
       {
@@ -272,12 +259,11 @@ export async function POST(req: Request) {
       },
       {
         $set: {
-          vehicleStatus: "In Ride",
+          vehicleStatus: "Ready For Pickup",
           lockStatus: "Unlocked",
           assignedRider: booking.riderId,
           currentBookingId: booking.bookingId,
           currentRiderId: booking.riderId,
-          rideStartedAt: new Date(),
         },
       },
       {
@@ -291,7 +277,6 @@ export async function POST(req: Request) {
       },
       {
         $set: {
-          activeRide: true,
           currentBookingId: booking.bookingId,
         },
       },
@@ -310,10 +295,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      message: fullyPaid
-        ? "Ride started. Vehicle unlocked. Ride end OTP is on the rider Book EV page."
-        : "Ride started. Vehicle unlocked. Ride end OTP is issued only after the remaining amount is paid.",
-      rideEndOTP: fullyPaid ? rideEndOTP : undefined,
+      message:
+        "Pickup OTP confirmed. Scooter unlocked. Rider must swipe Ride started on Book EV.",
       pendingAmount: pending,
       data: booking,
     });

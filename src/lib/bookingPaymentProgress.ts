@@ -1,4 +1,4 @@
-import { generateSixDigitOtp, pickupOtpExpiry, rideEndOtpExpiry } from "@/lib/otp";
+import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
 
 type BookingLike = {
   rideStatus?: string;
@@ -55,14 +55,6 @@ export function nextPaymentProgress(
   }
 
   let rideEndOTP: string | undefined;
-  if (!completed && pendingAmount <= 0 && receivedAmount > 0) {
-    const existing = String(booking.rideEndOTP || "").trim();
-    const otp = existing || generateSixDigitOtp();
-    rideEndOTP = otp;
-    bookingPatch.rideEndOTP = otp;
-    bookingPatch.rideEndOTPExpiry = booking.rideEndOTPExpiry || rideEndOtpExpiry();
-    bookingPatch.rideEndOTPVerified = false;
-  }
 
   const vehicleStatus = completed
     ? null

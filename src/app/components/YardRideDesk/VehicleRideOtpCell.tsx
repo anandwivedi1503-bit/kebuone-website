@@ -9,6 +9,10 @@ type BookingLite = {
   rideStatus?: string;
   startHub?: string;
   pickupHubName?: string;
+  pickupOTPVerified?: boolean;
+  pickupOTPGenerated?: boolean;
+  rideEndOTPGenerated?: boolean;
+  riderReturnedAt?: string | Date;
 };
 
 type VehicleLite = {
@@ -38,6 +42,8 @@ export default function VehicleRideOtpCell({
   const status = String(vehicle.vehicleStatus || booking?.rideStatus || "");
   const bookingId = booking?.bookingId || vehicle.currentBookingId || "";
   const pending = Number(booking?.pendingAmount || 0);
+  const pickupVerified = Boolean(booking?.pickupOTPVerified);
+  const endOtpReady = Boolean(booking?.rideEndOTPGenerated || booking?.riderReturnedAt);
 
   if (!["Ready For Pickup", "In Ride"].includes(status) || !bookingId) {
     return <span className="text-slate-400">—</span>;
@@ -53,7 +59,7 @@ export default function VehicleRideOtpCell({
     }
   };
 
-  const startRide = () =>
+  const confirmPickup = () =>
     run(async () => {
       if (!pickupOtp.trim()) {
         setNote("Enter pickup OTP from the rider.");
@@ -72,7 +78,7 @@ export default function VehicleRideOtpCell({
       }
     });
 
-  const endRide = () =>
+  const takeBack = () =>
     run(async () => {
       if (pending > 0.009) {
         setNote(`Pay remaining ₹${pending.toFixed(2)} first. Ride end OTP is not issued yet.`);
@@ -102,7 +108,7 @@ export default function VehicleRideOtpCell({
   return (
     <div className="min-w-[220px] space-y-2 text-left">
       <p className="text-xs font-semibold text-slate-500">{bookingId}</p>
-      {status === "Ready For Pickup" ? (
+      {status === "Ready For Pickup" && !pickupVerified ? (
         <>
           <input
             value={pickupOtp}
@@ -113,15 +119,23 @@ export default function VehicleRideOtpCell({
           <button
             type="button"
             disabled={busy}
-            onClick={() => void startRide()}
+            onClick={() => void confirmPickup()}
             className="h-10 w-full rounded-xl bg-[#16A34A] text-sm font-bold text-white disabled:opacity-60"
           >
-            {busy ? "Unlocking..." : "Unlock"}
+            {busy ? "Saving..." : "Save pickup OTP"}
           </button>
         </>
+      ) : status === "Ready For Pickup" && pickupVerified ? (
+        <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
+          Unlocked. Waiting for rider to swipe Ride started on Book EV.
+        </p>
       ) : pending > 0.009 ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-          Remaining ₹{pending.toFixed(2)}. Ride end OTP after full pay.
+          Remaining ₹{pending.toFixed(2)}. Rider pays on Book EV, then swipes Ride end.
+        </p>
+      ) : !endOtpReady ? (
+        <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
+          Waiting for rider to swipe Ride end. Then enter the ride end OTP here.
         </p>
       ) : (
         <>
@@ -140,7 +154,7 @@ export default function VehicleRideOtpCell({
           <button
             type="button"
             disabled={busy}
-            onClick={() => void endRide()}
+            onClick={() => void takeBack()}
             className="h-10 w-full rounded-xl bg-[#0F172A] text-sm font-bold text-white disabled:opacity-60"
           >
             {busy ? "Returning..." : "Take back"}

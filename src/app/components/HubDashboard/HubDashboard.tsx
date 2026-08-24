@@ -25,8 +25,6 @@ const [statusFilter,setStatusFilter]=useState("All");
 const [editingHub,setEditingHub]=useState<any>(null);
 const [saving, setSaving] = useState(false);
 
-useEffect(()=>{
-
 const loadHubs = () => {
   Promise.all([
     fetch("/api/hubs").then((res)=>res.json()),
@@ -40,6 +38,8 @@ const loadHubs = () => {
     })
     .catch(() => undefined);
 };
+
+useEffect(()=>{
 
 loadHubs();
 const timer = window.setInterval(loadHubs, 15000);
@@ -212,6 +212,7 @@ color="yellow"
                         item.bookingId === vehicle.currentBookingId ||
                         item.vehicleId === vehicle.vehicleId
                     )}
+                    onDone={loadHubs}
                   />
                 </td>
               </tr>
