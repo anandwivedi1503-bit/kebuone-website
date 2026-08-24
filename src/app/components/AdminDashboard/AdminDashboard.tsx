@@ -3,6 +3,7 @@
  import { useEffect, useState } from "react";
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import {
   AlertTriangle,
   BarChart3,
@@ -993,6 +994,8 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
             </div>
           </div>
         </header>
+
+        <OpsMoneyStrip />
 
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className={`${panelClass} rounded-[28px] p-4 sm:p-5`}>

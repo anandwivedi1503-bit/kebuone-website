@@ -21,6 +21,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function TransactionDashboard(){
 
@@ -28,6 +29,7 @@ const [transactions,setTransactions]=useState<any[]>([]);
 const [search,setSearch]=useState("");
 const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 const [loading, setLoading] = useState(true);
+const [handoverId, setHandoverId] = useState("");
 
 useEffect(() => {
 
@@ -71,6 +73,26 @@ setLoading(false);
 
 }
 
+};
+
+const markCashHandedOver = async (transactionId: string) => {
+  if (!confirm("Confirm this cash has been handed over to the company?")) return;
+  setHandoverId(transactionId);
+  try {
+    const res = await fetch("/api/payments/cash/handover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ transactionId }),
+    });
+    const data = await res.json();
+    if (!data.success) {
+      alert(data.message || "Unable to mark handover.");
+      return;
+    }
+    await fetchTransactions();
+  } finally {
+    setHandoverId("");
+  }
 };
 
 const filteredTransactions = transactions
@@ -160,9 +182,11 @@ return(
 
 title="Transaction Dashboard"
 
-subtitle="Monitor all payments, wallet transactions and ride collections."
+subtitle="Razorpay, wallet, and yard cash all land here from the same Mongo transactions. Cash stays Due to company until yard/admin marks handover."
 
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 
@@ -431,6 +455,10 @@ Created
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Cash handover
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
 View
 </th>
 
@@ -445,7 +473,7 @@ View
 <tr>
 
 <td
-colSpan={12}
+colSpan={13}
 className="py-10 text-center text-gray-500 font-medium"
 >
 
@@ -579,6 +607,25 @@ Pending
 {item.createdAt
 ? new Date(item.createdAt).toLocaleString("en-IN")
 : "-"}
+</td>
+
+<td className="px-6 py-5 text-center">
+{item.paymentMethod === "Cash" ? (
+  item.cashHandoverStatus === "HandedOver" ? (
+    <span className="text-xs font-bold text-emerald-700">Handed over</span>
+  ) : (
+    <button
+      type="button"
+      disabled={handoverId === item.transactionId}
+      onClick={() => void markCashHandedOver(item.transactionId)}
+      className="rounded-xl bg-[#0A1134] px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
+    >
+      {handoverId === item.transactionId ? "Saving..." : "Mark handed to company"}
+    </button>
+  )
+) : (
+  <span className="text-slate-400">—</span>
+)}
 </td>
 
 <td className="px-6 py-5 text-center">

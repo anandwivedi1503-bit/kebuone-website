@@ -11,6 +11,7 @@ import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
 import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function HubDashboard() {
 
@@ -128,8 +129,10 @@ return(
 
 <DashboardHeader
 title="Hub Dashboard"
-subtitle="Manage every operational hub, parking capacity and battery inventory across Kebu One."
+subtitle="Yard desk uses the same live bookings as Booking Management. Collect rider cash here, then handover that cash to the company from Transactions."
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 

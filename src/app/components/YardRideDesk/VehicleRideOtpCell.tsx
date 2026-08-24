@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CashCollectForm from "./CashCollectForm";
 
 type BookingLite = {
   bookingId?: string;
@@ -44,8 +45,15 @@ export default function VehicleRideOtpCell({
   const pending = Number(booking?.pendingAmount || 0);
   const pickupVerified = Boolean(booking?.pickupOTPVerified);
   const endOtpReady = Boolean(booking?.rideEndOTPGenerated || booking?.riderReturnedAt);
+  const deskStatuses = [
+    "Booked",
+    "Reserved",
+    "Payment Pending",
+    "Ready For Pickup",
+    "In Ride",
+  ];
 
-  if (!["Ready For Pickup", "In Ride"].includes(status) || !bookingId) {
+  if (!bookingId || !deskStatuses.includes(status)) {
     return <span className="text-slate-400">—</span>;
   }
 
@@ -108,6 +116,9 @@ export default function VehicleRideOtpCell({
   return (
     <div className="min-w-[220px] space-y-2 text-left">
       <p className="text-xs font-semibold text-slate-500">{bookingId}</p>
+      {pending > 0.009 ? (
+        <CashCollectForm bookingId={bookingId} pendingAmount={pending} onDone={onDone} />
+      ) : null}
       {status === "Ready For Pickup" && !pickupVerified ? (
         <>
           <input
@@ -129,15 +140,15 @@ export default function VehicleRideOtpCell({
         <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
           Unlocked. Waiting for rider to swipe Ride started on Book EV.
         </p>
-      ) : pending > 0.009 ? (
+      ) : status === "In Ride" && pending > 0.009 ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-          Remaining ₹{pending.toFixed(2)}. Rider pays on Book EV, then swipes Ride end.
+          Remaining can also be paid on Book EV. Then the rider swipes Ride end.
         </p>
-      ) : !endOtpReady ? (
+      ) : status === "In Ride" && !endOtpReady ? (
         <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
           Waiting for rider to swipe Ride end. Then enter the ride end OTP here.
         </p>
-      ) : (
+      ) : status === "In Ride" && endOtpReady ? (
         <>
           <input
             value={rideEndOtp}
@@ -160,7 +171,11 @@ export default function VehicleRideOtpCell({
             {busy ? "Returning..." : "Take back"}
           </button>
         </>
-      )}
+      ) : pending <= 0.009 ? (
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
+          Paid. Pickup OTP appears on Book EV after the first payment.
+        </p>
+      ) : null}
       {note ? <p className="text-xs text-slate-600">{note}</p> : null}
     </div>
   );

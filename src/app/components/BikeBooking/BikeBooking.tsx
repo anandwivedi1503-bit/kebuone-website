@@ -388,7 +388,7 @@ useEffect(() => {
         });
         setMessage(
           pending > 0.009
-            ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pickup OTP starts the ride. Ride end OTP is issued only after remaining is paid.`
+            ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here (Razorpay/wallet) or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
             : `Open booking ${active.bookingId}. Payment is complete.`
         );
       }
@@ -2579,7 +2579,7 @@ focus:ring-[#18B368]/10
 
                     {rideStatus === "In Ride" && pendingAmount > 0.009 ? (
                       <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
-                        Remaining {formatINR(pendingAmount)} must be paid before you can swipe Ride end.
+                        Remaining {formatINR(pendingAmount)} must be paid here or as cash at the yard before you can swipe Ride end.
                       </p>
                     ) : null}
 
@@ -2696,7 +2696,7 @@ disabled:opacity-60
                     : `Wallet ${formatINR(walletAvailable)} — not enough for this amount`}
                 </button>
                 <p className="mt-2 text-center text-xs text-slate-500">
-                  Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal payment path. A ₹0.00 wallet cannot pay this booking.
+                  Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal online path. You can also hand cash to the yard manager — they record it on Hub/Booking and must handover that cash to the company.
                 </p>
                 </>
                 ) : null}

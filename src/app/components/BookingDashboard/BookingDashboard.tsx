@@ -10,6 +10,8 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { getBookingPayableAmount, money } from "@/lib/gst";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import CashCollectForm from "../YardRideDesk/CashCollectForm";
 
 export default function BookingDashboard(){
 
@@ -452,9 +454,12 @@ return(
 
 title="Booking Management"
 
-subtitle="Monitor all bike bookings, ride status, paid vs pending, and pickup OTP after full payment."
+subtitle="Same live booking ledger as Wallet, Refunds, Transactions and Hub. Razorpay, wallet credit, or cash at the yard all update paid vs pending here."
 
 />
+
+<OpsMoneyStrip />
+
 
 {loadError ? (
   <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 font-semibold text-red-700">
@@ -1199,6 +1204,14 @@ booking.actualRideEnd
 
 <div className="flex flex-col gap-2">
 
+{Number(booking.pendingAmount || 0) > 0.009 && booking.rideStatus !== "Cancelled" ? (
+  <CashCollectForm
+    bookingId={booking.bookingId}
+    pendingAmount={Number(booking.pendingAmount || 0)}
+    onDone={() => void fetchBookings()}
+  />
+) : null}
+
 {booking.rideStatus === "Booked" && (
 
 <>
@@ -1359,7 +1372,7 @@ View
 
 {Number(booking.pendingAmount || 0) > 0.009 ? (
   <div className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-900">
-    Pay remaining {rupees(booking.pendingAmount)} before ride end OTP
+    Remaining {rupees(booking.pendingAmount)}. Collect cash at yard or rider pays on Book EV. Ride end OTP only after ₹0 pending.
   </div>
 ) : (
 <button

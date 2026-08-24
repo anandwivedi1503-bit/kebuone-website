@@ -169,6 +169,41 @@ updatedBy: {
   default: "",
 },
 
+collectedBy: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+collectedAt: {
+  type: Date,
+},
+
+cashHandoverStatus: {
+  type: String,
+  enum: ["None", "DueToCompany", "HandedOver"],
+  default: "None",
+},
+
+handedOverAt: {
+  type: Date,
+},
+
+handedOverBy: {
+  type: String,
+  trim: true,
+  maxlength: 80,
+  default: "",
+},
+
+handoverNotes: {
+  type: String,
+  trim: true,
+  maxlength: 500,
+  default: "",
+},
+
 isDeleted: {
   type: Boolean,
   default: false,
@@ -225,6 +260,11 @@ TransactionSchema.index({
 TransactionSchema.index({
   paymentMethod: 1,
   status: 1,
+});
+
+TransactionSchema.index({
+  cashHandoverStatus: 1,
+  paymentMethod: 1,
 });
 
 TransactionSchema.index({

@@ -12,7 +12,7 @@ export type BookingNotifyInput = {
   paymentStatus: string;
   pickupOTP?: string;
   rideEndOTP?: string;
-  paymentMethod: "Razorpay" | "Wallet";
+  paymentMethod: "Razorpay" | "Wallet" | "Cash";
 };
 
 function messageFor(input: BookingNotifyInput) {

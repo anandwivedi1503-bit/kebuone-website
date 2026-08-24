@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function RevenueDashboard(){
 
@@ -209,9 +210,11 @@ return(
 
 title="Revenue Dashboard"
 
-subtitle="Monitor revenue, GST collection, payment performance and financial reports."
+subtitle="Same receipts as Transactions plus wallet credit and refunds. Booking pending lives on Booking Management; this page totals successful payment rows."
 
 />
+
+<OpsMoneyStrip />
 
 <KPIGrid>
 
