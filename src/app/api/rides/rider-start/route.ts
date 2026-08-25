@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
+import { syncBookingRiderId } from "@/lib/findBookingRider";
 import { getOwnedActiveBooking } from "@/lib/ownedActiveBooking";
 import { writeAudit } from "@/lib/writeAudit";
 import Rider from "@/models/Rider";
@@ -20,6 +21,7 @@ export async function POST(req: Request) {
     }
 
     const { booking, rider } = owned;
+    syncBookingRiderId(booking, rider);
 
     if (booking.rideStatus === "In Ride" && booking.actualRideStart) {
       return NextResponse.json({

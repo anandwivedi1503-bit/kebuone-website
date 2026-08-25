@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
+import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import {
   bookingPaymentApplyFilter,
   isBookingStillPayable,
@@ -66,15 +67,13 @@ export async function applyStaffBookingPayment(input: {
       return { ok: false as const, status: 404, message: "Booking not found." };
     }
 
-    const rider = await Rider.findOne({
-      riderId: booking.riderId,
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    }).session(session);
+    const rider = await findBookingRider(booking, session);
 
     if (!rider) {
       await rollback(session);
       return { ok: false as const, status: 404, message: "Rider not found." };
     }
+    syncBookingRiderId(booking, rider);
 
     if (String(booking.rideStatus || "") === "Cancelled") {
       await rollback(session);

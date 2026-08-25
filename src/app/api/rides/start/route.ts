@@ -5,6 +5,7 @@ import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
 import { isOtpExpired } from "@/lib/otp";
 import Booking from "@/models/Booking";
@@ -112,7 +113,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (booking.pickupOTP !== normalizedPickupOTP) {
+    if (String(booking.pickupOTP || "").trim() !== normalizedPickupOTP) {
       await rollback(session);
       session = null;
 
@@ -185,7 +186,10 @@ export async function POST(req: Request) {
       );
     }
 
-    if (vehicle.currentBookingId !== booking.bookingId) {
+    if (
+      String(vehicle.currentBookingId || "").trim().toUpperCase() !==
+      String(booking.bookingId || "").trim().toUpperCase()
+    ) {
       await rollback(session);
       session = null;
 
@@ -198,51 +202,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const rider = await Rider.findOne({
-      riderId: booking.riderId,
-      isDeleted: false,
-    }).session(session);
+    const rider = await findBookingRider(booking, session);
+    const riderId = String(rider?.riderId || booking.riderId || "").trim();
 
-    if (!rider) {
-      await rollback(session);
-      session = null;
+    if (rider) {
+      const riderBookingId = String(rider.currentBookingId || "").trim();
+      if (riderBookingId && riderBookingId !== booking.bookingId) {
+        await rollback(session);
+        session = null;
 
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Rider not found.",
-        },
-        { status: 404 }
-      );
-    }
+        return NextResponse.json(
+          {
+            success: false,
+            message: rider.activeRide
+              ? "Rider already has an active ride."
+              : "Rider booking mismatch.",
+          },
+          { status: 400 }
+        );
+      }
 
-    if (
-      rider.currentBookingId &&
-      rider.currentBookingId !== booking.bookingId
-    ) {
-      await rollback(session);
-      session = null;
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Rider booking mismatch.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (rider.activeRide) {
-      await rollback(session);
-      session = null;
-
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Rider already has an active ride.",
-        },
-        { status: 400 }
-      );
+      syncBookingRiderId(booking, rider);
     }
 
     const pending = Number(booking.pendingAmount || 0);
@@ -261,9 +241,9 @@ export async function POST(req: Request) {
         $set: {
           vehicleStatus: "Ready For Pickup",
           lockStatus: "Unlocked",
-          assignedRider: booking.riderId,
+          assignedRider: riderId,
           currentBookingId: booking.bookingId,
-          currentRiderId: booking.riderId,
+          currentRiderId: riderId,
         },
       },
       {
@@ -271,19 +251,21 @@ export async function POST(req: Request) {
       }
     );
 
-    await Rider.updateOne(
-      {
-        riderId: booking.riderId,
-      },
-      {
-        $set: {
-          currentBookingId: booking.bookingId,
+    if (rider) {
+      await Rider.updateOne(
+        {
+          _id: rider._id,
         },
-      },
-      {
-        session,
-      }
-    );
+        {
+          $set: {
+            currentBookingId: booking.bookingId,
+          },
+        },
+        {
+          session,
+        }
+      );
+    }
 
     await booking.save({
       session,

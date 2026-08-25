@@ -5,6 +5,7 @@ import {
   isAdminAuthenticated,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
 import { generateSixDigitOtp, isOtpExpired } from "@/lib/otp";
 import Booking from "@/models/Booking";
@@ -151,7 +152,10 @@ export async function POST(req: Request) {
       );
     }
 
-    if (vehicle.currentBookingId !== booking.bookingId) {
+    if (
+      String(vehicle.currentBookingId || "").trim().toUpperCase() !==
+      String(booking.bookingId || "").trim().toUpperCase()
+    ) {
       await rollback(session);
       return NextResponse.json(
         { success: false, message: "Vehicle booking mismatch." },
@@ -159,24 +163,20 @@ export async function POST(req: Request) {
       );
     }
 
-    const rider = await Rider.findOne({
-      riderId: booking.riderId,
-    }).session(session);
+    const rider = await findBookingRider(booking, session);
 
-    if (!rider) {
-      await rollback(session);
-      return NextResponse.json(
-        { success: false, message: "Rider not found." },
-        { status: 404 }
-      );
-    }
-
-    if (rider.currentBookingId && rider.currentBookingId !== booking.bookingId) {
-      await rollback(session);
-      return NextResponse.json(
-        { success: false, message: "Rider booking mismatch." },
-        { status: 400 }
-      );
+    if (rider) {
+      syncBookingRiderId(booking, rider);
+      if (
+        rider.currentBookingId &&
+        rider.currentBookingId !== booking.bookingId
+      ) {
+        await rollback(session);
+        return NextResponse.json(
+          { success: false, message: "Rider booking mismatch." },
+          { status: 400 }
+        );
+      }
     }
 
     booking.actualRideEnd = new Date();
@@ -209,16 +209,18 @@ export async function POST(req: Request) {
       { session }
     );
 
-    await Rider.findOneAndUpdate(
-      { riderId: booking.riderId },
-      {
-        activeRide: false,
-        currentBookingId: "",
-        currentTripId: "",
-        lastRideCompletedAt: new Date(),
-      },
-      { session }
-    );
+    if (rider) {
+      await Rider.findOneAndUpdate(
+        { _id: rider._id },
+        {
+          activeRide: false,
+          currentBookingId: "",
+          currentTripId: "",
+          lastRideCompletedAt: new Date(),
+        },
+        { session }
+      );
+    }
 
     const wallet = await Wallet.findOne({
       riderId: booking.riderId,

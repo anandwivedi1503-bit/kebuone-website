@@ -67,12 +67,16 @@ export default function VehicleRideOtpCell({
     }
   };
 
-  const confirmPickup = () =>
-    run(async () => {
-      if (!pickupOtp.trim()) {
-        setNote("Enter pickup OTP from the rider.");
-        return;
-      }
+  const confirmPickup = () => {
+    if (!pickupOtp.trim()) {
+      setNote("Enter pickup OTP from the rider.");
+      return;
+    }
+    const confirmed = window.confirm(
+      "Confirm pickup OTP and unlock for the rider? The rider then swipes Ride started on Book EV."
+    );
+    if (!confirmed) return;
+    void run(async () => {
       const res = await fetch("/api/rides/start", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -85,6 +89,7 @@ export default function VehicleRideOtpCell({
         onDone?.();
       }
     });
+  };
 
   const takeBack = () =>
     run(async () => {
