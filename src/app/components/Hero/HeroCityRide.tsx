@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useSyncExternalStore } from "react";
+import { useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
 import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
 /** Classic 2:1 isometric city — BatterySmart language, EVUDDY brand. */
@@ -146,7 +146,7 @@ function FaceWindows({
           key={`r-${r}-${c}`}
           points={`${a.x},${a.y} ${b.x},${b.y} ${c2.x},${c2.y} ${e.x},${e.y}`}
           fill={tone}
-          opacity="0.92"
+          opacity="0.78"
         />
       );
     }
@@ -354,22 +354,19 @@ function RideScooter({
   color: string;
   reduced: boolean;
 }) {
-  const ref = useRef<SVGGElement | null>(null);
   const pts = useMemo(() => cells.map(([x, y]) => iso(x, y)), [cells]);
+  const [pos, setPos] = useState(pts[0]);
 
   useEffect(() => {
-    const node = ref.current;
-    if (!node || reduced) {
-      const p = pts[0];
-      if (node && p) node.setAttribute("transform", `translate(${p.x} ${p.y})`);
+    if (reduced) {
+      setPos(pts[0]);
       return;
     }
     let raf = 0;
     const start = performance.now() - delay;
     const tick = (now: number) => {
       const t = ((now - start) / duration) % 1;
-      const p = pointAlong(pts, t);
-      node.setAttribute("transform", `translate(${p.x} ${p.y})`);
+      setPos(pointAlong(pts, t));
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
@@ -377,7 +374,7 @@ function RideScooter({
   }, [duration, delay, reduced, pts]);
 
   return (
-    <g ref={ref}>
+    <g transform={`translate(${pos.x} ${pos.y}) scale(0.72)`}>
       <IsoScooter color={color} />
     </g>
   );
@@ -644,11 +641,11 @@ export default function HeroCityRide() {
             </>
           ) : null}
 
-          <RideScooter cells={AVE} duration={16000} color="#18B368" reduced={reduced} />
-          <RideScooter cells={AVE} duration={20000} delay={8000} color="#EC2A8C" reduced={reduced} />
-          <RideScooter cells={CROSS} duration={14000} delay={2500} color="#0EA5E9" reduced={reduced} />
-          <RideScooter cells={LOOP} duration={22000} delay={1200} color="#18B368" reduced={reduced} />
-          <RideScooter cells={SPUR} duration={11000} delay={4000} color="#F59E0B" reduced={reduced} />
+          <RideScooter cells={AVE} duration={9000} color="#18B368" reduced={reduced} />
+          <RideScooter cells={AVE} duration={11000} delay={4500} color="#EC2A8C" reduced={reduced} />
+          <RideScooter cells={CROSS} duration={8000} delay={1200} color="#0EA5E9" reduced={reduced} />
+          <RideScooter cells={LOOP} duration={14000} delay={600} color="#18B368" reduced={reduced} />
+          <RideScooter cells={SPUR} duration={7000} delay={2000} color="#F59E0B" reduced={reduced} />
 
           <Callout x={2.7} y={6.2} dx={-150} dy={-118} title="Hourly to monthly EV rentals" width={186} />
           <Callout x={13.9} y={10.3} dx={210} dy={-90} title="Dense EVUDDY hub & yard network" width={214} />
