@@ -1,17 +1,19 @@
 "use client";
 
-import { useId, useSyncExternalStore } from "react";
+import { useEffect, useId, useMemo, useRef, useSyncExternalStore } from "react";
 import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
-/** Classic 2:1 isometric — BatterySmart-style city, EVUDDY branding. */
+/** Classic 2:1 isometric city — BatterySmart language, EVUDDY brand. */
 const OX = 640;
-const OY = 86;
-const UX = 30;
-const UY = 15;
+const OY = 92;
+const UX = 28;
+const UY = 14;
 const VB_W = 1280;
-const VB_H = 620;
+const VB_H = 640;
 
-function iso(x: number, y: number) {
+type Pt = { x: number; y: number };
+
+function iso(x: number, y: number): Pt {
   return { x: OX + (x - y) * UX, y: OY + (x + y) * UY };
 }
 
@@ -30,6 +32,37 @@ function isoLine(points: Array<[number, number]>) {
       return `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
     })
     .join(" ");
+}
+
+function roadFill(x0: number, y0: number, x1: number, y1: number) {
+  const a = iso(x0, y0);
+  const b = iso(x1, y0);
+  const c = iso(x1, y1);
+  const d = iso(x0, y1);
+  return `${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y} ${d.x},${d.y}`;
+}
+
+function lerp(a: Pt, b: Pt, t: number): Pt {
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+}
+
+function pointAlong(points: Pt[], t: number): Pt {
+  if (points.length < 2) return points[0] || { x: 0, y: 0 };
+  const segs: number[] = [];
+  let total = 0;
+  for (let i = 0; i < points.length - 1; i++) {
+    const d = Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
+    segs.push(d);
+    total += d;
+  }
+  let dist = ((t % 1) + 1) % 1 * total;
+  for (let i = 0; i < segs.length; i++) {
+    if (dist <= segs[i] || i === segs.length - 1) {
+      return lerp(points[i], points[i + 1], segs[i] ? dist / segs[i] : 0);
+    }
+    dist -= segs[i];
+  }
+  return points[points.length - 1];
 }
 
 function Box({
@@ -53,8 +86,10 @@ function Box({
 }) {
   const p = [iso(x, y), iso(x + w, y), iso(x + w, y + d), iso(x, y + d)];
   const q = p.map((pt) => ({ x: pt.x, y: pt.y - h }));
+  const shadow = iso(x + w * 0.55, y + d * 0.7);
   return (
     <g>
+      <ellipse cx={shadow.x} cy={shadow.y + 4} rx={w * UX * 0.55} ry={d * UY * 0.7} fill="rgba(15,23,42,0.10)" />
       <polygon
         points={`${p[3].x},${p[3].y} ${p[2].x},${p[2].y} ${q[2].x},${q[2].y} ${q[3].x},${q[3].y}`}
         fill={left}
@@ -71,48 +106,117 @@ function Box({
   );
 }
 
-function Windows({
+function FaceWindows({
   x,
   y,
+  w,
+  d,
+  h,
   cols,
   rows,
-  h,
-  tone = "#D6E6F5",
+  tone = "#E8F2FB",
 }: {
   x: number;
   y: number;
+  w: number;
+  d: number;
+  h: number;
   cols: number;
   rows: number;
-  h: number;
   tone?: string;
 }) {
-  const origin = iso(x + 0.18, y + 0.12);
+  const p1 = iso(x + w, y);
+  const p2 = iso(x + w, y + d);
+  const p3 = iso(x, y + d);
   const items = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
+      const u0 = (c + 0.22) / cols;
+      const u1 = (c + 0.78) / cols;
+      const v0 = (r + 0.22) / rows;
+      const v1 = (r + 0.78) / rows;
+      const b0 = lerp(p1, p2, u0);
+      const b1 = lerp(p1, p2, u1);
+      const a = { x: b0.x, y: b0.y - h * (1 - v0) };
+      const b = { x: b1.x, y: b1.y - h * (1 - v0) };
+      const c2 = { x: b1.x, y: b1.y - h * (1 - v1) };
+      const e = { x: b0.x, y: b0.y - h * (1 - v1) };
       items.push(
-        <rect
-          key={`${r}-${c}`}
-          x={origin.x + 5 + c * 8}
-          y={origin.y - h + 10 + r * 11}
-          width="5.5"
-          height="7"
-          rx="0.8"
+        <polygon
+          key={`r-${r}-${c}`}
+          points={`${a.x},${a.y} ${b.x},${b.y} ${c2.x},${c2.y} ${e.x},${e.y}`}
           fill={tone}
+          opacity="0.92"
         />
       );
     }
   }
-  return <g opacity="0.95">{items}</g>;
+  const leftCols = Math.max(2, cols - 1);
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < leftCols; c++) {
+      const u0 = (c + 0.22) / leftCols;
+      const u1 = (c + 0.78) / leftCols;
+      const v0 = (r + 0.22) / rows;
+      const v1 = (r + 0.78) / rows;
+      const b0 = lerp(p3, p2, u0);
+      const b1 = lerp(p3, p2, u1);
+      const a = { x: b0.x, y: b0.y - h * (1 - v0) };
+      const b = { x: b1.x, y: b1.y - h * (1 - v0) };
+      const c2 = { x: b1.x, y: b1.y - h * (1 - v1) };
+      const e = { x: b0.x, y: b0.y - h * (1 - v1) };
+      items.push(
+        <polygon
+          key={`l-${r}-${c}`}
+          points={`${a.x},${a.y} ${b.x},${b.y} ${c2.x},${c2.y} ${e.x},${e.y}`}
+          fill={tone}
+          opacity="0.55"
+        />
+      );
+    }
+  }
+  return <g>{items}</g>;
+}
+
+function Building({
+  x,
+  y,
+  w,
+  d,
+  h,
+  top,
+  left,
+  right,
+  rows,
+  cols,
+  glass,
+}: {
+  x: number;
+  y: number;
+  w: number;
+  d: number;
+  h: number;
+  top: string;
+  left: string;
+  right: string;
+  rows: number;
+  cols: number;
+  glass?: string;
+}) {
+  return (
+    <g>
+      <Box x={x} y={y} w={w} d={d} h={h} top={top} left={left} right={right} />
+      <FaceWindows x={x} y={y} w={w} d={d} h={h} cols={cols} rows={rows} tone={glass} />
+    </g>
+  );
 }
 
 function Tree({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
   const p = iso(x, y);
   return (
     <g transform={`translate(${p.x} ${p.y}) scale(${scale})`}>
-      <ellipse cx="0" cy="4" rx="11" ry="4" fill="rgba(15,23,42,0.08)" />
-      <ellipse cx="0" cy="-14" rx="14" ry="12" fill="#2F9E57" />
-      <ellipse cx="4" cy="-20" rx="9" ry="7" fill="#4ECB71" />
+      <ellipse cx="0" cy="5" rx="12" ry="4.2" fill="rgba(15,23,42,0.10)" />
+      <ellipse cx="0" cy="-13" rx="15" ry="13" fill="#2F9E57" />
+      <ellipse cx="5" cy="-20" rx="10" ry="8" fill="#5BD67A" />
     </g>
   );
 }
@@ -121,58 +225,64 @@ function Person({ x, y, shirt }: { x: number; y: number; shirt: string }) {
   const p = iso(x, y);
   return (
     <g transform={`translate(${p.x} ${p.y})`}>
-      <ellipse cx="0" cy="3" rx="5" ry="2" fill="rgba(15,23,42,0.12)" />
-      <rect x="-2.4" y="-14" width="4.8" height="11" rx="1.6" fill={shirt} />
-      <circle cx="0" cy="-18" r="3.2" fill="#F3C6A4" />
-      <rect x="-2.2" y="-4" width="1.9" height="7" rx="0.8" fill="#1E3A5F" />
-      <rect x="0.4" y="-4" width="1.9" height="7" rx="0.8" fill="#1E3A5F" />
+      <ellipse cx="0" cy="3" rx="5" ry="1.8" fill="rgba(15,23,42,0.12)" />
+      <rect x="-2.3" y="-13" width="4.6" height="10" rx="1.5" fill={shirt} />
+      <circle cx="0" cy="-16.5" r="3" fill="#F3C6A4" />
+      <rect x="-2.1" y="-4" width="1.8" height="6.5" rx="0.7" fill="#1E3A5F" />
+      <rect x="0.4" y="-4" width="1.8" height="6.5" rx="0.7" fill="#1E3A5F" />
     </g>
   );
 }
 
-function Cloud({ x, y, s = 1 }: { x: number; y: number; s?: number }) {
-  return (
-    <g transform={`translate(${x} ${y}) scale(${s})`} fill="#E8EEF4" opacity="0.9">
-      <ellipse cx="0" cy="0" rx="22" ry="10" />
-      <ellipse cx="14" cy="-2" rx="16" ry="9" />
-      <ellipse cx="-12" cy="1" rx="12" ry="7" />
-    </g>
-  );
-}
-
-/** Tall locker-style hub, in the BatterySmart station language. */
-function HubKiosk({
-  x,
-  y,
-  label,
-  glow,
-}: {
-  x: number;
-  y: number;
-  label: string;
-  glow: string;
-}) {
-  const face = iso(x + 1.05, y + 0.15);
+function IsoScooter({ color = "#18B368" }: { color?: string }) {
   return (
     <g>
-      <Box x={x} y={y} w={1.15} d={1.05} h={72} top="#1B4F86" left="#0D2A4A" right="#16406C" />
-      <Box x={x + 0.12} y={y + 0.08} w={0.9} d={0.88} h={8} top={glow} left="#0B3B22" right="#147A45" />
-      {[0, 1, 2, 3].map((n) => (
-        <rect
-          key={n}
-          className="evuddy-iso-slot"
-          x={face.x + 6}
-          y={face.y - 62 + n * 13}
-          width="16"
-          height="8"
-          rx="1.4"
-          fill={glow}
-          opacity="0.95"
-        />
-      ))}
+      <ellipse cx="0" cy="6" rx="16" ry="4" fill="rgba(15,23,42,0.14)" />
+      <circle cx="-11" cy="4" r="5" fill="#111827" />
+      <circle cx="12" cy="4" r="5" fill="#111827" />
+      <circle cx="-11" cy="4" r="2.1" fill="#94A3B8" />
+      <circle cx="12" cy="4" r="2.1" fill="#94A3B8" />
+      <path d="M-10 1 L-4 -2 L8 -2 L14 2 L10 5 L-8 5 Z" fill={color} />
+      <path d="M-2 -2 L1 -11 L6 -11 L8 -2" fill="#0F172A" />
+      <rect x="5" y="-13" width="2.2" height="12" rx="0.8" fill="#0F172A" />
+      <rect x="4.2" y="-15" width="6" height="2.4" rx="1" fill="#EC2A8C" />
+    </g>
+  );
+}
+
+function HubKiosk({ x, y, label }: { x: number; y: number; label: string }) {
+  const w = 1.2;
+  const d = 1.05;
+  const h = 78;
+  const p1 = iso(x + w, y);
+  const p2 = iso(x + w, y + d);
+  return (
+    <g>
+      <Box x={x} y={y} w={w} d={d} h={h} top="#1A4E86" left="#0C2744" right="#143A66" />
+      <Box x={x + 0.08} y={y + 0.08} w={1.04} d={0.88} h={7} top="#22C55E" left="#14532D" right="#16A34A" />
+      {[0, 1, 2, 3].map((n) => {
+        const u0 = 0.18;
+        const u1 = 0.82;
+        const v0 = (n + 0.35) / 5;
+        const v1 = (n + 0.78) / 5;
+        const b0 = lerp(p1, p2, u0);
+        const b1 = lerp(p1, p2, u1);
+        const a = { x: b0.x, y: b0.y - h * (1 - v0) };
+        const b = { x: b1.x, y: b1.y - h * (1 - v0) };
+        const c = { x: b1.x, y: b1.y - h * (1 - v1) };
+        const e = { x: b0.x, y: b0.y - h * (1 - v1) };
+        return (
+          <polygon
+            key={n}
+            className="evuddy-iso-slot"
+            points={`${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y} ${e.x},${e.y}`}
+            fill="#4ADE80"
+          />
+        );
+      })}
       <text
-        x={iso(x + 0.55, y + 0.4).x}
-        y={iso(x + 0.55, y + 0.4).y - 78}
+        x={iso(x + 0.6, y + 0.4).x}
+        y={iso(x + 0.6, y + 0.4).y - 88}
         textAnchor="middle"
         fill="#0F172A"
         fontSize="8"
@@ -185,71 +295,108 @@ function HubKiosk({
   );
 }
 
-function ParkedScooter({
-  src,
+function Callout({
   x,
   y,
-  scale = 0.072,
+  dx,
+  dy,
+  title,
+  width = 168,
 }: {
-  src: string;
   x: number;
   y: number;
-  scale?: number;
+  dx: number;
+  dy: number;
+  title: string;
+  width?: number;
 }) {
   const p = iso(x, y);
-  const w = 520 * scale;
-  const h = 290 * scale;
+  const bx = p.x + dx;
+  const by = p.y + dy;
   return (
-    <image
-      href={src}
-      x={p.x - w * 0.5}
-      y={p.y - h * 0.86}
-      width={w}
-      height={h}
-      preserveAspectRatio="xMidYMid meet"
-      style={{ filter: "drop-shadow(3px 5px 4px rgba(15,23,42,0.16))" }}
-    />
+    <g className="evuddy-iso-callout">
+      <line x1={p.x} y1={p.y - 36} x2={bx} y2={by + 28} stroke="#CBD5E1" strokeWidth="1.4" />
+      <rect
+        x={bx - width / 2}
+        y={by}
+        width={width}
+        height="36"
+        rx="18"
+        fill="#fff"
+        stroke="#E8EEF4"
+        filter="drop-shadow(0 8px 12px rgba(15,23,42,0.10))"
+      />
+      <text
+        x={bx}
+        y={by + 23}
+        textAnchor="middle"
+        fill="#0F172A"
+        fontSize="11"
+        fontWeight="700"
+        fontFamily="system-ui,sans-serif"
+      >
+        {title}
+      </text>
+    </g>
   );
 }
 
-function MovingScooter({
-  src,
-  pathId,
-  dur,
-  delay,
-  scale = 0.078,
-  flip,
+function RideScooter({
+  cells,
+  duration,
+  delay = 0,
+  color,
   reduced,
 }: {
-  src: string;
-  pathId: string;
-  dur: string;
-  delay: string;
-  scale?: number;
-  flip?: boolean;
+  cells: Array<[number, number]>;
+  duration: number;
+  delay?: number;
+  color: string;
   reduced: boolean;
 }) {
-  const w = 520 * scale;
-  const h = 290 * scale;
-  if (reduced) return null;
+  const ref = useRef<SVGGElement | null>(null);
+  const pts = useMemo(() => cells.map(([x, y]) => iso(x, y)), [cells]);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node || reduced) {
+      const p = pts[0];
+      if (node && p) node.setAttribute("transform", `translate(${p.x} ${p.y})`);
+      return;
+    }
+    let raf = 0;
+    const start = performance.now() - delay;
+    const tick = (now: number) => {
+      const t = ((now - start) / duration) % 1;
+      const p = pointAlong(pts, t);
+      node.setAttribute("transform", `translate(${p.x} ${p.y})`);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [duration, delay, reduced, pts]);
 
   return (
-    <g>
-      <animateMotion dur={dur} begin={delay} repeatCount="indefinite" rotate="0">
-        <mpath href={`#${pathId}`} />
-      </animateMotion>
-      <g transform={flip ? "scale(-1 1)" : undefined}>
-        <image
-          href={src}
-          x={-w * 0.5}
-          y={-h * 0.86}
-          width={w}
-          height={h}
-          preserveAspectRatio="xMidYMid meet"
-          style={{ filter: "drop-shadow(3px 5px 4px rgba(15,23,42,0.16))" }}
-        />
-      </g>
+    <g ref={ref}>
+      <IsoScooter color={color} />
     </g>
+  );
+}
+
+function ParkedPhoto({ src, x, y }: { src: string; x: number; y: number }) {
+  const p = iso(x, y);
+  const w = 34;
+  const h = 20;
+  return (
+    <image
+      href={src}
+      x={p.x - w / 2}
+      y={p.y - h + 2}
+      width={w}
+      height={h}
+      preserveAspectRatio="xMidYMid meet"
+      style={{ filter: "drop-shadow(2px 3px 3px rgba(15,23,42,0.18))" }}
+    />
   );
 }
 
@@ -259,29 +406,28 @@ function subscribeMotion(onChange: () => void) {
   return () => mq.removeEventListener("change", onChange);
 }
 
-function Callout({
-  className,
-  title,
-  delay,
-}: {
-  className: string;
-  title: string;
-  delay: string;
-}) {
-  return (
-    <div
-      className={`pointer-events-none absolute z-10 ${className}`}
-      style={{ animationDelay: delay }}
-    >
-      <div className="evuddy-iso-callout rounded-2xl border border-slate-100/90 bg-white px-3 py-2 shadow-[0_10px_28px_rgba(15,23,42,0.10)] sm:px-3.5 sm:py-2.5">
-        <p className="max-w-[16ch] text-[10px] font-bold leading-snug tracking-tight text-[#0F172A] sm:text-[11px]">
-          {title}
-        </p>
-      </div>
-      <div className="mx-6 h-2 w-2 rotate-45 -translate-y-1 border-b border-r border-slate-100 bg-white" />
-    </div>
-  );
-}
+const AVE: Array<[number, number]> = [
+  [0.6, 8.15],
+  [19.4, 8.15],
+];
+const CROSS: Array<[number, number]> = [
+  [10.15, 1.1],
+  [10.15, 15.2],
+];
+const LOOP: Array<[number, number]> = [
+  [3.4, 8.15],
+  [10.15, 8.15],
+  [10.15, 12.55],
+  [16.2, 12.55],
+  [16.2, 8.15],
+  [10.15, 8.15],
+  [3.4, 8.15],
+];
+const SPUR: Array<[number, number]> = [
+  [4.2, 4.15],
+  [10.15, 4.15],
+  [10.15, 8.15],
+];
 
 export default function HeroCityRide() {
   const src = useEvuddySideSrc();
@@ -292,225 +438,221 @@ export default function HeroCityRide() {
     () => false
   );
 
-  const avenue = isoLine([
-    [0.4, 8.15],
-    [18.6, 8.15],
-  ]);
-  const cross = isoLine([
-    [9.15, 1.2],
-    [9.15, 14.6],
-  ]);
-  const loop = isoLine([
-    [3.2, 8.15],
-    [9.15, 8.15],
-    [9.15, 12.4],
-    [14.8, 12.4],
-    [14.8, 8.15],
-    [9.15, 8.15],
-    [3.2, 8.15],
-  ]);
-
-  const roadFill = (x0: number, y0: number, x1: number, y1: number) => {
-    const a = iso(x0, y0);
-    const b = iso(x1, y0);
-    const c = iso(x1, y1);
-    const d = iso(x0, y1);
-    return `${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y} ${d.x},${d.y}`;
-  };
-
   return (
-    <div className="relative mx-auto mt-4 w-full max-w-[1280px] sm:mt-6">
+    <div className="relative mx-auto mt-3 w-full max-w-[1280px] sm:mt-5">
       <style>{`
-        @keyframes evuddy-iso-bob {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-6px); }
-        }
         @keyframes evuddy-iso-cloud {
-          0% { transform: translateX(0); }
-          50% { transform: translateX(18px); }
-          100% { transform: translateX(0); }
+          0%, 100% { transform: translateX(0); }
+          50% { transform: translateX(16px); }
         }
         @keyframes evuddy-iso-slot {
           0%, 100% { opacity: 0.55; }
           50% { opacity: 1; }
         }
+        @keyframes evuddy-iso-dash {
+          to { stroke-dashoffset: -52; }
+        }
         @keyframes evuddy-iso-callout {
           0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-5px); }
+          50% { transform: translateY(-4px); }
         }
-        .evuddy-iso-scene { animation: evuddy-iso-bob 7s ease-in-out infinite; }
-        .evuddy-iso-clouds { animation: evuddy-iso-cloud 16s ease-in-out infinite; }
-        .evuddy-iso-slot { animation: evuddy-iso-slot 1.8s ease-in-out infinite; }
-        .evuddy-iso-callout { animation: evuddy-iso-callout 4.5s ease-in-out infinite; }
+        .evuddy-iso-clouds { animation: evuddy-iso-cloud 18s ease-in-out infinite; }
+        .evuddy-iso-slot { animation: evuddy-iso-slot 1.7s ease-in-out infinite; }
+        .evuddy-iso-dash { animation: evuddy-iso-dash 1.1s linear infinite; }
+        .evuddy-iso-callout { animation: evuddy-iso-callout 4.8s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-iso-scene, .evuddy-iso-clouds, .evuddy-iso-slot, .evuddy-iso-callout {
+          .evuddy-iso-clouds, .evuddy-iso-slot, .evuddy-iso-dash, .evuddy-iso-callout {
             animation: none !important;
           }
         }
       `}</style>
 
-      <div className="relative h-[250px] overflow-hidden sm:h-[400px] lg:h-[500px]">
-        <Callout
-          className="left-[6%] top-[14%] sm:left-[8%] sm:top-[16%]"
-          title="Hourly to monthly EV rentals"
-          delay="0s"
-        />
-        <Callout
-          className="right-[4%] top-[22%] sm:right-[10%] sm:top-[18%]"
-          title="Dense EVUDDY hub & yard network"
-          delay="0.6s"
-        />
-        <Callout
-          className="bottom-[18%] left-[10%] hidden sm:block sm:bottom-[16%] sm:left-[14%]"
-          title="Pickup OTP · GPS-tracked rides"
-          delay="1.1s"
-        />
-
+      <div className="relative h-[270px] overflow-hidden sm:h-[430px] lg:h-[540px]">
         <svg
           viewBox={`0 0 ${VB_W} ${VB_H}`}
-          className="evuddy-iso-scene absolute inset-0 h-full w-full"
+          className="absolute inset-0 h-full w-full"
           preserveAspectRatio="xMidYMid meet"
           aria-hidden
         >
           <defs>
             <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#FFFFFF" />
-              <stop offset="100%" stopColor="#F4F8FB" />
+              <stop offset="100%" stopColor="#F3F7FB" />
             </linearGradient>
           </defs>
 
           <rect width={VB_W} height={VB_H} fill={`url(#${uid}-sky)`} />
 
-          {[-6, -2, 2, 6, 10, 14, 18].map((gx) =>
+          {[-4, 0, 4, 8, 12, 16, 20].map((gx) =>
             [-2, 2, 6, 10, 14].map((gy) => (
               <polygon
                 key={`${gx}-${gy}`}
                 points={diamond(gx, gy, 4)}
                 fill="none"
-                stroke="rgba(148,163,184,0.13)"
+                stroke="rgba(148,163,184,0.16)"
                 strokeWidth="1"
               />
             ))
           )}
 
-          <g className="evuddy-iso-clouds">
-            <Cloud x={180} y={70} s={1.1} />
-            <Cloud x={980} y={58} s={0.9} />
-            <Cloud x={560} y={42} s={0.7} />
+          <g className="evuddy-iso-clouds" fill="#E6EEF5" opacity="0.95">
+            <g transform="translate(170 64)">
+              <ellipse cx="0" cy="0" rx="24" ry="11" />
+              <ellipse cx="16" cy="-3" rx="16" ry="9" />
+            </g>
+            <g transform="translate(990 52)">
+              <ellipse cx="0" cy="0" rx="20" ry="10" />
+              <ellipse cx="14" cy="-2" rx="14" ry="8" />
+            </g>
+            <g transform="translate(560 40)">
+              <ellipse cx="0" cy="0" rx="16" ry="8" />
+              <ellipse cx="12" cy="-2" rx="12" ry="7" />
+            </g>
           </g>
 
-          {/* Ground pads */}
-          <polygon points={diamond(1.2, 1.4, 3.6)} fill="#EEF5EA" />
-          <polygon points={diamond(12.4, 10.6, 3.2)} fill="#E8F6EE" />
+          <polygon points={diamond(11.8, 3.7, 3.1)} fill="#F0F7F3" />
+          <polygon points={diamond(12.2, 10.2, 3.4)} fill="#E7F6EE" />
 
-          {/* Road network */}
-          <polygon points={roadFill(0.2, 7.35, 18.8, 8.95)} fill="#D7E4F0" />
-          <polygon points={roadFill(8.35, 1.0, 9.95, 14.9)} fill="#D7E4F0" />
-          <polygon points={roadFill(9.9, 11.7, 15.4, 13.15)} fill="#D7E4F0" />
+          <polygon points={roadFill(0.15, 7.25, 19.85, 9.05)} fill="#C9D7E6" />
+          <polygon points={roadFill(9.2, 0.7, 11.1, 15.6)} fill="#C9D7E6" />
+          <polygon points={roadFill(10.9, 11.7, 17.0, 13.4)} fill="#C9D7E6" />
+          <polygon points={roadFill(3.6, 3.4, 11.1, 4.9)} fill="#C9D7E6" />
 
-          <path d={avenue} fill="none" stroke="#fff" strokeWidth="2.2" strokeDasharray="12 14" strokeLinecap="round" />
-          <path d={cross} fill="none" stroke="#fff" strokeWidth="2.2" strokeDasharray="12 14" strokeLinecap="round" />
           <path
+            className="evuddy-iso-dash"
+            d={isoLine(AVE)}
+            fill="none"
+            stroke="#fff"
+            strokeWidth="2.4"
+            strokeDasharray="11 15"
+            strokeLinecap="round"
+          />
+          <path
+            className="evuddy-iso-dash"
+            d={isoLine(CROSS)}
+            fill="none"
+            stroke="#fff"
+            strokeWidth="2.4"
+            strokeDasharray="11 15"
+            strokeLinecap="round"
+          />
+          <path
+            className="evuddy-iso-dash"
             d={isoLine([
-              [9.9, 12.4],
-              [15.2, 12.4],
+              [10.9, 12.55],
+              [16.8, 12.55],
             ])}
             fill="none"
             stroke="#fff"
-            strokeWidth="2"
-            strokeDasharray="10 12"
+            strokeWidth="2.1"
+            strokeDasharray="10 14"
+            strokeLinecap="round"
+          />
+          <path
+            className="evuddy-iso-dash"
+            d={isoLine([
+              [3.8, 4.15],
+              [10.2, 4.15],
+            ])}
+            fill="none"
+            stroke="#fff"
+            strokeWidth="2.1"
+            strokeDasharray="10 14"
             strokeLinecap="round"
           />
 
-          <path id={`${uid}-ave`} d={avenue} fill="none" />
-          <path id={`${uid}-cross`} d={cross} fill="none" />
-          <path id={`${uid}-loop`} d={loop} fill="none" />
+          <Building x={0.9} y={1.5} w={2.3} d={1.45} h={78} top="#F4F8FC" left="#C5D4E4" right="#7E9FBE" rows={4} cols={4} />
+          <Building x={3.5} y={1.2} w={2.5} d={1.55} h={108} top="#EEF4FA" left="#B7CCE2" right="#5C86B0" rows={6} cols={4} />
+          <Building x={6.3} y={1.6} w={2.2} d={1.35} h={64} top="#F7FAFC" left="#D0DEEB" right="#8AA7C0" rows={3} cols={4} />
+          <Building x={12.4} y={1.15} w={2.4} d={1.45} h={86} top="#F3F7FB" left="#C2D4E6" right="#7194B6" rows={4} cols={4} />
+          <Building x={15.1} y={1.0} w={2.6} d={1.6} h={118} top="#EDF3F9" left="#B4C9DF" right="#547CA8" rows={6} cols={4} />
+          <Building x={17.9} y={2.5} w={2.0} d={1.2} h={48} top="#ECFDF5" left="#BBF7D0" right="#18B368" rows={2} cols={3} glass="#BBF7D0" />
 
-          {/* North / west buildings */}
-          <Box x={1.4} y={2.1} w={2.4} d={1.5} h={86} top="#F3F7FB" left="#C9D9EA" right="#7EA0C4" />
-          <Windows x={1.4} y={2.1} cols={5} rows={4} h={86} />
+          <Building x={0.8} y={10.35} w={2.2} d={1.35} h={70} top="#F8FAFC" left="#CDD8E4" right="#7B93AA" rows={3} cols={4} />
+          <Building x={3.3} y={10.15} w={2.5} d={1.5} h={96} top="#EEF4FA" left="#B9CDE1" right="#5F82A8" rows={5} cols={4} />
+          <Building x={6.1} y={10.5} w={2.2} d={1.3} h={58} top="#FFF7ED" left="#FED7AA" right="#F97316" rows={2} cols={4} glass="#FFEDD5" />
+          <Building
+            x={12.35}
+            y={10.05}
+            w={3.15}
+            d={1.65}
+            h={72}
+            top="#ECFDF5"
+            left="#86EFAC"
+            right="#18B368"
+            rows={3}
+            cols={5}
+            glass="#BBF7D0"
+          />
+          <Building x={15.8} y={10.25} w={2.15} d={1.25} h={52} top="#FFF1F2" left="#FECDD3" right="#EC2A8C" rows={2} cols={3} glass="#FECDD3" />
+          <Building x={18.1} y={10.55} w={1.9} d={1.15} h={44} top="#F1F5F9" left="#CBD5E1" right="#64748B" rows={2} cols={3} />
 
-          <Box x={4.2} y={1.8} w={2.6} d={1.6} h={112} top="#EEF4FA" left="#B9D0E6" right="#5B86B3" />
-          <Windows x={4.2} y={1.8} cols={5} rows={6} h={112} />
-
-          <Box x={11.2} y={2.0} w={2.5} d={1.45} h={78} top="#F7FAFC" left="#D5E2EE" right="#8AA7C2" />
-          <Windows x={11.2} y={2.0} cols={5} rows={4} h={78} />
-
-          <Box x={14.2} y={1.6} w={2.7} d={1.7} h={98} top="#F4F8FB" left="#C5D8EA" right="#6B93B8" />
-          <Windows x={14.2} y={1.6} cols={5} rows={5} h={98} />
-
-          <Box x={16.6} y={3.4} w={2.1} d={1.2} h={44} top="#ECFDF5" left="#BBF7D0" right="#18B368" />
-          <Windows x={16.6} y={3.4} cols={4} rows={2} h={44} tone="#BBF7D0" />
-
-          {/* South / east buildings */}
-          <Box x={1.6} y={10.2} w={2.3} d={1.4} h={70} top="#F8FAFC" left="#D0DCE8" right="#7B93AA" />
-          <Windows x={1.6} y={10.2} cols={4} rows={3} h={70} />
-
-          <Box x={4.4} y={10.4} w={2.6} d={1.5} h={92} top="#EFF4FA" left="#BFD0E2" right="#5F82A8" />
-          <Windows x={4.4} y={10.4} cols={5} rows={4} h={92} />
-
-          <Box x={11.4} y={9.6} w={3.4} d={1.7} h={64} top="#ECFDF5" left="#86EFAC" right="#18B368" />
-          <Windows x={11.4} y={9.6} cols={6} rows={2} h={64} tone="#BBF7D0" />
           <text
-            x={iso(13.1, 10.1).x}
-            y={iso(13.1, 10.1).y - 74}
+            x={iso(13.9, 10.55).x}
+            y={iso(13.9, 10.55).y - 82}
             textAnchor="middle"
             fill="#0F172A"
-            fontSize="10"
+            fontSize="11"
             fontWeight="800"
             fontFamily="system-ui,sans-serif"
           >
             EVUDDY HUB
           </text>
 
-          <Box x={16.2} y={9.8} w={2.2} d={1.25} h={48} top="#FFF1F2" left="#FECDD3" right="#EC2A8C" />
-          <Windows x={16.2} y={9.8} cols={4} rows={2} h={48} tone="#FECDD3" />
-
-          {/* Pickup yard */}
-          <polygon points={diamond(11.6, 4.15, 2.6)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.2" />
+          <polygon points={diamond(12.05, 3.85, 2.7)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.2" />
           <text
-            x={iso(12.9, 4.3).x}
-            y={iso(12.9, 4.3).y - 8}
+            x={iso(13.4, 4.05).x}
+            y={iso(13.4, 4.05).y - 6}
             textAnchor="middle"
             fill="#334155"
-            fontSize="8"
+            fontSize="9"
             fontWeight="800"
             fontFamily="system-ui,sans-serif"
           >
             YARD
           </text>
 
-          <HubKiosk x={2.35} y={6.05} label="HUB" glow="#22C55E" />
-          <HubKiosk x={15.55} y={6.1} label="HUB" glow="#4ADE80" />
-          <HubKiosk x={7.05} y={12.55} label="YARD" glow="#18B368" />
+          <HubKiosk x={2.15} y={6.0} label="HUB" />
+          <HubKiosk x={16.35} y={6.05} label="HUB" />
+          <HubKiosk x={7.55} y={12.7} label="YARD" />
+          <HubKiosk x={11.35} y={2.55} label="HUB" />
 
-          <Tree x={0.7} y={4.6} />
-          <Tree x={7.2} y={3.2} scale={0.9} />
-          <Tree x={10.6} y={3.4} />
-          <Tree x={17.8} y={5.4} scale={0.85} />
-          <Tree x={0.9} y={12.4} />
-          <Tree x={7.4} y={10.8} />
-          <Tree x={15.2} y={14.2} />
-          <Tree x={18.4} y={11.2} scale={0.9} />
+          <Tree x={0.35} y={4.4} />
+          <Tree x={5.9} y={3.55} scale={0.88} />
+          <Tree x={8.6} y={2.4} />
+          <Tree x={14.6} y={3.3} />
+          <Tree x={19.4} y={5.2} scale={0.9} />
+          <Tree x={0.4} y={12.6} />
+          <Tree x={8.7} y={10.9} />
+          <Tree x={11.7} y={14.5} />
+          <Tree x={17.4} y={14.1} />
+          <Tree x={19.7} y={11.4} scale={0.85} />
 
-          <Person x={2.1} y={5.85} shirt="#18B368" />
-          <Person x={3.7} y={6.9} shirt="#EC2A8C" />
-          <Person x={12.2} y={5.5} shirt="#0EA5E9" />
-          <Person x={13.4} y={11.6} shirt="#18B368" />
-          <Person x={7.9} y={13.5} shirt="#F59E0B" />
-          <Person x={16.8} y={7.0} shirt="#0F172A" />
+          <Person x={2.0} y={5.75} shirt="#18B368" />
+          <Person x={3.55} y={6.85} shirt="#EC2A8C" />
+          <Person x={12.55} y={5.35} shirt="#0EA5E9" />
+          <Person x={13.9} y={11.55} shirt="#18B368" />
+          <Person x={8.35} y={13.55} shirt="#F59E0B" />
+          <Person x={17.55} y={6.95} shirt="#0F172A" />
+          <Person x={6.7} y={4.95} shirt="#6366F1" />
 
           {src ? (
             <>
-              <ParkedScooter src={src} x={12.1} y={5.35} />
-              <ParkedScooter src={src} x={12.85} y={5.7} />
-              <ParkedScooter src={src} x={13.55} y={6.05} />
-              <MovingScooter src={src} pathId={`${uid}-ave`} dur="18s" delay="0s" reduced={reduced} />
-              <MovingScooter src={src} pathId={`${uid}-ave`} dur="22s" delay="9s" flip reduced={reduced} />
-              <MovingScooter src={src} pathId={`${uid}-cross`} dur="16s" delay="3s" reduced={reduced} />
-              <MovingScooter src={src} pathId={`${uid}-loop`} dur="24s" delay="1s" scale={0.07} reduced={reduced} />
+              <ParkedPhoto src={src} x={12.45} y={5.15} />
+              <ParkedPhoto src={src} x={13.15} y={5.5} />
+              <ParkedPhoto src={src} x={13.85} y={5.85} />
             </>
           ) : null}
+
+          <RideScooter cells={AVE} duration={16000} color="#18B368" reduced={reduced} />
+          <RideScooter cells={AVE} duration={20000} delay={8000} color="#EC2A8C" reduced={reduced} />
+          <RideScooter cells={CROSS} duration={14000} delay={2500} color="#0EA5E9" reduced={reduced} />
+          <RideScooter cells={LOOP} duration={22000} delay={1200} color="#18B368" reduced={reduced} />
+          <RideScooter cells={SPUR} duration={11000} delay={4000} color="#F59E0B" reduced={reduced} />
+
+          <Callout x={2.7} y={6.2} dx={-150} dy={-118} title="Hourly to monthly EV rentals" width={186} />
+          <Callout x={13.9} y={10.3} dx={210} dy={-90} title="Dense EVUDDY hub & yard network" width={214} />
+          <Callout x={7.9} y={12.9} dx={-40} dy={70} title="Pickup OTP · GPS-tracked rides" width={204} />
         </svg>
       </div>
     </div>
