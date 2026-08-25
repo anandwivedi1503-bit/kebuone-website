@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 const CANDIDATES = [
+  "/new-bike.jpeg",
   "/evuddy-side.png",
   "/evuddy-scooter-cutout.png",
   "/evuddy-scooter.png",
@@ -26,7 +27,7 @@ function stripStudioBackground(image: HTMLImageElement) {
     const mx = Math.max(r, g, b);
     const mn = Math.min(r, g, b);
     const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-    return lum >= 228 && mx - mn <= 32;
+    return (lum >= 228 || lum <= 28) && mx - mn <= 32;
   };
 
   const seen = new Uint8Array(width * height);

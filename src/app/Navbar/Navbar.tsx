@@ -300,7 +300,7 @@ hover:shadow-[0_18px_45px_rgba(24,179,104,0.25)]
 
 <Building2 size={18} />
 
-Become a Partner
+Fleet Partner
 
 </button>
 
@@ -533,7 +533,7 @@ gap-2
 
 <Building2 size={20}/>
 
-Become a Partner 
+Fleet Partner 
 
 </button>
 
