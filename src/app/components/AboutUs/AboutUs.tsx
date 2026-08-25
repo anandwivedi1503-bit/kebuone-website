@@ -1,5 +1,6 @@
 import { Building2, MapPinned, ShieldCheck, Zap } from "lucide-react";
 
+import AboutScrollRide from "@/app/components/AboutUs/AboutScrollRide";
 import {
   BrandCardGrid,
   BrandCta,
@@ -54,6 +55,8 @@ export default function AboutUs() {
         posterSrc="/about/about-poster.png?v=20260820b"
         posterAlt="EVUDDY About Us — mission and vision"
       />
+
+      <AboutScrollRide />
 
       <BrandStatement
         label="About EVUDDY"
