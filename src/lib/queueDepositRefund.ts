@@ -1,5 +1,5 @@
-import { generateSixDigitOtp } from "@/lib/otp";
 import type mongoose from "mongoose";
+import { uniqueMoneyId } from "@/lib/ids";
 import Refund from "@/models/Refund";
 
 type BookingDoc = {
@@ -39,7 +39,7 @@ export async function queueDepositRefundIfEligible(
     await Refund.create(
       [
         {
-          refundId: "RF-" + Date.now(),
+          refundId: uniqueMoneyId("RF"),
           bookingId: booking.bookingId,
           riderId: booking.riderId,
           amount: booking.securityDeposit,
@@ -51,7 +51,7 @@ export async function queueDepositRefundIfEligible(
     );
   } else {
     await Refund.create({
-      refundId: "RF-" + Date.now(),
+      refundId: uniqueMoneyId("RF"),
       bookingId: booking.bookingId,
       riderId: booking.riderId,
       amount: booking.securityDeposit,

@@ -137,31 +137,22 @@ if (existingBookingRefund) {
 }
 
     const refund = await Refund.create({
-  ...body,
-
-  refundId,
-
-  bookingId: clean(body.bookingId),
-
-  ticketId,
-
-  riderId: clean(body.riderId),
-
-  amount: Number(body.amount),
-
-  gatewayTxnId,
-
-  refundStatus,
-
-  remarks: clean(body.remarks),
-
-  processedBy: clean(body.processedBy),
-
-  processedAt:
-    refundStatus === "REFUNDED"
-      ? new Date()
-      : undefined,
-});
+      refundId,
+      bookingId: clean(body.bookingId),
+      ticketId,
+      riderId: clean(body.riderId),
+      amount: Number(body.amount),
+      gatewayTxnId,
+      refundStatus,
+      remarks: clean(body.remarks),
+      processedBy: clean(body.processedBy),
+      refundSource: "Security Deposit",
+      paymentGateway: "Wallet",
+      processedAt:
+        refundStatus === "REFUNDED"
+          ? new Date()
+          : undefined,
+    });
     void writeAudit({
       actor: "Admin",
       action: "REFUND_CREATED",

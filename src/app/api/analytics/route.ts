@@ -74,9 +74,17 @@ export async function GET(req: Request) {
         ...NOT_DELETED,
         ...createdInPeriod,
         status: "Success",
+        transactionType: "Booking Payment",
       }),
       Transaction.aggregate([
-        { $match: { ...NOT_DELETED, ...createdInPeriod, status: "Success" } },
+        {
+          $match: {
+            ...NOT_DELETED,
+            ...createdInPeriod,
+            status: "Success",
+            transactionType: "Booking Payment",
+          },
+        },
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Booking.countDocuments({

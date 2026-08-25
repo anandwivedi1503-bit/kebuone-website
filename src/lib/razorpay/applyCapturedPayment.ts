@@ -100,8 +100,44 @@ export async function applyCapturedRazorpayPayment(
 
     const paymentIds = razorpayIdVariants(razorpayPaymentId);
     const alreadyOnBooking = paymentIds.includes(String(booking.razorpayPaymentId || ""));
+    const existingTransaction = await findExistingRazorpayTransaction(razorpayPaymentId);
 
     if (alreadyOnBooking) {
+      if (!existingTransaction) {
+        try {
+          const taxOnPayment = gstShareForPayment({
+            rentalAmount: booking.rateApplied || booking.totalAmount,
+            gstAmount: booking.gstAmount,
+            previousReceived: Math.max(
+              0,
+              Number(booking.receivedAmount || 0) - paidAmount
+            ),
+            paidNow: paidAmount,
+          });
+          await Transaction.create({
+            transactionId: razorpayPaymentId,
+            bookingId: booking.bookingId,
+            userId: String(booking.userId || booking.userPhone || "Rider"),
+            userName: booking.userName || "Rider",
+            amount: paidAmount,
+            gstAmount: taxOnPayment.gstAmount,
+            cgstAmount: taxOnPayment.cgstAmount,
+            sgstAmount: taxOnPayment.sgstAmount,
+            cgstRate: CGST_RATE,
+            sgstRate: SGST_RATE,
+            paymentMethod: "Razorpay",
+            razorpayOrderId,
+            razorpayPaymentId,
+            transactionType: "Booking Payment",
+            invoiceGenerated: true,
+            status: "Success",
+          });
+        } catch (error) {
+          if (!isDuplicateKeyError(error)) {
+            console.error("RAZORPAY TXN BACKFILL:", error);
+          }
+        }
+      }
       return {
         ok: true,
         alreadyVerified: true,
@@ -114,8 +150,6 @@ export async function applyCapturedRazorpayPayment(
         message: "Payment already verified.",
       };
     }
-
-    const existingTransaction = await findExistingRazorpayTransaction(razorpayPaymentId);
 
     if (rider.currentBookingId) {
       const current = String(rider.currentBookingId).trim().toUpperCase();
@@ -188,32 +222,6 @@ export async function applyCapturedRazorpayPayment(
       paidNow: paidAmount,
     });
 
-    if (!existingTransaction) {
-      try {
-        await Transaction.create({
-          transactionId: razorpayPaymentId,
-          bookingId: booking.bookingId,
-          userId: String(booking.userId || booking.userPhone || "Rider"),
-          userName: booking.userName || "Rider",
-          amount: paidAmount,
-          gstAmount: taxOnPayment.gstAmount,
-          cgstAmount: taxOnPayment.cgstAmount,
-          sgstAmount: taxOnPayment.sgstAmount,
-          cgstRate: CGST_RATE,
-          sgstRate: SGST_RATE,
-          paymentMethod: "Razorpay",
-          razorpayOrderId,
-          razorpayPaymentId,
-          transactionType: "Booking Payment",
-          invoiceNumber,
-          invoiceGenerated: true,
-          status: "Success",
-        });
-      } catch (error) {
-        if (!isDuplicateKeyError(error)) throw error;
-      }
-    }
-
     const updatedBooking = await Booking.findOneAndUpdate(
       bookingPaymentApplyFilter(bookingMongoId, oldReceivedAmount, paidAmount),
       {
@@ -247,11 +255,50 @@ export async function applyCapturedRazorpayPayment(
     );
 
     if (!updatedBooking) {
+      const racedTxn = await findExistingRazorpayTransaction(razorpayPaymentId);
+      if (racedTxn) {
+        const live = await Booking.findById(bookingMongoId);
+        return {
+          ok: true,
+          alreadyVerified: true,
+          booking: live ? live.toObject() : booking.toObject(),
+          paidAmount: Number(racedTxn.amount || paidAmount),
+          pendingAmount: Number(live?.pendingAmount || booking.pendingAmount || 0),
+          paymentStatus: String(live?.paymentStatus || booking.paymentStatus || "Paid"),
+          message: "Payment already verified.",
+        };
+      }
       return {
         ok: false,
         status: 409,
         message: "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
       };
+    }
+
+    if (!existingTransaction) {
+      try {
+        await Transaction.create({
+          transactionId: razorpayPaymentId,
+          bookingId: booking.bookingId,
+          userId: String(booking.userId || booking.userPhone || "Rider"),
+          userName: booking.userName || "Rider",
+          amount: paidAmount,
+          gstAmount: taxOnPayment.gstAmount,
+          cgstAmount: taxOnPayment.cgstAmount,
+          sgstAmount: taxOnPayment.sgstAmount,
+          cgstRate: CGST_RATE,
+          sgstRate: SGST_RATE,
+          paymentMethod: "Razorpay",
+          razorpayOrderId,
+          razorpayPaymentId,
+          transactionType: "Booking Payment",
+          invoiceNumber,
+          invoiceGenerated: true,
+          status: "Success",
+        });
+      } catch (error) {
+        if (!isDuplicateKeyError(error)) throw error;
+      }
     }
 
     try {

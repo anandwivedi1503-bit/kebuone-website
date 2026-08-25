@@ -744,7 +744,14 @@ const securityDeposit =
   rentalMode === "Rent To Own"
     ? 0
     : money(vehicle.securityDeposit || 2500);
-const tax = gstBreakdown(rentalAmount);
+const tax =
+  rentalMode === "Hourly" ||
+  rentalMode === "Daily" ||
+  rentalMode === "Weekly" ||
+  rentalMode === "Monthly" ||
+  rentalMode === "Rent To Own"
+    ? gstBreakdown(rentalAmount)
+    : gstBreakdown(0);
 const payableAmount = money(tax.totalWithGst + securityDeposit);
 
 if (
