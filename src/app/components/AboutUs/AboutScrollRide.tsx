@@ -1,73 +1,125 @@
 "use client";
 
-import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { useMotionValueEvent, useScroll } from "framer-motion";
 
 import { useEvuddySideSrc } from "@/app/components/Hero/useEvuddySideSrc";
 
+const ROAD =
+  "M 60 820 C 220 790, 310 680, 430 600 S 680 470, 860 400 S 1120 280, 1380 210";
+
 export default function AboutScrollRide() {
-  const ref = useRef<HTMLElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const bikeRef = useRef<SVGGElement>(null);
   const bikeSrc = useEvuddySideSrc();
+
   const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ["start end", "end start"],
+    target: sectionRef,
+    offset: ["start start", "end end"],
   });
-  const left = useTransform(scrollYProgress, [0.1, 0.9], ["6%", "70%"]);
-  const top = useTransform(scrollYProgress, [0.1, 0.9], ["68%", "18%"]);
+
+  const placeBike = (progress: number) => {
+    const path = pathRef.current;
+    const bike = bikeRef.current;
+    if (!path || !bike) return;
+
+    const length = path.getTotalLength();
+    const distance = Math.max(0, Math.min(0.985, progress)) * length;
+    const point = path.getPointAtLength(distance);
+    const ahead = path.getPointAtLength(Math.min(length, distance + 18));
+    const angle = (Math.atan2(ahead.y - point.y, ahead.x - point.x) * 180) / Math.PI;
+    const tilt = Math.max(-8, Math.min(8, angle * 0.18));
+
+    bike.setAttribute(
+      "transform",
+      `translate(${point.x} ${point.y}) rotate(${tilt})`
+    );
+  };
+
+  useMotionValueEvent(scrollYProgress, "change", placeBike);
+
+  useEffect(() => {
+    placeBike(scrollYProgress.get());
+    const onResize = () => placeBike(scrollYProgress.get());
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [scrollYProgress, bikeSrc]);
 
   return (
     <section
-      ref={ref}
-      className="relative h-[210vh] bg-white"
-      aria-label="EVUDDY scooter on the road"
+      ref={sectionRef}
+      className="relative h-[260vh] bg-white"
+      aria-label="EVUDDY scooter riding the road as you scroll"
     >
-      <div className="sticky top-0 flex h-[100svh] min-h-[640px] items-center overflow-hidden">
+      <div className="sticky top-0 h-[100svh] min-h-[560px] overflow-hidden">
         <div
-          className="pointer-events-none absolute inset-0 opacity-[0.18]"
+          className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(-32deg, rgba(24,179,104,0.22) 0 42px, transparent 42px 120px)",
+              "repeating-linear-gradient(-28deg, rgba(147,197,253,0.16) 0 36px, transparent 36px 140px)",
           }}
         />
 
         <svg
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          viewBox="0 0 1000 700"
-          preserveAspectRatio="none"
+          className="absolute inset-0 h-full w-full"
+          viewBox="0 0 1440 900"
+          preserveAspectRatio="xMidYMid slice"
           aria-hidden
         >
           <path
-            d="M 70 560 C 240 510, 390 250, 880 150"
+            d={ROAD}
             fill="none"
-            stroke="#93C5FD"
-            strokeWidth="2.4"
+            stroke="#D7E9FB"
+            strokeWidth="72"
             strokeLinecap="round"
-            strokeDasharray="11 13"
-            opacity="0.85"
           />
+          <path
+            d={ROAD}
+            fill="none"
+            stroke="#F8FBFF"
+            strokeWidth="42"
+            strokeLinecap="round"
+          />
+          <path
+            ref={pathRef}
+            d={ROAD}
+            fill="none"
+            stroke="#7EB0DE"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeDasharray="16 18"
+          />
+
+          <g ref={bikeRef}>
+            {bikeSrc ? (
+              <g transform="scale(-1 1)">
+                <image
+                  href={bikeSrc}
+                  x="-150"
+                  y="-86"
+                  width="300"
+                  height="172"
+                  preserveAspectRatio="xMidYMid meet"
+                />
+              </g>
+            ) : null}
+          </g>
         </svg>
 
-        <div className="relative z-10 mx-auto w-full max-w-3xl px-6 text-center">
+        <div className="pointer-events-none relative z-10 mx-auto flex h-full max-w-3xl flex-col items-center justify-center px-6 text-center">
           <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]">
             About EVUDDY
           </p>
-          <h2 className="mt-4 text-[32px] font-black leading-[1.08] tracking-[-0.05em] text-[#08112F] sm:text-5xl lg:text-6xl">
+          <h2 className="mt-4 text-[30px] font-black leading-[1.08] tracking-[-0.05em] text-[#08112F] sm:text-5xl lg:text-[56px]">
             Transforming the future of mobility
             <span className="mt-2 block text-[#18B368]">through every EVUDDY ride</span>
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-slate-600 sm:text-base">
-            Scroll to ride. The scooter moves along the city path while EVUDDY
-            stays the same idea: affordable electric mobility you can book, ride
-            and own.
+            EVUDDY is building India&apos;s next-generation EV mobility ecosystem
+            through B2B, B2C, and Rent-to-Own solutions.
           </p>
         </div>
-
-        <motion.img
-          src={bikeSrc || "/new-bike.jpeg"}
-          alt="EVUDDY electric scooter"
-          style={{ left, top }}
-          className="pointer-events-none absolute z-20 w-[150px] -translate-x-1/2 -translate-y-1/2 scale-x-[-1] drop-shadow-[0_18px_24px_rgba(15,23,42,0.22)] sm:w-[210px] lg:w-[248px]"
-        />
       </div>
     </section>
   );
