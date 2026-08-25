@@ -1,6 +1,5 @@
 import { Building2, MapPinned, ShieldCheck, Zap } from "lucide-react";
 
-import AboutScrollRide from "@/app/components/AboutUs/AboutScrollRide";
 import {
   BrandCardGrid,
   BrandCta,
@@ -43,9 +42,7 @@ const pillars = [
 
 export default function AboutUs() {
   return (
-    <div className="bg-[#F4F7F8] text-[#08112F]">
-      <AboutScrollRide />
-
+    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
       <BrandHero
         title="About"
         accent="Us"
