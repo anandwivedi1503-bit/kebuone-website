@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState, useSyncExternalStore } from "react";
+import { useId } from "react";
 import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
 /** Classic 2:1 isometric city — BatterySmart language, EVUDDY brand. */
@@ -44,25 +44,6 @@ function roadFill(x0: number, y0: number, x1: number, y1: number) {
 
 function lerp(a: Pt, b: Pt, t: number): Pt {
   return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
-}
-
-function pointAlong(points: Pt[], t: number): Pt {
-  if (points.length < 2) return points[0] || { x: 0, y: 0 };
-  const segs: number[] = [];
-  let total = 0;
-  for (let i = 0; i < points.length - 1; i++) {
-    const d = Math.hypot(points[i + 1].x - points[i].x, points[i + 1].y - points[i].y);
-    segs.push(d);
-    total += d;
-  }
-  let dist = ((t % 1) + 1) % 1 * total;
-  for (let i = 0; i < segs.length; i++) {
-    if (dist <= segs[i] || i === segs.length - 1) {
-      return lerp(points[i], points[i + 1], segs[i] ? dist / segs[i] : 0);
-    }
-    dist -= segs[i];
-  }
-  return points[points.length - 1];
 }
 
 function Box({
@@ -342,40 +323,28 @@ function Callout({
 }
 
 function RideScooter({
-  cells,
+  d,
   duration,
   delay = 0,
   color,
-  reduced,
 }: {
-  cells: Array<[number, number]>;
+  d: string;
   duration: number;
   delay?: number;
   color: string;
-  reduced: boolean;
 }) {
-  const pts = useMemo(() => cells.map(([x, y]) => iso(x, y)), [cells]);
-  const [pos, setPos] = useState(pts[0]);
-
-  useEffect(() => {
-    if (reduced) {
-      setPos(pts[0]);
-      return;
-    }
-    let raf = 0;
-    const start = performance.now() - delay;
-    const tick = (now: number) => {
-      const t = ((now - start) / duration) % 1;
-      setPos(pointAlong(pts, t));
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [duration, delay, reduced, pts]);
-
   return (
-    <g transform={`translate(${pos.x} ${pos.y}) scale(0.72)`}>
-      <IsoScooter color={color} />
+    <g>
+      <animateMotion
+        path={d}
+        dur={`${duration}ms`}
+        begin={`${-delay}ms`}
+        repeatCount="indefinite"
+        rotate="0"
+      />
+      <g transform="scale(0.72)">
+        <IsoScooter color={color} />
+      </g>
     </g>
   );
 }
@@ -395,12 +364,6 @@ function ParkedPhoto({ src, x, y }: { src: string; x: number; y: number }) {
       style={{ filter: "drop-shadow(2px 3px 3px rgba(15,23,42,0.18))" }}
     />
   );
-}
-
-function subscribeMotion(onChange: () => void) {
-  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
 }
 
 const AVE: Array<[number, number]> = [
@@ -429,11 +392,6 @@ const SPUR: Array<[number, number]> = [
 export default function HeroCityRide() {
   const src = useEvuddySideSrc();
   const uid = useId().replace(/:/g, "");
-  const reduced = useSyncExternalStore(
-    subscribeMotion,
-    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    () => false
-  );
 
   return (
     <div className="relative mx-auto mt-3 w-full max-w-[1280px] sm:mt-5">
@@ -453,12 +411,22 @@ export default function HeroCityRide() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-4px); }
         }
-        .evuddy-iso-clouds { animation: evuddy-iso-cloud 18s ease-in-out infinite; }
+        @keyframes evuddy-ride {
+          from { offset-distance: 0%; }
+          to { offset-distance: 100%; }
+        }
+        .evuddy-ride {
+          offset-rotate: 0deg;
+          offset-anchor: 0px 0px;
+          animation-name: evuddy-ride;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
         .evuddy-iso-slot { animation: evuddy-iso-slot 1.7s ease-in-out infinite; }
         .evuddy-iso-dash { animation: evuddy-iso-dash 1.1s linear infinite; }
         .evuddy-iso-callout { animation: evuddy-iso-callout 4.8s ease-in-out infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-iso-clouds, .evuddy-iso-slot, .evuddy-iso-dash, .evuddy-iso-callout {
+          .evuddy-iso-clouds, .evuddy-iso-slot, .evuddy-iso-dash, .evuddy-iso-callout, .evuddy-ride {
             animation: none !important;
           }
         }
@@ -641,11 +609,11 @@ export default function HeroCityRide() {
             </>
           ) : null}
 
-          <RideScooter cells={AVE} duration={9000} color="#18B368" reduced={reduced} />
-          <RideScooter cells={AVE} duration={11000} delay={4500} color="#EC2A8C" reduced={reduced} />
-          <RideScooter cells={CROSS} duration={8000} delay={1200} color="#0EA5E9" reduced={reduced} />
-          <RideScooter cells={LOOP} duration={14000} delay={600} color="#18B368" reduced={reduced} />
-          <RideScooter cells={SPUR} duration={7000} delay={2000} color="#F59E0B" reduced={reduced} />
+          <RideScooter d={isoLine(AVE)} duration={9000} color="#18B368" />
+          <RideScooter d={isoLine(AVE)} duration={11000} delay={4500} color="#EC2A8C" />
+          <RideScooter d={isoLine(CROSS)} duration={8000} delay={1200} color="#0EA5E9" />
+          <RideScooter d={isoLine(LOOP)} duration={14000} delay={600} color="#18B368" />
+          <RideScooter d={isoLine(SPUR)} duration={7000} delay={2000} color="#F59E0B" />
 
           <Callout x={2.7} y={6.2} dx={-150} dy={-118} title="Hourly to monthly EV rentals" width={186} />
           <Callout x={13.9} y={10.3} dx={210} dy={-90} title="Dense EVUDDY hub & yard network" width={214} />
