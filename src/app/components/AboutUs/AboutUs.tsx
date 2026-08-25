@@ -43,7 +43,9 @@ const pillars = [
 
 export default function AboutUs() {
   return (
-    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
+    <div className="bg-[#F4F7F8] text-[#08112F]">
+      <AboutScrollRide />
+
       <BrandHero
         title="About"
         accent="Us"
@@ -55,8 +57,6 @@ export default function AboutUs() {
         posterSrc="/about/about-poster.png?v=20260820b"
         posterAlt="EVUDDY About Us — mission and vision"
       />
-
-      <AboutScrollRide />
 
       <BrandStatement
         label="About EVUDDY"
