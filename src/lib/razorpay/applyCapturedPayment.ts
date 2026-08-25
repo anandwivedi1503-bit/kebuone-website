@@ -17,6 +17,7 @@ import {
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
+import { normalizeIndianPhone } from "@/lib/requestAuth";
 
 function generateWalletTransactionId() {
   return `WTX-${crypto.randomUUID().toUpperCase()}`;
