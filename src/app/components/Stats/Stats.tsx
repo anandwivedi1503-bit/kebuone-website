@@ -84,7 +84,7 @@ export default function PartnerSection() {
               <h4 className="text-xl font-bold text-[#0F172A]">Ready to grow with EVUDDY?</h4>
               <p className="mt-1 text-sm text-slate-500">Join the partner network for the next wave of urban EV mobility.</p>
             </div>
-            <Link href="/partners" className="w-full sm:w-auto">
+            <Link href="/partners#partner-form" className="w-full sm:w-auto">
               <span className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 py-4 font-bold text-white sm:w-auto">
                 Become a Partner
                 <ArrowRight size={18} />

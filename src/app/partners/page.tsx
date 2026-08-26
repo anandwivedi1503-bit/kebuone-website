@@ -8,7 +8,7 @@ export default function PartnersPage() {
     <main>
       <Navbar />
       <div className="pt-28">
-        <FleetPartnerInvestment ctaHref="#partner-form" />
+        <FleetPartnerInvestment />
         <PartnerForm />
       </div>
       <Footer />

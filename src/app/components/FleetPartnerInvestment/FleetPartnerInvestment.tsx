@@ -17,21 +17,23 @@ import {
   Wallet,
 } from "lucide-react";
 
+const FORM = "/partners#partner-form";
+
 const steps = [
   {
     icon: HandCoins,
     title: "You invest",
-    text: "Join the Fleet Partner Investment programme with a transparent, fixed model.",
+    text: "Join Fleet Partner Investment with a transparent, fixed model.",
   },
   {
     icon: Bike,
-    title: "EVUDDY deploys scooters",
-    text: "We provide 3 electric scooters per ₹1 lakh, rented at ₹230 / 24 hrs.",
+    title: "We deploy scooters",
+    text: "3 electric scooters per ₹1 lakh, rented at ₹230 / 24 hrs.",
   },
   {
     icon: TrendingUp,
     title: "Profit after expenses",
-    text: "₹87 profit is generated per scooter after all operating expenses.",
+    text: "₹87 profit per scooter after operations and maintenance.",
   },
   {
     icon: Users,
@@ -74,173 +76,173 @@ const reasons = [
   { icon: Leaf, title: "Sustainable impact", text: "Support clean, green mobility while you earn." },
 ];
 
-type Props = {
-  ctaHref?: string;
-};
-
-export default function FleetPartnerInvestment({
-  ctaHref = "/partners#partner-form",
-}: Props) {
+export default function FleetPartnerInvestment() {
   return (
     <section
       id="fleet-investment"
-      className="relative overflow-hidden bg-[#F4FBF7] py-16 sm:py-24 scroll-mt-28"
+      className="relative overflow-hidden bg-[#071410] py-14 text-white sm:py-20 lg:py-24 scroll-mt-28"
     >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#18B368] to-transparent" />
+
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="grid items-center gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
           <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/25 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-[#0F172A]">
-              <span className="h-2 w-2 rounded-full bg-[#18B368]" />
+            <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/40 bg-[#18B368]/10 px-4 py-2 text-[11px] font-bold tracking-[0.18em] text-[#7dffc0]">
               FLEET PARTNER INVESTMENT
             </span>
-            <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-[3.4rem]">
-              Invest in clean mobility.{" "}
-              <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
+            <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] sm:text-5xl lg:text-[3.35rem] lg:leading-[1.05]">
+              Invest in clean mobility.
+              <span className="mt-2 block bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
                 Smart rides. Bright future.
               </span>
             </h2>
-            <p className="mt-4 max-w-2xl text-[15px] leading-7 text-slate-600 sm:text-lg">
-              A published 42-month plan: EVUDDY runs the fleet, you share profit 50/50.
-              Connect through the partners form — we will walk you through payouts and paperwork.
+            <p className="mt-4 max-w-xl text-[15px] leading-7 text-white/70 sm:text-lg">
+              A 42-month published plan. EVUDDY runs the fleet. You share profit 50/50.
+              Apply on the partners form — we confirm payouts and paperwork. No payment on this site.
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Link
-                href={ctaHref}
-                className="inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 font-bold text-white shadow-[0_12px_28px_rgba(24,179,104,0.28)] transition hover:bg-[#14a05c]"
+                href={FORM}
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#EC2A8C] px-8 text-base font-bold text-white shadow-[0_14px_36px_rgba(236,42,140,0.4)] transition hover:bg-[#d01878]"
               >
-                Connect as an investor
+                Invest — open partners form
                 <ArrowRight size={18} />
               </Link>
-              <p className="self-center text-sm text-slate-500">
-                Choose Fleet Partner on the form. No payment on this page.
-              </p>
+              <Link
+                href={FORM}
+                className="inline-flex min-h-12 items-center justify-center rounded-full border border-white/20 px-6 text-sm font-semibold text-white/90 transition hover:border-[#18B368] hover:text-[#7dffc0]"
+              >
+                Talk to EVUDDY
+              </Link>
             </div>
           </div>
+
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="relative overflow-hidden rounded-[28px] border border-[#18B368]/15 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)]"
+            className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5 shadow-[0_30px_80px_rgba(0,0,0,0.35)]"
           >
             <Image
               src="/evuddy-scooter-cutout.png"
               alt="EVUDDY electric scooter for fleet partners"
               width={720}
               height={480}
-              className="mx-auto h-auto w-full max-h-[340px] object-contain p-6"
+              className="mx-auto h-auto w-full max-h-[300px] object-contain p-6 sm:max-h-[360px]"
             />
           </motion.div>
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-12 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {steps.map((step, index) => {
             const Icon = step.icon;
             return (
-              <motion.div
+              <div
                 key={step.title}
-                initial={{ opacity: 0, y: 14 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="rounded-[24px] border border-white bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)]"
+                className="rounded-[24px] border border-white/10 bg-white/[0.06] p-5 backdrop-blur-sm"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#18B368] text-white">
-                  <Icon size={22} />
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#18B368] text-[#071410]">
+                  <Icon size={20} />
                 </div>
-                <p className="mt-4 text-xs font-bold tracking-[0.14em] text-[#EC2A8C]">
-                  0{index + 1}
-                </p>
-                <h3 className="mt-1 text-lg font-bold text-[#0F172A]">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{step.text}</p>
-              </motion.div>
+                <p className="mt-4 text-[11px] font-bold tracking-[0.16em] text-[#EC2A8C]">0{index + 1}</p>
+                <h3 className="mt-1 text-lg font-bold">{step.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/65">{step.text}</p>
+              </div>
             );
           })}
         </div>
 
-        <div className="mt-8 overflow-hidden rounded-[24px] bg-[#0A3D32] text-white">
-          <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:items-center lg:p-6">
-            <p className="text-center text-sm font-semibold sm:text-left">
-              3 scooters
-            </p>
-            <p className="text-center text-sm font-semibold">
-              × ₹43.5 investor share / scooter
-            </p>
+        <div className="mt-8 rounded-[24px] bg-gradient-to-r from-[#0A3D32] to-[#0d4d40] p-4 sm:p-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:items-center">
+            <p className="text-center text-sm font-semibold sm:text-left">3 scooters</p>
+            <p className="text-center text-sm font-semibold">× ₹43.5 share / scooter</p>
             <p className="text-center text-sm font-semibold">× 30 days</p>
-            <p className="rounded-2xl bg-[#EC2A8C] px-4 py-3 text-center text-base font-black">
-              = ₹3,915 investor share / month
-            </p>
+            <Link
+              href={FORM}
+              className="rounded-2xl bg-[#EC2A8C] px-4 py-3 text-center text-sm font-black transition hover:bg-[#d01878] sm:text-base"
+            >
+              = ₹3,915 / month — apply
+            </Link>
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <div className="rounded-[24px] border border-[#18B368]/20 bg-white p-5">
-            <CalendarDays className="text-[#18B368]" size={26} />
-            <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Tenure</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">42 months</p>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="rounded-[22px] border border-white/10 bg-white/[0.06] p-5">
+            <CalendarDays className="text-[#18B368]" size={24} />
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">Tenure</p>
+            <p className="mt-1 text-2xl font-black">42 months</p>
           </div>
-          <div className="rounded-[24px] border border-[#18B368]/20 bg-white p-5">
-            <Coins className="text-[#18B368]" size={26} />
-            <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Scrap after 42 months</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">₹6,000 / scooter</p>
-            <p className="mt-1 text-sm text-slate-500">3 scooters = ₹18,000</p>
+          <div className="rounded-[22px] border border-white/10 bg-white/[0.06] p-5">
+            <Coins className="text-[#18B368]" size={24} />
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">Scrap after 42 months</p>
+            <p className="mt-1 text-2xl font-black">₹6,000 / scooter</p>
+            <p className="mt-1 text-sm text-white/55">3 scooters = ₹18,000</p>
           </div>
-          <div className="rounded-[24px] border border-[#EC2A8C]/20 bg-white p-5">
-            <Wallet className="text-[#EC2A8C]" size={26} />
-            <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Total to investor</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">₹1,82,430</p>
-            <p className="mt-1 text-sm text-slate-500">On the ₹1 lakh / 3-scooter plan</p>
+          <div className="rounded-[22px] border border-[#EC2A8C]/30 bg-[#EC2A8C]/10 p-5">
+            <Wallet className="text-[#EC2A8C]" size={24} />
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">₹1 lakh plan total</p>
+            <p className="mt-1 text-2xl font-black">₹1,82,430</p>
           </div>
         </div>
 
         <div className="mt-12 text-center">
-          <h3 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-3xl">
-            Investment plan options
-          </h3>
-          <p className="mt-2 text-slate-500">Same model. Choose the scale that fits you.</p>
+          <h3 className="text-2xl font-black tracking-tight sm:text-3xl">Choose a plan. Apply in one tap.</h3>
+          <p className="mt-2 text-white/60">Same model at every scale. We will confirm details on the form.</p>
         </div>
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
           {plans.map((plan) => (
             <div
               key={plan.amount}
-              className={`flex flex-col overflow-hidden rounded-[28px] border transition duration-200 hover:-translate-y-1 ${
+              className={`flex flex-col overflow-hidden rounded-[28px] border ${
                 plan.featured
-                  ? "border-[#EC2A8C] bg-[#EC2A8C] text-white shadow-[0_20px_50px_rgba(236,42,140,0.28)]"
-                  : "border-[#18B368]/20 bg-white text-[#0F172A] hover:border-[#18B368] hover:shadow-[0_16px_40px_rgba(24,179,104,0.14)]"
+                  ? "border-[#EC2A8C] bg-[#EC2A8C] shadow-[0_24px_60px_rgba(236,42,140,0.35)] lg:-translate-y-2"
+                  : "border-white/10 bg-white text-[#0F172A]"
               }`}
             >
-              <div className={`px-6 py-5 ${plan.featured ? "bg-[#d01878]" : "bg-[#0A3D32] text-white"}`}>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] opacity-80">Investment amount</p>
+              <div className={`px-6 py-5 ${plan.featured ? "bg-[#c4126e]" : "bg-[#0A3D32] text-white"}`}>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] opacity-80">Investment</p>
                 <p className="mt-1 text-3xl font-black">{plan.amount}</p>
               </div>
-              <div className="flex flex-1 flex-col gap-3 px-6 py-5 text-sm">
-                <p><span className="font-semibold">Scooters provided:</span> {plan.scooters}</p>
+              <div className={`flex flex-1 flex-col gap-2.5 px-6 py-5 text-sm ${plan.featured ? "text-white" : ""}`}>
+                <p><span className="font-semibold">Scooters:</span> {plan.scooters}</p>
                 <p><span className="font-semibold">Monthly share:</span> {plan.monthly}</p>
                 <p><span className="font-semibold">Tenure:</span> 42 months</p>
-                <p><span className="font-semibold">Scrap after 42 months:</span> {plan.scrap}</p>
-                <p className={`mt-auto rounded-2xl px-4 py-3 text-center font-black ${plan.featured ? "bg-white/15" : "bg-[#18B368]/10 text-[#0A3D32]"}`}>
+                <p><span className="font-semibold">Scrap:</span> {plan.scrap}</p>
+                <p className={`mt-1 rounded-2xl px-4 py-3 text-center font-black ${plan.featured ? "bg-white/15" : "bg-[#18B368]/10 text-[#0A3D32]"}`}>
                   Total after 42 months: {plan.total}
                 </p>
+                <Link
+                  href={FORM}
+                  className={`mt-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 font-bold transition ${
+                    plan.featured
+                      ? "bg-white text-[#EC2A8C] hover:bg-[#fff5fa]"
+                      : "bg-[#18B368] text-white hover:bg-[#14a05c]"
+                  }`}
+                >
+                  Apply on partners form
+                  <ArrowRight size={16} />
+                </Link>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {reasons.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.title} className="rounded-[24px] bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-                <Icon className="text-[#18B368]" size={26} />
-                <h4 className="mt-3 font-bold text-[#0F172A]">{item.title}</h4>
-                <p className="mt-1 text-sm leading-6 text-slate-500">{item.text}</p>
+              <div key={item.title} className="rounded-[22px] border border-white/10 bg-white/[0.06] p-5">
+                <Icon className="text-[#18B368]" size={24} />
+                <h4 className="mt-3 font-bold">{item.title}</h4>
+                <p className="mt-1 text-sm leading-6 text-white/60">{item.text}</p>
               </div>
             );
           })}
         </div>
 
-        <div className="mt-10 overflow-hidden rounded-[28px] border border-[#18B368]/15 bg-white p-3 sm:p-4">
-          <p className="px-2 pb-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
-            Official Fleet Partner Investment poster
+        <div className="mt-10 overflow-hidden rounded-[24px] border border-white/10 bg-white p-2 sm:p-3">
+          <p className="px-2 py-2 text-center text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+            Official investment poster
           </p>
           <Image
             src="/fleet-partner-poster.jpg"
@@ -251,27 +253,18 @@ export default function FleetPartnerInvestment({
           />
         </div>
 
-        <div className="mt-12 overflow-hidden rounded-[28px] bg-[#0A1134] px-6 py-8 text-white sm:px-10 sm:py-10">
-          <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#18B368]">
-                Invest today. Drive tomorrow.
-              </p>
-              <h3 className="mt-2 max-w-2xl text-2xl font-black sm:text-4xl">
-                Be a partner in our journey towards a greener future.
-              </h3>
-              <p className="mt-3 max-w-xl text-sm text-white/70">
-                Figures follow EVUDDY’s Fleet Partner Investment model. We confirm operations, payouts and documents when you apply — no investment is taken on this website.
-              </p>
-            </div>
-            <Link
-              href={ctaHref}
-              className="inline-flex h-14 shrink-0 items-center gap-2 rounded-full bg-[#EC2A8C] px-8 font-bold text-white transition hover:bg-[#d01878]"
-            >
-              Apply on partners form
-              <ArrowRight size={18} />
-            </Link>
+        <div className="mt-8 flex flex-col items-start justify-between gap-5 rounded-[28px] border border-[#18B368]/30 bg-[#18B368]/10 px-6 py-7 sm:flex-row sm:items-center sm:px-8">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#7dffc0]">Invest today. Drive tomorrow.</p>
+            <h3 className="mt-1 text-xl font-black sm:text-2xl">Let’s build smart electric mobility together.</h3>
           </div>
+          <Link
+            href={FORM}
+            className="inline-flex min-h-14 shrink-0 items-center gap-2 rounded-full bg-[#EC2A8C] px-8 font-bold text-white transition hover:bg-[#d01878]"
+          >
+            Open partners form
+            <ArrowRight size={18} />
+          </Link>
         </div>
       </div>
     </section>

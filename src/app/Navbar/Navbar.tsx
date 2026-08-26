@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Building2,
   LogOut,
+  Wallet,
 } from "lucide-react";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -30,10 +31,6 @@ const navLinks = [
   {
     title: "Home",
     href: "/",
-  },
-  {
-    title: "Invest",
-    href: "/partners#fleet-investment",
   },
   {
     title: "Careers",
@@ -311,6 +308,41 @@ Fleet Partner
 </Link>
 
 
+<Link href="/partners#partner-form">
+
+<button
+type="button"
+className="
+flex
+items-center
+gap-2
+rounded-full
+bg-[#EC2A8C]
+px-4
+xl:px-5
+h-12
+xl:h-13
+font-bold
+text-white
+shadow-[0_14px_40px_rgba(236,42,140,0.35)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:bg-[#d01878]
+hover:shadow-[0_22px_55px_rgba(236,42,140,0.45)]
+"
+
+>
+
+<Wallet size={18} />
+
+Invest
+
+</button>
+
+</Link>
+
+
 <Link href="/ride-options">
 
 <button
@@ -538,6 +570,38 @@ gap-2
 <Building2 size={20}/>
 
 Fleet Partner 
+
+</button>
+
+</Link>
+
+<Link
+href="/partners#partner-form"
+onClick={()=>setMenuOpen(false)}
+>
+
+<button
+type="button"
+className="
+w-full
+h-14
+rounded-full
+bg-[#EC2A8C]
+text-white
+font-semibold
+transition-all
+duration-300
+hover:bg-[#d01878]
+flex
+items-center
+justify-center
+gap-2
+"
+>
+
+<Wallet size={20}/>
+
+Invest
 
 </button>
 
