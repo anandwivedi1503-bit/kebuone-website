@@ -955,7 +955,7 @@ bg-black/60
 backdrop-blur-md
 px-4
 py-6
-lg:pl-[340px]
+lg:pl-[272px]
 "
 >
 

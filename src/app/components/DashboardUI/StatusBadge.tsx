@@ -9,7 +9,6 @@ export default function StatusBadge({
   status,
   label,
 }: StatusBadgeProps) {
-
   const styles = {
     active: {
       bg: "bg-emerald-50",
@@ -18,7 +17,6 @@ export default function StatusBadge({
       dot: "bg-emerald-500",
       label: "ACTIVE",
     },
-
     warning: {
       bg: "bg-amber-50",
       text: "text-amber-700",
@@ -26,15 +24,13 @@ export default function StatusBadge({
       dot: "bg-amber-500",
       label: "PENDING",
     },
-
     danger: {
-      bg: "bg-red-50",
-      text: "text-red-700",
-      border: "border-red-200",
-      dot: "bg-red-500",
+      bg: "bg-rose-50",
+      text: "text-rose-700",
+      border: "border-rose-200",
+      dot: "bg-rose-500",
       label: "CRITICAL",
     },
-
     inactive: {
       bg: "bg-slate-100",
       text: "text-slate-600",
@@ -46,34 +42,9 @@ export default function StatusBadge({
 
   return (
     <span
-      className={`
-      inline-flex
-      items-center
-      gap-2
-      px-4
-      py-2
-      rounded-full
-      border
-      ${styles[status].border}
-      ${styles[status].bg}
-      ${styles[status].text}
-      text-sm
-      font-semibold
-      transition-all
-      duration-300
-      hover:scale-105
-      `}
+      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles[status].border} ${styles[status].bg} ${styles[status].text}`}
     >
-      <span
-        className={`
-        w-2.5
-        h-2.5
-        rounded-full
-        ${styles[status].dot}
-        animate-pulse
-        `}
-      />
-
+      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${styles[status].dot}`} />
       {label || styles[status].label}
     </span>
   );
