@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { bookingBelongsToRiderFilter } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
@@ -9,10 +11,6 @@ import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 
 export const runtime = "nodejs";
-
-const NOT_DELETED = {
-  $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-};
 
 export async function GET(req: Request) {
   try {
@@ -34,7 +32,7 @@ export async function GET(req: Request) {
     }
 
     const rider = await Rider.findOne({
-      $and: [NOT_DELETED, { $or: riderLookups }],
+      $and: [NOT_DELETED_FILTER, { $or: riderLookups }],
     });
 
     if (!rider || !firebaseUserOwnsRider(firebaseUser, rider)) {
@@ -42,9 +40,9 @@ export async function GET(req: Request) {
     }
 
     const booking = await Booking.findOne({
-      riderId: rider.riderId,
       $and: [
-        NOT_DELETED,
+        bookingBelongsToRiderFilter(rider),
+        NOT_DELETED_FILTER,
         { rideStatus: { $ne: "Cancelled" } },
         {
           $or: [

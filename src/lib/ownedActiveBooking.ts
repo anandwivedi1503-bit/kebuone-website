@@ -1,13 +1,11 @@
+import { bookingBelongsToRiderFilter } from "@/lib/findBookingRider";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
-
-const NOT_DELETED = {
-  $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-};
 
 export async function getOwnedActiveBooking(req: Request) {
   const firebaseUser = await getVerifiedFirebaseUser(req);
@@ -21,7 +19,7 @@ export async function getOwnedActiveBooking(req: Request) {
   if (firebaseUser.phone) riderLookups.push({ phone: firebaseUser.phone });
 
   const rider = await Rider.findOne({
-    $and: [NOT_DELETED, { $or: riderLookups }],
+    $and: [NOT_DELETED_FILTER, { $or: riderLookups }],
   });
 
   if (!rider || !firebaseUserOwnsRider(firebaseUser, rider)) {
@@ -29,9 +27,9 @@ export async function getOwnedActiveBooking(req: Request) {
   }
 
   const booking = await Booking.findOne({
-    riderId: rider.riderId,
     $and: [
-      NOT_DELETED,
+      bookingBelongsToRiderFilter(rider),
+      NOT_DELETED_FILTER,
       { rideStatus: { $ne: "Cancelled" } },
       {
         $or: [

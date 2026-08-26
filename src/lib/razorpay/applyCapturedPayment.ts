@@ -16,6 +16,7 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
+import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { normalizeIndianPhone } from "@/lib/requestAuth";
 
 function generateWalletTransactionId() {
@@ -90,13 +91,11 @@ export async function applyCapturedRazorpayPayment(
       return { ok: false, status: 400, message: "Booking payment order mismatch." };
     }
 
-    const rider = await Rider.findOne({
-      riderId: booking.riderId,
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    });
+    const rider = await findBookingRider(booking);
     if (!rider) {
       return { ok: false, status: 404, message: "Rider not found." };
     }
+    syncBookingRiderId(booking, rider);
 
     const paymentIds = razorpayIdVariants(razorpayPaymentId);
     const alreadyOnBooking = paymentIds.includes(String(booking.razorpayPaymentId || ""));
