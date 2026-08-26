@@ -3,6 +3,7 @@
  import { useEffect, useState } from "react";
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
+import { walletSpendable } from "@/lib/walletMoney";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import {
   AlertTriangle,
@@ -217,12 +218,7 @@ const [refreshing, setRefreshing] = useState(false);
   const activeRides = Number(
     stats?.activeRides ??
       bookings.filter(
-        (item: any) =>
-          item.rideStatus === "Booked" ||
-          item.rideStatus === "Reserved" ||
-          item.rideStatus === "Payment Pending" ||
-          item.rideStatus === "Ready For Pickup" ||
-          item.rideStatus === "In Ride"
+        (item: any) => item.rideStatus === "In Ride"
       ).length
   );
 
@@ -283,7 +279,7 @@ const blockedWallets = wallets.filter(
 ).length;
 
 const totalWalletBalance = wallets.reduce(
-(sum,w)=>sum+(w.balance||0),
+(sum,w)=>sum+walletSpendable(w),
 0
 );
 
@@ -1135,7 +1131,7 @@ className={`text-sm font-semibold ${card.tone.note}`}>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Operations Monitoring</h2>
-              <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Real-time operational health across the Kebu One ecosystem.</p>
+              <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Real-time operational health across the EVUDDY ecosystem.</p>
             </div>
 
             <div

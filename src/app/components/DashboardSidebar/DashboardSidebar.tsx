@@ -32,6 +32,8 @@ type Props = {
   setActiveDashboard: (dashboard: string) => void;
   allowedDashboards?: string[] | null;
   canManageTeam?: boolean;
+  sessionUsername?: string;
+  sessionRole?: "super" | "staff";
 };
 
 const menus = [
@@ -64,6 +66,8 @@ export default function DashboardSidebar({
   setActiveDashboard,
   allowedDashboards = null,
   canManageTeam = false,
+  sessionUsername = "superadmin",
+  sessionRole = "super",
 }: Props) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const visibleMenus = (
@@ -153,10 +157,19 @@ export default function DashboardSidebar({
         </nav>
 
         <div className="border-t border-white/10 p-4">
-          <div className="rounded-2xl border border-[#18B368]/25 bg-[#18B368]/10 px-3 py-3">
-            <p className="text-[11px] tracking-wide text-white/55">Logged in as</p>
-            <p className="text-sm font-medium tracking-tight">EVUDDY Administrator</p>
-            <p className="mt-2 text-[11px] text-white/40">Operations Center · Version 2.0</p>
+          <div className="overflow-hidden rounded-2xl border border-[#18B368]/30 bg-[#18B368]/10">
+            <div className="h-0.5 w-full bg-[#18B368]" />
+            <div className="px-3 py-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-[#18B368]">
+                Logged in as
+              </p>
+              <p className="mt-1 truncate text-sm font-medium tracking-tight">
+                {sessionRole === "staff" ? sessionUsername || "Staff" : "EVUDDY Administrator"}
+              </p>
+              <p className="mt-1 text-[11px] text-white/50">
+                {sessionRole === "staff" ? "Staff access" : "Super admin · Operations Center"}
+              </p>
+            </div>
           </div>
         </div>
       </aside>

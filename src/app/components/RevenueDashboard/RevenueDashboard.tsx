@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
+import { walletSpendable } from "@/lib/walletMoney";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function RevenueDashboard(){
@@ -81,17 +82,21 @@ const totalRevenue = transactions.reduce(
 
 const totalGST = transactions.reduce(
   (sum, t) =>
-    sum + Number(t.gstAmount || 0),
+    t.status === "Success"
+      ? sum + Number(t.gstAmount || 0)
+      : sum,
   0
 );
 
 const totalCGST = transactions.reduce(
-  (sum, t) => sum + transactionCgst(t),
+  (sum, t) =>
+    t.status === "Success" ? sum + transactionCgst(t) : sum,
   0
 );
 
 const totalSGST = transactions.reduce(
-  (sum, t) => sum + transactionSgst(t),
+  (sum, t) =>
+    t.status === "Success" ? sum + transactionSgst(t) : sum,
   0
 );
 
@@ -118,7 +123,7 @@ const refundedAmount = refunds.reduce(
 
 const walletBalance = wallets.reduce(
   (sum, w) =>
-    sum + Number(w.balance || 0),
+    sum + walletSpendable(w),
   0
 );
 
@@ -128,9 +133,6 @@ const walletHold = wallets.reduce(
     Number(w.securityDepositHold || 0),
   0
 );
-
-const totalTransactions =
-  transactions.length;
 
   const filteredTransactions = transactions.filter((txn) => {
 
@@ -261,7 +263,7 @@ color="red"
 <KPICard
 title="Wallet Balance"
 value={`₹${walletBalance.toLocaleString("en-IN")}`}
-subtitle="Available"
+subtitle="Spendable EVUDDY credit"
 icon="👛"
 color="blue"
 />
@@ -918,96 +920,7 @@ icon="📗"
 color="green"
 />
 
-<KPICard
-title="Total GST"
-value={`₹${totalGST.toFixed(2)}`}
-subtitle="Collected @ 5%"
-icon="🧾"
-color="yellow"
-/>
-
 </KPIGrid>
-
-<SectionHeader
-
-title="Revenue Analytics"
-
-subtitle="Revenue trends and refund activity."
-
-/>
-
-<DashboardCard
-title="Revenue Trend"
-subtitle="Analytics Overview"
->
-
-<div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-
-<div className="rounded-2xl border border-green-100 bg-green-50 p-6">
-
-<p className="text-sm text-gray-500">
-Total  Revenue
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-green-700">
-
-₹{totalRevenue.toLocaleString("en-IN")}
-
-</h2>
-
-</div>
-
-<div className="rounded-2xl border border-blue-100 bg-blue-50 p-6">
-
-<p className="text-sm text-gray-500">
-
-Transactions
-
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-blue-700">
-
-{totalTransactions}
-
-</h2>
-
-</div>
-
-<div className="rounded-2xl border border-yellow-100 bg-yellow-50 p-6">
-
-<p className="text-sm text-gray-500">
-
-GST Collection
-
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-yellow-700">
-
-₹{totalGST.toLocaleString("en-IN")}
-
-</h2>
-
-</div>
-
-<div className="rounded-2xl border border-pink-100 bg-pink-50 p-6">
-
-<p className="text-sm text-gray-500">
-
-Refund Amount
-
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-pink-700">
-
-₹{refundedAmount.toLocaleString("en-IN")}
-
-</h2>
-
-</div>
-
-</div>
-
-</DashboardCard>
 
 <SectionHeader
 

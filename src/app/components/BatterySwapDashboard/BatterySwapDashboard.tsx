@@ -114,13 +114,18 @@ export default function BatterySwapDashboard() {
   }, []);
 
   const stats = useMemo(() => {
+    const hubKeyword = formData.hubName.trim().toLowerCase();
+    const hubVehicles = hubKeyword
+      ? vehicles.filter((vehicle) => String(vehicle.currentHub || "").toLowerCase().includes(hubKeyword))
+      : vehicles;
     return {
       total: swaps.length,
       completed: swaps.filter((s) => s.status === "COMPLETED").length,
       pending: swaps.filter((s) => s.status === "PENDING").length,
       readyBatteries: batteries.filter((b) => b.status === "READY").length,
+      scooters: hubVehicles.length,
     };
-  }, [swaps, batteries]);
+  }, [swaps, batteries, vehicles, formData.hubName]);
 
   const filteredSwaps = swaps.filter((swap) => {
     const keyword = search.toLowerCase();
@@ -231,7 +236,7 @@ export default function BatterySwapDashboard() {
         <KPICard title="Swaps" value={String(stats.total)} subtitle="Logged" icon={<Repeat2 size={22} />} color="blue" />
         <KPICard title="Completed" value={String(stats.completed)} subtitle="Inventory updated" icon={<Repeat2 size={22} />} color="green" />
         <KPICard title="Ready packs" value={String(stats.readyBatteries)} subtitle="Available to fit" icon={<BatteryCharging size={22} />} color="yellow" />
-        <KPICard title="Scooters" value={String(vehicles.length)} subtitle="On this hub list" icon={<Bike size={22} />} color="purple" />
+        <KPICard title="Scooters" value={String(stats.scooters)} subtitle={formData.hubName ? "On this hub list" : "Fleet"} icon={<Bike size={22} />} color="purple" />
       </KPIGrid>
 
       <DashboardCard title="Record a swap" subtitle="Select the scooter first so Battery Out fills from the pack currently fitted.">

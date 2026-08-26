@@ -81,9 +81,7 @@ export async function GET(req: Request) {
       ]),
       Booking.countDocuments({
         ...NOT_DELETED,
-        rideStatus: {
-          $in: ["Booked", "Reserved", "Payment Pending", "Ready For Pickup", "In Ride"],
-        },
+        rideStatus: "In Ride",
       }),
       Booking.countDocuments({ ...NOT_DELETED, ...createdInPeriod, rideStatus: "Completed" }),
       Booking.countDocuments({ ...NOT_DELETED, ...createdInPeriod, rideStatus: "Cancelled" }),

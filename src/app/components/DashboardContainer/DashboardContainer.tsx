@@ -68,6 +68,8 @@ export default function DashboardContainer() {
         setActiveDashboard={setActiveDashboard}
         allowedDashboards={isSuper ? null : allowed}
         canManageTeam={isSuper}
+        sessionUsername={session?.username}
+        sessionRole={session?.role}
       />
 
       <main className="min-h-screen pt-14 lg:ml-[272px] lg:pt-0">

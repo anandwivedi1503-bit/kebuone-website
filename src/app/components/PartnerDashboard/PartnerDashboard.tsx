@@ -120,7 +120,7 @@ return(
 
 title="Partner Applications"
 
-subtitle="Review and manage Kebu One franchise and partnership applications."
+subtitle="Review and manage EVUDDY franchise and partnership applications."
 
 />
 

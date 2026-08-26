@@ -215,7 +215,7 @@ return(
 
 title="Vehicle Management"
 
-subtitle="Register, configure and manage every vehicle across the Kebu One mobility platform."
+subtitle="Register, configure and manage every vehicle across the EVUDDY mobility platform."
 
 />
 

@@ -305,14 +305,13 @@ export default function BatteryDashboard() {
                 <th className="sticky top-0 bg-white px-4 py-3">Last charged</th>
                 <th className="sticky top-0 bg-white px-4 py-3">Age</th>
                 <th className="sticky top-0 bg-white px-4 py-3">Status</th>
-                <th className="sticky top-0 bg-white px-4 py-3">Set status</th>
                 <th className="sticky top-0 bg-white px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredBatteries.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-10 text-slate-500" colSpan={11}>
+                  <td className="px-4 py-10 text-slate-500" colSpan={10}>
                     No packs match this filter.
                   </td>
                 </tr>
@@ -353,19 +352,19 @@ export default function BatteryDashboard() {
                       {hoursSince(battery.lastChargedAt)}
                     </td>
                     <td className="px-4 py-3.5 align-middle">
-                      <StatusBadge status={statusTone(battery.status)} label={battery.status || "—"} />
-                    </td>
-                    <td className="px-4 py-3.5 align-middle">
-                      <select
-                        value={battery.status}
-                        onChange={(e) => void updateStatus(battery._id, e.target.value)}
-                        className="h-10 w-36 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold"
-                      >
-                        <option value="READY">READY</option>
-                        <option value="CHARGING">CHARGING</option>
-                        <option value="IN-VEHICLE">IN-VEHICLE</option>
-                        <option value="MAINTENANCE">MAINTENANCE</option>
-                      </select>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <StatusBadge status={statusTone(battery.status)} label={battery.status || "—"} />
+                        <select
+                          value={battery.status}
+                          onChange={(e) => void updateStatus(battery._id, e.target.value)}
+                          className="h-10 w-36 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold"
+                        >
+                          <option value="READY">READY</option>
+                          <option value="CHARGING">CHARGING</option>
+                          <option value="IN-VEHICLE">IN-VEHICLE</option>
+                          <option value="MAINTENANCE">MAINTENANCE</option>
+                        </select>
+                      </div>
                     </td>
                     <td className="px-4 py-3.5 align-middle">
                       <div className="flex justify-end gap-2 whitespace-nowrap">
