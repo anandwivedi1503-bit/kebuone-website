@@ -1,4 +1,5 @@
 import Navbar from "./Navbar/Navbar";
+import AnchorScroll from "./components/AnchorScroll/AnchorScroll";
 import Hero from "./components/Hero/Hero";
 import EvuddyNetwork from "./components/EvuddyNetwork/EvuddyNetwork";
 import Services from "./components/Services/Services";
@@ -12,6 +13,7 @@ import Footer from "./components/Footer/Footer";
 export default function Home() {
   return (
       <main>
+            <AnchorScroll />
             <Navbar />
 
                   <Hero />

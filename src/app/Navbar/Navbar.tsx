@@ -308,7 +308,7 @@ Fleet Partner
 </Link>
 
 
-<Link href="/partners#partner-form">
+<Link href="/partners#fleet-investment">
 
 <button
 type="button"
@@ -576,7 +576,7 @@ Fleet Partner
 </Link>
 
 <Link
-href="/partners#partner-form"
+href="/partners#fleet-investment"
 onClick={()=>setMenuOpen(false)}
 >
 
