@@ -26,7 +26,7 @@ const pillars = [
   {
     icon: ShieldCheck,
     title: "Rent to Own",
-    text: "₹280 a day for 18 months. Start with ₹280 + 5% GST. No security deposit. Full installment, then ownership.",
+    text: "₹280 a day for 18 months. Pay ₹280 + 5% GST every day. No security deposit. Daily receipt. Then the scooter is yours.",
   },
   {
     icon: Building2,

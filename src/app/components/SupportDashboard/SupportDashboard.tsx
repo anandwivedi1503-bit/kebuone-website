@@ -21,6 +21,7 @@ const [editingTicket,setEditingTicket]=useState<any>(null);
 
 const [showEditModal,setShowEditModal]=useState(false);
 const [statusFilter,setStatusFilter]=useState("ALL");
+const [categoryFilter,setCategoryFilter]=useState("ALL");
 const [search,setSearch]=useState("");
 const [ticketQueue,setTicketQueue]=useState<"riders" | "website">("riders");
 
@@ -315,6 +316,35 @@ focus:outline-none
 
 </select>
 
+<select
+value={categoryFilter}
+onChange={(e)=>setCategoryFilter(e.target.value)}
+className="
+rounded-2xl
+border
+border-slate-200
+bg-white
+px-5
+py-3.5
+shadow-sm
+transition-all
+duration-300
+focus:border-[#00C853]
+focus:ring-4
+focus:ring-[#00C853]/10
+focus:outline-none
+"
+>
+<option value="ALL">All issues</option>
+<option value="VEHICLE_BREAKDOWN">Scooter breakdown</option>
+<option value="BATTERY_ISSUE">Battery / swap</option>
+<option value="UNLOCK_ISSUE">Unlock / OTP</option>
+<option value="PAYMENT_ISSUE">Payment</option>
+<option value="REFUND_REQUEST">Refund</option>
+<option value="BOOKING_ISSUE">Booking</option>
+<option value="OTHER">Other</option>
+</select>
+
 </div>
 
   <div className="overflow-x-auto rounded-3xl">
@@ -391,7 +421,11 @@ const matchesStatus =
 statusFilter==="ALL" ||
 ticket.status===statusFilter;
 
-return matchesSearch && matchesStatus;
+const matchesCategory =
+categoryFilter==="ALL" ||
+ticket.category===categoryFilter;
+
+return matchesSearch && matchesStatus && matchesCategory;
 
 }).length===0 && (
 
@@ -424,7 +458,7 @@ New customer issues will automatically appear here.
 
 )}
 
-{tickets
+{queueTickets
 .filter((ticket)=>{
 
 const keyword = search.toLowerCase();
@@ -440,7 +474,11 @@ const matchesStatus =
 statusFilter==="ALL" ||
 ticket.status===statusFilter;
 
-return matchesSearch && matchesStatus;
+const matchesCategory =
+categoryFilter==="ALL" ||
+ticket.category===categoryFilter;
+
+return matchesSearch && matchesStatus && matchesCategory;
 
 })
 
@@ -479,7 +517,7 @@ transition
 </td>
 
 <td className="px-6 py-5 text-center">
-{ticket.category}
+{String(ticket.category || "").replace(/_/g, " ")}
 </td>
 
 <td className="px-6 py-5 text-center font-semibold">
@@ -682,7 +720,7 @@ Description
 <div className="rounded-3xl border border-green-100 bg-green-50/40 p-8">
 
 <p className="text-sm font-semibold text-gray-500 mb-3">
-Admin Remarks
+Admin remarks (rider sees this on Book EV)
 </p>
 
 <p className="text-[#0A1134] font-semibold leading-7">
@@ -964,9 +1002,29 @@ setEditingTicket({
 adminRemarks:e.target.value,
 })
 }
-placeholder="Admin Remarks"
+placeholder="What the rider should see when this is resolved"
 className="rounded-xl border border-gray-200 px-4 py-3"
 />
+
+<select
+value={editingTicket.category || "BOOKING_ISSUE"}
+onChange={(e)=>
+setEditingTicket({
+...editingTicket,
+category:e.target.value,
+})
+}
+className="rounded-xl border border-gray-200 px-4 py-3"
+>
+<option value="UNLOCK_ISSUE">Unlock / OTP</option>
+<option value="VEHICLE_BREAKDOWN">Scooter breakdown</option>
+<option value="BATTERY_ISSUE">Battery / swap</option>
+<option value="PAYMENT_ISSUE">Payment</option>
+<option value="REFUND_REQUEST">Refund</option>
+<option value="BOOKING_ISSUE">Booking</option>
+<option value="OVERCHARGING">Overcharging</option>
+<option value="OTHER">Other</option>
+</select>
 
 <select
 value={editingTicket.priority}

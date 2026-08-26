@@ -16,6 +16,7 @@ import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
 import { gstBreakdown, money } from "@/lib/gst";
 import {
   catalogRate,
+  rtoContractDays,
   rtoDailyRate,
   rtoInstallment,
   rtoTenureMonths,
@@ -863,7 +864,7 @@ rentToOwnCompletedDays: rentalMode === "Rent To Own" ? 0 : 0,
 
 remainingRentToOwnDays:
   rentalMode === "Rent To Own"
-    ? rtoTenureMonths(vehicle.rentToOwnMonths) * 30
+    ? rtoContractDays(vehicle.rentToOwnMonths)
     : 0,
 
 ownershipTransferred: false,
@@ -885,6 +886,8 @@ rtoCertificateNumber:
     ? `RTO-${bookingId.replace(/[^A-Z0-9]/gi, "").slice(-10)}`
     : "",
 rtoInstallmentsPaid: 0,
+rtoNextInstallmentAmount:
+  rentalMode === "Rent To Own" ? payableAmount : 0,
 
 rentalStartDate,
 

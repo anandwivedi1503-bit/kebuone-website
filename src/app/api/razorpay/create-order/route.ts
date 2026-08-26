@@ -12,6 +12,7 @@ import Rider from "@/models/Rider";
 import {
   getBookingPayableAmount,
 } from "@/lib/gst";
+import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
@@ -189,6 +190,8 @@ export async function POST(req: Request) {
       );
     }
 
+    await openDueRtoInstallment(booking);
+
     const payableAmount = getBookingPayableAmount(booking);
 
     const receivedAmount = Number(booking.receivedAmount || 0);
@@ -215,7 +218,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rent to Own requires the full installment in one payment.",
+          message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
         },
         { status: 400 }
       );

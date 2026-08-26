@@ -173,7 +173,7 @@ color="yellow"
 <DashboardCard>
   <h2 className="mb-2 text-2xl font-black text-[#0A1134]">Yard vehicles</h2>
   <p className="mb-4 text-sm text-slate-500">
-    Enter the pickup OTP the rider tells you to unlock. After remaining is paid, enter the ride end OTP to take the bike back.
+    Enter the pickup OTP the rider tells you to unlock. Remaining must be ₹0, then the rider swipes Ride end to generate OTP — same pattern as pickup. Rent to Own bikes stay with the rider.
   </p>
   <div className="overflow-x-auto">
     <table className="min-w-full text-sm">

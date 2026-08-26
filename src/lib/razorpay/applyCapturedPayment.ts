@@ -16,6 +16,12 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
+import {
+  gstOnRtoDailyPayment,
+  isRentToOwnBooking,
+  openDueRtoInstallment,
+  rtoCycleAfterInstallment,
+} from "@/lib/rtoInstallmentCycle";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { normalizeIndianPhone } from "@/lib/requestAuth";
 
@@ -136,6 +142,8 @@ export async function applyCapturedRazorpayPayment(
       return { ok: false, status: 400, message: "This booking is no longer payable." };
     }
 
+    await openDueRtoInstallment(booking);
+
     if (!isBookingStillPayable(booking) && existingTransaction) {
       return {
         ok: true,
@@ -171,21 +179,23 @@ export async function applyCapturedRazorpayPayment(
       return {
         ok: false,
         status: 400,
-        message: "Rent to Own requires the full installment in one payment.",
+        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
       };
     }
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
-    const { paymentStatus, rideStatus, pickupOTP, rideEndOTP } = progress;
+    const { paymentStatus, rideStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-${paymentIds[0].slice(-8)}`;
-    const taxOnPayment = gstShareForPayment({
-      rentalAmount: booking.rateApplied || booking.totalAmount,
-      gstAmount: booking.gstAmount,
-      previousReceived: oldReceivedAmount,
-      paidNow: paidAmount,
-    });
+    const taxOnPayment = isRentToOwnBooking(booking)
+      ? gstOnRtoDailyPayment(paidAmount)
+      : gstShareForPayment({
+          rentalAmount: booking.rateApplied || booking.totalAmount,
+          gstAmount: booking.gstAmount,
+          previousReceived: oldReceivedAmount,
+          paidNow: paidAmount,
+        });
 
     if (!existingTransaction) {
       try {
@@ -207,6 +217,10 @@ export async function applyCapturedRazorpayPayment(
           invoiceNumber,
           invoiceGenerated: true,
           status: "Success",
+          remarks:
+            booking.rentalMode === "Rent To Own"
+              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+              : "",
         });
       } catch (error) {
         if (!isDuplicateKeyError(error)) throw error;
@@ -230,16 +244,7 @@ export async function applyCapturedRazorpayPayment(
             `Payment verified INR ${paidAmount} ${razorpayPaymentId}`,
             500
           ),
-          ...(booking.rentalMode === "Rent To Own" && pendingAmount <= 0
-            ? {
-                rtoInstallmentsPaid: Number(booking.rtoInstallmentsPaid || 0) + 1,
-                rentToOwnCompletedDays: Number(booking.rentToOwnCompletedDays || 0) + 30,
-                remainingRentToOwnDays: Math.max(
-                  0,
-                  Number(booking.remainingRentToOwnDays || 0) - 30
-                ),
-              }
-            : {}),
+          ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
         },
       },
       { new: true }
@@ -369,6 +374,11 @@ export async function applyCapturedRazorpayPayment(
       console.error("DEPOSIT REFUND QUEUE AFTER RAZORPAY CAPTURE:", error);
     }
 
+    const nextPending = Number(updatedBooking.pendingAmount || 0);
+    const nextPaymentStatus = String(updatedBooking.paymentStatus || paymentStatus);
+    const nextRideStatus = String(updatedBooking.rideStatus || rideStatus);
+    const isRto = String(updatedBooking.rentalMode || "") === "Rent To Own";
+
     const issuedPickupOtp = updatedBooking.pickupOTPVerified
       ? undefined
       : pickupOTP || String(updatedBooking.pickupOTP || "") || undefined;
@@ -390,11 +400,15 @@ export async function applyCapturedRazorpayPayment(
         riderPhone: String(booking.userPhone || rider.phone || ""),
         riderEmail: String(booking.userEmail || ""),
         amount: paidAmount,
-        pendingAmount,
-        paymentStatus,
+        pendingAmount: nextPending,
+        paymentStatus: nextPaymentStatus,
         pickupOTP: issuedPickupOtp,
         paymentMethod: "Razorpay",
-        rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
+        rideEndOTP: undefined,
+        invoiceNumber,
+        receiptDay: Number(updatedBooking.rtoInstallmentsPaid || 0) || undefined,
+        rentalMode: String(updatedBooking.rentalMode || ""),
+        gstAmount: taxOnPayment.gstAmount,
       });
     } catch (notifyError) {
       console.error("BOOKING PAYMENT NOTIFY ERROR:", notifyError);
@@ -405,18 +419,22 @@ export async function applyCapturedRazorpayPayment(
       alreadyVerified: Boolean(existingTransaction),
       booking: updatedBooking.toObject(),
       paidAmount,
-      pendingAmount,
-      paymentStatus,
+      pendingAmount: nextPending,
+      paymentStatus: nextPaymentStatus,
       pickupOTP: issuedPickupOtp,
-      rideEndOTP: pendingAmount <= 0 ? rideEndOTP : undefined,
+      rideEndOTP: undefined,
       message:
-        paymentStatus === "Paid"
-          ? rideStatus === "In Ride"
-            ? "Remaining payment received. Rider can swipe Ride end on Book EV to get the ride-end OTP."
-            : rideStatus === "Completed"
-            ? "Remaining payment received."
+        isRto && Boolean(updatedBooking.ownershipTransferred)
+          ? "Final daily payment received. This scooter is now yours. Thank you for riding with EVUDDY."
+          : isRto
+          ? "Daily Rent to Own received. Pickup OTP is ready if you have not collected yet. Tomorrow’s ₹280 + GST opens when due. Keep the scooter."
+          : nextPaymentStatus === "Paid"
+          ? nextRideStatus === "In Ride"
+            ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV — that generates the ride-end OTP the same way pickup OTP appeared after first payment."
+            : nextRideStatus === "Completed"
+            ? "Payment complete. Thank you for riding with EVUDDY."
             : "Payment verified. Pickup OTP is ready."
-          : "Partial payment verified. Pickup OTP is ready. Remaining must be paid before the rider can swipe Ride end.",
+          : "Partial payment verified. Pickup OTP is ready. Remaining must be ₹0 before you swipe Ride end.",
     };
   } catch (error) {
     console.error("APPLY CAPTURED PAYMENT ERROR:", error);

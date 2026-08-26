@@ -24,7 +24,7 @@ const pillars = [
   },
   {
     title: "Rent to Own",
-    text: "₹280 a day for 18 months. Pay ₹280 + 5% GST to start. No security deposit. Full installment, then the scooter is yours.",
+    text: "₹280 a day for 18 months. Pay ₹280 + 5% GST every day. No security deposit. Daily receipt. Then the scooter is yours.",
   },
 ];
 

@@ -48,6 +48,7 @@ const TicketSchema = new mongoose.Schema(
   "UNLOCK_ISSUE",
   "OVERCHARGING",
   "VEHICLE_BREAKDOWN",
+  "BATTERY_ISSUE",
   "PAYMENT_ISSUE",
   "REFUND_REQUEST",
   "BOOKING_ISSUE",

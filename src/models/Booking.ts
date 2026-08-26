@@ -250,6 +250,14 @@ rtoInstallmentsPaid: {
   min: 0,
 },
 
+rtoNextInstallmentAt: Date,
+
+rtoNextInstallmentAmount: {
+  type: Number,
+  default: 0,
+  min: 0,
+},
+
     rentalStartDate: {
   type: Date,
   required: true,

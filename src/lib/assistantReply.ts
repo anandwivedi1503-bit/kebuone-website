@@ -21,7 +21,7 @@ const FAQ: { keys: string[]; answer: string }[] = [
   {
     keys: ["own", "rto", "installment", "18"],
     answer:
-      "Rent to Own is ₹280/day for 18 months (30-day billing), 5% GST, and no security deposit. After successful payments, ownership transfers. https://www.evuddy.com/rent-to-own",
+      "Rent to Own is ₹280 + 5% GST every day for 18 months, no security deposit. You get a daily receipt. After successful days, ownership transfers. https://www.evuddy.com/rent-to-own",
   },
   {
     keys: ["razorpay", "pay", "upi", "card"],
@@ -36,7 +36,7 @@ const FAQ: { keys: string[]; answer: string }[] = [
   {
     keys: ["contact", "help", "ticket", "support", "email"],
     answer:
-      "Email info@kebuone.in or use https://www.evuddy.com/contact. After you pay, the booking page has Need help? which opens a ticket on that booking for hub staff.",
+      "Email info@kebuone.in or use https://www.evuddy.com/contact. After you pay, Book EV has Need help? for pickup or mid-ride issues (breakdown, battery, unlock, payment). Hub staff see it on Support.",
   },
 ];
 

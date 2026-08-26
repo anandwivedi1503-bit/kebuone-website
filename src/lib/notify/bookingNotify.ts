@@ -13,9 +13,19 @@ export type BookingNotifyInput = {
   pickupOTP?: string;
   rideEndOTP?: string;
   paymentMethod: "Razorpay" | "Wallet" | "Cash";
+  invoiceNumber?: string;
+  receiptDay?: number;
+  rentalMode?: string;
+  gstAmount?: number;
 };
 
 function messageFor(input: BookingNotifyInput) {
+  if (input.rentalMode === "Rent To Own" && !input.pickupOTP && !input.rideEndOTP) {
+    const day = input.receiptDay || 1;
+    const inv = input.invoiceNumber ? ` Receipt ${input.invoiceNumber}.` : "";
+    const gst = input.gstAmount ? ` GST INR ${input.gstAmount}.` : "";
+    return `EVUDDY Rent to Own daily receipt.${inv} ${input.bookingId} day ${day}. Paid INR ${input.amount} via ${input.paymentMethod}.${gst} Thank you. https://www.evuddy.com/rent-to-own`;
+  }
   const otpLine = input.rideEndOTP
     ? ` Ride end OTP: ${input.rideEndOTP}. Tell this to the yard when you return the scooter.`
     : input.pickupOTP
@@ -58,8 +68,28 @@ async function sendEmail(input: BookingNotifyInput, text: string) {
         ? `EVUDDY ride end OTP ${input.bookingId}`
         : input.pickupOTP
         ? `EVUDDY pickup OTP ${input.bookingId}`
+        : input.rentalMode === "Rent To Own"
+        ? `EVUDDY daily receipt ${input.bookingId}${input.receiptDay ? ` · day ${input.receiptDay}` : ""}`
         : `EVUDDY booking ${input.bookingId} payment`,
       text,
+      html:
+        input.rentalMode === "Rent To Own" && !input.pickupOTP && !input.rideEndOTP
+          ? `<div style="font-family:Arial,sans-serif;max-width:520px;color:#0f172a">
+<p style="letter-spacing:.16em;font-size:11px;color:#18B368">EVUDDY RECEIPT</p>
+<h1 style="font-size:22px">Rent to Own daily receipt</h1>
+<p>Hello ${input.riderName || "rider"},</p>
+<p>We recorded today’s payment for booking <strong>${input.bookingId}</strong>.</p>
+<table style="width:100%;border-collapse:collapse;margin:16px 0">
+<tr><td style="padding:8px 0">Receipt</td><td style="text-align:right"><strong>${input.invoiceNumber || "—"}</strong></td></tr>
+<tr><td style="padding:8px 0">Day</td><td style="text-align:right">${input.receiptDay || 1}</td></tr>
+<tr><td style="padding:8px 0">Amount</td><td style="text-align:right">INR ${input.amount}</td></tr>
+<tr><td style="padding:8px 0">GST (5%)</td><td style="text-align:right">INR ${input.gstAmount || 0}</td></tr>
+<tr><td style="padding:8px 0">Method</td><td style="text-align:right">${input.paymentMethod}</td></tr>
+</table>
+<p>Keep the scooter. Tomorrow’s ₹280 + 5% GST will open when due. This email is your copy of the receipt.</p>
+<p>https://www.evuddy.com/rent-to-own</p>
+</div>`
+          : undefined,
     }),
   });
   if (!res.ok) throw new Error(`resend ${res.status}`);

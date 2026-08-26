@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -108,6 +109,29 @@ export async function releaseUnpaidBookings(limit = 50) {
   return { scanned: stale.length, released };
 }
 
+export async function openDueRtoDays(limit = 80) {
+  const due = await Booking.find({
+    ...NOT_DELETED,
+    rentalMode: "Rent To Own",
+    ownershipTransferred: { $ne: true },
+    remainingRentToOwnDays: { $gt: 0 },
+    $or: [
+      { pendingAmount: { $lte: 0.009 } },
+      { pendingAmount: { $exists: false } },
+    ],
+  })
+    .sort({ rtoNextInstallmentAt: 1 })
+    .limit(limit);
+
+  let opened = 0;
+  for (const booking of due) {
+    const before = Number(booking.pendingAmount || 0);
+    await openDueRtoInstallment(booking);
+    if (Number(booking.pendingAmount || 0) > before + 0.009) opened += 1;
+  }
+  return { scanned: due.length, opened };
+}
+
 let lastSweep = 0;
 
 export async function maybeSweepUnpaidBookings() {
@@ -115,7 +139,11 @@ export async function maybeSweepUnpaidBookings() {
   if (now - lastSweep < 30 * 1000) return null;
   lastSweep = now;
   try {
-    return await releaseUnpaidBookings(100);
+    const [unpaid, rto] = await Promise.all([
+      releaseUnpaidBookings(100),
+      openDueRtoDays(80),
+    ]);
+    return { unpaid, rto };
   } catch (error) {
     console.error("UNPAID BOOKING SWEEP ERROR:", error);
     return null;

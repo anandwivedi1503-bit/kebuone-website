@@ -18,6 +18,8 @@ type Vehicle = {
   registrationNumber?: string;
   currentHub?: string;
   vehicleStatus?: string;
+  currentBatteryId?: string;
+  batteryPercentage?: number;
 };
 
 type Swap = {
@@ -129,6 +131,7 @@ const [showEditModal, setShowEditModal] =
       ...prev,
       vehicleId,
       hubName: vehicle?.currentHub || prev.hubName,
+      batteryOutId: vehicle?.currentBatteryId || prev.batteryOutId,
     }));
   };
 
@@ -141,32 +144,6 @@ const [showEditModal, setShowEditModal] =
       hubId: battery?.hubId || prev.hubId,
       hubName: battery?.hubName || prev.hubName,
     }));
-  };
-
-  const patchBattery = async (batteryId: string, body: Record<string, unknown>) => {
-    const battery = batteries.find((b) => b.batteryId === batteryId);
-    if (!battery?._id) return;
-
-    await fetch(`/api/batteries/${battery._id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-  };
-
-  const patchVehicle = async (vehicleId: string, body: Record<string, unknown>) => {
-    const vehicle = vehicles.find((v) => v.vehicleId === vehicleId);
-    if (!vehicle?._id) return;
-
-    await fetch(`/api/vehicles/${vehicle._id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -187,58 +164,32 @@ const [showEditModal, setShowEditModal] =
       (battery) => battery.batteryId === formData.batteryInId
     );
 
+    const selectedBatteryOut = batteries.find(
+      (battery) => battery.batteryId === formData.batteryOutId
+    );
+
     const res = await fetch("/api/battery-swaps", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        ...formData,
+        status: "COMPLETED",
+        batteryInPercentage: selectedBatteryIn?.chargePercentage ?? 100,
+        batteryOutPercentage: selectedBatteryOut?.chargePercentage ?? 0,
+      }),
     });
 
     const data = await res.json();
 
     if (!data.success) {
-      setMessage("Battery swap save failed.");
+      setMessage(String(data.message || "Battery swap save failed."));
       setLoading(false);
       return;
     }
-    if(formData.status==="COMPLETED"){
 
-    await patchBattery(formData.batteryOutId, {
-  status: "CHARGING",
-  vehicleId: "",
-  hubId: formData.hubId,
-  hubName: formData.hubName,
-  chargePercentage: 20,
-});
-
-const vehicle = vehicles.find(
-  (v) => v.vehicleId === formData.vehicleId
-);
-
-if (vehicle?._id && !["Booked", "Ready For Pickup", "In Ride"].includes(String(vehicle.vehicleStatus))) {
-  await fetch(`/api/vehicles/${vehicle._id}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      batteryPercentage: 100,
-    }),
-  });
-}
-
-    await patchBattery(formData.batteryInId, {
-  status: "IN-VEHICLE",
-  vehicleId: formData.vehicleId,
-  hubId: formData.hubId,
-  hubName: formData.hubName,
-  chargePercentage: 100,
-});
-    }
-    
-
-    setMessage("Battery swap recorded successfully.");
+    setMessage("Battery swap recorded. Vehicle charge, pack inventory, and the live booking are updated.");
     setFormData({
       ...emptyForm,
       swapId: createSwapId(),
@@ -305,7 +256,7 @@ return;
           Battery Swap Management
         </h1>
         <p className="mt-2 text-gray-500">
-          Record battery swaps and automatically update battery and vehicle status.
+          Swap a charged pack onto a scooter. Inventory, vehicle charge, and the live booking battery % update together.
         </p>
       </div>
 
@@ -377,10 +328,18 @@ return;
             >
               <option value="">Select old battery</option>
               {batteries
-  .filter((battery) => battery.status === "IN-VEHICLE")
+  .filter((battery) => {
+    if (formData.vehicleId) {
+      return (
+        battery.batteryId === formData.batteryOutId ||
+        battery.vehicleId === formData.vehicleId
+      );
+    }
+    return battery.status === "IN-VEHICLE";
+  })
   .map((battery) => (
                 <option key={battery._id} value={battery.batteryId}>
-                  {battery.batteryId} - {battery.status || "READY"}
+                  {battery.batteryId} · {battery.chargePercentage ?? 0}% · {battery.status || "IN-VEHICLE"}
                 </option>
               ))}
             </select>

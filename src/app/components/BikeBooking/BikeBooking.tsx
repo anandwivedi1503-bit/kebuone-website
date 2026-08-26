@@ -185,6 +185,28 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [helpText, setHelpText] = useState("");
   const [helpStatus, setHelpStatus] = useState("");
   const [helpLoading, setHelpLoading] = useState(false);
+  const [helpCategory, setHelpCategory] = useState("BOOKING_ISSUE");
+  const [helpTickets, setHelpTickets] = useState<
+    Array<{
+      ticketId?: string;
+      category?: string;
+      status?: string;
+      description?: string;
+      adminRemarks?: string;
+    }>
+  >([]);
+  const [isRentToOwn, setIsRentToOwn] = useState(false);
+  const [receipts, setReceipts] = useState<
+    Array<{
+      transactionId?: string;
+      invoiceNumber?: string;
+      amount?: number;
+      gstAmount?: number;
+      paymentMethod?: string;
+      remarks?: string;
+      createdAt?: string;
+    }>
+  >([]);
   const [otpSmsStatus, setOtpSmsStatus] = useState("");
   const otpSmsKeyRef = useRef("");
   const recoverPayRef = useRef(false);
@@ -280,7 +302,26 @@ useEffect(() => {
       setPickupOtp(String(active.pickupOTP || ""));
       setRideEndOtp(String(active.rideEndOTP || ""));
       setRiderReturnedAt(active.riderReturnedAt ? String(active.riderReturnedAt) : "");
+      setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
       if (Number(active.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
+      try {
+        const ticketRes = await fetch("/api/tickets/mine", {
+          headers: { Authorization: `Bearer ${firebaseIdToken}` },
+          cache: "no-store",
+        });
+        const ticketData = await ticketRes.json();
+        if (ticketData.success && Array.isArray(ticketData.data)) {
+          setHelpTickets(ticketData.data);
+        }
+        const receiptRes = await fetch("/api/receipts/mine", {
+          headers: { Authorization: `Bearer ${firebaseIdToken}` },
+          cache: "no-store",
+        });
+        const receiptData = await receiptRes.json();
+        if (receiptData.success && Array.isArray(receiptData.data)) {
+          setReceipts(receiptData.data);
+        }
+      } catch {}
       if (
         Number(active.receivedAmount || 0) <= 0.009 &&
         Number(active.pendingAmount || 0) > 0.009 &&
@@ -359,6 +400,7 @@ useEffect(() => {
             ? active.rentalMode
             : "Daily") as "Hourly" | "Daily" | "Weekly" | "Monthly"
         );
+        setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
         const due = Number(active.paymentDue || 0);
         const received = Number(active.receivedAmount || 0);
         const pending = Number(active.pendingAmount || 0);
@@ -389,9 +431,27 @@ useEffect(() => {
         setMessage(
           pending > 0.009
             ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here (Razorpay/wallet) or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
-            : `Open booking ${active.bookingId}. Payment is complete.`
+            : `Open booking ${active.bookingId}. Payment for this cycle is complete.`
         );
       }
+      try {
+        const ticketRes = await fetch("/api/tickets/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const ticketData = await ticketRes.json();
+        if (ticketData.success && Array.isArray(ticketData.data)) {
+          setHelpTickets(ticketData.data);
+        }
+        const receiptRes = await fetch("/api/receipts/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const receiptData = await receiptRes.json();
+        if (receiptData.success && Array.isArray(receiptData.data)) {
+          setReceipts(receiptData.data);
+        }
+      } catch {}
     } catch (error) {
       console.error(error);
     }
@@ -546,7 +606,7 @@ const payableAmount =
     ? bookingTotal
     : Number((tax.totalWithGst + securityDeposit).toFixed(2));
 const amountDue = bookingDone ? pendingAmount : payableAmount;
-const remainingPayLocked = bookingDone && paidAmount > 0;
+const remainingPayLocked = bookingDone && (paidAmount > 0 || isRentToOwn);
 const walletPayNow = remainingPayLocked
   ? Number(pendingAmount)
   : Number(paymentAmount || amountDue);
@@ -1265,8 +1325,8 @@ setStep(4);
           ticketId: `BK-${Date.now()}`,
           bookingId,
           userId: riderPhone || riderId,
-          category: "BOOKING_ISSUE",
-          description: description.slice(0, 500),
+          category: helpCategory || "BOOKING_ISSUE",
+          description: `${rideStatus === "In Ride" ? "During ride: " : ""}${description}`.slice(0, 500),
           firebaseIdToken: token,
         }),
       });
@@ -1276,7 +1336,17 @@ setStep(4);
         return;
       }
       setHelpText("");
-      setHelpStatus("Support ticket sent. Hub staff can see it on the Support dashboard.");
+      setHelpStatus("Support ticket sent. You can track status below. Hub staff see it on Support.");
+      try {
+        const ticketRes = await fetch("/api/tickets/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const ticketData = await ticketRes.json();
+        if (ticketData.success && Array.isArray(ticketData.data)) {
+          setHelpTickets(ticketData.data);
+        }
+      } catch {}
     } finally {
       setHelpLoading(false);
     }
@@ -2579,8 +2649,24 @@ focus:ring-[#18B368]/10
 
                     {rideStatus === "In Ride" && pendingAmount > 0.009 ? (
                       <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
-                        Remaining {formatINR(pendingAmount)} must be paid here or as cash at the yard before you can swipe Ride end.
+                        {isRentToOwn
+                          ? `Today’s Rent to Own ${formatINR(pendingAmount)} (₹280 + GST) is due. Pay here or as cash at the yard. Keep the scooter — no ride-end OTP.`
+                          : `Remaining ${formatINR(pendingAmount)} must be paid here or as cash at the yard before you can swipe Ride end. Paying remaining does not create the OTP yet.`}
                       </p>
+                    ) : null}
+
+                    {rideStatus === "Completed" ? (
+                      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white px-5 py-6 text-center">
+                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
+                          Ride complete
+                        </p>
+                        <p className="mt-2 text-2xl font-black text-[#0F172A]">
+                          Thank you for riding with EVUDDY
+                        </p>
+                        <p className="mt-2 text-sm text-slate-600">
+                          The yard has taken the scooter back. We hope to see you again soon. Deposit refunds (if any) are approved by admin after return.
+                        </p>
+                      </div>
                     ) : null}
 
                     {rideEndOtp ? (
@@ -2590,7 +2676,7 @@ focus:ring-[#18B368]/10
                         </p>
                         <p className="mt-2 text-5xl font-black tracking-[0.28em]">{rideEndOtp}</p>
                         <p className="mt-2 text-sm text-slate-200">
-                          The yard enters this next to pickup OTP and takes the scooter back.
+                          Same as pickup: you generate it, the yard enters it, then the scooter is taken in.
                         </p>
                         <button
                           type="button"
@@ -2600,13 +2686,17 @@ focus:ring-[#18B368]/10
                           Resend OTP SMS
                         </button>
                       </div>
-                    ) : rideStatus === "In Ride" && pendingAmount <= 0.009 ? (
+                    ) : rideStatus === "In Ride" && pendingAmount <= 0.009 && !isRentToOwn ? (
                       <RideSwipeControl
                         label="Slide to end ride"
-                        hint="You are back at the yard. Slide to generate the ride end OTP for the manager."
+                        hint="Remaining is ₹0. You are at the yard. Slide to generate ride-end OTP — same moment as pickup OTP after first pay."
                         busy={rideSwipeBusy}
                         onConfirm={() => swipeRide("/api/rides/rider-end")}
                       />
+                    ) : rideStatus === "In Ride" && isRentToOwn && pendingAmount <= 0.009 ? (
+                      <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm text-emerald-900">
+                        Today’s Rent to Own day is paid. Keep the scooter. Tomorrow’s ₹280 + GST will appear here when due. No ride-end OTP.
+                      </p>
                     ) : null}
                   </div>
                 ) : bookingDone ? (
@@ -2615,7 +2705,7 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : null}
 
-                {!paymentSuccess ? (
+                {!paymentSuccess && rideStatus !== "Completed" ? (
                 <>
                 <button
                   type="button"
@@ -2732,14 +2822,26 @@ Payment Status
 <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
   <p className="font-bold text-[#0F172A]">Need help with this booking?</p>
   <p className="mt-1 text-sm text-slate-500">
-    This opens a support ticket on your booking. Hub staff see it immediately.
+    Use this during pickup or mid-ride: unlock, breakdown, battery, payment. Hub staff see it immediately and you see their reply below.
   </p>
+  <select
+    value={helpCategory}
+    onChange={(e) => setHelpCategory(e.target.value)}
+    className="mt-3 h-11 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none focus:border-[#18B368]"
+  >
+    <option value="BOOKING_ISSUE">Booking / general</option>
+    <option value="UNLOCK_ISSUE">Unlock / pickup OTP</option>
+    <option value="VEHICLE_BREAKDOWN">Scooter breakdown</option>
+    <option value="BATTERY_ISSUE">Battery / range / swap</option>
+    <option value="PAYMENT_ISSUE">Payment</option>
+    <option value="REFUND_REQUEST">Deposit refund</option>
+  </select>
   <textarea
     value={helpText}
     onChange={(e) => setHelpText(e.target.value)}
     rows={3}
     className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#18B368]"
-    placeholder="Unlock issue, wrong hub, payment question..."
+    placeholder="What happened? Example: scooter stopped, battery died, puncture..."
   />
   <button
     type="button"
@@ -2750,6 +2852,48 @@ Payment Status
     {helpLoading ? "Sending..." : "Send to support"}
   </button>
   {helpStatus ? <p className="mt-2 text-sm text-slate-600">{helpStatus}</p> : null}
+  {helpTickets.length ? (
+    <div className="mt-4 space-y-2">
+      {helpTickets.slice(0, 5).map((ticket) => (
+          <div
+            key={String(ticket.ticketId)}
+            className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left text-sm"
+          >
+            <p className="font-bold text-[#0F172A]">
+              {ticket.ticketId} · {ticket.status} · {String(ticket.category || "").replace(/_/g, " ")}
+            </p>
+            <p className="mt-1 text-slate-600">{ticket.description}</p>
+            {ticket.adminRemarks ? (
+              <p className="mt-2 text-emerald-800">
+                Staff: {ticket.adminRemarks}
+              </p>
+            ) : ticket.status === "OPEN" || ticket.status === "IN-PROGRESS" ? (
+              <p className="mt-2 text-amber-800">Hub staff are working on this.</p>
+            ) : null}
+          </div>
+        ))}
+    </div>
+  ) : null}
+  {isRentToOwn ? (
+    <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+      <p className="text-sm font-bold text-emerald-900">Your daily receipts</p>
+      <p className="mt-1 text-xs text-emerald-800">
+        Each day’s ₹280 + 5% GST is recorded here and emailed/SMS’d to you as a receipt.
+      </p>
+      {receipts.length ? (
+      <ul className="mt-2 space-y-1 text-xs text-emerald-950">
+        {receipts.slice(0, 8).map((row) => (
+          <li key={String(row.transactionId)}>
+            {row.invoiceNumber || row.transactionId} · ₹{Number(row.amount || 0).toFixed(2)} ·{" "}
+            {row.paymentMethod} · {row.createdAt ? new Date(row.createdAt).toLocaleString("en-IN") : ""}
+          </li>
+        ))}
+      </ul>
+      ) : (
+        <p className="mt-2 text-xs text-emerald-800">Receipts appear as soon as today’s payment is captured.</p>
+      )}
+    </div>
+  ) : null}
 </div>
 )}
               </div>

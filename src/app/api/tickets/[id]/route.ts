@@ -27,6 +27,7 @@ const allowedCategories = [
   "UNLOCK_ISSUE",
   "OVERCHARGING",
   "VEHICLE_BREAKDOWN",
+  "BATTERY_ISSUE",
   "PAYMENT_ISSUE",
   "REFUND_REQUEST",
   "BOOKING_ISSUE",
@@ -165,6 +166,22 @@ if (
 
   updateData.resolvedAt = new Date();
 
+  const remarksForRider = clean(
+    String(updateData.adminRemarks ?? existingTicket.adminRemarks ?? "")
+  );
+  if (remarksForRider.length < 10) {
+    await session.abortTransaction();
+    session.endSession();
+    return NextResponse.json(
+      {
+        success: false,
+        message:
+          "Add a rider-facing remark (at least 10 characters) before resolving. The rider sees this on Book EV.",
+      },
+      { status: 400 }
+    );
+  }
+
   const booking = await Booking.findOne({
     bookingId: existingTicket.bookingId,
   }).session(session);
@@ -176,13 +193,28 @@ if (
     if (
       existingTicket.category === "UNLOCK_ISSUE" &&
       booking.rideStatus === "Ready For Pickup" &&
-      booking.paymentStatus === "Paid" ||
-      booking.paymentStatus === "Partial"
+      !booking.pickupOTPVerified &&
+      (Number(booking.receivedAmount || 0) >= 1 ||
+        booking.paymentStatus === "Paid" ||
+        booking.paymentStatus === "Partial")
     ) {
       booking.pickupOTP = generateSixDigitOtp();
       booking.pickupOTPExpiry = pickupOtpExpiry();
       booking.pickupOTPVerified = false;
       booking.pickupOTPVerifiedAt = null;
+    }
+
+    if (existingTicket.category === "BATTERY_ISSUE") {
+      booking.remarks = appendBoundedText(
+        booking.remarks,
+        "Battery ticket resolved — yard should confirm a charged pack is fitted."
+      );
+    }
+    if (existingTicket.category === "VEHICLE_BREAKDOWN") {
+      booking.remarks = appendBoundedText(
+        booking.remarks,
+        "Breakdown ticket resolved — confirm the scooter is rideable before the rider continues."
+      );
     }
 
     if (existingTicket.category === "REFUND_REQUEST") {

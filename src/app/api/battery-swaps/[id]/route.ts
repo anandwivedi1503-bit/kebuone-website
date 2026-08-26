@@ -16,9 +16,14 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
 
+    const allowed: Record<string, unknown> = {};
+    if (typeof body.staffId === "string") allowed.staffId = body.staffId.trim();
+    if (typeof body.remarks === "string") allowed.remarks = body.remarks.trim().slice(0, 500);
+    if (typeof body.updatedBy === "string") allowed.updatedBy = body.updatedBy.trim();
+
     const swap = await BatterySwap.findByIdAndUpdate(
       id,
-      body,
+      { $set: allowed },
       { new: true }
     );
 
