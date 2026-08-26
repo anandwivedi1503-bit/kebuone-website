@@ -11,10 +11,10 @@ export default function StatusBadge({
 }: StatusBadgeProps) {
   const styles = {
     active: {
-      bg: "bg-emerald-50",
-      text: "text-emerald-700",
-      border: "border-emerald-200",
-      dot: "bg-emerald-500",
+      bg: "bg-[#18B368]/10",
+      text: "text-[#148a52]",
+      border: "border-[#18B368]/30",
+      dot: "bg-[#18B368]",
       label: "ACTIVE",
     },
     warning: {

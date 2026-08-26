@@ -62,7 +62,7 @@ export default function DashboardContainer() {
   const show = (id: string) => isSuper || allowed.includes(id);
 
   return (
-    <div className="ops-shell min-h-screen bg-[#F3F5F8]">
+    <div className="ops-shell min-h-screen">
       <DashboardSidebar
         activeDashboard={activeDashboard}
         setActiveDashboard={setActiveDashboard}
