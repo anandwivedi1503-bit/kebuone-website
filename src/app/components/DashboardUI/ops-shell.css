@@ -1,9 +1,5 @@
 .ops-shell {
-  color: #0b1220;
-  background:
-    radial-gradient(1200px 500px at 100% -10%, rgba(16, 185, 129, 0.12), transparent 55%),
-    radial-gradient(900px 420px at -10% 20%, rgba(14, 165, 233, 0.08), transparent 50%),
-    #eef3f6;
+  color: #0f172a;
 }
 
 .ops-shell table {
@@ -13,90 +9,32 @@
 }
 
 .ops-shell thead th {
-  padding: 0.75rem 0.95rem;
+  padding: 0.7rem 0.9rem;
   text-align: left;
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #64748b;
-  background: linear-gradient(180deg, #f8fffb 0%, #f1f5f9 100%);
-  border-bottom: 1px solid #d9e8df;
+  color: #94a3b8;
+  background: #f8fafc;
+  border-bottom: 1px solid #e8eef5;
   white-space: nowrap;
 }
 
 .ops-shell tbody td {
-  padding: 0.9rem 0.95rem;
+  padding: 0.85rem 0.9rem;
   vertical-align: middle;
-  border-bottom: 1px solid #eef2f6;
+  border-bottom: 1px solid #f1f5f9;
   color: #334155;
-  transition: background 180ms ease, color 180ms ease, box-shadow 180ms ease;
 }
 
 .ops-shell tbody tr:hover td {
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.08), rgba(255, 255, 255, 0.4));
-  color: #0b1220;
-}
-
-.ops-shell tbody tr:hover td:first-child {
-  box-shadow: inset 3px 0 0 #10b981;
-}
-
-.ops-shell button:not(:disabled),
-.ops-shell a {
-  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, color 180ms ease, border-color 180ms ease;
-}
-
-.ops-shell input,
-.ops-shell select,
-.ops-shell textarea {
-  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
-}
-
-.ops-shell input:focus,
-.ops-shell select:focus,
-.ops-shell textarea:focus {
-  outline: none;
-  border-color: rgba(16, 185, 129, 0.55);
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+  background: #f8fafc;
 }
 
 .ops-shell .overflow-x-auto,
 .ops-shell .overflow-x-scroll {
   -webkit-overflow-scrolling: touch;
-}
-
-.ops-glow {
-  position: relative;
-}
-
-.ops-glow::after {
-  content: "";
-  pointer-events: none;
-  position: absolute;
-  inset: -1px;
-  border-radius: inherit;
-  opacity: 0;
-  transition: opacity 220ms ease;
-  box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.35), 0 12px 40px rgba(16, 185, 129, 0.18);
-}
-
-.ops-glow:hover::after {
-  opacity: 1;
-}
-
-@keyframes opsPulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-.ops-live-dot {
-  animation: opsPulse 1.8s ease-in-out infinite;
 }
 
 @media (max-width: 1023px) {
@@ -109,8 +47,5 @@
 @media print {
   .no-print {
     display: none !important;
-  }
-  .ops-shell {
-    background: #fff;
   }
 }

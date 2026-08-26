@@ -77,19 +77,19 @@ export default function DashboardSidebar({
 
   return (
     <>
-      <header className="no-print fixed inset-x-0 top-0 z-[55] flex h-14 items-center gap-3 border-b border-emerald-100/80 bg-white/80 px-3 shadow-[0_8px_30px_rgba(16,185,129,0.08)] backdrop-blur-xl lg:hidden">
+      <header className="no-print fixed inset-x-0 top-0 z-[55] flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-3 backdrop-blur-md lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-100 bg-white shadow-[0_0_16px_rgba(16,185,129,0.18)] transition hover:border-emerald-300 hover:shadow-[0_0_22px_rgba(16,185,129,0.32)]"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white"
           aria-label="Open menu"
         >
           <Menu size={18} className="text-slate-800" />
         </button>
-        <Image src="/evuddy.jpeg" alt="EVUDDY" width={32} height={32} className="rounded-lg ring-2 ring-emerald-200/80" />
+        <Image src="/evuddy.jpeg" alt="EVUDDY" width={32} height={32} className="rounded-lg" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-black tracking-tight text-slate-900">{activeName}</p>
-          <p className="text-[11px] font-medium text-emerald-700">EVUDDY operations</p>
+          <p className="truncate text-sm font-semibold text-slate-900">{activeName}</p>
+          <p className="text-[11px] text-slate-500">EVUDDY operations</p>
         </div>
       </header>
 
@@ -101,38 +101,33 @@ export default function DashboardSidebar({
       ) : null}
 
       <aside
-        className={`no-print relative fixed inset-y-0 left-0 z-50 flex h-screen w-[272px] flex-col overflow-hidden border-r border-white/10 bg-[#071018] text-white transition-transform duration-300 ${
+        className={`no-print fixed inset-y-0 left-0 z-50 flex h-screen w-[272px] flex-col border-r border-white/10 bg-[#0b1220] text-white transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className="pointer-events-none absolute -left-16 top-0 h-56 w-56 rounded-full bg-emerald-400/25 blur-3xl" />
-        <div className="pointer-events-none absolute -right-20 bottom-24 h-64 w-64 rounded-full bg-cyan-500/15 blur-3xl" />
-
-        <div className="relative z-10 flex items-center gap-3 border-b border-white/10 px-5 py-5">
+        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
           <Image
             src="/evuddy.jpeg"
             alt="EVUDDY"
             width={40}
             height={40}
             priority
-            className="rounded-xl shadow-[0_0_24px_rgba(16,185,129,0.45)] ring-2 ring-emerald-400/40"
+            className="rounded-xl"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="bg-gradient-to-r from-white to-emerald-200 bg-clip-text text-lg font-black tracking-tight text-transparent">
-              EVUDDY
-            </h2>
-            <p className="text-[11px] font-medium text-emerald-200/70">Smart Electric Mobility</p>
+            <h2 className="text-lg font-semibold tracking-tight">EVUDDY</h2>
+            <p className="text-[11px] text-white/55">Smart Electric Mobility</p>
           </div>
           <button type="button" onClick={() => setMobileOpen(false)} className="lg:hidden" aria-label="Close menu">
             <X size={20} />
           </button>
         </div>
 
-        <p className="relative z-10 px-5 pb-2 pt-4 text-[10px] font-bold uppercase tracking-[0.22em] text-emerald-300/55">
+        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
           Enterprise Operations Center
         </p>
 
-        <nav className="relative z-10 flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
+        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-4">
           {visibleMenus.map((menu) => {
             const Icon = menu.icon;
             const active = activeDashboard === menu.id;
@@ -144,23 +139,23 @@ export default function DashboardSidebar({
                   setActiveDashboard(menu.id);
                   setMobileOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition duration-200 ${
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
                   active
-                    ? "bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 shadow-[0_8px_24px_rgba(16,185,129,0.45)]"
-                    : "text-white/75 hover:bg-white/10 hover:text-white hover:shadow-[inset_3px_0_0_rgba(16,185,129,0.8),0_0_18px_rgba(16,185,129,0.12)]"
+                    ? "bg-emerald-500 text-slate-950 shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
                 }`}
               >
-                <Icon size={16} className={`shrink-0 ${active ? "drop-shadow-sm" : "opacity-80"}`} />
-                <span className="truncate font-semibold">{menu.name}</span>
+                <Icon size={16} className="shrink-0" />
+                <span className="truncate font-medium">{menu.name}</span>
               </button>
             );
           })}
         </nav>
 
-        <div className="relative z-10 border-t border-white/10 p-4">
-          <div className="rounded-2xl border border-emerald-400/20 bg-white/5 px-3 py-3 shadow-[0_0_24px_rgba(16,185,129,0.12)]">
-            <p className="text-[11px] text-emerald-200/60">Logged in as</p>
-            <p className="text-sm font-bold">EVUDDY Administrator</p>
+        <div className="border-t border-white/10 p-4">
+          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
+            <p className="text-[11px] text-white/50">Logged in as</p>
+            <p className="text-sm font-semibold">EVUDDY Administrator</p>
             <p className="mt-2 text-[11px] text-white/45">Operations Center · Version 2.0</p>
           </div>
         </div>
