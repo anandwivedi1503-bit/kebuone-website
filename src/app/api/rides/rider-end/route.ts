@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 import { generateSixDigitOtp, isOtpExpired, rideEndOtpExpiry } from "@/lib/otp";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import { getOwnedActiveBooking } from "@/lib/ownedActiveBooking";
 import { writeAudit } from "@/lib/writeAudit";
 
@@ -20,6 +21,16 @@ export async function POST(req: Request) {
     }
 
     const { booking, rider } = owned;
+    if (isRentToOwnBooking(booking)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Rent to Own has no ride-end OTP. Keep the scooter and pay each 30-day installment. After the last installment, ownership transfers to you.",
+        },
+        { status: 400 }
+      );
+    }
     const pending = Number(booking.pendingAmount || 0);
 
     if (booking.rideStatus !== "In Ride") {

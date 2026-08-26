@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { bookingBelongsToRiderFilter } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
@@ -39,7 +40,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, data: null });
     }
 
-    const booking = await Booking.findOne({
+    const activeFilter = {
       $and: [
         bookingBelongsToRiderFilter(rider),
         NOT_DELETED_FILTER,
@@ -61,10 +62,37 @@ export async function GET(req: Request) {
           ],
         },
       ],
-    })
+    };
+
+    const activeDoc = await Booking.findOne(activeFilter)
       .select("-rideStartOTP")
-      .sort({ createdAt: -1 })
-      .lean();
+      .sort({ createdAt: -1 });
+
+    let booking = activeDoc ? activeDoc.toObject() : null;
+    if (activeDoc) {
+      await openDueRtoInstallment(activeDoc);
+      booking = activeDoc.toObject();
+    }
+
+    if (!booking) {
+      const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
+      booking = await Booking.findOne({
+        $and: [
+          bookingBelongsToRiderFilter(rider),
+          NOT_DELETED_FILTER,
+          { rideStatus: "Completed" },
+          {
+            $or: [
+              { completedAt: { $gte: since } },
+              { actualRideEnd: { $gte: since } },
+            ],
+          },
+        ],
+      })
+        .select("-rideStartOTP")
+        .sort({ completedAt: -1, createdAt: -1 })
+        .lean();
+    }
 
     return NextResponse.json({ success: true, data: booking || null });
   } catch (error) {

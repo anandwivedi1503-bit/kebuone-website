@@ -14,6 +14,8 @@ type BookingLite = {
   pickupOTPGenerated?: boolean;
   rideEndOTPGenerated?: boolean;
   riderReturnedAt?: string | Date;
+  rentalMode?: string;
+  ownershipTransferred?: boolean;
 };
 
 type VehicleLite = {
@@ -44,6 +46,8 @@ export default function VehicleRideOtpCell({
   const bookingId = booking?.bookingId || vehicle.currentBookingId || "";
   const pending = Number(booking?.pendingAmount || 0);
   const pickupVerified = Boolean(booking?.pickupOTPVerified);
+  const isRentToOwn = String(booking?.rentalMode || "") === "Rent To Own";
+  const ownershipDone = Boolean(booking?.ownershipTransferred);
   const endOtpReady = Boolean(booking?.rideEndOTPGenerated || booking?.riderReturnedAt);
   const deskStatuses = [
     "Booked",
@@ -111,7 +115,7 @@ export default function VehicleRideOtpCell({
         }),
       });
       const data = await res.json();
-      setNote(data.message || (data.success ? "Returned." : "Failed."));
+      setNote(data.message || (data.success ? "Returned. Thank you." : "Failed."));
       if (data.success) {
         setRideEndOtp("");
         onDone?.();
@@ -145,6 +149,12 @@ export default function VehicleRideOtpCell({
         <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
           Unlocked. Waiting for rider to swipe Ride started on Book EV.
         </p>
+      ) : isRentToOwn && (status === "In Ride" || status === "Ready For Pickup") ? (
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
+          {ownershipDone
+            ? "Ownership transferred. Do not take this scooter back."
+            : "Rent to Own — rider keeps the scooter. Collect installment if pending. No ride-end OTP."}
+        </p>
       ) : status === "In Ride" && pending > 0.009 ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
           Remaining can also be paid on Book EV. Then the rider swipes Ride end.
@@ -176,6 +186,10 @@ export default function VehicleRideOtpCell({
             {busy ? "Returning..." : "Take back"}
           </button>
         </>
+      ) : status === "Completed" ? (
+        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
+          Thank you — scooter is back in the yard. See you next ride.
+        </p>
       ) : pending <= 0.009 ? (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
           Paid. Pickup OTP appears on Book EV after the first payment.

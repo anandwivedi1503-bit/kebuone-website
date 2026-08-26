@@ -682,7 +682,7 @@ Description
 <div className="rounded-3xl border border-green-100 bg-green-50/40 p-8">
 
 <p className="text-sm font-semibold text-gray-500 mb-3">
-Admin Remarks
+Admin remarks (rider sees this on Book EV)
 </p>
 
 <p className="text-[#0A1134] font-semibold leading-7">
@@ -964,7 +964,7 @@ setEditingTicket({
 adminRemarks:e.target.value,
 })
 }
-placeholder="Admin Remarks"
+placeholder="What the rider should see when this is resolved"
 className="rounded-xl border border-gray-200 px-4 py-3"
 />
 

@@ -15,7 +15,7 @@ import {
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
-import Rider from "@/models/Rider";
+import { findBookingRider } from "@/lib/findBookingRider";
 import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
 
@@ -57,6 +57,17 @@ function normalizeStatus(value: unknown) {
   return clean(value).toUpperCase().replace("_", "-");
 }
 
+function inferCategory(description: string) {
+  const text = description.toLowerCase();
+  if (/unlock|otp|pickup|lock/.test(text)) return "UNLOCK_ISSUE";
+  if (/refund|deposit/.test(text)) return "REFUND_REQUEST";
+  if (/pay|razorpay|wallet|cash|gst/.test(text)) return "PAYMENT_ISSUE";
+  if (/break|battery|puncture|damage|scooter not/.test(text)) {
+    return "VEHICLE_BREAKDOWN";
+  }
+  return "BOOKING_ISSUE";
+}
+
 function normalizePriority(value: unknown) {
   const priority = clean(value || "Medium").toLowerCase();
 
@@ -93,8 +104,10 @@ export async function POST(req: Request) {
     const userId = clean(body.userId).slice(0, 120);
     const tripId = clean(body.tripId);
     const bookingId = clean(body.bookingId).toUpperCase();
-    const category = normalizeCategory(body.category || "OTHER");
     const description = clean(body.description);
+    const category = normalizeCategory(
+      body.category || inferCategory(description)
+    );
     const priority = normalizePriority(body.priority || "Medium");
     const status = isAdminRequest
       ? normalizeStatus(body.status || "OPEN")
@@ -251,9 +264,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const rider = await Rider.findOne({
-      riderId: booking.riderId,
-    }).session(session);
+    const rider = await findBookingRider(booking, session);
 
     if (!rider) {
       await rollback(session);

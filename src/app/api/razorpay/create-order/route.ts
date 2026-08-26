@@ -12,6 +12,7 @@ import Rider from "@/models/Rider";
 import {
   getBookingPayableAmount,
 } from "@/lib/gst";
+import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
@@ -188,6 +189,8 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    await openDueRtoInstallment(booking);
 
     const payableAmount = getBookingPayableAmount(booking);
 

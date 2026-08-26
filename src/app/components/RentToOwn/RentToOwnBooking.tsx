@@ -658,9 +658,9 @@ export default function RentToOwnBooking() {
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
-              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months. Today I pay {formatINR(dailyRate)} plus 5% GST
-              (CGST 2.5% + SGST 2.5%). Rent to Own has no security deposit. After successful completion, ownership
-              of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
+              I agree to pay {formatINR(dailyRate)} per day for {tenureMonths} months, billed every 30 days
+              ({formatINR(installment)} + 5% GST per installment). Rent to Own has no security deposit. After
+              successful completion, ownership of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
             </label>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(1)} className="h-14 flex-1 rounded-full border font-bold">
@@ -702,7 +702,7 @@ export default function RentToOwnBooking() {
               </p>
             </div>
             <div className="rounded-2xl bg-[#0B1B16] p-5 text-white">
-              <p>Payable now ({formatINR(dailyRate)} + GST)</p>
+              <p>Payable now (30 days × {formatINR(dailyRate)} + GST)</p>
               <p className="text-3xl font-black">{formatINR(payableAmount)}</p>
               <p className="mt-2 text-sm text-white/70">
                 {formatINR(installment)} + {formatINR(tax.gstAmount)} GST · no deposit
@@ -729,8 +729,8 @@ export default function RentToOwnBooking() {
             <p>Booking ID: <b>{bookingId}</b></p>
             {certificateNumber ? <p>Certificate: <b>{certificateNumber}</b></p> : null}
             <div className="rounded-2xl bg-[#F7FBF8] p-4 text-sm">
-              <p>Rent to Own: {formatINR(dailyRate)} per day</p>
-              <p>Amount: {formatINR(installment)}</p>
+              <p>Rent to Own: {formatINR(dailyRate)} per day × 30 days</p>
+              <p>Installment: {formatINR(installment)}</p>
               <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)}</p>
               <p>No security deposit on Rent to Own</p>
               <p className="mt-2 font-semibold">Pay now: {formatINR(pendingAmount || payableAmount)}</p>
@@ -772,7 +772,7 @@ export default function RentToOwnBooking() {
                   </p>
                 ) : null}
                 <p className="mt-2 text-sm text-emerald-800">
-                  Show this OTP at the hub to collect scooter {selectedBike}. Keep the certificate for your records.
+                  Show this OTP at the hub, then open Book EV and swipe Ride started. Keep the scooter for the tenure. Next installment is due after 30 days. Keep the certificate.
                 </p>
                 <button
                   type="button"

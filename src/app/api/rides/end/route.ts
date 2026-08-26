@@ -14,6 +14,7 @@ import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 
 async function rollback(session: mongoose.ClientSession | null) {
   if (!session) return;
@@ -67,6 +68,30 @@ export async function POST(req: Request) {
       );
     }
 
+    if (isRentToOwnBooking(booking) && !booking.ownershipTransferred) {
+      await rollback(session);
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Rent to Own scooters stay with the rider. Do not take this bike back unless the contract is cancelled by admin.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (isRentToOwnBooking(booking) && booking.ownershipTransferred) {
+      await rollback(session);
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Ownership has transferred. This scooter belongs to the rider — do not take it into the yard as a rental return.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (Number(booking.pendingAmount || 0) > 0.009) {
       await rollback(session);
       return NextResponse.json(
@@ -108,7 +133,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (booking.rideEndOTP !== rideEndOTP) {
+    if (String(booking.rideEndOTP || "").trim() !== String(rideEndOTP || "").trim()) {
       await rollback(session);
       return NextResponse.json(
         { success: false, message: "Invalid Ride End OTP." },
@@ -269,7 +294,9 @@ export async function POST(req: Request) {
     const pending = Number(booking.pendingAmount || 0);
     return NextResponse.json({
       success: true,
-      message: "Ride completed successfully.",
+      rideCompleted: true,
+      message:
+        "Scooter received. Thank you for riding with EVUDDY — we hope to see you again soon.",
       pendingAmount: pending,
       paymentStatus: booking.paymentStatus,
       data: booking,
