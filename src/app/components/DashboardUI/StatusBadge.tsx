@@ -15,6 +15,7 @@ export default function StatusBadge({
       text: "text-emerald-700",
       border: "border-emerald-200",
       dot: "bg-emerald-500",
+      glow: "shadow-[0_0_12px_rgba(16,185,129,0.35)]",
       label: "ACTIVE",
     },
     warning: {
@@ -22,6 +23,7 @@ export default function StatusBadge({
       text: "text-amber-700",
       border: "border-amber-200",
       dot: "bg-amber-500",
+      glow: "shadow-[0_0_12px_rgba(245,158,11,0.35)]",
       label: "PENDING",
     },
     danger: {
@@ -29,6 +31,7 @@ export default function StatusBadge({
       text: "text-rose-700",
       border: "border-rose-200",
       dot: "bg-rose-500",
+      glow: "shadow-[0_0_12px_rgba(244,63,94,0.35)]",
       label: "CRITICAL",
     },
     inactive: {
@@ -36,15 +39,16 @@ export default function StatusBadge({
       text: "text-slate-600",
       border: "border-slate-200",
       dot: "bg-slate-400",
+      glow: "",
       label: "OFFLINE",
     },
   };
 
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles[status].border} ${styles[status].bg} ${styles[status].text}`}
+      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[11px] font-bold ${styles[status].border} ${styles[status].bg} ${styles[status].text} ${styles[status].glow}`}
     >
-      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${styles[status].dot}`} />
+      <span className={`ops-live-dot h-1.5 w-1.5 shrink-0 rounded-full ${styles[status].dot}`} />
       {label || styles[status].label}
     </span>
   );

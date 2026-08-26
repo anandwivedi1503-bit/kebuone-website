@@ -62,7 +62,7 @@ export default function DashboardContainer() {
   const show = (id: string) => isSuper || allowed.includes(id);
 
   return (
-    <div className="ops-shell min-h-screen bg-[#F3F5F8]">
+    <div className="ops-shell min-h-screen">
       <DashboardSidebar
         activeDashboard={activeDashboard}
         setActiveDashboard={setActiveDashboard}
@@ -109,7 +109,7 @@ export default function DashboardContainer() {
           {activeDashboard === "refunds" && show("refunds") && <RefundDashboard />}
           {activeDashboard === "team" && isSuper && <TeamAccess />}
           {!isSuper && allowed.length === 0 ? (
-            <p className="rounded-3xl bg-white p-8 text-slate-600">
+            <p className="rounded-3xl border border-emerald-100 bg-white/90 p-8 text-slate-600 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
               This login has no dashboards assigned. Ask super admin to grant access.
             </p>
           ) : null}
