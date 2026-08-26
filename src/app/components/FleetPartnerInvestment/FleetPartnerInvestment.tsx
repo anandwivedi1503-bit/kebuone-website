@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   Bike,
@@ -103,14 +101,14 @@ export default function FleetPartnerInvestment({ posterPriority = false }: Props
   return (
     <section
       id="fleet-investment"
-      className="relative scroll-mt-36 overflow-hidden bg-[#F4FBF7] py-14 sm:py-20 lg:py-24"
+      className="relative scroll-mt-36 bg-[#F4FBF7] py-14 sm:py-20 lg:py-24"
     >
       <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/12 blur-[110px]" />
       <div className="pointer-events-none absolute -right-16 bottom-20 h-64 w-64 rounded-full bg-[#EC2A8C]/8 blur-[100px]" />
 
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)] lg:gap-12">
-          <div>
+        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)] lg:items-center lg:gap-12">
+          <div className="order-2 lg:order-1">
             <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/25 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-[#0F172A]">
               <span className="h-2 w-2 rounded-full bg-[#18B368]" />
               FLEET PARTNER INVESTMENT
@@ -145,36 +143,30 @@ export default function FleetPartnerInvestment({ posterPriority = false }: Props
             </p>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mx-auto w-full max-w-[420px]"
-          >
+          <div className="order-1 mx-auto w-full max-w-[420px] lg:order-2">
             <button
               type="button"
               onClick={() => setPosterOpen(true)}
-              className="group relative w-full overflow-hidden rounded-[28px] border border-white bg-white p-2 text-left shadow-[0_24px_60px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(24,179,104,0.18)]"
+              className="group relative block w-full rounded-[28px] border border-white bg-white p-2 text-left shadow-[0_24px_60px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(24,179,104,0.18)]"
             >
               <span className="pointer-events-none absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#0F172A] shadow-sm">
                 <Expand size={12} />
                 View poster
               </span>
-              <Image
+              <img
                 src={POSTER_SRC}
                 alt={POSTER_ALT}
                 width={1024}
                 height={1536}
-                priority={posterPriority}
-                quality={90}
-                sizes="(min-width: 1024px) 420px, 90vw"
-                className="h-auto w-full rounded-[22px] object-contain"
+                decoding="async"
+                fetchPriority={posterPriority ? "high" : "auto"}
+                className="h-auto w-full rounded-[22px] object-contain object-top"
               />
             </button>
             <p className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
               Official EVUDDY investment poster
             </p>
-          </motion.div>
+          </div>
         </div>
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -323,13 +315,11 @@ export default function FleetPartnerInvestment({ posterPriority = false }: Props
           >
             <X size={18} />
           </button>
-          <Image
+          <img
             src={POSTER_SRC}
             alt={POSTER_ALT}
             width={1024}
             height={1536}
-            quality={95}
-            sizes="720px"
             className="h-auto w-full rounded-[18px] object-contain"
           />
         </div>
