@@ -45,10 +45,10 @@ export default function DashboardHeader({
     <div className="mb-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.04)] sm:mb-8 sm:rounded-3xl">
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:flex-row lg:items-stretch lg:justify-between lg:p-8">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-emerald-700">
             {greeting}
           </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl lg:text-[2.15rem]">
+          <h1 className="mt-1 text-2xl font-medium tracking-[-0.03em] text-slate-950 sm:text-3xl lg:text-[2.15rem]">
             {title}
           </h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500 sm:text-[15px] sm:leading-7">
@@ -64,7 +64,7 @@ export default function DashboardHeader({
             </div>
             <div className="mt-2 flex items-center gap-2">
               <Clock3 size={16} className="text-emerald-600" />
-              <span className="text-xl font-semibold tabular-nums text-slate-950 sm:text-2xl">
+              <span className="text-xl font-medium tabular-nums tracking-tight text-slate-950 sm:text-2xl">
                 {time}
               </span>
             </div>
@@ -73,7 +73,7 @@ export default function DashboardHeader({
             <div className="hidden items-center gap-2 sm:flex">
               <ShieldCheck size={16} className="text-emerald-600" />
               <div>
-                <p className="text-xs font-semibold text-emerald-800">Live operations</p>
+                <p className="text-xs font-medium tracking-tight text-emerald-800">Live operations</p>
                 <p className="text-[11px] text-slate-500">Figures come from the database</p>
               </div>
             </div>

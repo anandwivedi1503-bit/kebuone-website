@@ -82,7 +82,7 @@ export default function OpsMoneyStrip() {
     <div className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:mb-8 sm:p-5">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
+          <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-emerald-700">
             Live money snapshot
           </p>
           <p className="mt-1 text-sm text-slate-500">
@@ -96,8 +96,8 @@ export default function OpsMoneyStrip() {
       <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {cards.map((card) => (
           <div key={card.label} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="mt-1 text-base font-semibold tabular-nums text-slate-950 sm:text-lg">{card.value}</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-slate-500">{card.label}</p>
+            <p className="mt-1 text-base font-medium tabular-nums tracking-tight text-slate-950 sm:text-lg">{card.value}</p>
             <p className="text-[11px] font-medium text-slate-500">{card.note}</p>
           </div>
         ))}

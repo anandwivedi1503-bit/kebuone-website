@@ -88,7 +88,7 @@ export default function DashboardSidebar({
         </button>
         <Image src="/evuddy.jpeg" alt="EVUDDY" width={32} height={32} className="rounded-lg" />
         <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-slate-900">{activeName}</p>
+          <p className="truncate text-sm font-medium tracking-tight text-slate-900">{activeName}</p>
           <p className="text-[11px] text-slate-500">EVUDDY operations</p>
         </div>
       </header>
@@ -115,15 +115,15 @@ export default function DashboardSidebar({
             className="rounded-xl"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold tracking-tight">EVUDDY</h2>
-            <p className="text-[11px] text-white/55">Smart Electric Mobility</p>
+            <h2 className="text-[15px] font-medium tracking-[-0.02em]">EVUDDY</h2>
+            <p className="text-[11px] font-normal tracking-[0.04em] text-white/50">Smart Electric Mobility</p>
           </div>
           <button type="button" onClick={() => setMobileOpen(false)} className="lg:hidden" aria-label="Close menu">
             <X size={20} />
           </button>
         </div>
 
-        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
+        <p className="px-5 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
           Enterprise Operations Center
         </p>
 
@@ -139,10 +139,10 @@ export default function DashboardSidebar({
                   setActiveDashboard(menu.id);
                   setMobileOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition ${
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition ${
                   active
                     ? "bg-emerald-500 text-slate-950 shadow-sm"
-                    : "text-white/80 hover:bg-white/10 hover:text-white"
+                    : "text-white/75 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -154,9 +154,9 @@ export default function DashboardSidebar({
 
         <div className="border-t border-white/10 p-4">
           <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
-            <p className="text-[11px] text-white/50">Logged in as</p>
-            <p className="text-sm font-semibold">EVUDDY Administrator</p>
-            <p className="mt-2 text-[11px] text-white/45">Operations Center · Version 2.0</p>
+            <p className="text-[11px] tracking-wide text-white/45">Logged in as</p>
+            <p className="text-sm font-medium tracking-tight">EVUDDY Administrator</p>
+            <p className="mt-2 text-[11px] text-white/40">Operations Center · Version 2.0</p>
           </div>
         </div>
       </aside>
