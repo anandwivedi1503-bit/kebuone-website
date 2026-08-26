@@ -10,6 +10,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import ActionButton from "../DashboardUI/ActionButton";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import { walletSpendable } from "@/lib/walletMoney";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function WalletDashboard() {
@@ -319,26 +320,19 @@ alert("Unable to update wallet.");
 };
 
 const totalBalance=wallets.reduce(
-
-(sum,w)=>sum+(w.balance||0),
-
+(sum,w)=>sum+walletSpendable(w),
 0
-
 );
 
 const totalCredits = transactions
 .filter((t) =>
-  ["Admin Credit", "Recharge"].includes(t.transactionType)
+  ["Admin Credit", "Recharge", "Refund"].includes(t.transactionType)
 )
 .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 
 const totalDebits = transactions
 .filter((t) =>
-  [
-    "Admin Debit",
-    "Booking Payment",
-    "Security Deposit Hold",
-  ].includes(t.transactionType)
+  ["Admin Debit", "Booking Payment"].includes(t.transactionType)
 )
 .reduce((sum, t) => sum + Number(t.amount || 0), 0);
 const filteredWallets = useMemo(() => {
@@ -395,7 +389,7 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="Rider EVUDDY credit (admin top-ups and returned deposits). Razorpay rental payments do not add to this balance. Live booking paid/pending comes from the same booking records as Booking Management."
+subtitle="Rider EVUDDY credit only: admin top-ups and returned deposits. Spendable is ledger minus freeze. Deposit hold is tracking, not a second freeze. Razorpay/UPI never adds here."
 />
 
 <OpsMoneyStrip />
@@ -413,7 +407,7 @@ color="pink"
 <KPICard
 title="Balance"
 value={`₹${totalBalance}`}
-subtitle="Available"
+subtitle="Spendable"
 icon="💰"
 color="green"
 />
@@ -421,7 +415,7 @@ color="green"
 <KPICard
 title="Credits"
 value={`₹${totalCredits}`}
-subtitle="Total Added"
+subtitle="Top-ups + deposit returns"
 icon="⬆️"
 color="blue"
 />
@@ -429,7 +423,7 @@ color="blue"
 <KPICard
 title="Debits"
 value={`₹${totalDebits}`}
-subtitle="Total Used"
+subtitle="Booking + admin debit"
 icon="⬇️"
 color="yellow"
 />
@@ -452,7 +446,7 @@ value={`₹${wallets.reduce(
 (sum,w)=>sum+(w.securityDepositHold||0),
 0
 )}`}
-subtitle="Deposits"
+subtitle="Tracking only — not spendable freeze"
 icon="🔒"
 color="yellow"
 />

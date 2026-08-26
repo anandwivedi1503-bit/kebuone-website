@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { MoreHorizontal } from "lucide-react";
 
 type DashboardCardProps = {
   title?: string;
@@ -67,29 +66,11 @@ export default function DashboardCard({
 
           </div>
 
-          <div className="flex items-center gap-4">
-
-            {rightContent}
-
-            <button
-              className="
-              w-11
-              h-11
-              rounded-xl
-              border
-              border-slate-200
-              bg-white
-              flex
-              items-center
-              justify-center
-              hover:bg-slate-50
-              transition
-              "
-            >
-              <MoreHorizontal size={20} />
-            </button>
-
-          </div>
+          {rightContent ? (
+            <div className="flex items-center gap-4">
+              {rightContent}
+            </div>
+          ) : null}
 
         </div>
 

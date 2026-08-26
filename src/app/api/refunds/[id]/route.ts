@@ -361,6 +361,17 @@ if (sendToRazorpay) {
     { session }
   );
 
+  const razorpayWallet = await Wallet.findOne({
+    riderId: liveBooking.riderId,
+  }).session(session);
+  if (razorpayWallet) {
+    razorpayWallet.securityDepositHold = Math.max(
+      0,
+      Number(razorpayWallet.securityDepositHold || 0) - Number(liveRefund.amount)
+    );
+    await razorpayWallet.save({ session });
+  }
+
   const existingRefundTransaction = await Transaction.findOne({
     bookingId: liveBooking.bookingId,
     transactionType: "Refund",
@@ -435,11 +446,6 @@ if (!wallet) {
       wallet.balance += Number(refund.amount);
 
 wallet.totalRefund += Number(refund.amount);
-
-wallet.totalSpent = Math.max(
-  0,
-  wallet.totalSpent - Number(refund.amount)
-);
 
 wallet.securityDepositHold = Math.max(
   0,

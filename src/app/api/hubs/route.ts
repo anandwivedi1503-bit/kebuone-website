@@ -9,6 +9,7 @@ import { connectDB } from "@/lib/mongodb";
 import Hub, {
   IHub,
 } from "@/models/Hub";
+import Battery from "@/models/Battery";
 import Vehicle from "@/models/Vehicle";
 
 const hubTypes = [
@@ -501,6 +502,12 @@ const hubs = await Hub.find(hubQuery)
       );
     }
 
+    const batteries = await Battery.find({
+      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+    })
+      .select("hubId hubName status")
+      .lean();
+
     const data =
   hubs.map((hub: IHub) => {
         /*
@@ -536,6 +543,21 @@ const hubs = await Hub.find(hubQuery)
             vehiclesUnderMaintenance: 0,
           };
 
+        const packCounts = batteries.reduce(
+          (acc, pack) => {
+            const hubId = String(pack.hubId || "").trim().toUpperCase();
+            const hubName = String(pack.hubName || "").trim().toUpperCase();
+            if (hubId !== codeKey && hubName !== nameKey && hubName !== codeKey && hubId !== nameKey) {
+              return acc;
+            }
+            if (pack.status === "READY") acc.ready += 1;
+            if (pack.status === "CHARGING") acc.charging += 1;
+            if (pack.status === "MAINTENANCE" || pack.status === "DAMAGED") acc.damaged += 1;
+            return acc;
+          },
+          { ready: 0, charging: 0, damaged: 0 }
+        );
+
         return {
           ...hub,
 
@@ -552,10 +574,11 @@ const hubs = await Hub.find(hubQuery)
             counts.totalVehicles,
 
           occupiedVehicles:
-            Math.max(
-              0,
-              counts.totalVehicles
-            ),
+            Math.max(0, counts.totalVehicles - counts.availableBikes),
+
+          readyBatteries: packCounts.ready,
+          chargingBatteries: packCounts.charging,
+          damagedBatteries: packCounts.damaged,
         };
       });
 

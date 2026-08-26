@@ -74,7 +74,7 @@ export default function OpsMoneyStrip() {
     { label: "Booking pending", value: rupee(summary.bookings.pending), note: `${summary.bookings.partial} partial · ${summary.bookings.unpaid} unpaid` },
     { label: "Razorpay / UPI", value: rupee(summary.payments.razorpay), note: "Online receipts" },
     { label: "Cash at yard", value: rupee(summary.payments.cash), note: `${rupee(summary.cashHandover.dueToCompany)} still due to company` },
-    { label: "EVUDDY wallet", value: rupee(summary.wallets.creditBalance), note: `Hold ${rupee(summary.wallets.depositHold)} · not UPI` },
+    { label: "EVUDDY wallet", value: rupee(summary.wallets.creditBalance), note: `Hold ${rupee(summary.wallets.depositHold)} is tracking, not UPI` },
     { label: "Refunds pending", value: rupee(summary.refunds.pending), note: `${summary.refunds.pendingCount} tickets · refunded ${rupee(summary.refunds.refunded)}` },
   ];
 
