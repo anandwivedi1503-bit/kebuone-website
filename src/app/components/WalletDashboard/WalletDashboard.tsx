@@ -207,7 +207,7 @@ const debitWallet = async () => {
 
   if (
     debitAmount >
-    Number(selectedWallet.balance || 0)
+    walletSpendable(selectedWallet)
   ) {
     alert("Insufficient wallet balance.");
     return;
@@ -510,9 +510,9 @@ transition
 ${
 statusFilter===status
 
-? "bg-[#FF165E] text-white"
+? "bg-[#18B368] text-white"
 
-: "bg-gray-100 hover:bg-pink-100"
+: "bg-gray-100 hover:bg-emerald-50"
 
 }
 
@@ -525,84 +525,6 @@ statusFilter===status
 </button>
 
 ))}
-
-<SectionHeader
-title="Wallet Analytics"
-subtitle="Overall wallet statistics."
-/>
-
-<DashboardCard
-title="Analytics"
-subtitle="Wallet Overview"
->
-
-<div className="grid gap-6 md:grid-cols-4">
-
-<div className="rounded-2xl bg-green-50 border border-green-100 p-6">
-
-<p className="text-sm text-gray-500">
-Wallet Balance
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-green-700">
-
-₹{totalBalance.toLocaleString("en-IN")}
-
-</h2>
-
-</div>
-
-<div className="rounded-2xl bg-blue-50 border border-blue-100 p-6">
-
-<p className="text-sm text-gray-500">
-
-Transactions
-
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-blue-700">
-
-{transactions.length}
-
-</h2>
-
-</div>
-
-<div className="rounded-2xl bg-yellow-50 border border-yellow-100 p-6">
-
-<p className="text-sm text-gray-500">
-
-Credits
-
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-yellow-700">
-
-₹{totalCredits.toLocaleString("en-IN")}
-
-</h2>
-
-</div>
-
-<div className="rounded-2xl bg-pink-50 border border-pink-100 p-6">
-
-<p className="text-sm text-gray-500">
-
-Debits
-
-</p>
-
-<h2 className="mt-2 text-3xl font-black text-pink-700">
-
-₹{totalDebits.toLocaleString("en-IN")}
-
-</h2>
-
-</div>
-
-</div>
-
-</DashboardCard>
 
 </div>
 
@@ -702,7 +624,7 @@ w.phone,
 
 w.balance,
 
-Math.max(0, Number(w.balance || 0) - Number(w.freezeAmount || 0)),
+walletSpendable(w),
 
 w.securityDepositHold,
 
@@ -830,7 +752,7 @@ className="border-b border-pink-50 hover:bg-pink-50/40 transition"
 </td>
 
 <td className="px-6 py-5 text-center font-bold text-sky-700">
-₹{Math.max(0, Number(wallet.balance || 0) - Number(wallet.freezeAmount || 0)).toLocaleString("en-IN")}
+₹{walletSpendable(wallet).toLocaleString("en-IN")}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -1305,7 +1227,7 @@ Wallet
 
 <p><b>Balance :</b> ₹{selectedWallet.balance}</p>
 
-<p><b>Spendable :</b> ₹{Math.max(0, Number(selectedWallet.balance || 0) - Number(selectedWallet.freezeAmount || 0))}</p>
+<p><b>Spendable :</b> ₹{walletSpendable(selectedWallet)}</p>
 
 <p><b>Deposit Hold :</b> ₹{selectedWallet.securityDepositHold}</p>
 

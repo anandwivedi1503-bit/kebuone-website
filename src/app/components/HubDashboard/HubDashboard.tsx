@@ -65,6 +65,9 @@ const totalReadyBatteries=hubs.reduce(
 0
 );
 
+const occupiedCount = (hub: { occupiedVehicles?: number; vehiclesInRide?: number }) =>
+  Number(hub.occupiedVehicles ?? hub.vehiclesInRide ?? 0);
+
 const filteredHubs=hubs.filter((hub)=>{
 
 const matchesSearch=
@@ -372,13 +375,13 @@ transition
 
 <td
 className={`px-6 py-5 text-center font-bold ${
-Math.max(0, hub.capacity - hub.availableBikes) >
+occupiedCount(hub) >
 hub.capacity * 0.8
 ? "text-red-600"
 : "text-green-600"
 }`}
 >
-{Math.max(0, hub.capacity - hub.availableBikes)}
+{occupiedCount(hub)}
 </td>
 
 <td className="px-6 py-5 text-center">

@@ -15,22 +15,25 @@ export default function HubManagement() {
 const [saving, setSaving] = useState(false);
 
 const [cities, setCities] = useState<Array<{ cityName: string }>>([]);
+const [hubs, setHubs] = useState<Array<{ status?: string; capacity?: number }>>([]);
 
 useEffect(() => {
-  const loadCities = async () => {
+  const load = async () => {
     try {
-      const res = await fetch("/api/cities", { cache: "no-store" });
-      const data = await res.json();
-
-      if (data.success) {
-        setCities(data.data || []);
-      }
+      const [cityRes, hubRes] = await Promise.all([
+        fetch("/api/cities", { cache: "no-store" }),
+        fetch("/api/hubs", { cache: "no-store" }),
+      ]);
+      const cityData = await cityRes.json();
+      const hubData = await hubRes.json();
+      if (cityData.success) setCities(cityData.data || []);
+      if (hubData.success) setHubs(hubData.data || []);
     } catch (error) {
       console.error(error);
     }
   };
 
-  void loadCities();
+  void load();
 }, []);
 
 const [formData,setFormData]=useState({
@@ -93,7 +96,17 @@ headers:{
 "Content-Type":"application/json",
 },
 
-body:JSON.stringify(formData),
+body:JSON.stringify({
+  hubName: formData.hubName,
+  hubCode: formData.hubCode,
+  hubLocation: formData.hubLocation,
+  city: formData.city,
+  latitude: formData.latitude,
+  longitude: formData.longitude,
+  geofenceRadius: formData.geofenceRadius,
+  capacity: formData.capacity,
+  status: formData.status,
+}),
 
 });
 
@@ -151,40 +164,40 @@ return(
 
 title="Hub Management"
 
-subtitle="Register and configure operational hubs across the Kebu One network."
+subtitle="Register and configure operational hubs across the EVUDDY network."
 
 />
 
 <KPIGrid>
 
 <KPICard
-title="Hub Status"
-value="Active"
-subtitle="Operational"
+title="Hubs"
+value={hubs.length}
+subtitle="Registered"
 icon="🏢"
 color="green"
 />
 
 <KPICard
-title="Geofence"
-value="20m"
-subtitle="Default Radius"
+title="Active"
+value={hubs.filter((hub) => hub.status === "Active").length}
+subtitle="Operational"
 icon="📍"
 color="blue"
 />
 
 <KPICard
-title="Parking"
-value="Ready"
-subtitle="Capacity"
+title="Cities"
+value={cities.length}
+subtitle="Coverage"
 icon="🅿️"
 color="yellow"
 />
 
 <KPICard
-title="Battery Storage"
-value="Enabled"
-subtitle="Inventory"
+title="Capacity"
+value={hubs.reduce((sum, hub) => sum + Number(hub.capacity || 0), 0)}
+subtitle="Parking slots"
 icon="🔋"
 color="pink"
 />

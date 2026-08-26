@@ -870,7 +870,7 @@ Pickup OTP
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
-Ride OTP
+Ride start
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
@@ -1118,25 +1118,25 @@ label="Not Generated"
 
 <td className="px-6 py-5 text-center">
 
-{booking.rideStartOTPVerified ? (
+{booking.actualRideStart ? (
 
 <StatusBadge
 status="active"
-label="Verified"
+label="Rider swiped"
 />
 
-) : booking.rideStartOTPGenerated || booking.rideStartOTP ? (
+) : booking.rideStatus === "In Ride" ? (
 
 <StatusBadge
 status="warning"
-label="Generated"
+label="Waiting swipe"
 />
 
 ) : (
 
 <StatusBadge
 status="inactive"
-label="Not Generated"
+label="—"
 />
 
 )}
@@ -1744,10 +1744,6 @@ OTP Details
 </p>
 
 <hr className="my-3"/>
-
-<p>
-  <b>Ride Start OTP :</b> {selectedBooking.rideStartOTP || "-"}
-</p>
 
 <p>
   <b>Ride Started :</b>{" "}

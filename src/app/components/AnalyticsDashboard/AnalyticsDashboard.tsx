@@ -14,7 +14,6 @@ import {
   CreditCard,
   UserCheck,
   XCircle,
-  Flag,
 } from "lucide-react";
 
 import PageContainer from "../DashboardUI/PageContainer";
@@ -219,7 +218,7 @@ Completed Rides
 </h3>
 
 <p className="text-gray-500 mt-4">
-Successfully completed trips across the Kebu One network.
+Successfully completed trips across the EVUDDY network.
 </p>
 
 </div>
@@ -345,14 +344,6 @@ Average earning generated per booking.
     subtitle="Gateway success"
     icon={<CreditCard size={24} />}
     color="green"
-  />
-
-  <KPICard
-    title="Completed Rides"
-    value={analytics?.completedRides || 0}
-    subtitle="Current period"
-    icon={<Flag size={24} />}
-    color="blue"
   />
 
 </div>

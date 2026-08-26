@@ -147,6 +147,14 @@ color="yellow"
 />
 
 <KPICard
+title="In Progress"
+value={inProgressTickets}
+subtitle="Being handled"
+icon="🛠️"
+color="blue"
+/>
+
+<KPICard
 title="Critical"
 value={criticalTickets}
 subtitle="Highest Priority"
