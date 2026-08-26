@@ -7,27 +7,6 @@ import DashboardHeader from "../DashboardUI/DashboardHeader";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
 
-type BookingRow = {
-  bookingId?: string;
-  userName?: string;
-  rentalMode?: string;
-  rideStatus?: string;
-  paymentStatus?: string;
-  pendingAmount?: number;
-  createdAt?: string;
-  updatedAt?: string;
-};
-
-type TxnRow = {
-  transactionId?: string;
-  bookingId?: string;
-  userName?: string;
-  amount?: number;
-  transactionType?: string;
-  status?: string;
-  createdAt?: string;
-};
-
 type AuditRow = {
   _id?: string;
   actor?: string;
@@ -41,8 +20,6 @@ type AuditRow = {
 };
 
 export default function AuditLogsDashboard() {
-  const [bookings, setBookings] = useState<BookingRow[]>([]);
-  const [transactions, setTransactions] = useState<TxnRow[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -51,22 +28,7 @@ export default function AuditLogsDashboard() {
       try {
         const auditRes = await fetch("/api/audit-logs?limit=500", { cache: "no-store" });
         const auditData = await auditRes.json();
-        if (auditRes.ok && Array.isArray(auditData.data) && auditData.data.length > 0) {
-          setAuditLogs(auditData.data);
-          setBookings([]);
-          setTransactions([]);
-          return;
-        }
-
-        const [bookingRes, txnRes] = await Promise.all([
-          fetch("/api/bookings?limit=500", { cache: "no-store" }),
-          fetch("/api/transactions?limit=500", { cache: "no-store" }),
-        ]);
-        const bookingData = await bookingRes.json();
-        const txnData = await txnRes.json();
-        setAuditLogs([]);
-        setBookings(bookingData.data || []);
-        setTransactions(txnData.data || []);
+        setAuditLogs(Array.isArray(auditData.data) ? auditData.data : []);
       } finally {
         setLoading(false);
       }
@@ -78,38 +40,19 @@ export default function AuditLogsDashboard() {
   }, []);
 
   const rows = useMemo(() => {
-    if (auditLogs.length > 0) {
-      return auditLogs.map((item) => ({
-        id: String(item._id || `${item.action}-${item.createdAt}`),
-        when: item.createdAt || "",
-        source: item.entity || "Audit",
-        detail: `${item.action || "-"} · ${item.actor || "System"} · ${item.bookingId || item.entityId || "-"} · ${item.detail || ""}`,
-      }));
-    }
-
-    const bookingEvents = bookings.map((item) => ({
-      id: `B-${item.bookingId}`,
-      when: item.updatedAt || item.createdAt || "",
-      source: "Booking",
-      detail: `${item.bookingId || "-"} · ${item.userName || "Rider"} · ${item.rentalMode || "-"} · ${item.rideStatus || "-"} / ${item.paymentStatus || "-"} · pending ₹${Number(item.pendingAmount || 0).toLocaleString("en-IN")}`,
-    }));
-    const txnEvents = transactions.map((item) => ({
-      id: `T-${item.transactionId}`,
+    return auditLogs.map((item) => ({
+      id: String(item._id || `${item.action}-${item.createdAt}`),
       when: item.createdAt || "",
-      source: "Transaction",
-      detail: `${item.transactionId || "-"} · ${item.userName || "Rider"} · ${item.transactionType || "-"} · ${item.status || "-"} · ₹${Number(item.amount || 0).toLocaleString("en-IN")}`,
+      source: item.entity || "Audit",
+      detail: `${item.action || "-"} · ${item.actor || "System"} · ${item.bookingId || item.entityId || "-"} · ${item.detail || ""}`,
     }));
-
-    return [...bookingEvents, ...txnEvents]
-      .sort((a, b) => new Date(b.when).getTime() - new Date(a.when).getTime())
-      .slice(0, 80);
-  }, [auditLogs, bookings, transactions]);
+  }, [auditLogs]);
 
   return (
     <PageContainer>
       <DashboardHeader
         title="Audit Logs"
-        subtitle="Staff actions and booking events from the live database. Falls back to bookings and payments if no audit rows exist yet."
+        subtitle="Staff actions recorded in the audit log. Empty means no staff actions have been written yet — this is not booking or payment history."
       />
       <div className="mb-6">
         <DashboardActions
@@ -141,7 +84,7 @@ export default function AuditLogsDashboard() {
               ) : rows.length === 0 ? (
                 <tr>
                   <td className="px-4 py-8 text-slate-500" colSpan={3}>
-                    No booking or payment activity yet.
+                    No audit rows yet. Bookings and payments are on their own dashboards.
                   </td>
                 </tr>
               ) : (

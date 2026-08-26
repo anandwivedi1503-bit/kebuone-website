@@ -510,79 +510,21 @@ transition
 <div>
 
 <label className="block mb-3 font-bold text-[#0A1134]">
-Available Bikes
+Available scooters (live)
 </label>
-
-<input
-type="number"
-value={formData.availableBikes}
-onChange={(e)=>
-setFormData({
-...formData,
-availableBikes: Math.max(
-0,
-Math.min(
-formData.capacity,
-Number(e.target.value)
-)
-),
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-pink-50/40
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
- focus:border-[#FF165E]
-"
-/>
-
+<p className="flex h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-semibold text-slate-700">
+  Counted from vehicles at this hub — not typed here.
+</p>
 </div>
-
-
-
-
 
 <div>
 
 <label className="block mb-3 font-bold text-[#0A1134]">
-Ready Batteries
+Ready batteries (live)
 </label>
-
-<input
-type="number"
-value={formData.readyBatteries}
-onChange={(e)=>
-setFormData({
-...formData,
-readyBatteries: Math.max(
-0,
-Number(e.target.value)
-),
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-pink-50/40
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
-focus:border-[#FF165E]
-transition
-"
-/>
-
+<p className="flex h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-semibold text-slate-700">
+  Counted from battery inventory — not typed here.
+</p>
 </div>
 
 <div>

@@ -22,6 +22,7 @@ import {
   ensureRiderWallet,
   RiderWalletError,
 } from "@/lib/ensureRiderWallet";
+import { walletSpendable } from "@/lib/walletMoney";
 
 export const runtime = "nodejs";
 
@@ -1688,7 +1689,7 @@ export async function GET(req: Request) {
 
       const walletBalance = Number(wallet?.balance || 0);
       const walletFreeze = Number(wallet?.freezeAmount || 0);
-      const walletAvailable = Math.max(0, walletBalance - walletFreeze);
+      const walletAvailable = walletSpendable(wallet);
 
       return NextResponse.json({
         success: true,

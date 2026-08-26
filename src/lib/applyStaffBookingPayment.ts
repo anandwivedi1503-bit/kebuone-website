@@ -122,7 +122,8 @@ export async function applyStaffBookingPayment(input: {
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, pickupOTP } = progress;
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-CASH`;
+    const transactionId = generateCashTransactionId();
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-CASH-${transactionId.slice(-8)}`;
     const taxOnPayment = isRentToOwnBooking(booking)
       ? gstOnRtoDailyPayment(paidAmount)
       : gstShareForPayment({
@@ -131,7 +132,6 @@ export async function applyStaffBookingPayment(input: {
           previousReceived: oldReceivedAmount,
           paidNow: paidAmount,
         });
-    const transactionId = generateCashTransactionId();
 
     await Transaction.create(
       [

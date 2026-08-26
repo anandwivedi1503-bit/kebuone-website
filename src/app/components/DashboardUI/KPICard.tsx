@@ -1,7 +1,6 @@
 "use client";
 
 import { ReactNode } from "react";
-import { ArrowUpRight, Activity } from "lucide-react";
 
 type KPICardProps = {
   title: string;
@@ -92,12 +91,6 @@ export default function KPICard({
         >
           {icon}
         </div>
-
-        <ArrowUpRight
-          size={20}
-          className="text-slate-400"
-        />
-
       </div>
 
       {/* Title */}
@@ -133,12 +126,6 @@ export default function KPICard({
         >
           {subtitle}
         </p>
-
-        <Activity
-          size={18}
-          className="text-slate-300"
-        />
-
       </div>
 
       {/* Decorative Circle */}

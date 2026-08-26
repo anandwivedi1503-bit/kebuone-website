@@ -256,11 +256,18 @@ export async function POST(req: Request) {
             normalizedRiderId,
 
           status: "Active",
-
+          adminBlocked: { $ne: true },
           ...NOT_DELETED_FILTER,
-
-          balance: {
-            $gte: debitAmount,
+          $expr: {
+            $gte: [
+              {
+                $subtract: [
+                  { $ifNull: ["$balance", 0] },
+                  { $ifNull: ["$freezeAmount", 0] },
+                ],
+              },
+              debitAmount,
+            ],
           },
         },
         {

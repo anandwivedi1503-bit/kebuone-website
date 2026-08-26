@@ -182,6 +182,7 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [riderId, setRiderId] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
   const [walletAvailable, setWalletAvailable] = useState(0);
+  const [walletStatus, setWalletStatus] = useState("");
   const [helpText, setHelpText] = useState("");
   const [helpStatus, setHelpStatus] = useState("");
   const [helpLoading, setHelpLoading] = useState(false);
@@ -381,6 +382,7 @@ useEffect(() => {
       setRiderEmail(rider.email || "");
       setRiderId(rider.riderId || "");
       setWalletAvailable(Number(rider.walletAvailable ?? rider.walletBalance ?? 0));
+      setWalletStatus(String(rider.walletStatus || ""));
       const mineRes = await fetch("/api/bookings/mine", {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
@@ -631,7 +633,10 @@ const hubLabel = displayHub
       displayHub.hubCode ? ` (${displayHub.hubCode})` : ""
     }`
   : hub || "-";
-const walletCoversPay = walletAvailable >= walletPayNow && walletPayNow > 0;
+const walletCoversPay =
+  walletStatus !== "Blocked" &&
+  walletAvailable >= walletPayNow &&
+  walletPayNow > 0;
 
   useEffect(() => {
     if (payableAmount > 0 && !bookingDone) {
@@ -1297,6 +1302,7 @@ setStep(4);
             riderData.data.walletAvailable ?? riderData.data.walletBalance ?? 0
           )
         );
+        setWalletStatus(String(riderData.data.walletStatus || ""));
       }
     } catch {}
   };

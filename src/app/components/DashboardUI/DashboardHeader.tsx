@@ -157,12 +157,12 @@ export default function DashboardHeader({
 
               <div>
 
-                <p className="font-bold text-green-600">
-                  Systems Healthy
+                <p className="font-bold text-emerald-700">
+                  Live operations
                 </p>
 
                 <p className="text-xs text-slate-500">
-                  All services operational
+                  Figures come from the database
                 </p>
 
               </div>

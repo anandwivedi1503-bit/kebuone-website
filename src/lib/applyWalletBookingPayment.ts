@@ -21,6 +21,7 @@ import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
+import { isWalletUsable, walletSpendable } from "@/lib/walletMoney";
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 
@@ -114,15 +115,12 @@ export async function applyWalletBookingPayment(input: {
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
     }).session(session);
 
-    if (!wallet || wallet.status !== "Active" || wallet.adminBlocked) {
+    if (!isWalletUsable(wallet)) {
       await rollback(session);
       return { ok: false as const, status: 400, message: "Wallet is not available for this rider." };
     }
 
-    const available = Math.max(
-      0,
-      Number(wallet.balance || 0) - Number(wallet.freezeAmount || 0)
-    );
+    const available = walletSpendable(wallet);
     if (available < paidAmount) {
       await rollback(session);
       return {
@@ -141,7 +139,6 @@ export async function applyWalletBookingPayment(input: {
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, rideStatus, pickupOTP } = progress;
-    const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}`;
     const taxOnPayment = isRentToOwnBooking(booking)
       ? gstOnRtoDailyPayment(paidAmount)
       : gstShareForPayment({
@@ -151,6 +148,7 @@ export async function applyWalletBookingPayment(input: {
           paidNow: paidAmount,
         });
     const transactionId = generateWalletTransactionId();
+    const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-W-${transactionId.slice(-8)}`;
 
     await Transaction.create(
       [

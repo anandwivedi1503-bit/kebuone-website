@@ -506,50 +506,21 @@ className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-non
 <div>
 
 <label className="block mb-2 font-semibold text-gray-600">
-Available Bikes
+Available scooters (live)
 </label>
-
-<input
-type="number"
-value={editingHub.availableBikes}
-onChange={(e)=>
-setEditingHub({
-...editingHub,
-availableBikes: Math.max(
-0,
-Math.min(
-editingHub.capacity,
-Number(e.target.value)
-)
-),
-})
-}
-className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
-/>
-
+<p className="flex h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-semibold text-slate-700">
+  {editingHub.availableBikes ?? 0} from vehicle inventory
+</p>
 </div>
 
 <div>
 
 <label className="block mb-2 font-semibold text-gray-600">
-Ready Batteries
+Ready batteries (live)
 </label>
-
-<input
-type="number"
-value={editingHub.readyBatteries}
-onChange={(e)=>
-setEditingHub({
-...editingHub,
-readyBatteries: Math.max(
-0,
-Number(e.target.value)
-),
-})
-}
-className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
-/>
-
+<p className="flex h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-5 text-sm font-semibold text-slate-700">
+  {editingHub.readyBatteries ?? 0} from battery inventory
+</p>
 </div>
 
 <div>
