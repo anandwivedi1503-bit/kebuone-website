@@ -238,6 +238,19 @@ export default function FleetPartnerInvestment({
           })}
         </div>
 
+        <div className="mt-10 overflow-hidden rounded-[28px] border border-[#18B368]/15 bg-white p-3 sm:p-4">
+          <p className="px-2 pb-3 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
+            Official Fleet Partner Investment poster
+          </p>
+          <Image
+            src="/fleet-partner-poster.jpg"
+            alt="EVUDDY Fleet Partner Investment poster with plans and returns"
+            width={1600}
+            height={900}
+            className="h-auto w-full rounded-2xl"
+          />
+        </div>
+
         <div className="mt-12 overflow-hidden rounded-[28px] bg-[#0A1134] px-6 py-8 text-white sm:px-10 sm:py-10">
           <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-center">
             <div>
