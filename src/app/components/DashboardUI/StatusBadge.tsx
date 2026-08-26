@@ -42,7 +42,7 @@ export default function StatusBadge({
 
   return (
     <span
-      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[11px] font-semibold ${styles[status].border} ${styles[status].bg} ${styles[status].text}`}
+      className={`inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-[11px] font-medium tracking-[0.04em] ${styles[status].border} ${styles[status].bg} ${styles[status].text}`}
     >
       <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${styles[status].dot}`} />
       {label || styles[status].label}

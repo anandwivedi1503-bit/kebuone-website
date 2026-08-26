@@ -21,7 +21,7 @@ export default function DashboardCard({
         <div className="flex flex-col gap-3 border-b border-slate-100 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
           <div className="min-w-0">
             {title ? (
-              <h3 className="text-base font-semibold tracking-tight text-slate-900 sm:text-lg">
+              <h3 className="text-base font-medium tracking-[-0.02em] text-slate-900 sm:text-lg">
                 {title}
               </h3>
             ) : null}

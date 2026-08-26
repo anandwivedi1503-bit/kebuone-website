@@ -16,7 +16,7 @@ export default function SectionHeader({
   return (
     <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h2 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
+        <h2 className="text-lg font-medium tracking-[-0.02em] text-slate-900 sm:text-xl">
           {title}
         </h2>
         {subtitle ? (

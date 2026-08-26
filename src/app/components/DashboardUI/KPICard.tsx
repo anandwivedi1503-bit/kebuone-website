@@ -29,7 +29,7 @@ export default function KPICard({
   return (
     <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+        <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
           {title}
         </p>
         {icon ? (
@@ -40,7 +40,7 @@ export default function KPICard({
           </div>
         ) : null}
       </div>
-      <p className="mt-3 break-words text-2xl font-semibold tracking-tight text-slate-950 sm:text-[1.7rem]">
+      <p className="mt-3 break-words text-2xl font-medium tabular-nums tracking-[-0.03em] text-slate-950 sm:text-[1.7rem]">
         {value}
       </p>
       {subtitle ? (
