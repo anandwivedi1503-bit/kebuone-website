@@ -97,7 +97,7 @@ const VehicleSchema = new mongoose.Schema(
 
     securityDeposit: {
       type: Number,
-      default: 0,
+      default: 2500,
       min: 0,
     },
 

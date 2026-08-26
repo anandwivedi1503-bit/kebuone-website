@@ -10,6 +10,7 @@ import Rider from "@/models/Rider";
 import mongoose from "mongoose";
 import { refundRazorpayPayment } from "@/lib/razorpay/refundRazorpayPayment";
 import { appendBoundedText } from "@/lib/listQuery";
+import { uniqueMoneyId } from "@/lib/ids";
 import { writeAudit } from "@/lib/writeAudit";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
@@ -370,7 +371,7 @@ if (sendToRazorpay) {
     await Transaction.create(
       [
         {
-          transactionId: "RF-" + Date.now(),
+          transactionId: uniqueMoneyId("RF"),
           bookingId: liveBooking.bookingId,
           userId: String(liveBooking.userId),
           userName: liveBooking.userName,
@@ -461,7 +462,7 @@ if (!existingWalletRefund) {
   await WalletTransaction.create(
     [
       {
-        transactionId: "WR-" + Date.now(),
+        transactionId: uniqueMoneyId("WR"),
 
         riderId: booking.riderId,
 
@@ -502,8 +503,7 @@ if (!existingRefundTransaction) {
   await Transaction.create(
     [
       {
-        transactionId:
-          "RF-" + Date.now(),
+        transactionId: uniqueMoneyId("RF"),
 
         bookingId: booking.bookingId,
 
