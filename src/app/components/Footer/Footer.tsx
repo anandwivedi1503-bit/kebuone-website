@@ -140,7 +140,7 @@ export default function Footer() {
                 </Link>
 
                 <Link
-                  href="/partners"
+                  href="/partners#partner-form"
                   className="inline-flex h-14 w-full items-center justify-center rounded-full border border-white/15 bg-white/5 px-8 text-lg font-semibold backdrop-blur-xl transition hover:border-[#18B368] hover:bg-[#18B368]/10 sm:w-auto"
                 >
                   Become a Partner
@@ -334,7 +334,7 @@ export default function Footer() {
       </Link>
 
       <Link
-        href="/partners#fleet-investment"
+        href="/partners#partner-form"
         className="block text-gray-400 transition hover:text-white"
       >
         Fleet Partner Investment

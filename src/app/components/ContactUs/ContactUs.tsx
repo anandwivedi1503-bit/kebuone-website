@@ -122,7 +122,7 @@ export default function ContactUs() {
               Book an EV <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
-              href="/partners"
+              href="/partners#partner-form"
               className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-[#18B368] sm:h-14 sm:w-auto sm:px-8 sm:text-base"
             >
               Become a Partner

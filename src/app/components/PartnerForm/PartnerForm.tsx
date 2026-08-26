@@ -104,7 +104,7 @@ consentAccepted: false,
   return (
     <section
       id="partner-form"
-      className="py-16 md:py-32 bg-gradient-to-b from-[#FFF7FA] via-white to-[#FFF7FA]"
+      className="scroll-mt-32 py-16 md:py-32 bg-gradient-to-b from-[#FFF7FA] via-white to-[#FFF7FA]"
     >
       <div className="max-w-6xl mx-auto px-4 md:px-6">
 
