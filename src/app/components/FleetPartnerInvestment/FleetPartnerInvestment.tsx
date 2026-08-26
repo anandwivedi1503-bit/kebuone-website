@@ -107,67 +107,65 @@ export default function FleetPartnerInvestment({ posterPriority = false }: Props
       <div className="pointer-events-none absolute -right-16 bottom-20 h-64 w-64 rounded-full bg-[#EC2A8C]/8 blur-[100px]" />
 
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(280px,420px)] lg:items-center lg:gap-12">
-          <div className="order-2 lg:order-1">
-            <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/25 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-[#0F172A]">
-              <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-              FLEET PARTNER INVESTMENT
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/25 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-[#0F172A]">
+            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
+            FLEET PARTNER INVESTMENT
+          </span>
+          <h2 className="mt-5 text-balance text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-[3.35rem] lg:leading-[1.05]">
+            Invest in clean mobility.{" "}
+            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
+              Smart rides. Bright future.
             </span>
-            <h2 className="mt-5 text-balance text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-[3.35rem] lg:leading-[1.05]">
-              Invest in clean mobility.{" "}
-              <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-                Smart rides. Bright future.
-              </span>
-            </h2>
-            <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-600 sm:text-lg">
-              A published 42-month plan. EVUDDY runs the fleet. You share profit 50/50.
-              Read the model here, then apply on the partners form. No payment on this site.
-            </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Link
-                href={FORM}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 text-base font-bold text-white shadow-[0_12px_28px_rgba(24,179,104,0.28)] transition hover:bg-[#14a05c]"
-              >
-                Apply on partners form
-                <ArrowRight size={18} />
-              </Link>
-              <a
-                href="#investment-plans"
-                className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 transition hover:border-[#18B368] hover:text-[#18B368]"
-              >
-                See plans
-              </a>
-            </div>
-            <p className="mt-3 text-sm text-slate-500">
-              Choose Fleet Partner Investment on the form. We confirm payouts and paperwork.
-            </p>
-          </div>
-
-          <div className="order-1 mx-auto w-full max-w-[420px] lg:order-2">
-            <button
-              type="button"
-              onClick={() => setPosterOpen(true)}
-              className="group relative block w-full rounded-[28px] border border-white bg-white p-2 text-left shadow-[0_24px_60px_rgba(15,23,42,0.10)] transition hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(24,179,104,0.18)]"
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-slate-600 sm:text-lg">
+            A published 42-month plan. EVUDDY runs the fleet. You share profit 50/50.
+            Read the official poster, then apply on the partners form. No payment on this site.
+          </p>
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Link
+              href={FORM}
+              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 text-base font-bold text-white shadow-[0_12px_28px_rgba(24,179,104,0.28)] transition hover:bg-[#14a05c]"
             >
-              <span className="pointer-events-none absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#0F172A] shadow-sm">
-                <Expand size={12} />
-                View poster
-              </span>
-              <img
-                src={POSTER_SRC}
-                alt={POSTER_ALT}
-                width={1024}
-                height={1536}
-                decoding="async"
-                fetchPriority={posterPriority ? "high" : "auto"}
-                className="h-auto w-full rounded-[22px] object-contain object-top"
-              />
-            </button>
-            <p className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-              Official EVUDDY investment poster
-            </p>
+              Apply on partners form
+              <ArrowRight size={18} />
+            </Link>
+            <a
+              href="#investment-plans"
+              className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 transition hover:border-[#18B368] hover:text-[#18B368]"
+            >
+              See plans
+            </a>
           </div>
+          <p className="mt-3 text-sm text-slate-500">
+            Choose Fleet Partner Investment on the form. We confirm payouts and paperwork.
+          </p>
         </div>
+
+        <figure id="investment-poster" className="mx-auto mt-10 max-w-[820px] scroll-mt-36">
+          <button
+            type="button"
+            onClick={() => setPosterOpen(true)}
+            className="group relative block w-full rounded-[28px] border border-white bg-white p-2 text-left shadow-[0_28px_80px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_32px_90px_rgba(24,179,104,0.18)] sm:p-3"
+          >
+            <span className="pointer-events-none absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#0F172A] shadow-sm">
+              <Expand size={12} />
+              Expand
+            </span>
+            <img
+              src={POSTER_SRC}
+              alt={POSTER_ALT}
+              width={1024}
+              height={1536}
+              decoding="async"
+              fetchPriority={posterPriority ? "high" : "auto"}
+              className="h-auto w-full rounded-[22px] bg-white object-contain"
+            />
+          </button>
+          <figcaption className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
+            Official EVUDDY investment poster
+          </figcaption>
+        </figure>
 
         <div className="mt-12 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {steps.map((step, index) => {
@@ -306,7 +304,7 @@ export default function FleetPartnerInvestment({ posterPriority = false }: Props
         onClose={() => setPosterOpen(false)}
         className="fixed inset-0 z-[1000] m-0 h-full max-h-none w-full max-w-none bg-black/70 p-0 backdrop:bg-black/70 open:flex open:items-center open:justify-center"
       >
-        <div className="relative mx-auto max-h-[96vh] w-[min(96vw,720px)] overflow-y-auto rounded-[24px] bg-white p-3 shadow-2xl">
+        <div className="relative mx-auto max-h-[96vh] w-[min(96vw,900px)] overflow-y-auto rounded-[24px] bg-white p-2 shadow-2xl sm:p-3">
           <button
             type="button"
             onClick={() => setPosterOpen(false)}
