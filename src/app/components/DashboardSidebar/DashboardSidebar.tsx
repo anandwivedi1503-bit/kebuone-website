@@ -77,11 +77,11 @@ export default function DashboardSidebar({
 
   return (
     <>
-      <header className="no-print fixed inset-x-0 top-0 z-[55] flex h-14 items-center gap-3 border-b border-slate-200 bg-white/90 px-3 backdrop-blur-md lg:hidden">
+      <header className="no-print fixed inset-x-0 top-0 z-[55] flex h-14 items-center gap-3 border-b border-[#18B368]/20 bg-white/90 px-3 backdrop-blur-md lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#18B368]/25 bg-white text-[#0A1134] transition hover:border-[#18B368] hover:bg-[#18B368] hover:text-white"
           aria-label="Open menu"
         >
           <Menu size={18} className="text-slate-800" />
@@ -112,18 +112,18 @@ export default function DashboardSidebar({
             width={40}
             height={40}
             priority
-            className="rounded-xl"
+            className="rounded-xl ring-2 ring-[#18B368]/50"
           />
           <div className="min-w-0 flex-1">
             <h2 className="text-[15px] font-medium tracking-[-0.02em]">EVUDDY</h2>
-            <p className="text-[11px] font-normal tracking-[0.04em] text-white/50">Smart Electric Mobility</p>
+            <p className="text-[11px] font-normal tracking-[0.04em] text-[#18B368]">Smart Electric Mobility</p>
           </div>
           <button type="button" onClick={() => setMobileOpen(false)} className="lg:hidden" aria-label="Close menu">
             <X size={20} />
           </button>
         </div>
 
-        <p className="px-5 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-white/35">
+        <p className="px-5 pb-2 pt-4 text-[10px] font-medium uppercase tracking-[0.2em] text-[#18B368]/70">
           Enterprise Operations Center
         </p>
 
@@ -139,10 +139,10 @@ export default function DashboardSidebar({
                   setActiveDashboard(menu.id);
                   setMobileOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition ${
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition duration-200 ${
                   active
-                    ? "bg-emerald-500 text-slate-950 shadow-sm"
-                    : "text-white/75 hover:bg-white/10 hover:text-white"
+                    ? "bg-[#18B368] text-white shadow-[0_8px_18px_rgba(24,179,104,0.35)]"
+                    : "text-white/75 hover:bg-[#18B368]/15 hover:text-white"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -153,8 +153,8 @@ export default function DashboardSidebar({
         </nav>
 
         <div className="border-t border-white/10 p-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 px-3 py-3">
-            <p className="text-[11px] tracking-wide text-white/45">Logged in as</p>
+          <div className="rounded-2xl border border-[#18B368]/25 bg-[#18B368]/10 px-3 py-3">
+            <p className="text-[11px] tracking-wide text-white/55">Logged in as</p>
             <p className="text-sm font-medium tracking-tight">EVUDDY Administrator</p>
             <p className="mt-2 text-[11px] text-white/40">Operations Center · Version 2.0</p>
           </div>

@@ -23,7 +23,7 @@ export default function ActionButton({
       className={`h-10 rounded-xl px-4 text-sm font-medium tracking-tight transition ${
         disabled
           ? "cursor-not-allowed bg-slate-200 text-slate-500"
-          : "bg-emerald-600 text-white hover:bg-emerald-700"
+          : "bg-[#18B368] text-white shadow-sm hover:-translate-y-0.5 hover:bg-[#14a05c] hover:shadow-[0_8px_20px_rgba(24,179,104,0.35)]"
       }`}
     >
       {children}
