@@ -6,6 +6,7 @@ import WhyKebu from "./components/WhyKebu/WhyKebu";
 import HowItWorks from "./components/HowItWorks/HowItWorks";
 import Stats from "./components/Stats/Stats";
 import Testimonials from "./components/Testimonials/Testimonials";
+import FleetPartnerInvestment from "./components/FleetPartnerInvestment/FleetPartnerInvestment";
 import Footer from "./components/Footer/Footer";
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
 
 
                   <WhyKebu />
+                  <FleetPartnerInvestment />
                   <HowItWorks />
 
 

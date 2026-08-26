@@ -32,6 +32,10 @@ const navLinks = [
     href: "/",
   },
   {
+    title: "Invest",
+    href: "/partners#fleet-investment",
+  },
+  {
     title: "Careers",
     href: "/careers",
   },

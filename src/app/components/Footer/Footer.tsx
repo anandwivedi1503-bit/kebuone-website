@@ -334,6 +334,13 @@ export default function Footer() {
       </Link>
 
       <Link
+        href="/partners#fleet-investment"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Fleet Partner Investment
+      </Link>
+
+      <Link
         href="/careers"
         className="block text-gray-400 transition hover:text-white"
       >

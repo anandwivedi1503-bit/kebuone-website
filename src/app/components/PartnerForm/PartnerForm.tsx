@@ -468,6 +468,7 @@ hover:border-[#22C55E]/40
 "
 >
               <option>Select Partnership Type *</option>
+              <option>Fleet Partner Investment</option>
               <option>College Mobility Partner</option>
               <option>Bike Rental Franchise Partner</option>
               <option>EV Charging Partner</option>
@@ -506,6 +507,9 @@ hover:border-[#22C55E]/40
 "
 >
               <option>Investment Capacity *</option>
+              <option>₹1 Lakh · 3 scooters</option>
+              <option>₹5 Lakh · 15 scooters</option>
+              <option>₹10 Lakh · 30 scooters</option>
               <option>Below ₹5 Lakhs</option>
               <option>₹5 – ₹10 Lakhs</option>
               <option>₹10 – ₹25 Lakhs</option>
