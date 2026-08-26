@@ -79,26 +79,26 @@ export default function OpsMoneyStrip() {
   ];
 
   return (
-    <div className="mb-8 rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+    <div className="mb-6 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] sm:mb-8 sm:p-5">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <p className="text-xs font-black uppercase tracking-[0.2em] text-emerald-700">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700">
             Live money snapshot
           </p>
-          <p className="mt-1 text-sm font-semibold text-slate-600">
+          <p className="mt-1 text-sm text-slate-500">
             Same Mongo totals on every money dashboard. Wallet credit is returned deposits and admin top-ups, not Razorpay UPI.
           </p>
         </div>
-        <p className="text-xs font-semibold text-slate-400">
+        <p className="text-[11px] font-medium text-slate-400">
           {summary.asOf ? new Date(summary.asOf).toLocaleString("en-IN") : ""}
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-3 xl:grid-cols-6">
         {cards.map((card) => (
-          <div key={card.label} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">{card.label}</p>
-            <p className="mt-1 text-lg font-black text-[#0A1134]">{card.value}</p>
-            <p className="text-xs font-semibold text-slate-500">{card.note}</p>
+          <div key={card.label} className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-2.5">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{card.label}</p>
+            <p className="mt-1 text-base font-semibold tabular-nums text-slate-950 sm:text-lg">{card.value}</p>
+            <p className="text-[11px] font-medium text-slate-500">{card.note}</p>
           </div>
         ))}
       </div>

@@ -14,53 +14,16 @@ export default function SectionHeader({
   rightContent,
 }: SectionHeaderProps) {
   return (
-    <div
-      className="
-      flex
-      flex-col
-      lg:flex-row
-      lg:items-center
-      lg:justify-between
-      gap-5
-      mb-8
-      "
-    >
-      <div>
-
-        <h2
-          className="
-          text-3xl
-          md:text-4xl
-          font-black
-          text-slate-900
-          tracking-tight
-          "
-        >
+    <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        <h2 className="text-lg font-semibold tracking-tight text-slate-900 sm:text-xl">
           {title}
         </h2>
-
-        {subtitle && (
-          <p
-            className="
-            mt-3
-            text-slate-500
-            text-base
-            leading-7
-            max-w-3xl
-            "
-          >
-            {subtitle}
-          </p>
-        )}
-
+        {subtitle ? (
+          <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">{subtitle}</p>
+        ) : null}
       </div>
-
-      {rightContent && (
-        <div className="flex items-center gap-3">
-          {rightContent}
-        </div>
-      )}
-
+      {rightContent ? <div className="flex flex-wrap items-center gap-2">{rightContent}</div> : null}
     </div>
   );
 }

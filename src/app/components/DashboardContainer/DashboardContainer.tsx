@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import DashboardSidebar from "../DashboardSidebar/DashboardSidebar";
+import "./DashboardUI/ops-shell.css";
 
 import AdminDashboard from "../AdminDashboard/AdminDashboard";
 import FleetDashboard from "../FleetDashboard/FleetDashboard";
@@ -61,7 +62,7 @@ export default function DashboardContainer() {
   const show = (id: string) => isSuper || allowed.includes(id);
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB]">
+    <div className="ops-shell min-h-screen bg-[#F3F5F8]">
       <DashboardSidebar
         activeDashboard={activeDashboard}
         setActiveDashboard={setActiveDashboard}
@@ -69,8 +70,8 @@ export default function DashboardContainer() {
         canManageTeam={isSuper}
       />
 
-      <main className="min-h-screen pt-16 lg:ml-[300px] lg:pt-0">
-        <div className="px-3 py-4 sm:px-6 sm:py-8 lg:px-8 lg:py-10 xl:px-10">
+      <main className="min-h-screen pt-14 lg:ml-[272px] lg:pt-0">
+        <div className="px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
           {activeDashboard === "admin" && show("admin") && (
             <AdminDashboard setActiveDashboard={setActiveDashboard} />
           )}

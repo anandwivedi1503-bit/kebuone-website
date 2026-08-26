@@ -382,8 +382,8 @@ time:formatActivityTime(p.createdAt)
 .slice(0,8);
 
   const pageClass = darkMode
-    ? "min-h-screen bg-[#080b12] text-slate-100"
-    : "min-h-screen bg-[#F2F5FA] text-slate-950";
+    ? "min-h-0 rounded-2xl bg-[#080b12] text-slate-100"
+    : "min-h-0 text-slate-950";
 
   const panelClass = darkMode
     ? "border border-white/10 bg-[#101722] shadow-lg shadow-black/20"

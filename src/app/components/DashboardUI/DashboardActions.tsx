@@ -14,14 +14,14 @@ export default function DashboardActions({ filename, rows, onRefresh }: Props) {
       <button
         type="button"
         onClick={() => downloadCsv(filename, rows)}
-        className="h-11 rounded-xl bg-[#18B368] px-4 text-sm font-bold text-white"
+        className="h-10 rounded-xl bg-emerald-600 px-3.5 text-sm font-semibold text-white hover:bg-emerald-700"
       >
         Export CSV
       </button>
       <button
         type="button"
         onClick={printDashboard}
-        className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700"
+        className="h-10 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
       >
         Print / PDF
       </button>
@@ -29,7 +29,7 @@ export default function DashboardActions({ filename, rows, onRefresh }: Props) {
         <button
           type="button"
           onClick={onRefresh}
-          className="h-11 rounded-xl bg-[#0F172A] px-4 text-sm font-bold text-white"
+          className="h-10 rounded-xl bg-slate-900 px-3.5 text-sm font-semibold text-white hover:bg-slate-800"
         >
           Refresh
         </button>
