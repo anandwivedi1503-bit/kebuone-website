@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import { writeAudit } from "@/lib/writeAudit";
 import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
+import Booking from "@/models/Booking";
 import Vehicle from "@/models/Vehicle";
 
 async function rollback(session: mongoose.ClientSession | null) {
@@ -61,9 +62,33 @@ export async function POST(req: Request) {
       );
     }
 
+    const vehicleId = String(body.vehicleId || "").trim().toUpperCase();
+    const batteryInId = String(body.batteryInId || "").trim().toUpperCase();
+    let batteryOutId = String(body.batteryOutId || "").trim().toUpperCase();
+
+    if (!vehicleId || !batteryInId) {
+      return NextResponse.json(
+        { success: false, message: "Vehicle and charged battery in are required." },
+        { status: 400 }
+      );
+    }
+
+    const vehicle = await Vehicle.findOne({ vehicleId });
+    if (!vehicle) {
+      return NextResponse.json(
+        { success: false, message: "Vehicle not found." },
+        { status: 404 }
+      );
+    }
+
+    if (!batteryOutId) {
+      batteryOutId = String(vehicle.currentBatteryId || "").trim().toUpperCase();
+    }
+
     const batteryAlreadyInstalled = await Battery.findOne({
-      batteryId: body.batteryInId,
+      batteryId: batteryInId,
       status: "IN-VEHICLE",
+      vehicleId: { $ne: vehicleId },
     });
 
     if (batteryAlreadyInstalled) {
@@ -76,11 +101,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const batteryOut = await Battery.findOne({
-      batteryId: body.batteryOutId,
-    });
+    const batteryOut = batteryOutId
+      ? await Battery.findOne({ batteryId: batteryOutId })
+      : null;
 
-    if (batteryOut && batteryOut.vehicleId && batteryOut.vehicleId !== body.vehicleId) {
+    if (batteryOut && batteryOut.vehicleId && batteryOut.vehicleId !== vehicleId) {
       return NextResponse.json(
         {
           success: false,
@@ -90,24 +115,82 @@ export async function POST(req: Request) {
       );
     }
 
+    const batteryIn = await Battery.findOne({ batteryId: batteryInId });
+    if (!batteryIn) {
+      return NextResponse.json(
+        { success: false, message: "Charged battery in was not found in inventory." },
+        { status: 404 }
+      );
+    }
+    if (!["READY", "CHARGING"].includes(String(batteryIn.status || ""))) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Battery in must be READY (or charging at the hub) before it goes on a scooter.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (batteryOutId && batteryOutId === batteryInId) {
+      return NextResponse.json(
+        { success: false, message: "Battery in and battery out cannot be the same pack." },
+        { status: 400 }
+      );
+    }
+
+    let booking = vehicle.currentBookingId
+      ? await Booking.findOne({ bookingId: vehicle.currentBookingId })
+      : null;
+    if (!booking) {
+      booking = await Booking.findOne({
+        vehicleId,
+        rideStatus: {
+          $in: ["Booked", "Payment Pending", "Ready For Pickup", "In Ride"],
+        },
+      }).sort({ updatedAt: -1 });
+    }
+
     session = await mongoose.startSession();
     session.startTransaction();
 
-    const swapDocs = await BatterySwap.create([body], { session });
-    const swap = swapDocs[0];
+    const riderId = String(
+      body.riderId || booking?.riderId || vehicle.currentRiderId || vehicle.assignedRider || ""
+    ).trim();
     const now = new Date();
     const chargeIn = Math.max(
       0,
-      Math.min(100, Number(body.batteryInPercentage ?? 100))
+      Math.min(100, Number(body.batteryInPercentage ?? batteryIn.chargePercentage ?? 100))
     );
     const chargeOut = Math.max(
       0,
-      Math.min(100, Number(body.batteryOutPercentage ?? 0))
+      Math.min(100, Number(body.batteryOutPercentage ?? batteryOut?.chargePercentage ?? 0))
     );
 
-    if (body.batteryOutId) {
+    const swapDocs = await BatterySwap.create(
+      [
+        {
+          swapId: String(body.swapId || `SWAP-${Date.now()}`).toUpperCase(),
+          hubId: String(body.hubId || batteryIn.hubId || "").trim(),
+          hubName: String(body.hubName || vehicle.currentHub || batteryIn.hubName || ""),
+          vehicleId,
+          batteryOutId: batteryOutId || "PACK-OUT",
+          batteryInId,
+          batteryOutPercentage: chargeOut,
+          batteryInPercentage: chargeIn,
+          riderId,
+          staffId: String(body.staffId || "").trim(),
+          remarks: String(body.remarks || "").trim().slice(0, 500),
+          status: "COMPLETED",
+        },
+      ],
+      { session }
+    );
+    const swap = swapDocs[0];
+
+    if (batteryOutId) {
       await Battery.findOneAndUpdate(
-        { batteryId: String(body.batteryOutId).toUpperCase() },
+        { batteryId: batteryOutId },
         {
           $set: {
             status: "CHARGING",
@@ -120,34 +203,45 @@ export async function POST(req: Request) {
       );
     }
 
-    if (body.batteryInId) {
-      await Battery.findOneAndUpdate(
-        { batteryId: String(body.batteryInId).toUpperCase() },
-        {
-          $set: {
-            status: "IN-VEHICLE",
-            vehicleId: String(body.vehicleId || "").toUpperCase(),
-            chargePercentage: chargeIn,
-            lastSwappedAt: now,
-          },
-          $inc: { cycleCount: 1 },
+    await Battery.findOneAndUpdate(
+      { batteryId: batteryInId },
+      {
+        $set: {
+          status: "IN-VEHICLE",
+          vehicleId,
+          chargePercentage: chargeIn,
+          lastSwappedAt: now,
         },
-        { session }
-      );
-    }
+        $inc: { cycleCount: 1 },
+      },
+      { session }
+    );
 
-    if (body.vehicleId) {
-      await Vehicle.findOneAndUpdate(
-        { vehicleId: String(body.vehicleId).toUpperCase() },
-        {
-          $set: {
-            batteryPercentage: chargeIn,
-            lastBatterySwapAt: now,
-            currentBatteryId: String(body.batteryInId || "").toUpperCase(),
-          },
+    const keepRideStatus = ["Booked", "Ready For Pickup", "In Ride"].includes(
+      String(vehicle.vehicleStatus || "")
+    );
+    const nextVehicleStatus = keepRideStatus
+      ? vehicle.vehicleStatus
+      : chargeIn < 20
+        ? "Low Battery"
+        : "Available";
+
+    await Vehicle.findOneAndUpdate(
+      { vehicleId },
+      {
+        $set: {
+          batteryPercentage: chargeIn,
+          lastBatterySwapAt: now,
+          currentBatteryId: batteryInId,
+          vehicleStatus: nextVehicleStatus,
         },
-        { session }
-      );
+      },
+      { session }
+    );
+
+    if (booking) {
+      booking.batteryPercentage = chargeIn;
+      await booking.save({ session });
     }
 
     await session.commitTransaction();

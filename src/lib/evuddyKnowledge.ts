@@ -16,11 +16,11 @@ How booking works:
 7. Remaining rent must be ₹0 before Ride end OTP. Paying remaining does not issue that OTP. Return to the yard, swipe Ride end, then tell the OTP to the yard. Deposit refund is admin-approved after the scooter is taken back.
 
 Catalog rates (vehicle may override): Hourly ₹60, Daily ₹230, Weekly ₹1610, Monthly ₹6900.
-Rent to Own: ₹280 per day × 30-day installment (₹8,400 + 5% GST), 18 months, NO security deposit. Keep the scooter; pay each installment. Ownership after the last installment. Do not return it monthly.
+Rent to Own: ₹280 + 5% GST per day, 18 months, NO security deposit. Pay daily; you get a receipt. Keep the scooter. Ownership after the last day. Do not return it monthly.
 
 Wallet is the rider EVUDDY purse. It is not a second charge on top of Razorpay. Deposit is part of the rental bill; after return admin refunds it.
 
-Support: website contact form, or Need help on a paid booking (ticket bound to that booking). You can see ticket status and staff reply on Book EV. Dashboards are for staff only.
+Support: website contact form, or Need help on a paid booking (ticket bound to that booking), including mid-ride breakdown and battery issues. You can see ticket status and staff reply on Book EV. Dashboards are for staff only.
 
 Never invent extra cities or prices. If unsure, send the rider to book-bike, contact, or info@kebuone.in.
 `.trim();

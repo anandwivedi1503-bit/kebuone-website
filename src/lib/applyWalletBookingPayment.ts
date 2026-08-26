@@ -11,7 +11,12 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
-import { openDueRtoInstallment, rtoCycleAfterInstallment } from "@/lib/rtoInstallmentCycle";
+import {
+  gstOnRtoDailyPayment,
+  isRentToOwnBooking,
+  openDueRtoInstallment,
+  rtoCycleAfterInstallment,
+} from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
@@ -100,7 +105,7 @@ export async function applyWalletBookingPayment(input: {
       return {
         ok: false as const,
         status: 400,
-        message: "Rent to Own requires the full installment in one payment.",
+        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
       };
     }
 
@@ -137,12 +142,14 @@ export async function applyWalletBookingPayment(input: {
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, rideStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}`;
-    const taxOnPayment = gstShareForPayment({
-      rentalAmount: booking.rateApplied || booking.totalAmount,
-      gstAmount: booking.gstAmount,
-      previousReceived: oldReceivedAmount,
-      paidNow: paidAmount,
-    });
+    const taxOnPayment = isRentToOwnBooking(booking)
+      ? gstOnRtoDailyPayment(paidAmount)
+      : gstShareForPayment({
+          rentalAmount: booking.rateApplied || booking.totalAmount,
+          gstAmount: booking.gstAmount,
+          previousReceived: oldReceivedAmount,
+          paidNow: paidAmount,
+        });
     const transactionId = generateWalletTransactionId();
 
     await Transaction.create(
@@ -163,6 +170,10 @@ export async function applyWalletBookingPayment(input: {
           invoiceNumber,
           invoiceGenerated: true,
           status: "Success",
+          remarks:
+            booking.rentalMode === "Rent To Own"
+              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+              : "Wallet booking payment",
         },
       ],
       { session }
@@ -180,7 +191,10 @@ export async function applyWalletBookingPayment(input: {
           paymentMethod: "Wallet",
           bookingId: booking.bookingId,
           balanceAfter: Number(wallet.balance || 0),
-          remarks: "Booking paid from wallet.",
+          remarks:
+            booking.rentalMode === "Rent To Own"
+              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+              : "Booking paid from wallet.",
           status: "Success",
         },
       ],
@@ -325,6 +339,10 @@ export async function applyWalletBookingPayment(input: {
         pickupOTP: issuedPickupOtp,
         paymentMethod: "Wallet",
         rideEndOTP: undefined,
+        invoiceNumber,
+        receiptDay: Number(updatedBooking.rtoInstallmentsPaid || 0) || undefined,
+        rentalMode: String(updatedBooking.rentalMode || ""),
+        gstAmount: taxOnPayment.gstAmount,
       });
     } catch (notifyError) {
       console.error("WALLET PAYMENT NOTIFY ERROR:", notifyError);
@@ -341,9 +359,9 @@ export async function applyWalletBookingPayment(input: {
       rideEndOTP: undefined,
       message:
         isRto && Boolean(updatedBooking.ownershipTransferred)
-          ? "Final installment received. This scooter is now yours. Thank you for riding with EVUDDY."
+          ? "Final daily payment received. This scooter is now yours. Thank you for riding with EVUDDY."
           : isRto
-          ? "Installment received from wallet. Next 30-day installment opens when it is due."
+          ? "Daily Rent to Own received from wallet. Tomorrow’s ₹280 + GST opens when due."
           : nextPaymentStatus === "Paid"
           ? nextRideStatus === "In Ride"
             ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV to get the ride-end OTP."

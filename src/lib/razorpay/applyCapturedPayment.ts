@@ -16,7 +16,12 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
-import { openDueRtoInstallment, rtoCycleAfterInstallment } from "@/lib/rtoInstallmentCycle";
+import {
+  gstOnRtoDailyPayment,
+  isRentToOwnBooking,
+  openDueRtoInstallment,
+  rtoCycleAfterInstallment,
+} from "@/lib/rtoInstallmentCycle";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { normalizeIndianPhone } from "@/lib/requestAuth";
 
@@ -174,7 +179,7 @@ export async function applyCapturedRazorpayPayment(
       return {
         ok: false,
         status: 400,
-        message: "Rent to Own requires the full installment in one payment.",
+        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
       };
     }
 
@@ -183,12 +188,14 @@ export async function applyCapturedRazorpayPayment(
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, rideStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-${paymentIds[0].slice(-8)}`;
-    const taxOnPayment = gstShareForPayment({
-      rentalAmount: booking.rateApplied || booking.totalAmount,
-      gstAmount: booking.gstAmount,
-      previousReceived: oldReceivedAmount,
-      paidNow: paidAmount,
-    });
+    const taxOnPayment = isRentToOwnBooking(booking)
+      ? gstOnRtoDailyPayment(paidAmount)
+      : gstShareForPayment({
+          rentalAmount: booking.rateApplied || booking.totalAmount,
+          gstAmount: booking.gstAmount,
+          previousReceived: oldReceivedAmount,
+          paidNow: paidAmount,
+        });
 
     if (!existingTransaction) {
       try {
@@ -210,6 +217,10 @@ export async function applyCapturedRazorpayPayment(
           invoiceNumber,
           invoiceGenerated: true,
           status: "Success",
+          remarks:
+            booking.rentalMode === "Rent To Own"
+              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+              : "",
         });
       } catch (error) {
         if (!isDuplicateKeyError(error)) throw error;
@@ -394,6 +405,10 @@ export async function applyCapturedRazorpayPayment(
         pickupOTP: issuedPickupOtp,
         paymentMethod: "Razorpay",
         rideEndOTP: undefined,
+        invoiceNumber,
+        receiptDay: Number(updatedBooking.rtoInstallmentsPaid || 0) || undefined,
+        rentalMode: String(updatedBooking.rentalMode || ""),
+        gstAmount: taxOnPayment.gstAmount,
       });
     } catch (notifyError) {
       console.error("BOOKING PAYMENT NOTIFY ERROR:", notifyError);
@@ -410,9 +425,9 @@ export async function applyCapturedRazorpayPayment(
       rideEndOTP: undefined,
       message:
         isRto && Boolean(updatedBooking.ownershipTransferred)
-          ? "Final installment received. This scooter is now yours. Thank you for riding with EVUDDY."
+          ? "Final daily payment received. This scooter is now yours. Thank you for riding with EVUDDY."
           : isRto
-          ? "Installment received. Pickup OTP is ready if you have not collected yet. Next 30-day installment opens when it is due. Keep the scooter."
+          ? "Daily Rent to Own received. Pickup OTP is ready if you have not collected yet. Tomorrow’s ₹280 + GST opens when due. Keep the scooter."
           : nextPaymentStatus === "Paid"
           ? nextRideStatus === "In Ride"
             ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV — that generates the ride-end OTP the same way pickup OTP appeared after first payment."

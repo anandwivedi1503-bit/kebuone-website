@@ -218,7 +218,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rent to Own requires the full installment in one payment.",
+          message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
         },
         { status: 400 }
       );

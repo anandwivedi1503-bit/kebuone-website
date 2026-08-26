@@ -1,4 +1,4 @@
-import { gstBreakdown, money } from "@/lib/gst";
+import { gstBreakdown, gstShareForPayment, money } from "@/lib/gst";
 import { RTO_PLAN, rtoInstallment } from "@/lib/rentalPlans";
 
 type RtoBooking = {
@@ -12,8 +12,23 @@ export function isRentToOwnBooking(booking: { rentalMode?: string }) {
   return String(booking.rentalMode || "") === "Rent To Own";
 }
 
-export function rtoInstallmentPayable() {
+export function rtoDailyPayable() {
   return gstBreakdown(rtoInstallment()).totalWithGst;
+}
+
+export function rtoInstallmentPayable() {
+  return rtoDailyPayable();
+}
+
+/** Each paid day is its own ₹280 + 5% GST bill — not GST on the original booking only. */
+export function gstOnRtoDailyPayment(paidNow: number) {
+  const day = gstBreakdown(rtoInstallment());
+  return gstShareForPayment({
+    rentalAmount: day.taxableAmount,
+    gstAmount: day.gstAmount,
+    previousReceived: 0,
+    paidNow,
+  });
 }
 
 export function rtoCycleAfterInstallment(
@@ -29,22 +44,22 @@ export function rtoCycleAfterInstallment(
     0,
     Number(booking.remainingRentToOwnDays || 0) - RTO_PLAN.billingDays
   );
+  const paidDays = Number(booking.rtoInstallmentsPaid || 0) + 1;
   const patch: Record<string, unknown> = {
-    rtoInstallmentsPaid: Number(booking.rtoInstallmentsPaid || 0) + 1,
+    rtoInstallmentsPaid: paidDays,
     rentToOwnCompletedDays:
       Number(booking.rentToOwnCompletedDays || 0) + RTO_PLAN.billingDays,
     remainingRentToOwnDays: remaining,
   };
 
   if (remaining > 0) {
-    const nextDue = rtoInstallmentPayable();
     patch.pendingAmount = 0;
     patch.paymentStatus = "Partial";
-    patch.rtoNextInstallmentAmount = nextDue;
+    patch.rtoNextInstallmentAmount = rtoDailyPayable();
     patch.rtoNextInstallmentAt = new Date(
       Date.now() + RTO_PLAN.billingDays * 24 * 60 * 60 * 1000
     );
-    patch.paymentDue = money(newReceivedAmount + nextDue);
+    patch.paymentDue = money(newReceivedAmount);
   } else {
     patch.ownershipTransferred = true;
     patch.ownershipTransferredAt = new Date();
@@ -87,7 +102,7 @@ export async function openDueRtoInstallment(booking: RtoOpenBooking) {
   const nextDue =
     Number(booking.rtoNextInstallmentAmount || 0) > 0.009
       ? Number(booking.rtoNextInstallmentAmount)
-      : rtoInstallmentPayable();
+      : rtoDailyPayable();
   booking.pendingAmount = nextDue;
   booking.paymentStatus = "Partial";
   booking.paymentDue = money(Number(booking.receivedAmount || 0) + nextDue);

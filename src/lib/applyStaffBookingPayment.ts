@@ -11,7 +11,12 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
-import { openDueRtoInstallment, rtoCycleAfterInstallment } from "@/lib/rtoInstallmentCycle";
+import {
+  gstOnRtoDailyPayment,
+  isRentToOwnBooking,
+  openDueRtoInstallment,
+  rtoCycleAfterInstallment,
+} from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
@@ -109,7 +114,7 @@ export async function applyStaffBookingPayment(input: {
       return {
         ok: false as const,
         status: 400,
-        message: "Rent to Own requires the full installment in one payment.",
+        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
       };
     }
 
@@ -118,12 +123,14 @@ export async function applyStaffBookingPayment(input: {
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-CASH`;
-    const taxOnPayment = gstShareForPayment({
-      rentalAmount: booking.rateApplied || booking.totalAmount,
-      gstAmount: booking.gstAmount,
-      previousReceived: oldReceivedAmount,
-      paidNow: paidAmount,
-    });
+    const taxOnPayment = isRentToOwnBooking(booking)
+      ? gstOnRtoDailyPayment(paidAmount)
+      : gstShareForPayment({
+          rentalAmount: booking.rateApplied || booking.totalAmount,
+          gstAmount: booking.gstAmount,
+          previousReceived: oldReceivedAmount,
+          paidNow: paidAmount,
+        });
     const transactionId = generateCashTransactionId();
 
     await Transaction.create(
@@ -145,7 +152,12 @@ export async function applyStaffBookingPayment(input: {
           invoiceNumber,
           invoiceGenerated: true,
           status: "Success",
-          remarks: (notes || `Cash collected at yard by ${collectedBy}`).slice(0, 500),
+          remarks: (notes
+            ? notes
+            : booking.rentalMode === "Rent To Own"
+              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1} · cash at yard by ${collectedBy}`
+              : `Cash collected at yard by ${collectedBy}`
+          ).slice(0, 500),
           collectedBy,
           collectedAt: new Date(),
           cashHandoverStatus: "DueToCompany",
@@ -294,6 +306,10 @@ export async function applyStaffBookingPayment(input: {
         pickupOTP: issuedPickupOtp,
         paymentMethod: "Cash",
         rideEndOTP: undefined,
+        invoiceNumber,
+        receiptDay: Number(updatedBooking.rtoInstallmentsPaid || 0) || undefined,
+        rentalMode: String(updatedBooking.rentalMode || ""),
+        gstAmount: taxOnPayment.gstAmount,
       });
     } catch (notifyError) {
       console.error("CASH PAYMENT NOTIFY ERROR:", notifyError);
@@ -308,7 +324,9 @@ export async function applyStaffBookingPayment(input: {
       cashHandoverStatus: "DueToCompany" as const,
       pickupOTP: issuedPickupOtp,
       message:
-        nextPaymentStatus === "Paid"
+        isRentToOwnBooking(updatedBooking)
+          ? `Rent to Own daily receipt recorded. Yard must handover this cash to the company.`
+          : nextPaymentStatus === "Paid"
           ? "Cash received. Pending is ₹0. Yard must handover this cash to the company."
           : `Cash received. Remaining ₹${nextPending.toFixed(2)}. Yard must handover collected cash to the company.`,
     };

@@ -153,7 +153,7 @@ export default function VehicleRideOtpCell({
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
           {ownershipDone
             ? "Ownership transferred. Do not take this scooter back."
-            : "Rent to Own — rider keeps the scooter. Collect installment if pending. No ride-end OTP."}
+            : "Rent to Own — rider keeps the scooter. Collect ₹280 + GST each day if pending. No ride-end OTP."}
         </p>
       ) : status === "In Ride" && pending > 0.009 ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">

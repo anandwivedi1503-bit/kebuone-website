@@ -246,7 +246,7 @@ const [showViewModal, setShowViewModal] =
           Battery Management
         </h1>
         <p className="mt-2 text-gray-500">
-          Add batteries, track stock and update charging status.
+          Hub inventory. READY packs can be fitted on Battery Swap. IN-VEHICLE packs stay linked to the scooter until swapped.
         </p>
       </div>
 

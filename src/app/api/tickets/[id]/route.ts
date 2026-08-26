@@ -27,6 +27,7 @@ const allowedCategories = [
   "UNLOCK_ISSUE",
   "OVERCHARGING",
   "VEHICLE_BREAKDOWN",
+  "BATTERY_ISSUE",
   "PAYMENT_ISSUE",
   "REFUND_REQUEST",
   "BOOKING_ISSUE",
@@ -201,6 +202,19 @@ if (
       booking.pickupOTPExpiry = pickupOtpExpiry();
       booking.pickupOTPVerified = false;
       booking.pickupOTPVerifiedAt = null;
+    }
+
+    if (existingTicket.category === "BATTERY_ISSUE") {
+      booking.remarks = appendBoundedText(
+        booking.remarks,
+        "Battery ticket resolved — yard should confirm a charged pack is fitted."
+      );
+    }
+    if (existingTicket.category === "VEHICLE_BREAKDOWN") {
+      booking.remarks = appendBoundedText(
+        booking.remarks,
+        "Breakdown ticket resolved — confirm the scooter is rideable before the rider continues."
+      );
     }
 
     if (existingTicket.category === "REFUND_REQUEST") {

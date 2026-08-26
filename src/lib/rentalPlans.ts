@@ -8,7 +8,7 @@ export const CATALOG_RATES = {
 export const RTO_PLAN = {
   dailyRate: 280,
   tenureMonths: 18,
-  billingDays: 30,
+  billingDays: 1,
 } as const;
 
 export function moneyRate(value: unknown, fallback = 0) {
@@ -35,13 +35,13 @@ export function rtoTenureMonths(vehicleMonths?: unknown) {
 }
 
 export function rtoInstallment(_vehicleDailyRate?: unknown) {
-  return rtoDailyRate() * RTO_PLAN.billingDays;
+  return rtoDailyRate();
+}
+
+export function rtoContractDays(months?: unknown) {
+  return rtoTenureMonths(months) * 30;
 }
 
 export function rtoContractValue(vehicleDailyRate?: unknown, months?: unknown) {
-  return (
-    rtoDailyRate(vehicleDailyRate) *
-    RTO_PLAN.billingDays *
-    rtoTenureMonths(months)
-  );
+  return rtoDailyRate(vehicleDailyRate) * rtoContractDays(months);
 }
