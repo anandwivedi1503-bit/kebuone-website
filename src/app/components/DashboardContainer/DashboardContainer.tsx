@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import DashboardSidebar from "../DashboardSidebar/DashboardSidebar";
-import "./DashboardUI/ops-shell.css";
+import "../DashboardUI/ops-shell.css";
 
 import AdminDashboard from "../AdminDashboard/AdminDashboard";
 import FleetDashboard from "../FleetDashboard/FleetDashboard";
