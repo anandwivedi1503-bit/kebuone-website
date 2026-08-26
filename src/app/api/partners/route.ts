@@ -13,12 +13,16 @@ const partnerTypes = [
   "Bike Rental Franchise Partner",
   "EV Charging Partner",
   "Fleet Partner",
+  "Fleet Partner Investment",
   "Hub Operations Partner",
   "Delivery Operations Partner",
   "Smart Parking Partner",
 ];
 
 const investmentCapacities = [
+  "₹1 Lakh · 3 scooters",
+  "₹5 Lakh · 15 scooters",
+  "₹10 Lakh · 30 scooters",
   "Below ₹5 Lakhs",
   "₹5 – ₹10 Lakhs",
   "₹10 – ₹25 Lakhs",
