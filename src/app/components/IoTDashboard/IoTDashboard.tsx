@@ -222,18 +222,26 @@ createdAt?: string
 const gpsStatus =
 String(status || "").trim().toUpperCase();
 
+if (gpsStatus === "OFFLINE") {
+  return "OFFLINE";
+}
+
 const lastPing = new Date(
 updatedAt || createdAt || 0
 ).getTime();
 
-const secondsSincePing =
-(Date.now() - lastPing) / 1000;
+if (!Number.isFinite(lastPing) || lastPing <= 0) {
+  return gpsStatus || "OFFLINE";
+}
 
-if(secondsSincePing > 60){
+const minutesSincePing =
+(Date.now() - lastPing) / 60000;
+
+if(minutesSincePing > 15){
 return "OFFLINE";
 }
 
-return gpsStatus;
+return gpsStatus || "ONLINE";
 
 };
 
@@ -274,7 +282,7 @@ return(
 
 title="IoT Live Dashboard"
 
-subtitle="Monitor GPS, smart locks, geofence alerts and vehicle telemetry in real time."
+subtitle="Same scooters as Vehicle Management. GPS, lock, battery %, hub, fitted pack, and live booking come from the vehicle record. Offline means no ping for 15 minutes."
 
 />
 
@@ -318,7 +326,7 @@ color="yellow"
 
 title="Live Vehicle Status"
 
-subtitle="Real-time telemetry from MongoDB."
+subtitle="Telemetry from the Vehicle collection, not invented sample rows."
 
 />
 
@@ -340,6 +348,18 @@ subtitle="Live IoT Feed"
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Vehicle ID
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Hub
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Pack
+</th>
+
+<th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+Booking
 </th>
 
 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
@@ -381,7 +401,7 @@ Last Ping
 <tr>
 
 <td
-colSpan={8}
+colSpan={11}
 className="py-16 text-center text-gray-500 font-medium"
 >
 
@@ -407,6 +427,18 @@ transition
 
 <td className="px-6 py-5 font-semibold">
 {iot.vehicleId}
+</td>
+
+<td className="px-6 py-5 text-center text-sm">
+{iot.currentHub || "—"}
+</td>
+
+<td className="px-6 py-5 text-center text-sm">
+{iot.currentBatteryId || "—"}
+</td>
+
+<td className="px-6 py-5 text-center text-sm">
+{iot.currentBookingId || "—"}
 </td>
 
 <td className="px-6 py-5">

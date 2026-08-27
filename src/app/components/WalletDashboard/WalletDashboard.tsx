@@ -389,7 +389,7 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="Rider EVUDDY credit only: admin top-ups and returned deposits. Spendable is ledger minus freeze. Deposit hold is tracking, not a second freeze. Razorpay/UPI never adds here."
+subtitle="Rider EVUDDY credit only: admin top-ups and returned deposits. Spendable is ledger minus freeze. Deposit hold is the security deposit until the scooter is returned; then Refunds queues it for payout. Razorpay/UPI never adds here."
 />
 
 <OpsMoneyStrip />

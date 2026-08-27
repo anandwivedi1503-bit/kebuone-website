@@ -44,7 +44,7 @@ export async function GET() {
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
     })
       .select(
-        "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt"
+        "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt currentHub currentBatteryId currentBookingId"
       )
       .sort({ updatedAt: -1 })
       .limit(500)
@@ -71,6 +71,9 @@ export async function GET() {
       lockStatus: vehicle.lockStatus,
       gpsStatus: vehicle.gpsStatus,
       vehicleStatus: vehicle.vehicleStatus,
+      currentHub: vehicle.currentHub || "",
+      currentBatteryId: vehicle.currentBatteryId || "",
+      currentBookingId: vehicle.currentBookingId || "",
       updatedAt: vehicle.lastPingTime,
       createdAt: vehicle.createdAt,
       alertType: alertByVehicle.get(vehicle.vehicleId) || "",

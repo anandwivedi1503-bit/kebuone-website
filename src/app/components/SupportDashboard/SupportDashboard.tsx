@@ -113,7 +113,9 @@ const criticalTickets=queueTickets.filter(
 (ticket)=>ticket.priority==="Critical"
 ).length;
 
-const totalRefundAmount=refunds.reduce(
+const totalRefundAmount=refunds
+.filter((refund)=>String(refund.refundStatus||"").toUpperCase()==="REFUNDED")
+.reduce(
 (total,refund)=>total+Number(refund.amount||0),
 0
 );
@@ -189,7 +191,7 @@ color="yellow"
 <KPICard
 title="Refund Amount"
 value={`₹${totalRefundAmount}`}
-subtitle="Total"
+subtitle="Paid out (REFUNDED only)"
 icon="💰"
 color="green"
 />

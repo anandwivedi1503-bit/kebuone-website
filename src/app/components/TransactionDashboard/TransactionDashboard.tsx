@@ -19,6 +19,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
+import { isRevenueTransaction, revenueAmount, revenueGst } from "@/lib/opsRevenue";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
@@ -134,16 +135,16 @@ new Date(a.createdAt).getTime()
 );
 
 const totalRevenue = transactions
-.filter(item => item.status === "Success")
+.filter(item => isRevenueTransaction(item))
 .reduce(
-(sum,item)=>sum+Number(item.amount||0),
+(sum,item)=>sum+revenueAmount(item),
 0
 );
 
 const totalGST = transactions
-.filter(item => item.status === "Success")
+.filter(item => isRevenueTransaction(item))
 .reduce(
-(sum,item)=>sum+Number(item.gstAmount||0),
+(sum,item)=>sum+revenueGst(item),
 0
 );
 
@@ -201,7 +202,7 @@ color="pink"
 <KPICard
 title="Revenue"
 value={`₹${totalRevenue.toLocaleString("en-IN")}`}
-subtitle="Collected"
+subtitle="Rent + GST from Success booking payments"
 icon={<Wallet size={28} />}
 color="green"
 />
@@ -209,7 +210,7 @@ color="green"
 <KPICard
 title="GST"
 value={`₹${totalGST.toLocaleString("en-IN")}`}
-subtitle="Collected"
+subtitle="Rent + GST collected. Deposits, refunds, and wallet top-ups are not revenue."
 icon={<Receipt size={28} />}
 color="blue"
 />

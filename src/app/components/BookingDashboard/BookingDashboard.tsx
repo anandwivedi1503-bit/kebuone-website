@@ -10,6 +10,8 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { getBookingPayableAmount, money } from "@/lib/gst";
+import { bookingRentalCollected } from "@/lib/opsRevenue";
+import { downloadHtmlFile } from "@/lib/dashboardExport";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import CashCollectForm from "../YardRideDesk/CashCollectForm";
 
@@ -393,12 +395,9 @@ const cancelledBookings = bookings.filter(
 const getBookingAmount = (booking: any) =>
   getBookingPayableAmount(booking);
 const totalRevenue = bookings
-  .filter(
-    (booking) => booking.rideStatus !== "Cancelled"
-  )
   .reduce(
     (sum, booking) =>
-      sum + Number(booking.receivedAmount || 0),
+      sum + bookingRentalCollected(booking),
     0
   );
 
@@ -496,7 +495,7 @@ color="blue"
 <KPICard
 title="Revenue"
 value={rupees(totalRevenue)}
-subtitle="Bookings"
+subtitle="Rent + GST collected (deposit held separately)"
 icon="💰"
 color="yellow"
 />
@@ -624,10 +623,16 @@ Export CSV
 </button>
 
 <button
-onClick={() => window.print()}
+type="button"
+onClick={() => {
+  downloadHtmlFile(
+    `EVUDDY-booking-list-${new Date().toISOString().slice(0, 10)}.html`,
+    document.documentElement.outerHTML
+  );
+}}
 className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700"
 >
-Print / PDF
+Download file
 </button>
 
 <button
@@ -1463,12 +1468,31 @@ Booking Details
 <div className="flex gap-3">
 
 <button
-
-onClick={()=>window.print()}
-
+type="button"
+onClick={()=>{
+  if (!selectedBooking) return;
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>EVUDDY ${selectedBooking.bookingId}</title>
+<style>body{font-family:Arial,sans-serif;padding:24px;color:#0f172a}h1{color:#18B368}table{width:100%;border-collapse:collapse}td{border-bottom:1px solid #e5e7eb;padding:10px 0}td:first-child{font-weight:700;width:42%}</style></head><body>
+<p>EVUDDY · SMART ELECTRIC MOBILITY</p>
+<h1>Booking summary</h1>
+<table>
+<tr><td>Booking ID</td><td>${selectedBooking.bookingId || "-"}</td></tr>
+<tr><td>Rider</td><td>${selectedBooking.userName || "-"}</td></tr>
+<tr><td>Phone</td><td>${selectedBooking.userPhone || "-"}</td></tr>
+<tr><td>Vehicle</td><td>${selectedBooking.vehicleId || "-"}</td></tr>
+<tr><td>Status</td><td>${selectedBooking.rideStatus || "-"}</td></tr>
+<tr><td>Paid (received)</td><td>₹${money(selectedBooking.receivedAmount).toLocaleString("en-IN")}</td></tr>
+<tr><td>Rent + GST collected</td><td>₹${bookingRentalCollected(selectedBooking).toLocaleString("en-IN")}</td></tr>
+<tr><td>Pending</td><td>₹${money(selectedBooking.pendingAmount).toLocaleString("en-IN")}</td></tr>
+<tr><td>Security deposit (held until return)</td><td>₹${money(selectedBooking.securityDeposit).toLocaleString("en-IN")}</td></tr>
+</table>
+<p style="margin-top:24px;font-size:12px;color:#64748b">Security deposit is held until the scooter is returned. Ride-end OTP is issued only after remaining fare is ₹0 and the rider swipes at the yard.</p>
+</body></html>`;
+  downloadHtmlFile(`EVUDDY-booking-${selectedBooking.bookingId}.html`, html);
+}}
 className="
 rounded-xl
-bg-blue-600
+bg-emerald-600
 px-4
 py-2
 font-bold
@@ -1477,7 +1501,7 @@ text-white
 
 >
 
-Print
+Download file
 
 </button>
 
