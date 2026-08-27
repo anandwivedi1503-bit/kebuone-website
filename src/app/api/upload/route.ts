@@ -5,6 +5,7 @@ import { adminAuth } from "@/lib/firebaseAdmin";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
@@ -81,17 +82,75 @@ function detectFileType(
 
 export async function POST(req: Request) {
   try {
-    if (!rateLimitAllowed(`upload:${clientIp(req)}`, 20, 10 * 60 * 1000)) {
+    if (!rateLimitAllowed(`upload:${clientIp(req)}`, 40, 10 * 60 * 1000)) {
       return NextResponse.json(
         { success: false, error: "Too many uploads. Please try again later." },
         { status: 429 }
       );
     }
 
-    const body = await req.json();
+    const contentType = req.headers.get("content-type") || "";
+    let firebaseIdToken = "";
+    let buffer: Buffer | null = null;
+    let declaredMime = "";
 
-    const file = body.file;
-    const firebaseIdToken = body.firebaseIdToken;
+    if (contentType.includes("multipart/form-data")) {
+      const form = await req.formData();
+      firebaseIdToken = String(form.get("firebaseIdToken") || "").trim();
+      const uploaded = form.get("file");
+
+      if (!(uploaded instanceof File) || uploaded.size < 1) {
+        return NextResponse.json(
+          { success: false, error: "No file received." },
+          { status: 400 }
+        );
+      }
+
+      if (uploaded.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { success: false, error: "File size exceeds 5 MB." },
+          { status: 413 }
+        );
+      }
+
+      declaredMime = normalizeMimeType(uploaded.type || "");
+      buffer = Buffer.from(await uploaded.arrayBuffer());
+    } else {
+      const body = await req.json();
+      firebaseIdToken = String(body.firebaseIdToken || "").trim();
+      const file = body.file;
+
+      if (
+        typeof file !== "string" ||
+        !file.startsWith("data:")
+      ) {
+        return NextResponse.json(
+          { success: false, error: "Invalid file format." },
+          { status: 400 }
+        );
+      }
+
+      const matches = file.match(/^data:([^;]+);base64,(.+)$/);
+
+      if (!matches) {
+        return NextResponse.json(
+          { success: false, error: "Invalid Base64 data." },
+          { status: 400 }
+        );
+      }
+
+      declaredMime = normalizeMimeType(matches[1]);
+      const base64Data = matches[2];
+
+      if (base64Data.length > MAX_BASE64_LENGTH) {
+        return NextResponse.json(
+          { success: false, error: "File size exceeds 5 MB." },
+          { status: 413 }
+        );
+      }
+
+      buffer = Buffer.from(base64Data, "base64");
+    }
 
     if (!firebaseIdToken) {
       return NextResponse.json(
@@ -103,78 +162,16 @@ export async function POST(req: Request) {
       );
     }
 
-    /*
-     * Verify Firebase token server-side.
-     */
     await adminAuth.verifyIdToken(firebaseIdToken);
 
-    if (!file) {
+    if (!buffer) {
       return NextResponse.json(
-        {
-          success: false,
-          error: "No file received.",
-        },
+        { success: false, error: "No file received." },
         { status: 400 }
       );
     }
 
-    if (
-      typeof file !== "string" ||
-      !file.startsWith("data:")
-    ) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid file format.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const matches = file.match(
-      /^data:([^;]+);base64,(.+)$/
-    );
-
-    if (!matches) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Invalid Base64 data.",
-        },
-        { status: 400 }
-      );
-    }
-
-    const mimeType = normalizeMimeType(matches[1]);
-    const base64Data = matches[2];
-
-    if (!ALLOWED_TYPES.includes(mimeType)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Unsupported file type.",
-        },
-        { status: 400 }
-      );
-    }
-
-    /*
-     * Prevent oversized Base64 payloads before decoding.
-     */
-    if (base64Data.length > MAX_BASE64_LENGTH) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "File size exceeds 5 MB.",
-        },
-        { status: 413 }
-      );
-    }
-
-    const buffer = Buffer.from(
-      base64Data,
-      "base64"
-    );
+    const mimeType = declaredMime;
 
     if (buffer.length === 0) {
       return NextResponse.json(
@@ -196,17 +193,19 @@ export async function POST(req: Request) {
       );
     }
 
-    /*
-     * Verify actual file signature instead of trusting
-     * the MIME type supplied by the client.
-     */
-    const detectedMimeType =
-      detectFileType(buffer);
+    const detectedMimeType = detectFileType(buffer);
 
-    if (
-      !detectedMimeType ||
-      detectedMimeType !== mimeType
-    ) {
+    if (!detectedMimeType || !ALLOWED_TYPES.includes(detectedMimeType)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unsupported file type.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (mimeType && mimeType !== detectedMimeType) {
       return NextResponse.json(
         {
           success: false,
@@ -217,22 +216,34 @@ export async function POST(req: Request) {
       );
     }
 
+    const finalMime = detectedMimeType;
     const folder =
-      mimeType === "application/pdf"
+      finalMime === "application/pdf"
         ? "kebuone/kyc/documents"
         : "kebuone/kyc/images";
 
-    const upload =
-      await cloudinary.uploader.upload(file, {
-        folder,
-        resource_type:
-          mimeType === "application/pdf"
-            ? "raw"
-            : "image",
-        overwrite: false,
-        unique_filename: true,
-        use_filename: false,
-      });
+    const upload = await new Promise<{
+      secure_url?: string;
+      public_id?: string;
+    }>((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        {
+          folder,
+          resource_type: finalMime === "application/pdf" ? "raw" : "image",
+          overwrite: false,
+          unique_filename: true,
+          use_filename: false,
+        },
+        (error, result) => {
+          if (error || !result) {
+            reject(error || new Error("Upload failed."));
+            return;
+          }
+          resolve(result);
+        }
+      );
+      stream.end(buffer);
+    });
 
     return NextResponse.json(
       {
