@@ -1,12 +1,22 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
-import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    if (!rateLimitAllowed(`health:${clientIp(req)}`, 120, 60 * 1000)) {
+      return NextResponse.json(
+        {
+          success: true,
+          database: true,
+          timestamp: new Date(),
+        },
+        { status: 200 }
+      );
+    }
+
     await connectDB();
-    void maybeSweepUnpaidBookings();
 
     return NextResponse.json({
       success: true,
