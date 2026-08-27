@@ -17,12 +17,16 @@ type Battery = {
   hubId?: string;
   hubName?: string;
   vehicleId?: string;
+  vehicleBatteryPercentage?: number | null;
+  vehicleStatus?: string;
+  vehicleHub?: string;
   chargePercentage?: number;
   batteryHealth?: number;
   cycleCount?: number;
   status?: string;
   lastChargedAt?: string;
   createdAt?: string;
+  fromVehicle?: boolean;
 };
 
 const emptyForm = {
@@ -123,12 +127,13 @@ export default function BatteryDashboard() {
           : Math.round(
               batteries.reduce((sum, b) => sum + (b.chargePercentage || 0), 0) / batteries.length
             ),
-      averageHealth:
-        batteries.length === 0
-          ? 0
-          : Math.round(
-              batteries.reduce((sum, b) => sum + (b.batteryHealth || 0), 0) / batteries.length
-            ),
+      averageHealth: (() => {
+        const withHealth = batteries.filter((b) => Number.isFinite(Number(b.batteryHealth)));
+        if (withHealth.length === 0) return 0;
+        return Math.round(
+          withHealth.reduce((sum, b) => sum + Number(b.batteryHealth || 0), 0) / withHealth.length
+        );
+      })(),
       replacementNeeded: batteries.filter((b) => (b.batteryHealth || 0) < 50).length,
     };
   }, [batteries]);
@@ -208,7 +213,7 @@ export default function BatteryDashboard() {
     <PageContainer>
       <DashboardHeader
         title="Battery inventory"
-        subtitle="READY packs go on Battery Swap. IN-VEHICLE packs stay on the scooter until swapped. Charge and health are live from this inventory."
+        subtitle="READY packs go on Battery Swap. IN-VEHICLE charge is the same % as Vehicle / IoT for that scooter. Packs shown from inventory plus any pack ID currently fitted on a vehicle."
       />
 
       <KPIGrid>
@@ -326,6 +331,12 @@ export default function BatteryDashboard() {
                     </td>
                     <td className="whitespace-nowrap px-4 py-3.5 align-middle text-slate-600">
                       {battery.vehicleId || "—"}
+                      {battery.vehicleId ? (
+                        <span className="mt-1 block text-[11px] font-semibold text-slate-500">
+                          Scooter pack {Number(battery.vehicleBatteryPercentage ?? battery.chargePercentage ?? 0)}%
+                          {battery.vehicleStatus ? ` · ${battery.vehicleStatus}` : ""}
+                        </span>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3.5 align-middle">
                       <Meter value={battery.chargePercentage || 0} label={Number(battery.chargePercentage || 0) <= 20 ? "Low" : undefined} />
@@ -356,8 +367,9 @@ export default function BatteryDashboard() {
                         <StatusBadge status={statusTone(battery.status)} label={battery.status || "—"} />
                         <select
                           value={battery.status}
+                          disabled={Boolean(battery.fromVehicle)}
                           onChange={(e) => void updateStatus(battery._id, e.target.value)}
-                          className="h-10 w-36 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold"
+                          className="h-10 w-36 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold disabled:opacity-50"
                         >
                           <option value="READY">READY</option>
                           <option value="CHARGING">CHARGING</option>
@@ -371,12 +383,18 @@ export default function BatteryDashboard() {
                         <button type="button" onClick={() => setSelectedBattery(battery)} className="h-9 rounded-xl bg-slate-100 px-3 text-xs font-bold text-slate-700">
                           View
                         </button>
+                        {battery.fromVehicle ? (
+                          <span className="self-center text-[11px] font-semibold text-slate-500">From vehicle</span>
+                        ) : (
+                          <>
                         <button type="button" onClick={() => setEditingBattery({ ...battery })} className="h-9 rounded-xl bg-sky-50 px-3 text-xs font-bold text-sky-700">
                           Edit
                         </button>
                         <button type="button" onClick={() => void deleteBattery(battery._id)} className="h-9 rounded-xl bg-rose-50 px-3 text-xs font-bold text-rose-700">
                           Delete
                         </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

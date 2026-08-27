@@ -2,6 +2,7 @@ import Booking from "@/models/Booking";
 import Refund from "@/models/Refund";
 import Transaction from "@/models/Transaction";
 import Wallet from "@/models/Wallet";
+import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
 
 function roundMoney(value: number) {
   return Math.round(Number(value || 0) * 100) / 100;
@@ -60,7 +61,7 @@ export async function getOpsMoneySummary() {
         $match: {
           status: "Success",
           transactionType: {
-            $in: ["Ride Payment", "Booking Payment", "Security Deposit"],
+            $in: [...REVENUE_TRANSACTION_TYPES],
           },
           ...notDeleted,
         },
@@ -74,7 +75,14 @@ export async function getOpsMoneySummary() {
       },
     ]),
     Transaction.aggregate([
-      { $match: { paymentMethod: "Cash", status: "Success", ...notDeleted } },
+      {
+        $match: {
+          paymentMethod: "Cash",
+          status: "Success",
+          transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
+          ...notDeleted,
+        },
+      },
       {
         $group: {
           _id: {
@@ -107,6 +115,30 @@ export async function getOpsMoneySummary() {
       },
     ]),
     Refund.aggregate([
+      {
+        $match: {
+          $or: [
+            { bookingId: { $exists: true, $nin: [null, ""] } },
+            { ticketId: { $exists: true, $nin: [null, ""] } },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "bookings",
+          localField: "bookingId",
+          foreignField: "bookingId",
+          as: "bk",
+        },
+      },
+      {
+        $match: {
+          $or: [
+            { "bk.0": { $exists: true } },
+            { ticketId: { $exists: true, $nin: [null, ""] } },
+          ],
+        },
+      },
       {
         $group: {
           _id: { $toUpper: { $ifNull: ["$refundStatus", "UNKNOWN"] } },

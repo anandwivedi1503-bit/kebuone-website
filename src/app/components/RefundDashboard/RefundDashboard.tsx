@@ -226,7 +226,7 @@ return(
 
 title="Refund Dashboard"
 
-subtitle="Deposit refunds are queued only after a fully paid completed ride (usually the ₹2,500 security deposit). A ₹100 row is a manual/test refund, not the live booking deposit."
+subtitle="Security deposit is held on the wallet until the scooter is returned and remaining fare is ₹0. Then a deposit refund waits here for admin. Only refunds linked to a real booking or support ticket are listed."
 
 />
 
@@ -518,6 +518,9 @@ transition
   <div className="mt-1 text-[11px] font-semibold text-slate-500">
     Booking deposit ₹{Number(refund.bookingSnapshot.securityDeposit || 0).toLocaleString("en-IN")} · pending ₹{Number(refund.bookingSnapshot.pendingAmount || 0).toLocaleString("en-IN")}
   </div>
+) : null}
+{refund.remarks ? (
+  <div className="mt-1 text-[11px] font-medium text-slate-600">{refund.remarks}</div>
 ) : null}
 </td>
 

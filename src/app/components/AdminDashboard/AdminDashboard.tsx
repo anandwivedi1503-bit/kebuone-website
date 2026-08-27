@@ -4,6 +4,7 @@
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
 import { walletSpendable } from "@/lib/walletMoney";
+import { isRevenueTransaction, revenueAmount } from "@/lib/opsRevenue";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import {
   AlertTriangle,
@@ -211,8 +212,8 @@ const [refreshing, setRefreshing] = useState(false);
   const totalRevenue = Number(
     stats?.totalRevenue ??
       transactions
-        .filter((item: any) => item.status === "Success")
-        .reduce((sum: number, item: any) => sum + (item.amount || 0), 0)
+        .filter((item: any) => isRevenueTransaction(item))
+        .reduce((sum: number, item: any) => sum + revenueAmount(item), 0)
   );
 
   const activeRides = Number(
@@ -464,7 +465,7 @@ time:formatActivityTime(p.createdAt)
     {
       title: "Total Revenue",
       value: rupee(totalRevenue),
-      note: "Live Collection",
+      note: "Rent + GST (not deposits)",
       icon: IndianRupee,
       tone: {
         icon: "bg-pink-50 text-pink-600",

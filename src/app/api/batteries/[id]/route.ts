@@ -2,6 +2,7 @@ import { denyStaffDeletes, isAdminAuthenticated, unauthorizedResponse } from "@/
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
+import Vehicle from "@/models/Vehicle";
 
 export async function PATCH(
   req: Request,
@@ -69,6 +70,22 @@ if (body.status === "CHARGING") {
       body,
       { new: true }
     );
+
+    if (
+      battery?.vehicleId &&
+      (String(battery.status || "") === "IN-VEHICLE" ||
+        body.chargePercentage !== undefined)
+    ) {
+      await Vehicle.findOneAndUpdate(
+        { vehicleId: battery.vehicleId },
+        {
+          $set: {
+            batteryPercentage: Number(battery.chargePercentage || 0),
+            currentBatteryId: battery.batteryId,
+          },
+        }
+      );
+    }
 
     return NextResponse.json({
       success: true,

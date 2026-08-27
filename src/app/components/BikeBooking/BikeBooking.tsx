@@ -7,13 +7,14 @@ import {
   Bike,
   CheckCircle2,
   CreditCard,
+  Download,
   MapPin,
-  Printer,
   ShieldCheck,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { gstBreakdown } from "@/lib/gst";
+import { downloadHtmlFile } from "@/lib/dashboardExport";
 import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, RTO_PLAN, catalogRate } from "@/lib/rentalPlans";
 import RideSwipeControl from "./RideSwipeControl";
@@ -2517,7 +2518,7 @@ hover:-translate-y-1
 </h2>
 <p className="mt-3 max-w-2xl text-[17px] leading-8 text-slate-500">
 {paymentSuccess
-  ? "Payment is complete. Use the OTP below at the selected yard. Print the summary if you want a copy."
+  ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
   : remainingPayLocked
   ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
   : "Your scooter is reserved. Pay any amount from ₹1 to get pickup OTP. Remaining can be paid during the ride."}
@@ -2932,11 +2933,39 @@ shadow-[0_35px_90px_rgba(15,23,42,.10)]
                 </div>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => {
+                    const rows: Array<[string, string]> = [
+                      ["Booking ID", bookingId || "-"],
+                      ["Rider", riderName || "-"],
+                      ["Phone", riderPhone || "-"],
+                      ["City", city || "-"],
+                      ["Hub", hubLabel || "-"],
+                      ["Bike", selectedBike || "-"],
+                      ["Model", currentBike?.vehicleModel || "-"],
+                      ["Registration", currentBike?.registrationNumber || "-"],
+                      ["Rental", formatINR(rentalAmount)],
+                      ["CGST 2.5%", formatINR(tax.cgstAmount)],
+                      ["SGST 2.5%", formatINR(tax.sgstAmount)],
+                      ["Deposit (held until return)", formatINR(securityDeposit)],
+                      ["Paid", formatINR(paidAmount)],
+                      ["Pending", formatINR(pendingAmount)],
+                    ];
+                    const html = `<!doctype html><html><head><meta charset="utf-8"><title>EVUDDY ${bookingId || "booking"}</title>
+<style>body{font-family:Arial,sans-serif;padding:24px;color:#0f172a}h1{color:#18B368}table{width:100%;border-collapse:collapse}td{border-bottom:1px solid #e5e7eb;padding:10px 0}td:first-child{font-weight:700;width:42%}</style></head><body>
+<p>EVUDDY · SMART ELECTRIC MOBILITY</p>
+<h1>Booking summary</h1>
+<table>${rows.map(([label, value]) => `<tr><td>${label}</td><td>${value}</td></tr>`).join("")}</table>
+<p style="margin-top:24px;font-size:12px;color:#64748b">Security deposit is held until the scooter is returned. Ride-end OTP is issued only after remaining fare is ₹0 and you swipe at the yard.</p>
+</body></html>`;
+                    downloadHtmlFile(
+                      `EVUDDY-booking-${bookingId || "summary"}.html`,
+                      html
+                    );
+                  }}
                   className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 shadow-sm print:hidden"
                 >
-                  <Printer size={16} className="text-[#18B368]" />
-                  Print
+                  <Download size={16} className="text-[#18B368]" />
+                  Download file
                 </button>
               </div>
 

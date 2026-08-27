@@ -8,6 +8,7 @@ import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
 import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { publicApiError } from "@/lib/publicError";
+import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
 
 const NOT_DELETED = {
   $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
@@ -74,9 +75,17 @@ export async function GET(req: Request) {
         ...NOT_DELETED,
         ...createdInPeriod,
         status: "Success",
+        transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
       }),
       Transaction.aggregate([
-        { $match: { ...NOT_DELETED, ...createdInPeriod, status: "Success" } },
+        {
+          $match: {
+            ...NOT_DELETED,
+            ...createdInPeriod,
+            status: "Success",
+            transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
+          },
+        },
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Booking.countDocuments({
@@ -99,7 +108,7 @@ export async function GET(req: Request) {
           $match: {
             ...NOT_DELETED,
             status: "Success",
-            transactionType: "Booking Payment",
+            transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
             createdAt: { $gte: new Date(now.getFullYear(), 0, 1) },
           },
         },
@@ -115,7 +124,14 @@ export async function GET(req: Request) {
         { $group: { _id: { $month: "$createdAt" }, total: { $sum: 1 } } },
       ]),
       Transaction.aggregate([
-        { $match: { ...NOT_DELETED, ...createdInPeriod } },
+        {
+          $match: {
+            ...NOT_DELETED,
+            ...createdInPeriod,
+            status: "Success",
+            transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
+          },
+        },
         { $group: { _id: "$paymentMethod", total: { $sum: 1 } } },
       ]),
       Booking.aggregate([

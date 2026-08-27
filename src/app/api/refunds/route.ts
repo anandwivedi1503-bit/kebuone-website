@@ -195,20 +195,35 @@ export async function GET(req: Request) {
 
     const parsed = parseListQuery(req);
     const { page, limit, skip, q } = parsed;
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = {
+      $or: [
+        { bookingId: { $exists: true, $nin: [null, ""] } },
+        { ticketId: { $exists: true, $nin: [null, ""] } },
+      ],
+    };
     applyOpsListFilters(filter, parsed);
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const rx = new RegExp(escaped, "i");
-      filter.$or = [{ refundId: rx }, { bookingId: rx }, { riderId: rx }, { ticketId: rx }];
+      const and = (filter.$and as unknown[]) || [];
+      if (filter.$or) and.unshift({ $or: filter.$or });
+      and.push({
+        $or: [{ refundId: rx }, { bookingId: rx }, { riderId: rx }, { ticketId: rx }],
+      });
+      filter.$and = and;
+      delete filter.$or;
     }
 
-    const [refunds, total] = await Promise.all([
-      Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Refund.countDocuments(filter),
-    ]);
-
-    const data = await attachBookingSnapshotsToRefunds(refunds as Array<Record<string, unknown>>);
+    const refunds = await Refund.find(filter).sort({ createdAt: -1 }).limit(2000).lean();
+    const linked = (
+      await attachBookingSnapshotsToRefunds(refunds as Array<Record<string, unknown>>)
+    ).filter(
+      (row) =>
+        Boolean(row.bookingSnapshot) ||
+        Boolean(String((row as { ticketId?: unknown }).ticketId || "").trim())
+    );
+    const total = linked.length;
+    const data = linked.slice(skip, skip + limit);
 
     return NextResponse.json(listResponse(data, total, page, limit));
   } catch (error) {

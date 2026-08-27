@@ -11,6 +11,7 @@ import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
 import { walletSpendable } from "@/lib/walletMoney";
+import { isRevenueTransaction, revenueAmount, revenueGst } from "@/lib/opsRevenue";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function RevenueDashboard(){
@@ -74,29 +75,29 @@ useEffect(() => {
 
 const totalRevenue = transactions.reduce(
   (sum, t) =>
-    t.status === "Success"
-      ? sum + Number(t.amount || 0)
+    isRevenueTransaction(t)
+      ? sum + revenueAmount(t)
       : sum,
   0
 );
 
 const totalGST = transactions.reduce(
   (sum, t) =>
-    t.status === "Success"
-      ? sum + Number(t.gstAmount || 0)
+    isRevenueTransaction(t)
+      ? sum + revenueGst(t)
       : sum,
   0
 );
 
 const totalCGST = transactions.reduce(
   (sum, t) =>
-    t.status === "Success" ? sum + transactionCgst(t) : sum,
+    isRevenueTransaction(t) ? sum + transactionCgst(t) : sum,
   0
 );
 
 const totalSGST = transactions.reduce(
   (sum, t) =>
-    t.status === "Success" ? sum + transactionSgst(t) : sum,
+    isRevenueTransaction(t) ? sum + transactionSgst(t) : sum,
   0
 );
 
@@ -223,7 +224,7 @@ subtitle="Same receipts as Transactions plus wallet credit and refunds. Booking 
 <KPICard
 title="Revenue"
 value={`₹${totalRevenue.toLocaleString("en-IN")}`}
-subtitle="Total Revenue"
+subtitle="Rent + GST from Success booking payments (deposits and refunds excluded)"
 icon="💰"
 color="green"
 />
