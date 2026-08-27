@@ -38,6 +38,7 @@ const [confirmationResult, setConfirmationResult] =
 
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 const otpMessageTimeout = useRef<NodeJS.Timeout | null>(null);
+const uploadedFileUrls = useRef(new Map<string, string>());
 
 const [aadhaar, setAadhaar] = useState("");
 const [license, setLicense] = useState("");
@@ -305,48 +306,118 @@ const areFilesIdentical = (
   );
 };
 
-const convertToBase64 = (file: File) => {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
+const fileCacheKey = (file: File) =>
+  `${file.name}:${file.size}:${file.lastModified}`;
 
-    reader.readAsDataURL(file);
+const compressImageForUpload = (file: File) =>
+  new Promise<File>((resolve) => {
+    if (!file.type.startsWith("image/")) {
+      resolve(file);
+      return;
+    }
 
-    reader.onload = () => {
-      resolve(reader.result as string);
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const maxEdge = 1600;
+      const scale = Math.min(1, maxEdge / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        resolve(file);
+        return;
+      }
+      context.drawImage(image, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob || blob.size < 1) {
+            resolve(file);
+            return;
+          }
+          if (blob.size >= file.size) {
+            resolve(file);
+            return;
+          }
+          resolve(
+            new File([blob], file.name.replace(/\.[^.]+$/, ".jpg"), {
+              type: "image/jpeg",
+              lastModified: file.lastModified,
+            })
+          );
+        },
+        "image/jpeg",
+        0.82
+      );
     };
 
-    reader.onerror = (error) => {
-      reject(error);
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(file);
     };
+
+    image.src = objectUrl;
   });
+
+const readResponseJson = async (response: Response): Promise<any> => {
+  const text = await response.text();
+  if (!text) {
+    return {};
+  }
+  try {
+    return JSON.parse(text) as Record<string, unknown>;
+  } catch {
+    throw new Error(
+      response.status === 413
+        ? "A document is too large. Use a photo under 5 MB or a smaller PDF."
+        : "The server could not complete this step. Please try again."
+    );
+  }
+};
+
+const refreshRegistrationToken = async () => {
+  if (!auth.currentUser) {
+    throw new Error("Please verify OTP again before creating your account.");
+  }
+  return auth.currentUser.getIdToken(true);
 };
 
 const uploadFile = async (
   file: File,
   token: string
 ) => {
-  const base64 = await convertToBase64(file);
-  showOtpMessage("Uploading document...");
-  const response = await fetch("/api/upload", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-  file: base64,
-  firebaseIdToken: token,
-}),
-  });
-
-  const data = await response.json();
-
-  if (!data.success || !data.url) {
-    throw new Error(data.error || "File upload failed");
+  const cacheKey = fileCacheKey(file);
+  const cached = uploadedFileUrls.current.get(cacheKey);
+  if (cached) {
+    return cached;
   }
 
-  showOtpMessage("Upload completed.");
+  const prepared = await compressImageForUpload(file);
+  const form = new FormData();
+  form.append("file", prepared);
+  form.append("firebaseIdToken", token);
 
-  return data.url;
+  const response = await fetch("/api/upload", {
+    method: "POST",
+    body: form,
+  });
+
+  const data = await readResponseJson(response);
+
+  if (!data.success || !data.url) {
+    throw new Error(
+      String(data.error || data.message || "File upload failed")
+    );
+  }
+
+  const url = String(data.url);
+  uploadedFileUrls.current.set(cacheKey, url);
+  return url;
 };
 const submitForm = async () => {
 
@@ -358,18 +429,8 @@ const submitForm = async () => {
 setError("");
 showOtpMessage("Preparing your registration...");
 
-    let activeFirebaseIdToken = firebaseIdToken;
-
-    if (auth.currentUser) {
-      activeFirebaseIdToken =
-        await auth.currentUser.getIdToken(true);
-      setFirebaseIdToken(activeFirebaseIdToken);
-    }
-
-    if (!activeFirebaseIdToken) {
-  setError("Please verify OTP again before uploading documents.");
-  return;
-}
+    let activeFirebaseIdToken = await refreshRegistrationToken();
+    setFirebaseIdToken(activeFirebaseIdToken);
 
  let aadhaarFrontUrl = "";
 let aadhaarBackUrl = "";
@@ -380,39 +441,48 @@ let licenseBackUrl = "";
 let profileUrl = "";
 
 if (aadhaarFrontFile) {
+    showOtpMessage("Uploading Aadhaar front...");
     aadhaarFrontUrl = await uploadFile(
       aadhaarFrontFile,
-      activeFirebaseIdToken
+      await refreshRegistrationToken()
     );
 }
 
 if (aadhaarBackFile) {
+    showOtpMessage("Uploading Aadhaar back...");
     aadhaarBackUrl = await uploadFile(
       aadhaarBackFile,
-      activeFirebaseIdToken
+      await refreshRegistrationToken()
     );
 }
 
 if (licenseFrontFile) {
+    showOtpMessage("Uploading driving license front...");
     licenseFrontUrl = await uploadFile(
       licenseFrontFile,
-      activeFirebaseIdToken
+      await refreshRegistrationToken()
     );
 }
 
 if (licenseBackFile) {
+    showOtpMessage("Uploading driving license back...");
     licenseBackUrl = await uploadFile(
       licenseBackFile,
-      activeFirebaseIdToken
+      await refreshRegistrationToken()
     );
 }
 
 if (profilePhoto) {
+    showOtpMessage("Uploading profile photo...");
     profileUrl = await uploadFile(
       profilePhoto,
-      activeFirebaseIdToken
+      await refreshRegistrationToken()
     );
 }
+
+    showOtpMessage("Creating your rider account...");
+    activeFirebaseIdToken = await refreshRegistrationToken();
+    setFirebaseIdToken(activeFirebaseIdToken);
 
     const response = await fetch("/api/riders", {
       method: "POST",
@@ -452,7 +522,7 @@ profilePhotoUrl: profileUrl,
       }),
     });
 
-    const result = await response.json();
+    const result = await readResponseJson(response);
 
 if (!response.ok) {
 
@@ -505,8 +575,7 @@ if (!response.ok) {
   }
 
   setError(
-    result.message ||
-    "Registration failed."
+    String(result.message || result.errors?.join?.(" ") || "Registration failed.")
   );
 
   return;
@@ -564,7 +633,12 @@ setFirebaseUid("");
 
   } catch (error) {
   console.error(error);
-  setError("Registration failed. Please try again.");
+  const message =
+    error instanceof Error ? error.message.trim() : "";
+  setError(
+    message ||
+      "Registration failed. If documents already uploaded, tap Create rider account again."
+  );
 } finally {
   setSubmitting(false);
 }

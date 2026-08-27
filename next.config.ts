@@ -2,8 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  turbopack: {
-    root: process.cwd(),
+  experimental: {
+    proxyClientMaxBodySize: "12mb",
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
   },
   async headers() {
     return [

@@ -25,6 +25,7 @@ import {
 import { walletSpendable } from "@/lib/walletMoney";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 /* =========================================================
    VALIDATION
@@ -204,7 +205,8 @@ function isSafeCloudinaryUrl(
 
     return (
       url.protocol === "https:" &&
-      url.hostname === "res.cloudinary.com"
+      (url.hostname === "res.cloudinary.com" ||
+        url.hostname.endsWith(".cloudinary.com"))
     );
   } catch {
     return false;
