@@ -1,0 +1,24 @@
+name: Release unpaid holds
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: POST unpaid-booking sweep when CRON_SECRET is set
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "CRON_SECRET not set in GitHub; skipping. Unpaid holds still release on Book EV / vehicle list."
+            exit 0
+          fi
+          BASE="${SITE_URL:-https://www.evuddy.com}"
+          curl -fsS -X POST "$BASE/api/jobs/release-unpaid" \
+            -H "x-cron-secret: $CRON_SECRET" \
+            -H "Content-Type: application/json"

@@ -643,6 +643,7 @@ export async function GET() {
         .sort({
           createdAt: -1,
         })
+        .limit(500)
         .lean();
 
     return NextResponse.json({
