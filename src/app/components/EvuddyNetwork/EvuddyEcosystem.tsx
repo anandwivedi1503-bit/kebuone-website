@@ -204,7 +204,7 @@ function Windows({
   cols,
   rows,
   h,
-  tone = "#BFDBFE",
+          tone = "#BFDBFE",
 }: {
   x: number;
   y: number;
@@ -226,7 +226,7 @@ function Windows({
           height="8"
           rx="1"
           fill={tone}
-          opacity="0.9"
+          opacity="0.85"
         />
       );
     }
@@ -342,7 +342,7 @@ export default function EvuddyEcosystem() {
   const c1 = iso(-21, 7.55);
 
   return (
-    <div className="relative h-[280px] w-full max-w-full overflow-hidden bg-[#F4F7F8] sm:h-[420px] lg:h-[520px]">
+    <div className="relative h-[320px] w-full max-w-full overflow-hidden bg-[#F4F7F8] sm:h-[460px] lg:h-[560px]">
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="absolute inset-0 h-full w-full"
@@ -368,7 +368,7 @@ export default function EvuddyEcosystem() {
               key={`${gx}-${gy}`}
               points={diamond(gx, gy, 8)}
               fill="none"
-              stroke="rgba(148,163,184,0.14)"
+              stroke="rgba(148,163,184,0.18)"
               strokeWidth="1"
             />
           ))
@@ -477,7 +477,7 @@ export default function EvuddyEcosystem() {
           fill="#E2E8F0"
         />
 
-        <polygon points={diamond(-8.6, 1.15, 4.2)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.1" />
+        <polygon points={diamond(-8.6, 1.15, 4.2)} fill="#F8FAFC" stroke="#18B368" strokeWidth="1.3" />
         <text
           x={iso(-6.5, 1.2).x}
           y={iso(-6.5, 1.2).y - 6}
@@ -598,6 +598,44 @@ export default function EvuddyEcosystem() {
           </>
         ) : null}
       </svg>
+
+      <div className="pointer-events-none absolute left-3 top-3 hidden max-w-[15rem] rounded-2xl border border-[#18B368]/20 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl sm:block">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#18B368]">Pickup yard</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">OTP at the gate. Scooters leave only after first payment.</p>
+      </div>
+      <div className="pointer-events-none absolute right-3 top-[38%] hidden max-w-[14rem] rounded-2xl border border-sky-200 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl lg:block">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-sky-600">EV charge</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500">Packs stay at the hub. Swaps never dump a live ride.</p>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-end justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { n: "Hub", l: "Live yard" },
+            { n: "IoT", l: "GPS lock" },
+            { n: "OTP", l: "Pickup" },
+          ].map((item) => (
+            <div
+              key={item.l}
+              className="rounded-xl border border-white bg-white/90 px-3 py-2 shadow-sm backdrop-blur-xl"
+            >
+              <p className="text-sm font-semibold text-[#0F172A]">{item.n}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{item.l}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm backdrop-blur-xl">
+            <i className="h-2 w-2 rounded-full bg-[#18B368]" /> Hub
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm backdrop-blur-xl">
+            <i className="h-2 w-2 rounded-full bg-sky-400" /> Charge
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-600 shadow-sm backdrop-blur-xl">
+            <i className="h-2 w-2 rounded-full bg-amber-400" /> Fleet
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

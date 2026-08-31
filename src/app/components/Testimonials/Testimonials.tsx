@@ -53,7 +53,7 @@ export default function TrustSection() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="rounded-[24px] border border-slate-100 bg-[#F7FBF8] p-6 sm:p-8"
+                className="rounded-[24px] border border-slate-100 bg-white/70 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-8"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#18B368] text-white">
                   <Icon size={22} />

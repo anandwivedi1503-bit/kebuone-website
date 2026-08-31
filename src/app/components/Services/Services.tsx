@@ -78,7 +78,7 @@ export default function Services() {
             return (
               <div
                 key={spec.label}
-                className="rounded-[22px] border border-slate-100 bg-[#F7FBF8] p-4 text-center sm:rounded-[28px] sm:p-7"
+                className="rounded-[22px] border border-slate-100/80 bg-white/70 p-4 text-center shadow-[0_12px_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 hover:shadow-[0_20px_50px_rgba(24,179,104,0.12)] sm:rounded-[28px] sm:p-7"
               >
                 <Icon size={28} className={`mx-auto mb-3 ${spec.color}`} />
                 <p className={`text-3xl font-black sm:text-5xl ${spec.color}`}>{spec.value}</p>
