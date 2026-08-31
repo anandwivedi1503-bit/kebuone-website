@@ -13,7 +13,7 @@ const specs = [
 
 export default function Services() {
   return (
-    <section id="services" className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-28 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-16 before:bg-gradient-to-b before:from-[#05090D] before:to-transparent">
+    <section id="services" className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-28">
       <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/10 blur-[110px]" />
       <div className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-[#EC2A8C]/8 blur-[100px]" />
 
