@@ -10,12 +10,21 @@ import {
   Building2,
   LogOut,
   Wallet,
+  User,
 } from "lucide-react";
 
 import { onAuthStateChanged } from "firebase/auth";
 
 import { auth } from "@/lib/firebase";
-import { hasRiderPlanReady, logoutRider } from "@/lib/riderPlanGate";
+import {
+  getChosenPlan,
+  getRiderProfile,
+  hasRiderBookingLock,
+  hasRiderPlanReady,
+  logoutRider,
+  riderResumeHref,
+  RIDER_SESSION_EVENT,
+} from "@/lib/riderPlanGate";
 
 import {
   motion,
@@ -61,6 +70,11 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
+  const [bookingLock, setBookingLock] = useState(false);
+  const [chosenPlan, setChosenPlanUi] = useState("");
+  const [riderPhone, setRiderPhone] = useState("");
+  const [riderId, setRiderId] = useState("");
+  const [resumeHref, setResumeHref] = useState("/ride-options");
 
   useEffect(() => {
 
@@ -101,11 +115,32 @@ export default function Navbar() {
   }, [menuOpen]);
 
   useEffect(() => {
+    const refreshSession = () => {
+      const profile = getRiderProfile();
+      setBookingLock(hasRiderBookingLock());
+      setChosenPlanUi(getChosenPlan());
+      setRiderPhone(profile.phone);
+      setRiderId(profile.riderId);
+      setResumeHref(riderResumeHref());
+      setRiderLoggedIn(hasRiderPlanReady() || Boolean(profile.phone));
+    };
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setRiderLoggedIn(Boolean(user?.phoneNumber) || hasRiderPlanReady());
+      refreshSession();
+      if (user?.phoneNumber) {
+        setRiderLoggedIn(true);
+      }
     });
 
-    return () => unsubscribe();
+    window.addEventListener(RIDER_SESSION_EVENT, refreshSession);
+    window.addEventListener("storage", refreshSession);
+    refreshSession();
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener(RIDER_SESSION_EVENT, refreshSession);
+      window.removeEventListener("storage", refreshSession);
+    };
   }, []);
 
   const handleLogout = async () => {
@@ -270,6 +305,15 @@ group-hover:w-full
 
 <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-3 xl:ml-5">
 
+{bookingLock || chosenPlan ? (
+  <span
+    className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 h-12 font-bold text-slate-400"
+    title="Finish payment on your ride first"
+  >
+    <Building2 size={18} />
+    Fleet Partner
+  </span>
+) : (
 <Link href="/partners">
 
 <button
@@ -306,8 +350,17 @@ Fleet Partner
 </button>
 
 </Link>
+)}
 
-
+{bookingLock || chosenPlan ? (
+  <span
+    className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 h-12 font-bold text-slate-400"
+    title="Finish payment on your ride first"
+  >
+    <Wallet size={18} />
+    Invest
+  </span>
+) : (
 <Link href="/partners#fleet-investment">
 
 <button
@@ -341,8 +394,31 @@ Invest
 </button>
 
 </Link>
+)}
 
-
+{chosenPlan || bookingLock ? (
+<Link href={resumeHref}>
+<button
+type="button"
+className="
+flex
+items-center
+gap-2
+rounded-full
+bg-[#0B1B16]
+px-4
+xl:px-5
+h-12
+xl:h-13
+font-bold
+text-white
+"
+>
+<User size={18} />
+My ride
+</button>
+</Link>
+) : (
 <Link href="/ride-options">
 
 <button
@@ -381,6 +457,17 @@ className="transition-transform duration-300 group-hover:translate-x-1"
 </button>
 
 </Link>
+)}
+
+{(riderLoggedIn || chosenPlan) && (
+  <div className="flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-3 xl:px-4 h-12 max-w-[220px]">
+    <User size={16} className="shrink-0 text-[#18B368]" />
+    <span className="truncate text-xs font-bold text-[#0F172A]">
+      {riderId || "Rider"}
+      {riderPhone ? ` · ${riderPhone}` : ""}
+    </span>
+  </div>
+)}
 
 {riderLoggedIn && (
 <button
@@ -539,6 +626,24 @@ className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold 
 <div className="px-4
 lg:px-6 pb-10 space-y-4">
 
+{(riderLoggedIn || chosenPlan) && (
+  <div className="rounded-2xl border border-[#18B368]/20 bg-[#F7FBF8] px-4 py-4">
+    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">Your ride</p>
+    <p className="mt-1 font-black text-[#0F172A]">{riderId || "Rider"}</p>
+    {riderPhone ? <p className="text-sm text-slate-500">+91 {riderPhone}</p> : null}
+  </div>
+)}
+
+{bookingLock || chosenPlan ? (
+<button
+type="button"
+disabled
+className="w-full h-14 rounded-full border border-slate-200 bg-slate-100 text-slate-400 font-semibold flex items-center justify-center gap-2"
+>
+<Building2 size={20}/>
+Fleet Partner
+</button>
+) : (
 <Link
 href="/partners"
 onClick={()=>setMenuOpen(false)}
@@ -574,7 +679,18 @@ Fleet Partner
 </button>
 
 </Link>
+)}
 
+{bookingLock || chosenPlan ? (
+<button
+type="button"
+disabled
+className="w-full h-14 rounded-full border border-slate-200 bg-slate-100 text-slate-400 font-semibold flex items-center justify-center gap-2"
+>
+<Wallet size={20}/>
+Invest
+</button>
+) : (
 <Link
 href="/partners#fleet-investment"
 onClick={()=>setMenuOpen(false)}
@@ -606,9 +722,10 @@ Invest
 </button>
 
 </Link>
+)}
 
 <Link
-href="/ride-options"
+href={chosenPlan || bookingLock ? resumeHref : "/ride-options"}
 onClick={()=>setMenuOpen(false)}
 >
 
@@ -618,7 +735,7 @@ className="w-full h-14 rounded-full bg-[#111827] text-white font-semibold hover:
 
 >
 
-Book Ride
+{chosenPlan || bookingLock ? "My ride" : "Book Ride"}
 
 <ChevronRight size={18}/>
 

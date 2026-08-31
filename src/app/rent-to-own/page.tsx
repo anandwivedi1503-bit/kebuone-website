@@ -5,18 +5,25 @@ import { useEffect, useState } from "react";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import RentToOwnBooking from "@/app/components/RentToOwn/RentToOwnBooking";
-import { hasRiderPlanReady } from "@/lib/riderPlanGate";
+import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
+import { getChosenPlan, hasRiderPlanReady, setChosenPlan } from "@/lib/riderPlanGate";
 
 export default function RentToOwnPage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (hasRiderPlanReady()) {
-      setReady(true);
+    if (!hasRiderPlanReady()) {
+      window.location.replace("/ride-options");
       return;
     }
 
-    window.location.replace("/ride-options");
+    if (getChosenPlan() === "rental") {
+      window.location.replace("/book-bike?flow=rental");
+      return;
+    }
+
+    setChosenPlan("rto");
+    setReady(true);
   }, []);
 
   if (!ready) {
@@ -31,6 +38,9 @@ export default function RentToOwnPage() {
     <main>
       <Navbar />
       <div className="pt-28">
+        <div className="px-4 sm:px-6 lg:px-10">
+          <RiderSessionBar />
+        </div>
         <RentToOwnBooking />
       </div>
       <Footer />

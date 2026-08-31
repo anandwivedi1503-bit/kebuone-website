@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { auth } from "@/lib/firebase";
-import { markRiderPlanReady } from "@/lib/riderPlanGate";
+import { hasRiderPlanReady, markRiderPlanReady, riderResumeHref } from "@/lib/riderPlanGate";
 
 import {
   RecaptchaVerifier,
@@ -96,6 +96,12 @@ const applyExistingFirebaseSession = async (typedPhone = "") => {
 };
 
 useEffect(() => {
+  if (hasRiderPlanReady()) {
+    window.location.replace(riderResumeHref());
+  }
+}, []);
+
+useEffect(() => {
   const unsubscribe = onAuthStateChanged(auth, () => {
     void applyExistingFirebaseSession();
   });
@@ -149,7 +155,7 @@ useEffect(() => {
 
   clearInterval(interval);
   markRiderPlanReady();
-  window.location.href = "/ride-options";
+  window.location.href = riderResumeHref();
 }
 
     } catch {}
@@ -544,7 +550,7 @@ if (!response.ok) {
     }
 
     markRiderPlanReady();
-    window.location.href = "/ride-options";
+    window.location.href = riderResumeHref();
     return;
   }
 
@@ -813,7 +819,7 @@ const verifyOtp = async () => {
       data.data.bookingEnabled
     ) {
       markRiderPlanReady();
-      window.location.href = "/ride-options";
+      window.location.href = riderResumeHref();
       return;
 
     }
@@ -1209,7 +1215,7 @@ This page updates automatically after approval.
 
 onClick={()=>{
 markRiderPlanReady();
-window.location.href="/ride-options";
+window.location.href=riderResumeHref();
 }}
 
 className="

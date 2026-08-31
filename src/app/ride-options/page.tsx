@@ -13,7 +13,17 @@ import { auth } from "@/lib/firebase";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
-import { hasRiderPlanReady, logoutRider, markRiderPlanReady } from "@/lib/riderPlanGate";
+import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
+import {
+  getChosenPlan,
+  getRideOptionsView,
+  hasRiderPlanReady,
+  logoutRider,
+  markRiderPlanReady,
+  riderResumeHref,
+  setChosenPlan,
+  setRideOptionsView,
+} from "@/lib/riderPlanGate";
 
 const formatINR = (amount: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -66,9 +76,36 @@ export default function RideOptionsPage() {
   const confirmationRef = useRef<ConfirmationResult | null>(null);
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
 
+  const [chosenPlan, setChosenPlanState] = useState<"rental" | "rto" | "">(() =>
+    getChosenPlan()
+  );
+
   useEffect(() => {
-    setView(hasRiderPlanReady() ? "plans" : "otp");
+    if (hasRiderPlanReady() && getChosenPlan()) {
+      window.location.replace(riderResumeHref());
+      return;
+    }
+
+    if (hasRiderPlanReady()) {
+      setView("plans");
+      setRideOptionsView("plans");
+      return;
+    }
+
+    const storedView = getRideOptionsView();
+    if (storedView === "pending" || storedView === "register") {
+      setRiderId(localStorage.getItem("kebu_rider_id") || "");
+      setView(storedView);
+      return;
+    }
+
+    setView("otp");
   }, []);
+
+  useEffect(() => {
+    if (view === "boot") return;
+    setRideOptionsView(view);
+  }, [view]);
 
   useEffect(() => {
     if (otpCooldown <= 0) return;
@@ -96,6 +133,10 @@ export default function RideOptionsPage() {
           data.data.approvalStatus === "Approved"
         ) {
           markRiderPlanReady();
+          if (getChosenPlan()) {
+            window.location.replace(riderResumeHref());
+            return;
+          }
           setView("plans");
         }
       } catch {
@@ -143,6 +184,10 @@ export default function RideOptionsPage() {
 
     if (approved) {
       markRiderPlanReady();
+      if (getChosenPlan()) {
+        window.location.replace(riderResumeHref());
+        return;
+      }
       setView("plans");
       return;
     }
@@ -355,6 +400,7 @@ export default function RideOptionsPage() {
 
       {view === "plans" && (
         <section className="bg-[#F6FAF8] px-4 pb-20 pt-28 sm:px-6 lg:px-10">
+          <RiderSessionBar />
           <div className="mx-auto max-w-5xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">
               Verification successful
@@ -364,6 +410,7 @@ export default function RideOptionsPage() {
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
               Pick a flexible rental, or own the scooter after 18 months of Rent to Own payments.
+              Your choice stays locked until you logout, so refresh keeps you on the same path.
             </p>
             <button
               type="button"
@@ -377,7 +424,15 @@ export default function RideOptionsPage() {
           <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
             <Link
               href="/book-bike?flow=rental"
-              className="group rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 sm:p-8"
+              onClick={() => {
+                setChosenPlan("rental");
+                setChosenPlanState("rental");
+              }}
+              className={`group rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] transition sm:p-8 ${
+                chosenPlan === "rto"
+                  ? "pointer-events-none opacity-40 grayscale"
+                  : "hover:-translate-y-1"
+              }`}
             >
               <span className="inline-flex rounded-full bg-[#18B368]/10 px-3 py-1 text-xs font-bold text-[#18B368]">
                 FLEXIBLE RENTAL
@@ -408,8 +463,24 @@ export default function RideOptionsPage() {
               </span>
             </Link>
 
+            {chosenPlan === "rental" ? (
+              <div className="rounded-[28px] border border-slate-200 bg-slate-100 p-6 text-slate-500 sm:p-8">
+                <span className="inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-bold">
+                  FROZEN
+                </span>
+                <div className="mt-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-300 text-white">
+                  <KeyRound size={22} />
+                </div>
+                <h2 className="mt-5 text-2xl font-black text-slate-600">Rent to Own</h2>
+                <p className="mt-2 text-sm leading-6">
+                  You chose normal booking. Rent to Own stays frozen for this session.
+                  Logout if you need to switch plans.
+                </p>
+              </div>
+            ) : (
             <Link
               href="/rent-to-own"
+              onClick={() => setChosenPlan("rto")}
               className="group rounded-[28px] border border-[#18B368]/20 bg-[#0B1B16] p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.12)] transition hover:-translate-y-1 sm:p-8"
             >
               <span className="inline-flex rounded-full bg-[#18B368] px-3 py-1 text-xs font-bold">
@@ -433,6 +504,7 @@ export default function RideOptionsPage() {
                 Start Rent to Own <ArrowRight size={16} />
               </span>
             </Link>
+            )}
           </div>
         </section>
       )}
