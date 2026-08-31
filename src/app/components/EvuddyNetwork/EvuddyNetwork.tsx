@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { MapPin, Navigation, Radio, ShieldCheck, Zap } from "lucide-react";
+import { Cpu, KeyRound, MapPin, Navigation, Radio, ShieldCheck, Warehouse, Zap } from "lucide-react";
 import EvuddyEcosystem, { type CityZone } from "./EvuddyEcosystem";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
@@ -408,9 +408,9 @@ export default function EvuddyNetwork() {
         </div>
       </div>
 
-      <div className="relative border-t border-slate-100 bg-white">
+      <div className="relative border-t border-slate-100 bg-gradient-to-b from-white to-[#F7FBFA]">
         <div className="mx-auto max-w-[1240px] px-4 pt-10 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#18B368]">City operations</p>
               <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
@@ -418,15 +418,19 @@ export default function EvuddyNetwork() {
               </h3>
             </div>
             <p className="max-w-sm text-sm leading-6 text-slate-500">
-              Live scooters on the north lane. Cars south. Yards off-road. The same split a real EV city uses.
+              Scooters stay on the north lane. Cars stay south. Yards never sit on the road.
             </p>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-medium" role="tablist" aria-label="City operation zones">
+          <div
+            className="mt-5 inline-flex rounded-full border border-slate-200/80 bg-slate-50/80 p-1 shadow-inner"
+            role="tablist"
+            aria-label="City operation zones"
+          >
             {(
               [
-                { id: "pickup", label: "Pickup yard", on: "bg-[#18B368] text-white", off: "bg-[#18B368]/10 text-[#15803d]" },
-                { id: "charge", label: "EV charge", on: "bg-sky-600 text-white", off: "bg-sky-50 text-sky-700" },
-                { id: "hub", label: "EVUDDY hub", on: "bg-[#18B368] text-white", off: "bg-[#18B368]/10 text-[#15803d]" },
+                { id: "pickup", label: "Pickup yard" },
+                { id: "charge", label: "EV charge" },
+                { id: "hub", label: "EVUDDY hub" },
               ] as const
             ).map((chip) => (
               <button
@@ -435,7 +439,11 @@ export default function EvuddyNetwork() {
                 role="tab"
                 aria-selected={cityZone === chip.id}
                 onClick={() => setCityZone(chip.id)}
-                className={`rounded-full px-3 py-1 transition ${cityZone === chip.id ? chip.on : chip.off}`}
+                className={`rounded-full px-4 py-2 text-[12px] font-semibold tracking-[-0.01em] transition ${
+                  cityZone === chip.id
+                    ? "bg-[#18B368] text-white shadow-[0_8px_20px_rgba(24,179,104,0.28)]"
+                    : "text-slate-500 hover:text-[#0F172A]"
+                }`}
               >
                 {chip.label}
               </button>
@@ -444,6 +452,46 @@ export default function EvuddyNetwork() {
         </div>
         <div className="relative mt-6 w-full overflow-hidden">
           <EvuddyEcosystem zone={cityZone} />
+        </div>
+        <div className="mx-auto max-w-[1240px] px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              {
+                icon: Warehouse,
+                kicker: "Live yard",
+                title: "Hub",
+                text: "Every scooter starts and ends at a gated EVUDDY hub — never a random street.",
+              },
+              {
+                icon: Cpu,
+                kicker: "On the vehicle",
+                title: "IoT lock",
+                text: "GPS, lock and battery stream from the scooter, the same feed ops uses.",
+              },
+              {
+                icon: KeyRound,
+                kicker: "Gate control",
+                title: "Pickup OTP",
+                text: "The yard OTP only appears after first payment. No pay, no scooter.",
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#18B368]/30 hover:shadow-[0_20px_48px_rgba(24,179,104,0.12)]"
+              >
+                <div className="flex items-start gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#18B368]/10 text-[#18B368] ring-1 ring-[#18B368]/15">
+                    <item.icon size={18} strokeWidth={2.2} />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{item.kicker}</p>
+                    <p className="mt-1 text-base font-semibold tracking-tight text-[#0F172A]">{item.title}</p>
+                    <p className="mt-1.5 text-sm leading-6 text-slate-500">{item.text}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
