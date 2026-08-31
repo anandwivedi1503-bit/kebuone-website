@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, useSyncExternalStore } from "react";
+import { useId } from "react";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
 
 /**
@@ -330,23 +330,11 @@ function MovingScooter({
   );
 }
 
-function subscribeHover(onChange: () => void) {
-  const mq = window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)");
-  mq.addEventListener("change", onChange);
-  return () => mq.removeEventListener("change", onChange);
-}
-
 export default function EvuddyEcosystem() {
   const src = useEvuddySideSrc();
   const uid = useId().replace(/:/g, "");
   const scootPath = `${uid}-scoot`;
   const carPath = `${uid}-car`;
-  const [expanded, setExpanded] = useState(false);
-  const canHover = useSyncExternalStore(
-    subscribeHover,
-    () => window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 1024px)").matches,
-    () => false
-  );
 
   const s0 = iso(-21, 5.8);
   const s1 = iso(41, 5.8);
@@ -354,33 +342,18 @@ export default function EvuddyEcosystem() {
   const c1 = iso(-21, 7.55);
 
   return (
-    <div
-      className={`relative w-full max-w-full overflow-hidden bg-[#EEF3F8] transition-[height] duration-500 ease-out ${
-        expanded
-          ? "h-[72dvh] min-h-[320px] sm:h-[85dvh] lg:h-[100dvh] lg:min-h-[680px]"
-          : "h-[240px] min-h-[220px] sm:h-[420px] lg:h-[82vh] lg:min-h-[440px]"
-      }`}
-      onMouseEnter={() => {
-        if (canHover) setExpanded(true);
-      }}
-      onMouseLeave={() => {
-        if (canHover) setExpanded(false);
-      }}
-      onClick={() => {
-        if (!canHover) setExpanded((open) => !open);
-      }}
-      role="presentation"
-    >
+    <div className="relative h-[280px] w-full max-w-full overflow-hidden bg-[#F4F7F8] sm:h-[420px] lg:h-[520px]">
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="absolute inset-0 h-full w-full"
-        preserveAspectRatio={expanded || canHover ? "xMidYMid slice" : "xMidYMid meet"}
+        preserveAspectRatio="xMidYMid slice"
         aria-hidden
       >
         <defs>
           <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F7FAFC" />
-            <stop offset="100%" stopColor="#E4ECF4" />
+            <stop offset="0%" stopColor="#F8FBFD" />
+            <stop offset="55%" stopColor="#EEF4F8" />
+            <stop offset="100%" stopColor="#E4ECE8" />
           </linearGradient>
           <filter id={`${uid}-soft`} x="-12%" y="-12%" width="124%" height="124%">
             <feDropShadow dx="0" dy="8" stdDeviation="7" floodColor="#0F172A" floodOpacity="0.07" />
@@ -424,7 +397,7 @@ export default function EvuddyEcosystem() {
         <path id={carPath} d={`M ${c0.x} ${c0.y} L ${c1.x} ${c1.y}`} fill="none" />
 
         <g filter={`url(#${uid}-soft)`}>
-          <Box x={-20.5} y={0.35} w={2.6} d={1.55} h={118} top="#FFF1F2" left="#FECDD3" right="#F43F5E" />
+          <Box x={-20.5} y={0.35} w={2.6} d={1.55} h={118} top="#FFF1F2" left="#E2E8F0" right="#64748B" />
           <Windows x={-20.5} y={0.35} cols={5} rows={5} h={118} tone="#FECACA" />
           <Sign x={-19.2} y={0.4} elev={118} label="HOTEL" bg="#9F1239" />
 
@@ -457,7 +430,7 @@ export default function EvuddyEcosystem() {
           <RoofSolar x={23.5} y={1.05} elev={110} />
           <Sign x={23.5} y={0.4} elev={110} label="OFFICE" bg="#0F172A" width={84} />
 
-          <Box x={26.4} y={0.5} w={2.5} d={1.45} h={102} top="#FFF1F2" left="#FECDD3" right="#FB7185" />
+          <Box x={26.4} y={0.5} w={2.5} d={1.45} h={102} top="#FFF1F2" left="#E2E8F0" right="#FB7185" />
           <Windows x={26.4} y={0.5} cols={5} rows={4} h={102} tone="#FECACA" />
           <Sign x={27.65} y={0.55} elev={102} label="HOTEL" bg="#9F1239" />
 
@@ -494,7 +467,7 @@ export default function EvuddyEcosystem() {
           <RoofSolar x={27.05} y={9.85} elev={88} />
           <Sign x={27.05} y={9.25} elev={88} label="TOWER" bg="#334155" />
 
-          <Box x={30.4} y={9.05} w={2.4} d={1.3} h={72} top="#FFF1F2" left="#FECDD3" right="#F43F5E" />
+          <Box x={30.4} y={9.05} w={2.4} d={1.3} h={72} top="#FFF1F2" left="#E2E8F0" right="#64748B" />
           <Windows x={30.4} y={9.05} cols={4} rows={3} h={72} tone="#FECACA" />
           <Sign x={31.6} y={9.1} elev={72} label="INN" bg="#9F1239" width={56} />
         </g>
@@ -624,36 +597,7 @@ export default function EvuddyEcosystem() {
             <MovingScooter src={src} pathId={scootPath} dur="24s" delay="11s" />
           </>
         ) : null}
-
-        {expanded ? (
-          <>
-            <g transform={`translate(${iso(-6.5, 1.15).x} ${iso(-6.5, 1.15).y - 92})`}>
-              <rect x="-96" y="-24" width="192" height="48" rx="16" fill="#fff" stroke="#E2E8F0" />
-              <text x="0" y="-4" textAnchor="middle" fill="#0F172A" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">
-                Pickup yard
-              </text>
-              <text x="0" y="14" textAnchor="middle" fill="#475569" fontSize="11" fontFamily="system-ui,sans-serif">
-                Booked scooters off the road
-              </text>
-            </g>
-            <g transform={`translate(${iso(-10.6, 9.15).x} ${iso(-10.6, 9.15).y + 52})`}>
-              <rect x="-108" y="-24" width="216" height="48" rx="16" fill="#fff" stroke="#E2E8F0" />
-              <text x="0" y="-4" textAnchor="middle" fill="#0F172A" fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif">
-                EVUDDY hub
-              </text>
-              <text x="0" y="14" textAnchor="middle" fill="#475569" fontSize="11" fontFamily="system-ui,sans-serif">
-                Solar roof and ops — south of the avenue
-              </text>
-            </g>
-          </>
-        ) : null}
       </svg>
-
-      {!expanded ? (
-        <p className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white/90 px-4 py-1.5 text-[11px] font-semibold tracking-wide text-slate-600 shadow-sm">
-          {canHover ? "Hover to expand full screen" : "Tap to expand the city"}
-        </p>
-      ) : null}
     </div>
   );
 }
