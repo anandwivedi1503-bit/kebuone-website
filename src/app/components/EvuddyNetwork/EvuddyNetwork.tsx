@@ -142,11 +142,7 @@ export default function EvuddyNetwork() {
     return fromApi.length > 0 ? fromApi : FALLBACK_CITIES;
   }, [liveCities, liveHubs]);
 
-  useEffect(() => {
-    if (!marks.some((city) => city.name === active.name) && marks[0]) {
-      setActive(marks[0]);
-    }
-  }, [marks, active.name]);
+  const selected = marks.find((city) => city.name === active.name) ?? marks[0] ?? FALLBACK_CITIES[0];
 
   const selectCity = (city: CityMark, openMaps: boolean) => {
     setActive(city);
@@ -237,7 +233,7 @@ export default function EvuddyNetwork() {
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/40">Select a city</p>
             <div className="mt-3 grid max-h-[320px] gap-2 overflow-y-auto pr-1 sm:max-h-none sm:grid-cols-2 lg:grid-cols-1">
               {marks.map((city) => {
-                const on = active.name === city.name;
+                const on = selected.name === city.name;
                 return (
                   <button
                     key={city.name}
@@ -263,10 +259,10 @@ export default function EvuddyNetwork() {
 
             <div className="mt-4 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 to-white/5 p-5 backdrop-blur-xl">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6EE7A8]">Selected hub</p>
-              <p className="mt-2 text-2xl font-semibold tracking-tight">{active.name}</p>
-              <p className="mt-1 text-sm text-white/55">{active.hubs}</p>
+              <p className="mt-2 text-2xl font-semibold tracking-tight">{selected.name}</p>
+              <p className="mt-1 text-sm text-white/55">{selected.hubs}</p>
               <a
-                href={googleMapsUrl(active.lat, active.lng, `EVUDDY ${active.name}`)}
+                href={googleMapsUrl(selected.lat, selected.lng, `EVUDDY ${selected.name}`)}
                 target="_blank"
                 rel="noreferrer"
                 className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] text-sm font-semibold text-white shadow-[0_12px_40px_rgba(24,179,104,0.45)] transition hover:bg-[#16a05c]"
@@ -338,13 +334,13 @@ export default function EvuddyNetwork() {
                 </>
               ) : null}
               {marks.map((city) => {
-                const on = active.name === city.name;
+                const on = selected.name === city.name;
                 return (
                   <g
                     key={city.name}
                     className="cursor-pointer"
                     onMouseEnter={() => setActive(city)}
-                    onClick={() => selectCity(city, active.name === city.name)}
+                    onClick={() => selectCity(city, selected.name === city.name)}
                   >
                     <circle cx={city.x} cy={city.y} r={on ? 22 : 12} fill="#18B368" opacity={on ? 0.28 : 0.14} />
                     <circle
@@ -364,9 +360,9 @@ export default function EvuddyNetwork() {
             <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-2xl border border-white/10 bg-black/50 px-4 py-3 text-xs font-medium text-white/70 backdrop-blur-md sm:left-6 sm:right-6">
               <span className="flex items-center gap-2 text-white">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-[#18B368]" />
-                {active.name}
+                {selected.name}
               </span>
-              <span className="hidden sm:inline text-[#6EE7A8]">{active.hubs}</span>
+              <span className="hidden sm:inline text-[#6EE7A8]">{selected.hubs}</span>
             </div>
           </div>
         </div>
