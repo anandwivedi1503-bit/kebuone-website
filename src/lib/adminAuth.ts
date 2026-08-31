@@ -164,3 +164,33 @@ export function forbiddenResponse() {
     { status: 403 }
   );
 }
+
+export function forbiddenDashboardResponse() {
+  return Response.json(
+    {
+      success: false,
+      message: "This login cannot run that ops action.",
+    },
+    { status: 403 }
+  );
+}
+
+export function sessionHasAnyDashboard(
+  session: AdminSessionInfo | null,
+  ...dashboards: string[]
+) {
+  if (!session) return false;
+  if (session.role === "super") return true;
+  return dashboards.some((id) => session.dashboards.includes(id));
+}
+
+export async function requireAdminDashboards(...dashboards: string[]) {
+  const session = await getAdminSession();
+  if (!session) {
+    return { session: null as AdminSessionInfo | null, error: unauthorizedResponse() };
+  }
+  if (!sessionHasAnyDashboard(session, ...dashboards)) {
+    return { session, error: forbiddenDashboardResponse() };
+  }
+  return { session, error: null as Response | null };
+}

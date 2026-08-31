@@ -1,4 +1,6 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import iot from "@/models/IoT";
@@ -34,9 +36,8 @@ function isDeviceAuthenticated(req: Request) {
 
 export async function GET() {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.iot);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

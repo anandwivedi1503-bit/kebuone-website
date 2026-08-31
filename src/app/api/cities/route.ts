@@ -3,9 +3,13 @@ import { connectDB } from "@/lib/mongodb";
 import City from "@/models/City";
 import Hub from "@/models/Hub";
 import {
+  getAdminSession,
   isAdminAuthenticated,
+  requireAdminDashboards,
+  sessionHasAnyDashboard,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 function clean(value: unknown) {
   return String(value ?? "").trim();
@@ -26,7 +30,10 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url);
     const status = clean(searchParams.get("status"));
 
-    const isAdmin = await isAdminAuthenticated().catch(() => false);
+    const isAdmin = sessionHasAnyDashboard(
+      await getAdminSession(),
+      ...API_DASHBOARDS.citiesRead
+    );
 
     const filter: Record<string, unknown> = {
       isDeleted: false,
@@ -85,9 +92,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.citiesWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

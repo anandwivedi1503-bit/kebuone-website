@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import { writeAudit } from "@/lib/writeAudit";
 import Battery from "@/models/Battery";
@@ -19,9 +21,8 @@ async function rollback(session: mongoose.ClientSession | null) {
 
 export async function GET() {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.swaps);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const swaps = await BatterySwap.find().sort({ createdAt: -1 }).limit(300).lean();
@@ -42,9 +43,8 @@ export async function POST(req: Request) {
   let session: mongoose.ClientSession | null = null;
 
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.swaps);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const body = await req.json();

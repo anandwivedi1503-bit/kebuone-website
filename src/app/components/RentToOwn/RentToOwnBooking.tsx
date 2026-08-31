@@ -273,7 +273,6 @@ export default function RentToOwnBooking() {
     setError("");
     try {
       const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
-      const newBookingId = "RTO-" + Date.now();
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -281,7 +280,7 @@ export default function RentToOwnBooking() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          bookingId: newBookingId,
+          bookingRequestId: crypto.randomUUID(),
           userName: riderName,
           userPhone: riderPhone,
           riderId,
@@ -314,7 +313,14 @@ export default function RentToOwnBooking() {
         setError(bookingData.errors?.join(" ") || bookingData.message || "Could not start Rent to Own.");
         return;
       }
-      setBookingId(newBookingId);
+      const createdId = String(
+        bookingData.data?.bookingId || bookingData.bookingId || ""
+      );
+      if (!createdId) {
+        setError("Booking was created but no booking ID was returned.");
+        return;
+      }
+      setBookingId(createdId);
       setBookingMongoId(bookingData.data._id);
       setCertificateNumber(bookingData.data.rtoCertificateNumber || "");
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));

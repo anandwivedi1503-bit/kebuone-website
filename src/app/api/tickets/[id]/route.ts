@@ -1,4 +1,6 @@
-import { denyStaffDeletes, isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { denyStaffDeletes, isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Ticket from "@/models/Ticket";
@@ -68,9 +70,8 @@ export async function PATCH(
 ) {
   let session: mongoose.ClientSession | null = null;
   try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.tickets);
+    if (gate.error) return gate.error;
     await connectDB();
 
     session = await mongoose.startSession();
@@ -386,9 +387,8 @@ export async function DELETE(
 ) {
   let session: mongoose.ClientSession | null = null;
   try {
-        if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+        const gate = await requireAdminDashboards(...API_DASHBOARDS.tickets);
+    if (gate.error) return gate.error;
     const blockedDelete = await denyStaffDeletes();
     if (blockedDelete) return blockedDelete;
 

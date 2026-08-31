@@ -1,4 +1,6 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
@@ -6,9 +8,8 @@ import Vehicle from "@/models/Vehicle";
 
 export async function GET() {
   try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.batteries);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const notDeleted = {
@@ -86,9 +87,8 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.batteries);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const body = await req.json();

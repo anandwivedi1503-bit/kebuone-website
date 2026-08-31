@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { getAdminSession, unauthorizedResponse } from "@/lib/adminAuth";
+import { getAdminSession, requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { applyStaffBookingPayment } from "@/lib/applyStaffBookingPayment";
 import { connectDB } from "@/lib/mongodb";
 
@@ -10,6 +11,8 @@ export async function POST(req: Request) {
     if (!session) {
       return unauthorizedResponse();
     }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.cashCollect);
+    if (gate.error) return gate.error;
 
     await connectDB();
     const body = await req.json();

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { openDueRtoDays } from "@/lib/jobs/releaseUnpaidBookings";
@@ -11,9 +13,8 @@ export const runtime = "nodejs";
 
 export async function GET() {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
+    if (gate.error) return gate.error;
     await connectDB();
     await openDueRtoDays(120);
 

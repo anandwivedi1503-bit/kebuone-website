@@ -12,8 +12,10 @@ import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 import {
   isAdminAuthenticated,
+  requireAdminDashboards,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 function normalizeRiderId(value: unknown) {
   return String(value || "")
@@ -75,9 +77,8 @@ export async function POST(req: Request) {
     /*
      * ADMIN AUTHENTICATION
      */
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.walletWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

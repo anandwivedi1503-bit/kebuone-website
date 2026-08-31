@@ -9,8 +9,10 @@ import WalletTransaction from "@/models/WalletTransaction";
 
 import {
   isAdminAuthenticated,
+  requireAdminDashboards,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 function normalizeRiderId(value: unknown): string {
@@ -71,9 +73,8 @@ export async function POST(req: Request) {
     /*
      * ADMIN AUTHENTICATION
      */
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.walletWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

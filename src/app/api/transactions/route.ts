@@ -1,4 +1,6 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
@@ -45,9 +47,8 @@ function isValidAmount(value: unknown) {
 
 export async function GET(req: Request) {
   try {
-        if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+        const gate = await requireAdminDashboards(...API_DASHBOARDS.transactions);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const parsed = parseListQuery(req);
@@ -93,9 +94,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.transactions);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const body = await req.json();

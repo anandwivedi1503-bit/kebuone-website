@@ -15,8 +15,11 @@ import {
 
 import {
   isAdminAuthenticated,
+  sessionHasAnyDashboard,
+  getAdminSession,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import {
   ensureRiderWallet,
@@ -1641,9 +1644,10 @@ export async function GET(req: Request) {
          ADMIN CHECK
       =================================================== */
 
-      const isAdmin =
-        await isAdminAuthenticated()
-          .catch(() => false);
+      const isAdmin = sessionHasAnyDashboard(
+        await getAdminSession(),
+        ...API_DASHBOARDS.ridersRead
+      );
 
       /* ===================================================
          NORMAL RIDER OWNERSHIP CHECK
@@ -1710,9 +1714,10 @@ export async function GET(req: Request) {
        ADMIN RIDER DIRECTORY
     ===================================================== */
 
-    const isAdmin =
-      await isAdminAuthenticated()
-        .catch(() => false);
+    const isAdmin = sessionHasAnyDashboard(
+      await getAdminSession(),
+      ...API_DASHBOARDS.ridersRead
+    );
 
     if (!isAdmin) {
       return unauthorizedResponse();

@@ -1,7 +1,11 @@
 import {
+  getAdminSession,
   isAdminAuthenticated,
+  requireAdminDashboards,
+  sessionHasAnyDashboard,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
@@ -58,11 +62,8 @@ export async function POST(
   req: Request
 ) {
   try {
-    if (
-      !(await isAdminAuthenticated())
-    ) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.hubsWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 
@@ -352,10 +353,10 @@ export async function GET(req: Request) {
   try {
     await connectDB();
 
-    const isAdmin =
-      await isAdminAuthenticated().catch(
-        () => false
-      );
+    const isAdmin = sessionHasAnyDashboard(
+      await getAdminSession(),
+      ...API_DASHBOARDS.hubsRead
+    );
 
     /*
  * Never return deleted hubs.

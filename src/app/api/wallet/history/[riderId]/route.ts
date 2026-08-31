@@ -7,8 +7,10 @@ import Wallet from "@/models/Wallet";
 
 import {
   isAdminAuthenticated,
+  requireAdminDashboards,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 export async function GET(
   req: Request,
@@ -19,9 +21,8 @@ export async function GET(
   }
 ) {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.walletRead);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

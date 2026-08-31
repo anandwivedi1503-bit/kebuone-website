@@ -1,7 +1,11 @@
 import {
+  getAdminSession,
   isAdminAuthenticated,
+  requireAdminDashboards,
+  sessionHasAnyDashboard,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import { NextResponse } from "next/server";
 
@@ -276,9 +280,10 @@ export async function GET(
      * the admin session cookie.
      */
 
-    const isAdmin =
-      await isAdminAuthenticated()
-        .catch(() => false);
+    const isAdmin = sessionHasAnyDashboard(
+      await getAdminSession(),
+      ...API_DASHBOARDS.ridersRead
+    );
 
     /*
      * Normal rider requests must prove ownership
@@ -355,11 +360,8 @@ export async function PATCH(
        ADMIN AUTHENTICATION
     ===================================================== */
 
-    if (
-      !(await isAdminAuthenticated())
-    ) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.ridersWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

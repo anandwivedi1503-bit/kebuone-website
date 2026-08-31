@@ -1,7 +1,8 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
-import { isAdminAuthenticated } from "@/lib/adminAuth";
+import { isAdminAuthenticated, requireAdminDashboards } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
 import { connectDB } from "@/lib/mongodb";
 import {
@@ -142,6 +143,10 @@ export async function POST(req: Request) {
       phone: rider.phone,
       userPhone: booking.userPhone,
     });
+    if (isAdminRequest && !riderOwns) {
+      const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
+      if (gate.error) return gate.error;
+    }
 
     const razorpay = getRazorpayClient();
 
