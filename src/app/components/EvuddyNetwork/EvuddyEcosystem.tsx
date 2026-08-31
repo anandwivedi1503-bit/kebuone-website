@@ -253,9 +253,9 @@ function Windows({
 function CarBody({ body, glass, west }: { body: string; glass: string; west?: boolean }) {
   return (
     <g transform={west ? "scale(-1 1)" : undefined}>
-      <g transform="skewX(-18) scale(1 0.78)">
-        <ellipse cx="0" cy="8" rx="17" ry="4.2" fill="rgba(15,23,42,0.16)" />
-        <g transform="scale(0.7)">
+      <g transform="skewX(-8) scale(0.82 0.62)">
+        <ellipse cx="0" cy="9" rx="18" ry="5" fill="rgba(15,23,42,0.14)" />
+        <g transform="scale(0.68)">
           <path d="M-20 2 L-16 -2 L-7 -5 L8 -5 L18 -1 L22 4 L16 7 L-16 7 Z" fill={body} />
           <path d="M-7 -5 L-3 -12 L9 -12 L14 -5 Z" fill={glass} />
           <circle cx="-10" cy="7" r="3" fill="#0F172A" />
@@ -473,46 +473,46 @@ export default function EvuddyEcosystem({ zone = "hub" }: { zone?: CityZone }) {
         </g>
 
         <g filter={`url(#${uid}-soft)`}>
-          <Box x={-20.5} y={0.35} w={2.6} d={1.55} h={118} top="#FFF1F2" left="#E2E8F0" right="#64748B" />
-          <Windows x={-20.5} y={0.35} cols={5} rows={5} h={118} tone="#FECACA" />
-          <Sign x={-19.2} y={0.4} elev={118} label="HOTEL" bg="#9F1239" />
+          <Box x={-20.5} y={0.35} w={2.6} d={1.55} h={72} top="#FFF1F2" left="#E2E8F0" right="#64748B" />
+          <Windows x={-20.5} y={0.35} cols={5} rows={5} h={72} tone="#FECACA" />
+          <Sign x={-19.2} y={0.4} elev={72} label="HOTEL" bg="#9F1239" />
 
-          <Box x={-16.6} y={0.45} w={2.7} d={1.6} h={132} top="#EFF6FF" left="#BFDBFE" right="#3B82F6" />
-          <Windows x={-16.6} y={0.45} cols={5} rows={6} h={132} />
-          <RoofSolar x={-15.3} y={1.15} elev={132} />
-          <Sign x={-15.3} y={0.5} elev={132} label="OFFICES" bg="#1D4ED8" width={88} />
+          <Box x={-16.6} y={0.45} w={2.7} d={1.6} h={80} top="#EFF6FF" left="#BFDBFE" right="#3B82F6" />
+          <Windows x={-16.6} y={0.45} cols={5} rows={6} h={80} />
+          <RoofSolar x={-15.3} y={1.15} elev={80} />
+          <Sign x={-15.3} y={0.5} elev={80} label="OFFICES" bg="#1D4ED8" width={88} />
 
           <Box x={-12.6} y={1.05} w={2.3} d={1.2} h={48} top="#FFF7ED" left="#FED7AA" right="#F97316" />
           <Windows x={-12.6} y={1.05} cols={4} rows={2} h={48} tone="#FFEDD5" />
           <Awning x={-12.6} y={2.12} w={2.3} d={0.28} c1="#EC2A8C" c2="#fff" />
           <Sign x={-11.45} y={1.1} elev={48} label="CAFE" bg="#C2410C" width={60} />
 
-          <Box x={3.4} y={0.25} w={3.4} d={1.7} h={96} top="#EEF2FF" left="#C7D2FE" right="#6366F1" />
-          <Windows x={3.4} y={0.25} cols={7} rows={4} h={96} tone="#A5B4FC" />
-          <Sign x={5.1} y={0.3} elev={96} label="MALL" bg="#3730A3" />
+          <Box x={3.4} y={0.25} w={3.4} d={1.7} h={64} top="#EEF2FF" left="#C7D2FE" right="#6366F1" />
+          <Windows x={3.4} y={0.25} cols={7} rows={4} h={64} tone="#A5B4FC" />
+          <Sign x={5.1} y={0.3} elev={64} label="MALL" bg="#3730A3" />
 
-          <Box x={14.6} y={0.4} w={2.5} d={1.5} h={88} top="#F8FAFC" left="#E2E8F0" right="#64748B" />
-          <Windows x={14.6} y={0.4} cols={5} rows={4} h={88} />
-          <RoofSolar x={15.85} y={1.05} elev={88} />
-          <Sign x={15.85} y={0.45} elev={88} label="TOWER" bg="#334155" />
+          <Box x={14.6} y={0.4} w={2.5} d={1.5} h={58} top="#F8FAFC" left="#E2E8F0" right="#64748B" />
+          <Windows x={14.6} y={0.4} cols={5} rows={4} h={58} />
+          <RoofSolar x={15.85} y={1.05} elev={58} />
+          <Sign x={15.85} y={0.45} elev={58} label="TOWER" bg="#334155" />
 
           <Box x={18.4} y={1.0} w={2.2} d={1.15} h={46} top="#ECFDF5" left="#BBF7D0" right="#18B368" />
           <Windows x={18.4} y={1.0} cols={4} rows={2} h={46} tone="#BBF7D0" />
           <Awning x={18.4} y={2.02} w={2.2} d={0.26} c1="#18B368" c2="#fff" />
           <Sign x={19.5} y={1.05} elev={46} label="MART" bg="#15803D" width={64} />
 
-          <Box x={22.2} y={0.35} w={2.6} d={1.55} h={110} top="#F1F5F9" left="#CBD5E1" right="#475569" />
-          <Windows x={22.2} y={0.35} cols={5} rows={5} h={110} />
-          <RoofSolar x={23.5} y={1.05} elev={110} />
-          <Sign x={23.5} y={0.4} elev={110} label="OFFICE" bg="#0F172A" width={84} />
+          <Box x={22.2} y={0.35} w={2.6} d={1.55} h={70} top="#F1F5F9" left="#CBD5E1" right="#475569" />
+          <Windows x={22.2} y={0.35} cols={5} rows={5} h={70} />
+          <RoofSolar x={23.5} y={1.05} elev={70} />
+          <Sign x={23.5} y={0.4} elev={70} label="OFFICE" bg="#0F172A" width={84} />
 
-          <Box x={26.4} y={0.5} w={2.5} d={1.45} h={102} top="#FFF1F2" left="#E2E8F0" right="#FB7185" />
-          <Windows x={26.4} y={0.5} cols={5} rows={4} h={102} tone="#FECACA" />
-          <Sign x={27.65} y={0.55} elev={102} label="HOTEL" bg="#9F1239" />
+          <Box x={26.4} y={0.5} w={2.5} d={1.45} h={66} top="#FFF1F2" left="#E2E8F0" right="#FB7185" />
+          <Windows x={26.4} y={0.5} cols={5} rows={4} h={66} tone="#FECACA" />
+          <Sign x={27.65} y={0.55} elev={66} label="HOTEL" bg="#9F1239" />
 
-          <Box x={30.6} y={0.3} w={2.7} d={1.5} h={92} top="#EEF2FF" left="#C7D2FE" right="#4F46E5" />
-          <Windows x={30.6} y={0.3} cols={5} rows={4} h={92} />
-          <Sign x={31.95} y={0.35} elev={92} label="PLAZA" bg="#312E81" />
+          <Box x={30.6} y={0.3} w={2.7} d={1.5} h={60} top="#EEF2FF" left="#C7D2FE" right="#4F46E5" />
+          <Windows x={30.6} y={0.3} cols={5} rows={4} h={60} />
+          <Sign x={31.95} y={0.35} elev={60} label="PLAZA" bg="#312E81" />
         </g>
 
         <polygon points={diamond(-8.6, 1.15, 4.2)} fill="#F8FAFC" stroke="#18B368" strokeWidth="1.3" />
@@ -574,12 +574,12 @@ export default function EvuddyEcosystem({ zone = "hub" }: { zone?: CityZone }) {
         <Person x={19.2} y={2.45} shirt="#15803D" />
 
         {/* North curb sits in front of north buildings, behind moving traffic */}
-        <ParkedCar x={-17.5} y={4.45} body="#0F172A" />
-        <ParkedCar x={-10.2} y={4.45} body="#2563EB" />
-        <ParkedCar x={1.4} y={4.45} body="#F8FAFC" />
-        <ParkedCar x={13.2} y={4.45} body="#EC2A8C" />
-        <ParkedCar x={21.0} y={4.45} body="#F59E0B" />
-        <ParkedCar x={29.5} y={4.45} body="#18B368" />
+        <ParkedCar x={-17.5} y={4.85} body="#0F172A" />
+        <ParkedCar x={-10.2} y={4.85} body="#2563EB" />
+        <ParkedCar x={1.4} y={4.85} body="#F8FAFC" />
+        <ParkedCar x={13.2} y={4.85} body="#EC2A8C" />
+        <ParkedCar x={21.0} y={4.85} body="#F59E0B" />
+        <ParkedCar x={29.5} y={4.85} body="#18B368" />
         {[-18, -9, 0, 9, 18, 27, 36].map((x) => (
           <Lamp key={`n-${x}`} x={x} y={4.85} />
         ))}
