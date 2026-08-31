@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { useEffect, useState, type ReactNode } from "react";
 import {
   ArrowRight,
   MapPin,
@@ -17,6 +18,26 @@ import {
   FaYoutube,
   FaFacebookF,
 } from "react-icons/fa";
+
+import { riderResumeHref } from "@/lib/riderPlanGate";
+
+function RideEntryLink({
+  className,
+  children,
+}: {
+  className?: string;
+  children: ReactNode;
+}) {
+  const [href, setHref] = useState("/ride-options");
+  useEffect(() => {
+    setHref(riderResumeHref());
+  }, []);
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
 
 export default function Footer() {
   return (
@@ -130,14 +151,13 @@ export default function Footer() {
                 "
               >
 
-                <Link
-                  href="/ride-options"
+                <RideEntryLink
                   className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#18B368] px-8 text-lg font-semibold transition hover:bg-[#14A35E] sm:w-auto"
                 >
                   Book an EV
 
                   <ArrowRight className="ml-3 h-5 w-5" />
-                </Link>
+                </RideEntryLink>
 
                 <Link
                   href="/partners#partner-form"
@@ -298,12 +318,11 @@ export default function Footer() {
 
     <div className="space-y-5">
 
-      <Link
-        href="/ride-options"
+      <RideEntryLink
         className="block text-gray-400 transition hover:text-white"
       >
         Book a Scooter
-      </Link>
+      </RideEntryLink>
 
       <Link
         href="/register"

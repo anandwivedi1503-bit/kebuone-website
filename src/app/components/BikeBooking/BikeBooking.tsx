@@ -12,12 +12,18 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import Link from "next/link";
 import { gstBreakdown } from "@/lib/gst";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
 import { notifyBrowser } from "@/lib/notifyBrowser";
-import { CATALOG_RATES, RTO_PLAN, catalogRate } from "@/lib/rentalPlans";
+import { CATALOG_RATES, catalogRate } from "@/lib/rentalPlans";
 import RideSwipeControl from "./RideSwipeControl";
+import {
+  loadRentalDraft,
+  markRiderBookingLock,
+  saveRentalDraft,
+  setChosenPlan,
+  syncPlanFromActiveBooking,
+} from "@/lib/riderPlanGate";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -138,7 +144,7 @@ const normalizeText = (value: unknown) =>
     .replace(/\s+/g, " ");
 
 export default function BikeBooking() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(() => loadRentalDraft()?.step || 1);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [hubs, setHubs] = useState<Hub[]>([]);
 const [cities, setCities] = useState<CityRecord[]>([]);
@@ -148,14 +154,14 @@ const [loading, setLoading] = useState(true);
   const [riderName, setRiderName] = useState("");
   const [riderPhone, setRiderPhone] = useState("");
   const [riderEmail, setRiderEmail] = useState("");
-  const [city, setCity] = useState("");
-  const [hub, setHub] = useState("");
-  const [selectedBike, setSelectedBike] = useState("");
-  const [bikeSearch, setBikeSearch] = useState("");
+  const [city, setCity] = useState(() => loadRentalDraft()?.city || "");
+  const [hub, setHub] = useState(() => loadRentalDraft()?.hub || "");
+  const [selectedBike, setSelectedBike] = useState(() => loadRentalDraft()?.selectedBike || "");
+  const [bikeSearch, setBikeSearch] = useState(() => loadRentalDraft()?.bikeSearch || "");
   const [rentalMode, setRentalMode] = useState<
     "Hourly" | "Daily" | "Weekly" | "Monthly"
-  >("Daily");
-  const [referenceBy, setReferenceBy] = useState("");
+  >(() => loadRentalDraft()?.rentalMode || "Daily");
+  const [referenceBy, setReferenceBy] = useState(() => loadRentalDraft()?.referenceBy || "");
 
   const [bookingId, setBookingId] = useState("");
   const [bookingMongoId, setBookingMongoId] = useState("");
@@ -212,6 +218,7 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [otpSmsStatus, setOtpSmsStatus] = useState("");
   const otpSmsKeyRef = useRef("");
   const recoverPayRef = useRef(false);
+  const rentalDraftHydrated = useRef(true);
 
   const loadData = async (selectedCity = "", silent = false) => {
   try {
@@ -271,6 +278,33 @@ const [pickupOtp, setPickupOtp] = useState("");
 useEffect(() => {
   void loadData();
 }, []);
+
+useEffect(() => {
+  if (!rentalDraftHydrated.current) return;
+  if (bookingDone) {
+    saveRentalDraft({
+      step: 4,
+      city,
+      hub,
+      selectedBike,
+      rentalMode,
+      bikeSearch,
+      referenceBy,
+    });
+    markRiderBookingLock();
+    setChosenPlan("rental");
+    return;
+  }
+  saveRentalDraft({
+    step,
+    city,
+    hub,
+    selectedBike,
+    rentalMode,
+    bikeSearch,
+    referenceBy,
+  });
+}, [step, city, hub, selectedBike, rentalMode, bikeSearch, referenceBy, bookingDone]);
 
 useEffect(() => {
   if (!city) return;
@@ -391,6 +425,12 @@ useEffect(() => {
       const mineData = await mineRes.json();
       const active = mineData.data;
       if (mineData.success && active?._id) {
+        if (String(active.rentalMode || "") === "Rent To Own") {
+          syncPlanFromActiveBooking("Rent To Own");
+          window.location.replace("/rent-to-own");
+          return;
+        }
+        syncPlanFromActiveBooking(String(active.rentalMode || "Daily"));
         setBookingId(String(active.bookingId || ""));
         setBookingMongoId(String(active._id));
         setBookingDone(true);
@@ -1651,16 +1691,9 @@ step > index + 1
                 <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Weekly {formatINR(CATALOG_RATES.Weekly)}</span>
                 <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Monthly {formatINR(CATALOG_RATES.Monthly)}</span>
               </div>
-              <Link
-                href="/rent-to-own"
-                className="mt-3 flex items-center justify-between rounded-2xl bg-[#0B1B16] px-4 py-3 text-white"
-              >
-                <span>
-                  <span className="block text-xs uppercase tracking-[0.16em] text-[#6EE7A8]">Own the scooter</span>
-                  <span className="font-bold">Rent to Own {formatINR(RTO_PLAN.dailyRate)}/day · {RTO_PLAN.tenureMonths} months</span>
-                </span>
-                <span className="text-sm font-semibold">Open →</span>
-              </Link>
+              <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                Rent to Own is frozen for this normal booking. Logout if you need to switch plans.
+              </div>
             </div>
             {step === 1 && (
               <div className="grid gap-5 md:grid-cols-2">
@@ -1992,16 +2025,9 @@ focus:ring-[#22C55E]/10
                   ))}
                 </div>
 
-                <Link
-                  href="/rent-to-own"
-                  className="mb-5 flex min-h-16 items-center justify-between rounded-2xl border border-[#18B368]/30 bg-[#0B1B16] px-4 py-3 text-white"
-                >
-                  <span>
-                    <span className="block text-sm font-bold">Rent to Own</span>
-                    <span className="text-xs text-white/70">{formatINR(RTO_PLAN.dailyRate)} per day for {RTO_PLAN.tenureMonths} months, then the scooter is yours</span>
-                  </span>
-                  <span className="text-sm font-bold text-[#6EE7A8]">Choose →</span>
-                </Link>
+                <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                  Rent to Own is frozen because you chose normal booking.
+                </div>
 
                    {loading ? (
   <Empty text="Loading available scooters..." />

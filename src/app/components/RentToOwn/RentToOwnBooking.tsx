@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 
@@ -14,6 +14,13 @@ import {
   rtoInstallment,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
+import {
+  loadRtoDraft,
+  markRiderBookingLock,
+  saveRtoDraft,
+  setChosenPlan,
+  syncPlanFromActiveBooking,
+} from "@/lib/riderPlanGate";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -98,7 +105,7 @@ const inputClass =
   "h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none focus:border-[#18B368]";
 
 export default function RentToOwnBooking() {
-  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(() => loadRtoDraft()?.step || 1);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [hubs, setHubs] = useState<Hub[]>([]);
   const [cities, setCities] = useState<{ cityName: string }[]>([]);
@@ -109,21 +116,21 @@ export default function RentToOwnBooking() {
 
   const [riderName, setRiderName] = useState("");
   const [riderPhone, setRiderPhone] = useState("");
-  const [riderEmail, setRiderEmail] = useState("");
+  const [riderEmail, setRiderEmail] = useState(() => loadRtoDraft()?.riderEmail || "");
   const [riderId, setRiderId] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
   const [walletAvailable, setWalletAvailable] = useState(0);
 
-  const [city, setCity] = useState("");
-  const [hub, setHub] = useState("");
-  const [selectedBike, setSelectedBike] = useState("");
-  const [occupation, setOccupation] = useState("");
-  const [guardianName, setGuardianName] = useState("");
-  const [nomineeName, setNomineeName] = useState("");
-  const [nomineeRelation, setNomineeRelation] = useState("");
-  const [emergencyPhone, setEmergencyPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const [agreed, setAgreed] = useState(false);
+  const [city, setCity] = useState(() => loadRtoDraft()?.city || "");
+  const [hub, setHub] = useState(() => loadRtoDraft()?.hub || "");
+  const [selectedBike, setSelectedBike] = useState(() => loadRtoDraft()?.selectedBike || "");
+  const [occupation, setOccupation] = useState(() => loadRtoDraft()?.occupation || "");
+  const [guardianName, setGuardianName] = useState(() => loadRtoDraft()?.guardianName || "");
+  const [nomineeName, setNomineeName] = useState(() => loadRtoDraft()?.nomineeName || "");
+  const [nomineeRelation, setNomineeRelation] = useState(() => loadRtoDraft()?.nomineeRelation || "");
+  const [emergencyPhone, setEmergencyPhone] = useState(() => loadRtoDraft()?.emergencyPhone || "");
+  const [address, setAddress] = useState(() => loadRtoDraft()?.address || "");
+  const [agreed, setAgreed] = useState(() => Boolean(loadRtoDraft()?.agreed));
 
   const [bookingId, setBookingId] = useState("");
   const [bookingMongoId, setBookingMongoId] = useState("");
@@ -132,6 +139,7 @@ export default function RentToOwnBooking() {
   const [pickupOtp, setPickupOtp] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const rtoDraftHydrated = useRef(true);
 
   const currentBike = vehicles.find((bike) => bike.vehicleId === selectedBike);
   const dailyRate = rtoDailyRate();
@@ -204,6 +212,57 @@ export default function RentToOwnBooking() {
   }, []);
 
   useEffect(() => {
+    if (!rtoDraftHydrated.current) return;
+    if (step >= 4 && bookingId) {
+      saveRtoDraft({
+        step: 4,
+        city,
+        hub,
+        selectedBike,
+        occupation,
+        guardianName,
+        nomineeName,
+        nomineeRelation,
+        emergencyPhone,
+        address,
+        agreed,
+        riderEmail,
+      });
+      markRiderBookingLock();
+      setChosenPlan("rto");
+      return;
+    }
+    saveRtoDraft({
+      step,
+      city,
+      hub,
+      selectedBike,
+      occupation,
+      guardianName,
+      nomineeName,
+      nomineeRelation,
+      emergencyPhone,
+      address,
+      agreed,
+      riderEmail,
+    });
+  }, [
+    step,
+    city,
+    hub,
+    selectedBike,
+    occupation,
+    guardianName,
+    nomineeName,
+    nomineeRelation,
+    emergencyPhone,
+    address,
+    agreed,
+    riderEmail,
+    bookingId,
+  ]);
+
+  useEffect(() => {
     if (city) void loadData(city);
   }, [city]);
 
@@ -231,6 +290,34 @@ export default function RentToOwnBooking() {
         setRiderId(data.data.riderId || "");
         setRiderEmail(data.data.email || "");
         setWalletAvailable(Number(data.data.walletAvailable ?? data.data.walletBalance ?? 0));
+      }
+      try {
+        const mineRes = await fetch("/api/bookings/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const mineData = await mineRes.json();
+        const active = mineData.data;
+        if (mineData.success && active?._id) {
+          if (String(active.rentalMode || "") !== "Rent To Own") {
+            syncPlanFromActiveBooking(String(active.rentalMode || "Daily"));
+            window.location.replace("/book-bike?flow=rental");
+            return;
+          }
+          syncPlanFromActiveBooking("Rent To Own");
+          setBookingId(String(active.bookingId || ""));
+          setBookingMongoId(String(active._id));
+          setCertificateNumber(String(active.rtoCertificateNumber || ""));
+          setPendingAmount(Number(active.pendingAmount || 0));
+          setPickupOtp(String(active.pickupOTP || ""));
+          setPaymentSuccess(Number(active.pendingAmount || 0) <= 0.009);
+          setCity(String(active.pickupCity || city || ""));
+          setHub(String(active.startHub || active.pickupHubName || ""));
+          setSelectedBike(String(active.vehicleId || ""));
+          setStep(4);
+        }
+      } catch {
+        // Draft restore still covers the application steps.
       }
     });
     return () => unsubscribe();

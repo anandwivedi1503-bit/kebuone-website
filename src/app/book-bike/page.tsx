@@ -2,24 +2,38 @@
 
 import { useEffect, useState } from "react";
 
-import Navbar from "../Navbar/Navbar";
-import BikeBooking from "../components/BikeBooking/BikeBooking";
-import Footer from "../components/Footer/Footer";
-import { hasRiderPlanReady } from "@/lib/riderPlanGate";
+import Navbar from "@/app/Navbar/Navbar";
+import Footer from "@/app/components/Footer/Footer";
+import BikeBooking from "@/app/components/BikeBooking/BikeBooking";
+import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
+import { getChosenPlan, hasRiderPlanReady, riderResumeHref, setChosenPlan } from "@/lib/riderPlanGate";
 
 export default function BookBikePage() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const rentalFlow =
-      new URLSearchParams(window.location.search).get("flow") === "rental";
-
-    if (hasRiderPlanReady() && rentalFlow) {
-      setReady(true);
+    if (!hasRiderPlanReady()) {
+      window.location.replace("/ride-options");
       return;
     }
 
-    window.location.replace("/ride-options");
+    const chosen = getChosenPlan();
+    const rentalFlow =
+      new URLSearchParams(window.location.search).get("flow") === "rental" ||
+      chosen === "rental";
+
+    if (chosen === "rto") {
+      window.location.replace("/rent-to-own");
+      return;
+    }
+
+    if (!rentalFlow) {
+      window.location.replace(riderResumeHref());
+      return;
+    }
+
+    setChosenPlan("rental");
+    setReady(true);
   }, []);
 
   if (!ready) {
@@ -36,6 +50,9 @@ export default function BookBikePage() {
         <Navbar />
       </div>
       <div className="pt-28 print:pt-0">
+        <div className="print:hidden px-4 sm:px-6 lg:px-10">
+          <RiderSessionBar />
+        </div>
         <BikeBooking />
       </div>
       <div className="print:hidden">
