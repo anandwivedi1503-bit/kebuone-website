@@ -132,8 +132,8 @@ export default function Leadership() {
             The people across every function
           </h2>
           <p className="mt-4 max-w-2xl text-lg text-slate-600">
-            Operations, technology, finance, people, marketing and growth. Each
-            card is ready — add the poster URL and the portrait appears.
+            Operations, technology, finance, people, marketing and growth.
+            Technology is led by Anand Dhar Dwivedi — official SDE poster below.
           </p>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -263,19 +263,16 @@ function PosterMedia({
 }
 
 function TeamCard({ member }: { member: TeamMember }) {
-  const [missing, setMissing] = useState(!member.image);
-
   return (
-    <article className="overflow-hidden rounded-[28px] border border-slate-100 bg-[#F7FBFA] shadow-[0_16px_40px_rgba(8,17,47,0.05)] transition hover:-translate-y-1 hover:bg-white hover:shadow-[0_24px_60px_rgba(24,179,104,0.12)]">
-      <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-[#E8FFF3] via-white to-[#FFF0F6]">
-        {member.image && !missing ? (
-          <img
-            src={member.image}
-            alt={`${member.name}, ${member.role} at EVUDDY`}
-            className="h-full w-full object-cover"
-            onError={() => setMissing(true)}
-          />
-        ) : (
+    <article className="overflow-hidden rounded-[28px] border border-slate-100 bg-white p-2.5 shadow-[0_16px_40px_rgba(8,17,47,0.05)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(24,179,104,0.12)]">
+      {member.image ? (
+        <PosterMedia
+          src={member.image}
+          alt={`${member.name}, ${member.role} at EVUDDY`}
+          frame="tall"
+        />
+      ) : (
+        <div className="relative aspect-[4/5] overflow-hidden rounded-[20px] bg-gradient-to-br from-[#E8FFF3] via-white to-[#FFF0F6]">
           <div className="flex h-full flex-col items-center justify-center px-6 text-center">
             <p className="text-4xl font-black text-[#18B368]">
               {member.role
@@ -285,11 +282,11 @@ function TeamCard({ member }: { member: TeamMember }) {
                 .slice(0, 2)}
             </p>
             <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
-              Paste poster URL
+              Poster coming soon
             </p>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       <div className="p-6">
         <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
           {member.role}
