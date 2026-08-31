@@ -44,7 +44,12 @@ export const board: LeaderPoster[] = [
 
 export const team: TeamMember[] = [
   { id: "operations", name: "Team member", role: "Operations", image: "" },
-  { id: "technology", name: "Team member", role: "Technology", image: "" },
+  {
+    id: "technology",
+    name: "Anand Dhar Dwivedi",
+    role: "Software Development Engineer (SDE)",
+    image: "/anand-sde.png",
+  },
   { id: "finance", name: "Team member", role: "Finance", image: "" },
   { id: "hr", name: "Team member", role: "Human Resources", image: "" },
   { id: "marketing", name: "Team member", role: "Marketing", image: "" },
