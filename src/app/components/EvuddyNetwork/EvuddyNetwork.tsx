@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { MapPin, Navigation, Radio, ShieldCheck, Zap } from "lucide-react";
-import EvuddyEcosystem from "./EvuddyEcosystem";
+import EvuddyEcosystem, { type CityZone } from "./EvuddyEcosystem";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
 
@@ -97,6 +97,7 @@ export default function EvuddyNetwork() {
   const [liveHubs, setLiveHubs] = useState<LiveHub[]>([]);
   const [spot, setSpot] = useState({ x: 62, y: 28 });
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const [cityZone, setCityZone] = useState<CityZone>("hub");
 
   useEffect(() => {
     fetch("/api/cities")
@@ -420,14 +421,29 @@ export default function EvuddyNetwork() {
               Live scooters on the north lane. Cars south. Yards off-road. The same split a real EV city uses.
             </p>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-medium">
-            <span className="rounded-full bg-[#18B368]/10 px-3 py-1 text-[#15803d]">Pickup yard</span>
-            <span className="rounded-full bg-sky-50 px-3 py-1 text-sky-700">EV charge</span>
-            <span className="rounded-full bg-[#18B368] px-3 py-1 text-white">EVUDDY hub</span>
+          <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-medium" role="tablist" aria-label="City operation zones">
+            {(
+              [
+                { id: "pickup", label: "Pickup yard", on: "bg-[#18B368] text-white", off: "bg-[#18B368]/10 text-[#15803d]" },
+                { id: "charge", label: "EV charge", on: "bg-sky-600 text-white", off: "bg-sky-50 text-sky-700" },
+                { id: "hub", label: "EVUDDY hub", on: "bg-[#18B368] text-white", off: "bg-[#18B368]/10 text-[#15803d]" },
+              ] as const
+            ).map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                role="tab"
+                aria-selected={cityZone === chip.id}
+                onClick={() => setCityZone(chip.id)}
+                className={`rounded-full px-3 py-1 transition ${cityZone === chip.id ? chip.on : chip.off}`}
+              >
+                {chip.label}
+              </button>
+            ))}
           </div>
         </div>
         <div className="relative mt-6 w-full overflow-hidden">
-          <EvuddyEcosystem />
+          <EvuddyEcosystem zone={cityZone} />
         </div>
       </div>
 

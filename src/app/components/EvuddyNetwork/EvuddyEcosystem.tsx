@@ -1,7 +1,10 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type MouseEvent } from "react";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useEvuddySideSrc } from "../Hero/useEvuddySideSrc";
+
+export type CityZone = "pickup" | "charge" | "hub";
 
 /**
  * Panoramic EVUDDY city.
@@ -184,6 +187,18 @@ function Person({ x, y, shirt, flip }: { x: number; y: number; shirt: string; fl
   );
 }
 
+function PulsePin({ x, y, on }: { x: number; y: number; on?: boolean }) {
+  const p = iso(x, y);
+  return (
+    <g transform={`translate(${p.x} ${p.y})`}>
+      <circle r={on ? 28 : 18} fill="#18B368" opacity={on ? 0.18 : 0.1} className="ev-city-pin-ring" />
+      <circle r={on ? 11 : 8} fill="#18B368" opacity="0.28" />
+      <circle r={on ? 5 : 4} fill="#18B368" />
+      <circle r="2.2" fill="#fff" />
+    </g>
+  );
+}
+
 function ChargePost({ x, y }: { x: number; y: number }) {
   const p = iso(x, y);
   return (
@@ -330,11 +345,32 @@ function MovingScooter({
   );
 }
 
-export default function EvuddyEcosystem() {
+const ZONE_PAN: Record<CityZone, { x: string; y: string; scale: number }> = {
+  pickup: { x: "8%", y: "10%", scale: 1.28 },
+  charge: { x: "-14%", y: "8%", scale: 1.28 },
+  hub: { x: "16%", y: "-16%", scale: 1.32 },
+};
+
+export default function EvuddyEcosystem({ zone = "hub" }: { zone?: CityZone }) {
   const src = useEvuddySideSrc();
   const uid = useId().replace(/:/g, "");
   const scootPath = `${uid}-scoot`;
   const carPath = `${uid}-car`;
+  const spotX = useMotionValue(50);
+  const spotY = useMotionValue(40);
+  const x = useSpring(spotX, { stiffness: 90, damping: 18 });
+  const y = useSpring(spotY, { stiffness: 90, damping: 18 });
+  const spotLeft = useTransform(x, (v) => `${v}%`);
+  const spotTop = useTransform(y, (v) => `${v}%`);
+  const maskCx = useTransform(x, (v) => (v / 100) * VB_W);
+  const maskCy = useTransform(y, (v) => (v / 100) * VB_H);
+  const pan = ZONE_PAN[zone];
+
+  const onMove = (event: MouseEvent<HTMLDivElement>) => {
+    const box = event.currentTarget.getBoundingClientRect();
+    spotX.set(((event.clientX - box.left) / box.width) * 100);
+    spotY.set(((event.clientY - box.top) / box.height) * 100);
+  };
 
   const s0 = iso(-21, 5.8);
   const s1 = iso(41, 5.8);
@@ -342,7 +378,15 @@ export default function EvuddyEcosystem() {
   const c1 = iso(-21, 7.55);
 
   return (
-    <div className="relative h-[320px] w-full max-w-full overflow-hidden bg-[#F4F7F8] sm:h-[460px] lg:h-[560px]">
+    <div
+      className="relative h-[360px] w-full max-w-full overflow-hidden bg-[#F7FBFA] sm:h-[520px] lg:h-[594px]"
+      onMouseMove={onMove}
+    >
+      <motion.div
+        className="pointer-events-none absolute inset-0 z-[1] will-change-transform"
+        animate={{ x: pan.x, y: pan.y, scale: pan.scale }}
+        transition={{ type: "spring", stiffness: 70, damping: 18 }}
+      >
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="absolute inset-0 h-full w-full"
@@ -358,6 +402,18 @@ export default function EvuddyEcosystem() {
           <filter id={`${uid}-soft`} x="-12%" y="-12%" width="124%" height="124%">
             <feDropShadow dx="0" dy="8" stdDeviation="7" floodColor="#0F172A" floodOpacity="0.07" />
           </filter>
+          <filter id={`${uid}-cursor-blur`}>
+            <feGaussianBlur stdDeviation="28" />
+          </filter>
+          <mask id={`${uid}-cursor-mask`}>
+            <rect width={VB_W} height={VB_H} fill="black" />
+            <motion.circle
+              r="190"
+              fill="white"
+              filter={`url(#${uid}-cursor-blur)`}
+              style={{ cx: maskCx, cy: maskCy }}
+            />
+          </mask>
         </defs>
 
         <rect width={VB_W} height={VB_H} fill={`url(#${uid}-sky)`} />
@@ -529,6 +585,29 @@ export default function EvuddyEcosystem() {
         <RoofSolar x={-10.6} y={9.8} elev={62} />
         <Sign x={-10.6} y={9.15} elev={78} label="EVUDDY HUB" bg="#0F172A" width={110} />
 
+        <g mask={`url(#${uid}-cursor-mask)`} opacity="0.9">
+          <polygon
+            points={`${iso(-22, 5.15).x},${iso(-22, 5.15).y} ${iso(42, 5.15).x},${iso(42, 5.15).y} ${iso(42, 8.15).x},${iso(42, 8.15).y} ${iso(-22, 8.15).x},${iso(-22, 8.15).y}`}
+            fill="#C9F1E4"
+          />
+          <polygon
+            points={`${iso(-22, 5.55).x},${iso(-22, 5.55).y} ${iso(42, 5.55).x},${iso(42, 5.55).y} ${iso(42, 6.15).x},${iso(42, 6.15).y} ${iso(-22, 6.15).x},${iso(-22, 6.15).y}`}
+            fill="#E0E9FF"
+            opacity="0.55"
+          />
+          <polygon
+            points={`${iso(-22, 7.2).x},${iso(-22, 7.2).y} ${iso(42, 7.2).x},${iso(42, 7.2).y} ${iso(42, 7.85).x},${iso(42, 7.85).y} ${iso(-22, 7.85).x},${iso(-22, 7.85).y}`}
+            fill="#E0E9FF"
+            opacity="0.55"
+          />
+          <polygon points={diamond(-8.6, 1.15, 4.2)} fill="#C9F1E4" />
+          <polygon points={diamond(8.7, 1.25, 3.3)} fill="#C9F1E4" />
+        </g>
+
+        <PulsePin x={-6.5} y={1.2} on={zone === "pickup"} />
+        <PulsePin x={10.3} y={1.3} on={zone === "charge"} />
+        <PulsePin x={-10.6} y={9.15} on={zone === "hub"} />
+
         {/* Parked cars on curbs only — not in moving lanes */}
         <ParkedCar x={-17.5} y={4.45} body="#0F172A" />
         <ParkedCar x={-10.2} y={4.45} body="#2563EB" />
@@ -598,15 +677,42 @@ export default function EvuddyEcosystem() {
           </>
         ) : null}
       </svg>
+      </motion.div>
 
-      <div className="pointer-events-none absolute left-3 top-3 hidden max-w-[15rem] rounded-2xl border border-[#18B368]/20 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl sm:block">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#18B368]">Pickup yard</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500">OTP at the gate. Scooters leave only after first payment.</p>
-      </div>
-      <div className="pointer-events-none absolute right-3 top-[38%] hidden max-w-[14rem] rounded-2xl border border-sky-200 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl lg:block">
-        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-sky-600">EV charge</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500">Packs stay at the hub. Swaps never dump a live ride.</p>
-      </div>
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute z-[2] h-[240px] w-[240px] rounded-full"
+        style={{
+          left: spotLeft,
+          top: spotTop,
+          x: "-50%",
+          y: "-50%",
+          background:
+            "radial-gradient(circle, rgba(201,241,228,0.72) 0%, rgba(224,233,255,0.28) 42%, transparent 70%)",
+          mixBlendMode: "multiply",
+          filter: "blur(10px)",
+        }}
+        transition={{ ease: "backOut" }}
+      />
+
+      {zone === "pickup" ? (
+        <div className="pointer-events-none absolute left-3 top-3 z-[3] hidden max-w-[15rem] rounded-2xl border border-[#18B368]/20 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl sm:block">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#18B368]">Pickup yard</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">OTP at the gate. Scooters leave only after first payment.</p>
+        </div>
+      ) : null}
+      {zone === "charge" ? (
+        <div className="pointer-events-none absolute right-3 top-[38%] z-[3] hidden max-w-[14rem] rounded-2xl border border-sky-200 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl lg:block">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-sky-600">EV charge</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Packs stay at the hub. Swaps never dump a live ride.</p>
+        </div>
+      ) : null}
+      {zone === "hub" ? (
+        <div className="pointer-events-none absolute left-3 bottom-24 z-[3] hidden max-w-[15rem] rounded-2xl border border-[#18B368]/20 bg-white/90 p-3 text-[#0F172A] shadow-sm backdrop-blur-xl sm:block">
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#18B368]">EVUDDY hub</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">Swap, park, and dispatch from one live yard — not the street.</p>
+        </div>
+      ) : null}
 
       <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-end justify-between gap-2">
         <div className="flex flex-wrap gap-2">
@@ -636,6 +742,20 @@ export default function EvuddyEcosystem() {
           </span>
         </div>
       </div>
+      <style>{`
+        @keyframes ev-city-pin-ring {
+          0% { transform: scale(0.45); opacity: 0.55; }
+          100% { transform: scale(1.35); opacity: 0; }
+        }
+        .ev-city-pin-ring {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: ev-city-pin-ring 1.8s ease-out infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .ev-city-pin-ring { animation: none !important; }
+        }
+      `}</style>
     </div>
   );
 }
