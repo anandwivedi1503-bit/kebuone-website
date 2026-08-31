@@ -153,10 +153,10 @@ function Tree({ x, y }: { x: number; y: number }) {
   const p = iso(x, y);
   return (
     <g>
-      <ellipse cx={p.x} cy={p.y + 5} rx="9" ry="3.2" fill="rgba(15,23,42,0.1)" />
-      <rect x={p.x - 2} y={p.y - 12} width="4" height="15" rx="1.2" fill="#7C4A2A" />
-      <ellipse cx={p.x} cy={p.y - 18} rx="13" ry="11" fill="#166534" />
-      <ellipse cx={p.x + 4} cy={p.y - 24} rx="9" ry="7" fill="#22C55E" />
+      <ellipse cx={p.x} cy={p.y + 5} rx="9" ry="3.2" fill="rgba(0,0,0,0.35)" />
+      <rect x={p.x - 2} y={p.y - 12} width="4" height="15" rx="1.2" fill="#3f2a1a" />
+      <ellipse cx={p.x} cy={p.y - 18} rx="13" ry="11" fill="#14532d" />
+      <ellipse cx={p.x + 4} cy={p.y - 24} rx="9" ry="7" fill="#166534" />
     </g>
   );
 }
@@ -165,7 +165,9 @@ function Lamp({ x, y }: { x: number; y: number }) {
   const p = iso(x, y);
   return (
     <g>
-      <rect x={p.x - 1.2} y={p.y - 34} width="2.4" height="34" rx="1" fill="#334155" />
+      <ellipse cx={p.x} cy={p.y + 4} rx="10" ry="3" fill="#FDE68A" opacity="0.12" />
+      <rect x={p.x - 1.2} y={p.y - 34} width="2.4" height="34" rx="1" fill="#1e293b" />
+      <circle cx={p.x} cy={p.y - 38} r="12" fill="#FDE68A" opacity="0.18" />
       <circle cx={p.x} cy={p.y - 38} r="4.2" fill="#FDE68A" />
     </g>
   );
@@ -204,7 +206,7 @@ function Windows({
   cols,
   rows,
   h,
-  tone = "#BFDBFE",
+          tone = "#6EE7A8",
 }: {
   x: number;
   y: number;
@@ -226,7 +228,7 @@ function Windows({
           height="8"
           rx="1"
           fill={tone}
-          opacity="0.9"
+          opacity="0.85"
         />
       );
     }
@@ -290,7 +292,7 @@ function RealScooter({ src, x, y, scale = 0.11 }: { src: string; x: number; y: n
       height={h}
       preserveAspectRatio="xMidYMid meet"
       transform={`translate(${p.x} ${p.y}) scale(-1 1) translate(${-p.x} ${-p.y})`}
-      style={{ filter: "drop-shadow(5px 6px 5px rgba(15,23,42,0.2))" }}
+      style={{ filter: "drop-shadow(0 8px 10px rgba(0,0,0,0.55)) brightness(0.92)" }}
     />
   );
 }
@@ -323,7 +325,7 @@ function MovingScooter({
           width={w}
           height={h}
           preserveAspectRatio="xMidYMid meet"
-          style={{ filter: "drop-shadow(5px 6px 5px rgba(15,23,42,0.18))" }}
+          style={{ filter: "drop-shadow(0 8px 10px rgba(0,0,0,0.5)) brightness(0.92)" }}
         />
       </g>
     </g>
@@ -342,7 +344,8 @@ export default function EvuddyEcosystem() {
   const c1 = iso(-21, 7.55);
 
   return (
-    <div className="relative h-[280px] w-full max-w-full overflow-hidden bg-[#F4F7F8] sm:h-[420px] lg:h-[520px]">
+    <div className="relative h-[320px] w-full max-w-full overflow-hidden bg-[#07110C] sm:h-[460px] lg:h-[560px]">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_70%_40%,rgba(24,179,104,0.16),transparent_55%),radial-gradient(ellipse_at_20%_10%,rgba(56,189,248,0.08),transparent_40%)]" />
       <svg
         viewBox={`0 0 ${VB_W} ${VB_H}`}
         className="absolute inset-0 h-full w-full"
@@ -351,16 +354,22 @@ export default function EvuddyEcosystem() {
       >
         <defs>
           <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F8FBFD" />
-            <stop offset="55%" stopColor="#EEF4F8" />
-            <stop offset="100%" stopColor="#E4ECE8" />
+            <stop offset="0%" stopColor="#061018" />
+            <stop offset="45%" stopColor="#071410" />
+            <stop offset="100%" stopColor="#05090D" />
           </linearGradient>
           <filter id={`${uid}-soft`} x="-12%" y="-12%" width="124%" height="124%">
-            <feDropShadow dx="0" dy="8" stdDeviation="7" floodColor="#0F172A" floodOpacity="0.07" />
+            <feDropShadow dx="0" dy="10" stdDeviation="8" floodColor="#000" floodOpacity="0.45" />
           </filter>
         </defs>
 
         <rect width={VB_W} height={VB_H} fill={`url(#${uid}-sky)`} />
+        <circle cx="380" cy="70" r="1.4" fill="#fff" opacity="0.55" />
+        <circle cx="720" cy="40" r="1.1" fill="#fff" opacity="0.4" />
+        <circle cx="1100" cy="90" r="1.6" fill="#fff" opacity="0.5" />
+        <circle cx="1480" cy="55" r="1.2" fill="#fff" opacity="0.35" />
+        <circle cx="1860" cy="80" r="1.5" fill="#fff" opacity="0.45" />
+        <circle cx="2100" cy="35" r="1.1" fill="#fff" opacity="0.4" />
 
         {[-24, -16, -8, 0, 8, 16, 24, 32, 40].map((gx) =>
           [0, 5, 10].map((gy) => (
@@ -368,7 +377,7 @@ export default function EvuddyEcosystem() {
               key={`${gx}-${gy}`}
               points={diamond(gx, gy, 8)}
               fill="none"
-              stroke="rgba(148,163,184,0.14)"
+              stroke="rgba(110,231,168,0.08)"
               strokeWidth="1"
             />
           ))
@@ -377,112 +386,113 @@ export default function EvuddyEcosystem() {
         {/* Wide boulevard — scooters north lane, cars south lane */}
         <polygon
           points={`${iso(-22, 5.15).x},${iso(-22, 5.15).y} ${iso(42, 5.15).x},${iso(42, 5.15).y} ${iso(42, 8.15).x},${iso(42, 8.15).y} ${iso(-22, 8.15).x},${iso(-22, 8.15).y}`}
-          fill="#D6DEE8"
+          fill="#152028"
         />
         <polygon
           points={`${iso(-22, 5.55).x},${iso(-22, 5.55).y} ${iso(42, 5.55).x},${iso(42, 5.55).y} ${iso(42, 6.15).x},${iso(42, 6.15).y} ${iso(-22, 6.15).x},${iso(-22, 6.15).y}`}
-          fill="#94A3B8"
+          fill="#0b1418"
         />
         <polygon
           points={`${iso(-22, 7.2).x},${iso(-22, 7.2).y} ${iso(42, 7.2).x},${iso(42, 7.2).y} ${iso(42, 7.85).x},${iso(42, 7.85).y} ${iso(-22, 7.85).x},${iso(-22, 7.85).y}`}
-          fill="#94A3B8"
+          fill="#0b1418"
         />
         <path
           d={`M ${iso(-21, 6.65).x} ${iso(-21, 6.65).y} L ${iso(41, 6.65).x} ${iso(41, 6.65).y}`}
-          stroke="#fff"
+          stroke="#6EE7A8"
           strokeWidth="2.4"
           strokeDasharray="18 20"
+          opacity="0.55"
         />
         <path id={scootPath} d={`M ${s0.x} ${s0.y} L ${s1.x} ${s1.y}`} fill="none" />
         <path id={carPath} d={`M ${c0.x} ${c0.y} L ${c1.x} ${c1.y}`} fill="none" />
 
         <g filter={`url(#${uid}-soft)`}>
-          <Box x={-20.5} y={0.35} w={2.6} d={1.55} h={118} top="#FFF1F2" left="#E2E8F0" right="#64748B" />
-          <Windows x={-20.5} y={0.35} cols={5} rows={5} h={118} tone="#FECACA" />
+          <Box x={-20.5} y={0.35} w={2.6} d={1.55} h={118} top="#1a2230" left="#121820" right="#0c1016" />
+          <Windows x={-20.5} y={0.35} cols={5} rows={5} h={118} tone="#FDE68A" />
           <Sign x={-19.2} y={0.4} elev={118} label="HOTEL" bg="#9F1239" />
 
-          <Box x={-16.6} y={0.45} w={2.7} d={1.6} h={132} top="#EFF6FF" left="#BFDBFE" right="#3B82F6" />
-          <Windows x={-16.6} y={0.45} cols={5} rows={6} h={132} />
+          <Box x={-16.6} y={0.45} w={2.7} d={1.6} h={132} top="#152433" left="#0e1824" right="#0a1220" />
+          <Windows x={-16.6} y={0.45} cols={5} rows={6} h={132} tone="#7dd3fc" />
           <RoofSolar x={-15.3} y={1.15} elev={132} />
           <Sign x={-15.3} y={0.5} elev={132} label="OFFICES" bg="#1D4ED8" width={88} />
 
-          <Box x={-12.6} y={1.05} w={2.3} d={1.2} h={48} top="#FFF7ED" left="#FED7AA" right="#F97316" />
-          <Windows x={-12.6} y={1.05} cols={4} rows={2} h={48} tone="#FFEDD5" />
-          <Awning x={-12.6} y={2.12} w={2.3} d={0.28} c1="#EC2A8C" c2="#fff" />
+          <Box x={-12.6} y={1.05} w={2.3} d={1.2} h={48} top="#2a1c14" left="#1c1410" right="#F97316" />
+          <Windows x={-12.6} y={1.05} cols={4} rows={2} h={48} tone="#FDBA74" />
+          <Awning x={-12.6} y={2.12} w={2.3} d={0.28} c1="#EC2A8C" c2="#1a0a12" />
           <Sign x={-11.45} y={1.1} elev={48} label="CAFE" bg="#C2410C" width={60} />
 
-          <Box x={3.4} y={0.25} w={3.4} d={1.7} h={96} top="#EEF2FF" left="#C7D2FE" right="#6366F1" />
-          <Windows x={3.4} y={0.25} cols={7} rows={4} h={96} tone="#A5B4FC" />
+          <Box x={3.4} y={0.25} w={3.4} d={1.7} h={96} top="#1a1830" left="#12101f" right="#312e81" />
+          <Windows x={3.4} y={0.25} cols={7} rows={4} h={96} tone="#c4b5fd" />
           <Sign x={5.1} y={0.3} elev={96} label="MALL" bg="#3730A3" />
 
-          <Box x={14.6} y={0.4} w={2.5} d={1.5} h={88} top="#F8FAFC" left="#E2E8F0" right="#64748B" />
-          <Windows x={14.6} y={0.4} cols={5} rows={4} h={88} />
+          <Box x={14.6} y={0.4} w={2.5} d={1.5} h={88} top="#1a2430" left="#12181f" right="#0f172a" />
+          <Windows x={14.6} y={0.4} cols={5} rows={4} h={88} tone="#6EE7A8" />
           <RoofSolar x={15.85} y={1.05} elev={88} />
-          <Sign x={15.85} y={0.45} elev={88} label="TOWER" bg="#334155" />
+          <Sign x={15.85} y={0.45} elev={88} label="TOWER" bg="#0F172A" />
 
-          <Box x={18.4} y={1.0} w={2.2} d={1.15} h={46} top="#ECFDF5" left="#BBF7D0" right="#18B368" />
-          <Windows x={18.4} y={1.0} cols={4} rows={2} h={46} tone="#BBF7D0" />
-          <Awning x={18.4} y={2.02} w={2.2} d={0.26} c1="#18B368" c2="#fff" />
+          <Box x={18.4} y={1.0} w={2.2} d={1.15} h={46} top="#10261c" left="#0c1c16" right="#18B368" />
+          <Windows x={18.4} y={1.0} cols={4} rows={2} h={46} tone="#6EE7A8" />
+          <Awning x={18.4} y={2.02} w={2.2} d={0.26} c1="#18B368" c2="#07110C" />
           <Sign x={19.5} y={1.05} elev={46} label="MART" bg="#15803D" width={64} />
 
-          <Box x={22.2} y={0.35} w={2.6} d={1.55} h={110} top="#F1F5F9" left="#CBD5E1" right="#475569" />
-          <Windows x={22.2} y={0.35} cols={5} rows={5} h={110} />
+          <Box x={22.2} y={0.35} w={2.6} d={1.55} h={110} top="#1b2430" left="#131920" right="#0f1722" />
+          <Windows x={22.2} y={0.35} cols={5} rows={5} h={110} tone="#7dd3fc" />
           <RoofSolar x={23.5} y={1.05} elev={110} />
           <Sign x={23.5} y={0.4} elev={110} label="OFFICE" bg="#0F172A" width={84} />
 
-          <Box x={26.4} y={0.5} w={2.5} d={1.45} h={102} top="#FFF1F2" left="#E2E8F0" right="#FB7185" />
+          <Box x={26.4} y={0.5} w={2.5} d={1.45} h={102} top="#261820" left="#181014" right="#9F1239" />
           <Windows x={26.4} y={0.5} cols={5} rows={4} h={102} tone="#FECACA" />
           <Sign x={27.65} y={0.55} elev={102} label="HOTEL" bg="#9F1239" />
 
-          <Box x={30.6} y={0.3} w={2.7} d={1.5} h={92} top="#EEF2FF" left="#C7D2FE" right="#4F46E5" />
-          <Windows x={30.6} y={0.3} cols={5} rows={4} h={92} />
+          <Box x={30.6} y={0.3} w={2.7} d={1.5} h={92} top="#181830" left="#12121f" right="#4F46E5" />
+          <Windows x={30.6} y={0.3} cols={5} rows={4} h={92} tone="#c4b5fd" />
           <Sign x={31.95} y={0.35} elev={92} label="PLAZA" bg="#312E81" />
 
           {/* South of the boulevard */}
-          <Box x={-19.8} y={9.05} w={2.3} d={1.25} h={52} top="#ECFDF5" left="#BBF7D0" right="#18B368" />
-          <Windows x={-19.8} y={9.05} cols={4} rows={2} h={52} tone="#BBF7D0" />
-          <Awning x={-19.8} y={10.15} w={2.3} d={0.26} c1="#18B368" c2="#fff" />
+          <Box x={-19.8} y={9.05} w={2.3} d={1.25} h={52} top="#10261c" left="#0c1c16" right="#18B368" />
+          <Windows x={-19.8} y={9.05} cols={4} rows={2} h={52} tone="#6EE7A8" />
+          <Awning x={-19.8} y={10.15} w={2.3} d={0.26} c1="#18B368" c2="#07110C" />
           <Sign x={-18.65} y={9.1} elev={52} label="SHOP" bg="#15803D" width={64} />
 
-          <Box x={2.6} y={9.15} w={2.6} d={1.5} h={108} top="#F1F5F9" left="#CBD5E1" right="#475569" />
-          <Windows x={2.6} y={9.15} cols={5} rows={5} h={108} />
+          <Box x={2.6} y={9.15} w={2.6} d={1.5} h={108} top="#1b2430" left="#131920" right="#0f1722" />
+          <Windows x={2.6} y={9.15} cols={5} rows={5} h={108} tone="#7dd3fc" />
           <RoofSolar x={3.9} y={9.85} elev={108} />
           <Sign x={3.9} y={9.2} elev={108} label="OFFICE" bg="#0F172A" width={84} />
 
-          <Box x={7.6} y={9.0} w={3.2} d={1.55} h={58} top="#FEF3C7" left="#FDE68A" right="#D97706" />
+          <Box x={7.6} y={9.0} w={3.2} d={1.55} h={58} top="#2a2210" left="#1c180c" right="#D97706" />
           <Windows x={7.6} y={9.0} cols={6} rows={2} h={58} tone="#FDE68A" />
           <Sign x={9.2} y={9.05} elev={58} label="STATION" bg="#92400E" width={92} />
 
-          <Box x={16.4} y={9.1} w={2.2} d={1.2} h={48} top="#FFF7ED" left="#FED7AA" right="#F97316" />
-          <Windows x={16.4} y={9.1} cols={4} rows={2} h={48} tone="#FFEDD5" />
-          <Awning x={16.4} y={10.15} w={2.2} d={0.26} c1="#EC2A8C" c2="#fff" />
+          <Box x={16.4} y={9.1} w={2.2} d={1.2} h={48} top="#2a1c14" left="#1c1410" right="#F97316" />
+          <Windows x={16.4} y={9.1} cols={4} rows={2} h={48} tone="#FDBA74" />
+          <Awning x={16.4} y={10.15} w={2.2} d={0.26} c1="#EC2A8C" c2="#1a0a12" />
           <Sign x={17.5} y={9.15} elev={48} label="CAFE" bg="#C2410C" width={60} />
 
-          <Box x={20.8} y={9.05} w={2.7} d={1.5} h={96} top="#EEF2FF" left="#C7D2FE" right="#6366F1" />
-          <Windows x={20.8} y={9.05} cols={5} rows={4} h={96} />
+          <Box x={20.8} y={9.05} w={2.7} d={1.5} h={96} top="#1a1830" left="#12101f" right="#6366F1" />
+          <Windows x={20.8} y={9.05} cols={5} rows={4} h={96} tone="#c4b5fd" />
           <Sign x={22.15} y={9.1} elev={96} label="MALL" bg="#3730A3" />
 
-          <Box x={25.8} y={9.2} w={2.5} d={1.4} h={88} top="#F8FAFC" left="#E2E8F0" right="#64748B" />
-          <Windows x={25.8} y={9.2} cols={5} rows={4} h={88} />
+          <Box x={25.8} y={9.2} w={2.5} d={1.4} h={88} top="#1a2430" left="#12181f" right="#0f172a" />
+          <Windows x={25.8} y={9.2} cols={5} rows={4} h={88} tone="#6EE7A8" />
           <RoofSolar x={27.05} y={9.85} elev={88} />
-          <Sign x={27.05} y={9.25} elev={88} label="TOWER" bg="#334155" />
+          <Sign x={27.05} y={9.25} elev={88} label="TOWER" bg="#0F172A" />
 
-          <Box x={30.4} y={9.05} w={2.4} d={1.3} h={72} top="#FFF1F2" left="#E2E8F0" right="#64748B" />
+          <Box x={30.4} y={9.05} w={2.4} d={1.3} h={72} top="#261820" left="#181014" right="#64748B" />
           <Windows x={30.4} y={9.05} cols={4} rows={3} h={72} tone="#FECACA" />
           <Sign x={31.6} y={9.1} elev={72} label="INN" bg="#9F1239" width={56} />
         </g>
 
         <polygon
           points={`${iso(7.4, 10.4).x},${iso(7.4, 10.4).y} ${iso(10.9, 10.4).x},${iso(10.9, 10.4).y} ${iso(10.9, 10.95).x},${iso(10.9, 10.95).y} ${iso(7.4, 10.95).x},${iso(7.4, 10.95).y}`}
-          fill="#E2E8F0"
+          fill="#1e293b"
         />
 
-        <polygon points={diamond(-8.6, 1.15, 4.2)} fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.1" />
+        <polygon points={diamond(-8.6, 1.15, 4.2)} fill="#0f1c18" stroke="#18B368" strokeWidth="1.4" />
         <text
           x={iso(-6.5, 1.2).x}
           y={iso(-6.5, 1.2).y - 6}
           textAnchor="middle"
-          fill="#0F172A"
+          fill="#6EE7A8"
           fontSize="10"
           fontWeight="800"
           fontFamily="system-ui,sans-serif"
@@ -497,12 +507,12 @@ export default function EvuddyEcosystem() {
           </>
         ) : null}
 
-        <polygon points={diamond(8.7, 1.25, 3.3)} fill="#ECFDF5" stroke="#18B368" strokeWidth="1.3" />
+        <polygon points={diamond(8.7, 1.25, 3.3)} fill="#082018" stroke="#38bdf8" strokeWidth="1.5" />
         <text
           x={iso(10.3, 1.3).x}
           y={iso(10.3, 1.3).y - 8}
           textAnchor="middle"
-          fill="#0F172A"
+          fill="#7dd3fc"
           fontSize="10"
           fontWeight="800"
           fontFamily="system-ui,sans-serif"
@@ -520,12 +530,12 @@ export default function EvuddyEcosystem() {
 
         <polygon
           points={`${iso(-13.4, 8.95).x},${iso(-13.4, 8.95).y} ${iso(-7.2, 8.95).x},${iso(-7.2, 8.95).y} ${iso(-7.2, 11.15).x},${iso(-7.2, 11.15).y} ${iso(-13.4, 11.15).x},${iso(-13.4, 11.15).y}`}
-          fill="#D1FAE5"
+          fill="#082018"
           stroke="#18B368"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
         />
-        <Box x={-12.8} y={9.15} w={4.4} d={1.45} h={62} top="#ECFDF5" left="#6EE7B7" right="#18B368" />
-        <Windows x={-12.8} y={9.15} cols={7} rows={2} h={62} tone="#BBF7D0" />
+        <Box x={-12.8} y={9.15} w={4.4} d={1.45} h={62} top="#10382a" left="#0c241c" right="#18B368" />
+        <Windows x={-12.8} y={9.15} cols={7} rows={2} h={62} tone="#6EE7A8" />
         <RoofSolar x={-10.6} y={9.8} elev={62} />
         <Sign x={-10.6} y={9.15} elev={78} label="EVUDDY HUB" bg="#0F172A" width={110} />
 
@@ -598,6 +608,44 @@ export default function EvuddyEcosystem() {
           </>
         ) : null}
       </svg>
+
+      <div className="pointer-events-none absolute left-3 top-3 hidden max-w-[15rem] rounded-2xl border border-[#18B368]/30 bg-black/55 p-3 text-white backdrop-blur-xl sm:block">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#6EE7A8]">Pickup yard</p>
+        <p className="mt-1 text-xs leading-5 text-white/65">OTP at the gate. Scooters leave only after first payment.</p>
+      </div>
+      <div className="pointer-events-none absolute right-3 top-[38%] hidden max-w-[14rem] rounded-2xl border border-sky-400/25 bg-black/55 p-3 text-white backdrop-blur-xl lg:block">
+        <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-sky-300">EV charge</p>
+        <p className="mt-1 text-xs leading-5 text-white/65">Packs stay at the hub. Swaps never dump a live ride.</p>
+      </div>
+
+      <div className="pointer-events-none absolute inset-x-3 bottom-3 z-10 flex flex-wrap items-end justify-between gap-2">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { n: "Hub", l: "Live yard" },
+            { n: "IoT", l: "GPS lock" },
+            { n: "OTP", l: "Pickup" },
+          ].map((item) => (
+            <div
+              key={item.l}
+              className="rounded-xl border border-white/10 bg-black/60 px-3 py-2 backdrop-blur-xl"
+            >
+              <p className="text-sm font-semibold text-white">{item.n}</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">{item.l}</p>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white/80 backdrop-blur-xl">
+            <i className="h-2 w-2 rounded-full bg-[#18B368] shadow-[0_0_8px_#18B368]" /> Hub
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white/80 backdrop-blur-xl">
+            <i className="h-2 w-2 rounded-full bg-sky-400 shadow-[0_0_8px_#38bdf8]" /> Charge
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white/80 backdrop-blur-xl">
+            <i className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]" /> Fleet
+          </span>
+        </div>
+      </div>
     </div>
   );
 }

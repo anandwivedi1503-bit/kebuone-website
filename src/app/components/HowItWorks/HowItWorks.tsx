@@ -66,7 +66,7 @@ export default function HowItWorks() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="relative overflow-hidden rounded-[24px] border border-slate-100 bg-[#F7FBF8] p-5 sm:p-7"
+                className="relative overflow-hidden rounded-[24px] border border-slate-100 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-7"
               >
                 <span className="absolute right-4 top-3 text-5xl font-black text-[#18B368]/10">
                   {step.n}

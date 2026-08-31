@@ -13,7 +13,7 @@ const specs = [
 
 export default function Services() {
   return (
-    <section id="services" className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-28">
+    <section id="services" className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-28 before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-16 before:bg-gradient-to-b before:from-[#05090D] before:to-transparent">
       <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/10 blur-[110px]" />
       <div className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-[#EC2A8C]/8 blur-[100px]" />
 
@@ -78,7 +78,7 @@ export default function Services() {
             return (
               <div
                 key={spec.label}
-                className="rounded-[22px] border border-slate-100 bg-[#F7FBF8] p-4 text-center sm:rounded-[28px] sm:p-7"
+                className="rounded-[22px] border border-slate-100/80 bg-white/70 p-4 text-center shadow-[0_12px_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 hover:shadow-[0_20px_50px_rgba(24,179,104,0.12)] sm:rounded-[28px] sm:p-7"
               >
                 <Icon size={28} className={`mx-auto mb-3 ${spec.color}`} />
                 <p className={`text-3xl font-black sm:text-5xl ${spec.color}`}>{spec.value}</p>

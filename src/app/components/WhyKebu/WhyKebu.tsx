@@ -75,7 +75,7 @@ export default function WhyChoose() {
               return (
                 <div
                   key={item.title}
-                  className="rounded-[24px] border border-white bg-white p-5 shadow-sm sm:p-6"
+                  className="rounded-[24px] border border-white bg-white/80 p-5 shadow-sm backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(24,179,104,0.12)] sm:p-6"
                 >
                   <Icon className="text-[#18B368]" size={28} />
                   <h4 className="mt-4 text-lg font-bold text-[#0F172A]">{item.title}</h4>

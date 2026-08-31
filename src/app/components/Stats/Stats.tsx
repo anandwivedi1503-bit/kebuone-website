@@ -69,7 +69,7 @@ export default function PartnerSection() {
               {benefits.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="rounded-2xl bg-[#F7FBF8] p-4">
+                  <div key={item.title} className="rounded-2xl bg-[#F7FBF8] p-4 transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(24,179,104,0.1)]">
                     <Icon className="text-[#18B368]" size={26} />
                     <h4 className="mt-3 font-bold text-[#0F172A]">{item.title}</h4>
                     <p className="mt-1 text-sm leading-6 text-slate-500">{item.text}</p>
