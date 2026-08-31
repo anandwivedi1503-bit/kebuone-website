@@ -1,7 +1,9 @@
 import {
   isAdminAuthenticated,
+  requireAdminDashboards,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
@@ -53,9 +55,8 @@ export async function GET(req: Request) {
     /*
      * ADMIN AUTHENTICATION
      */
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.walletRead);
+    if (gate.error) return gate.error;
 
     await connectDB();
 
@@ -211,9 +212,8 @@ export async function POST(req: Request) {
     /*
      * ADMIN AUTHENTICATION
      */
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.walletWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

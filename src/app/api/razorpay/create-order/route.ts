@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { isAdminAuthenticated } from "@/lib/adminAuth";
+import { isAdminAuthenticated, requireAdminDashboards } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
 import { connectDB } from "@/lib/mongodb";
 import {
@@ -99,6 +100,10 @@ export async function POST(req: Request) {
     }
 
     const isAdminRequest = await isAdminAuthenticated().catch(() => false);
+    if (isAdminRequest) {
+      const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
+      if (gate.error) return gate.error;
+    }
 
     if (!isAdminRequest) {
       const firebaseUser = await getVerifiedFirebaseUser(

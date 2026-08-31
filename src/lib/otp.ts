@@ -21,3 +21,15 @@ export function isOtpExpired(expiry: Date | string | null | undefined) {
   if (Number.isNaN(when.getTime())) return false;
   return when.getTime() < Date.now();
 }
+
+export function otpMatches(stored: unknown, submitted: unknown) {
+  const left = String(stored || "").trim();
+  const right = String(submitted || "").trim();
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return (
+    leftBuffer.length > 0 &&
+    leftBuffer.length === rightBuffer.length &&
+    crypto.timingSafeEqual(leftBuffer, rightBuffer)
+  );
+}

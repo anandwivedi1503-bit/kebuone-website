@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 import {
-  isAdminAuthenticated,
-  unauthorizedResponse,
+  requireAdminDashboards,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
-import { generateSixDigitOtp, isOtpExpired } from "@/lib/otp";
+import { generateSixDigitOtp, isOtpExpired, otpMatches } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -29,9 +29,8 @@ export async function POST(req: Request) {
 
   try {
     await connectDB();
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.yardRide);
+    if (gate.error) return gate.error;
 
     const { bookingId, endHub, rideEndOTP } = await req.json();
     if (!endHub?.trim()) {
@@ -133,7 +132,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (String(booking.rideEndOTP || "").trim() !== String(rideEndOTP || "").trim()) {
+    if (!otpMatches(booking.rideEndOTP, rideEndOTP)) {
       await rollback(session);
       return NextResponse.json(
         { success: false, message: "Invalid Ride End OTP." },

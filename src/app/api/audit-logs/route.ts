@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
 import { connectDB } from "@/lib/mongodb";
 import AuditLog from "@/models/AuditLog";
 
 export async function GET(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.audit);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

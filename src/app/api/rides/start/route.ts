@@ -2,12 +2,12 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 import {
-  isAdminAuthenticated,
-  unauthorizedResponse,
+  requireAdminDashboards,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
-import { isOtpExpired } from "@/lib/otp";
+import { isOtpExpired, otpMatches } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -30,9 +30,8 @@ export async function POST(req: Request) {
   let session: mongoose.ClientSession | null = null;
 
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.yardRide);
+    if (gate.error) return gate.error;
 
     await connectDB();
 
@@ -113,7 +112,7 @@ export async function POST(req: Request) {
       });
     }
 
-    if (String(booking.pickupOTP || "").trim() !== normalizedPickupOTP) {
+    if (!otpMatches(booking.pickupOTP, normalizedPickupOTP)) {
       await rollback(session);
       session = null;
 

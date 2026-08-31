@@ -1,8 +1,10 @@
 import {
   denyStaffDeletes,
   isAdminAuthenticated,
+  requireAdminDashboards,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
@@ -145,9 +147,8 @@ export async function PATCH(
   try {
     await connectDB();
 
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
+    if (gate.error) return gate.error;
 
     const { id } = await params;
 

@@ -1,7 +1,5 @@
-import {
-  isAdminAuthenticated,
-  unauthorizedResponse,
-} from "@/lib/adminAuth";
+import { requireAdminDashboards } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
@@ -12,9 +10,8 @@ import Booking from "@/models/Booking";
 export async function POST(req: Request) {
   try {
 
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.yardRide);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

@@ -1,4 +1,6 @@
-import { denyStaffDeletes, isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { denyStaffDeletes, isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
@@ -47,9 +49,8 @@ export async function GET(
 ) {
   try {
 
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.transactions);
+    if (gate.error) return gate.error;
 
     await connectDB();
 
@@ -96,9 +97,8 @@ export async function PATCH(
 
   try {
 
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.transactions);
+    if (gate.error) return gate.error;
 
     await connectDB();
 
@@ -247,9 +247,8 @@ export async function DELETE(
 
   try {
 
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.transactions);
+    if (gate.error) return gate.error;
     const blockedDelete = await denyStaffDeletes();
     if (blockedDelete) return blockedDelete;
 

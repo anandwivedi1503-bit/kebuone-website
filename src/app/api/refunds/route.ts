@@ -1,4 +1,6 @@
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { isAdminAuthenticated,
+  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
@@ -33,9 +35,8 @@ function normalizeStatus(value: unknown) {
 
 export async function POST(req: Request) {
   try {
-   if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+   const gate = await requireAdminDashboards(...API_DASHBOARDS.refunds);
+    if (gate.error) return gate.error;
         
     await connectDB();
 
@@ -188,9 +189,8 @@ if (existingBookingRefund) {
 
 export async function GET(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-  return unauthorizedResponse();
-}
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.refunds);
+    if (gate.error) return gate.error;
     await connectDB();
 
     const parsed = parseListQuery(req);

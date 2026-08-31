@@ -777,8 +777,6 @@ setStep(2);
       setFirebaseIdToken(token);
       setRiderPhone(normalizedPhone);
 
-      const newBookingId = "BK-" + Date.now();
-
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -786,7 +784,7 @@ setStep(2);
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          bookingId: newBookingId,
+          bookingRequestId: crypto.randomUUID(),
           userName: riderName,
           userPhone: normalizedPhone,
           riderId,
@@ -825,7 +823,14 @@ referenceBy,
   return;
 }
 
-      setBookingId(newBookingId);
+      const createdId = String(
+        bookingData.data?.bookingId || bookingData.bookingId || ""
+      );
+      if (!createdId) {
+        setError("Booking was created but no booking ID was returned.");
+        return;
+      }
+      setBookingId(createdId);
       setBookingMongoId(bookingData.data._id);
       const reservedTotal = Number(
         bookingData.data.paymentDue ||
@@ -1540,10 +1545,8 @@ gap-4
           </div>
         )}
 
-        <div className="mb-14 print:hidden">
-
-  <div className="overflow-x-auto">
-  <div className="flex min-w-[700px] items-center justify-between">
+        <div className="mb-10 print:hidden">
+  <div className="flex items-start justify-between gap-1 sm:gap-2">
 
     {[
       {
@@ -1572,29 +1575,20 @@ gap-4
 
         <div
           key={item.title}
-          className="flex flex-1 items-center"
+          className="flex min-w-0 flex-1 items-center"
         >
 
-          <div className="flex flex-col items-center">
+          <div className="flex min-w-0 flex-col items-center">
 
             <div
               className={`
-w-14
-h-14
-rounded-full
-flex
-items-center
-justify-center
-text-2xl
-transition-all
-duration-500
-shadow-lg
+flex h-10 w-10 items-center justify-center rounded-full text-base shadow-md transition-all duration-500 sm:h-14 sm:w-14 sm:text-2xl
 ${
 done
-? "bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white scale-110"
+? "scale-105 bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white sm:scale-110"
 : onStep
-? "bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white scale-110"
-: "bg-white border border-slate-200 text-slate-500"
+? "scale-105 bg-gradient-to-br from-[#16A34A] to-[#18B368] text-white sm:scale-110"
+: "border border-slate-200 bg-white text-slate-500"
 }
 `}
             >
@@ -1605,11 +1599,7 @@ done
 
             <h3
               className={`
-mt-4
-text-[15px]
-font-bold
-transition-all
-duration-300
+mt-2 text-center text-[11px] font-bold sm:mt-4 sm:text-[15px]
 ${
 done || onStep
 ? "text-[#16A34A]"
@@ -1628,13 +1618,7 @@ done || onStep
 
             <div
               className={`
-mx-4
-mb-8
-h-[4px]
-flex-1
-rounded-full
-transition-all
-duration-500
+mx-1 mb-6 h-[2px] flex-1 rounded-full sm:mx-4 sm:mb-8 sm:h-[4px]
 ${
 step > index + 1
 ? "bg-gradient-to-r from-[#16A34A] to-[#22C55E]"
@@ -1652,8 +1636,6 @@ step > index + 1
     })}
 
   </div>
-
-</div>
 </div>
           
 <div className="grid gap-10 lg:grid-cols-[1.38fr_0.62fr]">

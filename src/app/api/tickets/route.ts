@@ -3,8 +3,10 @@ import { NextResponse } from "next/server";
 
 import {
   isAdminAuthenticated,
+  requireAdminDashboards,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import { publicApiError } from "@/lib/publicError";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
@@ -385,9 +387,8 @@ export async function POST(req: Request) {
 
 export async function GET(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.tickets);
+    if (gate.error) return gate.error;
 
     await connectDB();
 

@@ -1,7 +1,11 @@
 import {
+  getAdminSession,
   isAdminAuthenticated,
+  requireAdminDashboards,
+  sessionHasAnyDashboard,
   unauthorizedResponse,
 } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
@@ -83,9 +87,8 @@ function numberOrDefault(
 
 export async function POST(req: Request) {
   try {
-    if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.vehiclesWrite);
+    if (gate.error) return gate.error;
 
     await connectDB();
 
@@ -560,10 +563,10 @@ export async function GET() {
     await connectDB();
     void maybeSweepUnpaidBookings();
 
-    const isAdmin =
-      await isAdminAuthenticated().catch(
-        () => false
-      );
+    const isAdmin = sessionHasAnyDashboard(
+      await getAdminSession(),
+      ...API_DASHBOARDS.vehiclesRead
+    );
 
     if (isAdmin) {
       const vehicles =

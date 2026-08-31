@@ -1,6 +1,7 @@
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
+import { isAdminAuthenticated, requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
@@ -24,6 +25,7 @@ import {
 import { publicApiError } from "@/lib/publicError";
 import { applyOpsListFilters, listResponse, parseListQuery, redactBookingOtps } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
+import { nextBookingId } from "@/lib/nextBookingId";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
@@ -87,9 +89,8 @@ async function findActiveRider(
 
 export async function GET(req: Request) {
   try {
-        if (!(await isAdminAuthenticated())) {
-      return unauthorizedResponse();
-    }
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsRead);
+    if (gate.error) return gate.error;
     await connectDB();
     void maybeSweepUnpaidBookings();
 
@@ -167,7 +168,6 @@ export async function POST(req: Request) {
     session.startTransaction();
 
     const body = await req.json();
-    const bookingId = clean(body.bookingId);
     const submittedName = clean(body.userName);
     let userName = submittedName;
     const userPhone = normalizeIndianPhone(body.userPhone);
@@ -187,32 +187,19 @@ const hubAliases = Array.from(
     const isAdminRequest = await isAdminAuthenticated().catch(
       () => false
     );
+    if (isAdminRequest) {
+      const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
+      if (gate.error) {
+        await session.abortTransaction();
+        await session.endSession();
+        return gate.error;
+      }
+    }
     const firebaseUser = isAdminRequest
       ? null
       : await getVerifiedFirebaseUser(req, body.firebaseIdToken);
 
     const errors: string[] = [];
-    const existingBooking = await Booking.findOne(
-  { bookingId },
-  null,
-  { session }
-);
-
-if (existingBooking) {
-
-  await session.abortTransaction();
-  await session.endSession();
-
-  return NextResponse.json(
-    {
-      success: false,
-      errors: ["Booking ID already exists."],
-    },
-    { status: 409 }
-  );
-}
-
-    if (!idRegex.test(bookingId)) errors.push("Valid booking ID is required.");
     if (
       !isAdminRequest &&
       !firebasePhoneMatches(firebaseUser, userPhone)
@@ -565,6 +552,11 @@ if (body.bookingRequestId) {
     }
 
 }
+
+const bookingId = await nextBookingId(
+  rentalMode === "Rent To Own" ? "RTO" : "BK",
+  session
+);
 
 const riderLock = await Rider.findOneAndUpdate(
   {
