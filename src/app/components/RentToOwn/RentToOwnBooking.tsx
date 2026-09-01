@@ -17,6 +17,7 @@ import {
 import {
   loadRtoDraft,
   markRiderBookingLock,
+  rememberRiderProfile,
   saveRtoDraft,
   setChosenPlan,
   syncPlanFromActiveBooking,
@@ -290,6 +291,11 @@ export default function RentToOwnBooking() {
         setRiderId(data.data.riderId || "");
         setRiderEmail(data.data.email || "");
         setWalletAvailable(Number(data.data.walletAvailable ?? data.data.walletBalance ?? 0));
+        rememberRiderProfile({
+          riderId: data.data.riderId,
+          phone,
+          name: data.data.fullName,
+        });
       }
       try {
         const mineRes = await fetch("/api/bookings/mine", {

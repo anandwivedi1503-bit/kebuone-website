@@ -20,6 +20,7 @@ import RideSwipeControl from "./RideSwipeControl";
 import {
   loadRentalDraft,
   markRiderBookingLock,
+  rememberRiderProfile,
   saveRentalDraft,
   setChosenPlan,
   syncPlanFromActiveBooking,
@@ -416,6 +417,11 @@ useEffect(() => {
       setRiderPhone(rider.phone || "");
       setRiderEmail(rider.email || "");
       setRiderId(rider.riderId || "");
+      rememberRiderProfile({
+        riderId: rider.riderId,
+        phone: rider.phone || phone,
+        name: rider.fullName,
+      });
       setWalletAvailable(Number(rider.walletAvailable ?? rider.walletBalance ?? 0));
       setWalletStatus(String(rider.walletStatus || ""));
       const mineRes = await fetch("/api/bookings/mine", {
