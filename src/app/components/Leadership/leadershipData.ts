@@ -42,13 +42,12 @@ export const board: LeaderPoster[] = [
   },
 ];
 
-/** Second row under board leadership posters. */
-export const teamRow: TeamMember[] = [
+export const team: TeamMember[] = [
   {
-    id: "designer",
-    name: "Akanksha Maurya",
-    role: "Graphic Designer",
-    image: "/leadership/designer.png",
+    id: "technology",
+    name: "Anand Dhar Dwivedi",
+    role: "Software Development Engineer (SDE)",
+    image: "/anand-sde.png",
   },
   {
     id: "admin-front-desk",
@@ -56,14 +55,11 @@ export const teamRow: TeamMember[] = [
     role: "Admin & Front Desk",
     image: "/leadership/admin-and-telecaller.png",
   },
-];
-
-export const team: TeamMember[] = [
   {
-    id: "technology",
-    name: "Anand Dhar Dwivedi",
-    role: "Software Development Engineer (SDE)",
-    image: "/anand-sde.png",
+    id: "designer",
+    name: "Akanksha Maurya",
+    role: "Graphic Designer",
+    image: "/leadership/designer.png",
   },
   { id: "operations", name: "Team member", role: "Operations", image: "" },
   { id: "finance", name: "Team member", role: "Finance", image: "" },
