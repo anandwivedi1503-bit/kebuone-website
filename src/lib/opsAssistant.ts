@@ -113,6 +113,87 @@ function moneyDanger(question: string) {
   );
 }
 
+/** Fast live pulse for the ops command center (Uber/Ola-style control tower). */
+export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]> {
+  await connectDB();
+  const stats: OpsStat[] = [];
+  const tasks: Array<Promise<void>> = [];
+
+  if (can(session, API_DASHBOARDS.bookingsRead)) {
+    tasks.push(
+      (async () => {
+        const [unpaid, inRide, rtoDue] = await Promise.all([
+          Booking.countDocuments({
+            ...NOT_DELETED_FILTER,
+            paymentStatus: { $in: ["Pending", "Partial"] },
+          }).maxTimeMS(1800),
+          Booking.countDocuments({
+            ...NOT_DELETED_FILTER,
+            rideStatus: "In Ride",
+          }).maxTimeMS(1800),
+          Booking.countDocuments({
+            ...NOT_DELETED_FILTER,
+            rentalMode: "Rent To Own",
+            paymentStatus: { $in: ["Pending", "Partial"] },
+          }).maxTimeMS(1800),
+        ]);
+        stats.push(
+          { label: "Unpaid", value: String(unpaid), dashboard: "bookings" },
+          { label: "In ride", value: String(inRide), dashboard: "fleet" },
+          { label: "RTO due", value: String(rtoDue), dashboard: "renttoown" }
+        );
+      })()
+    );
+  }
+  if (can(session, API_DASHBOARDS.tickets)) {
+    tasks.push(
+      (async () => {
+        const open = await Ticket.countDocuments({
+          ...NOT_DELETED_FILTER,
+          status: { $in: ["OPEN", "IN-PROGRESS"] },
+        }).maxTimeMS(1800);
+        stats.push({ label: "Tickets", value: String(open), dashboard: "support" });
+      })()
+    );
+  }
+  if (can(session, API_DASHBOARDS.ridersRead)) {
+    tasks.push(
+      (async () => {
+        const pending = await Rider.countDocuments({
+          ...NOT_DELETED_FILTER,
+          $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
+        }).maxTimeMS(1800);
+        stats.push({ label: "KYC", value: String(pending), dashboard: "kyc" });
+      })()
+    );
+  }
+  if (can(session, API_DASHBOARDS.vehiclesRead)) {
+    tasks.push(
+      (async () => {
+        const available = await Vehicle.countDocuments({
+          ...NOT_DELETED_FILTER,
+          vehicleStatus: "Available",
+        }).maxTimeMS(1800);
+        stats.push({ label: "Available", value: String(available), dashboard: "vehicles" });
+      })()
+    );
+  }
+  if (can(session, API_DASHBOARDS.refunds)) {
+    tasks.push(
+      (async () => {
+        const pending = await Refund.countDocuments({
+          ...NOT_DELETED_FILTER,
+          status: "PENDING",
+        }).maxTimeMS(1800);
+        stats.push({ label: "Refunds", value: String(pending), dashboard: "refunds" });
+      })()
+    );
+  }
+
+  await Promise.all(tasks);
+  return stats;
+}
+
 export async function runOpsAssistant(
   session: AdminSessionInfo,
   question: string,

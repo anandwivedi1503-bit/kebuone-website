@@ -1,8 +1,20 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Bike, HelpCircle, IndianRupee, KeyRound, Mic, MicOff, Send, Sparkles } from "lucide-react";
+import {
+  Bike,
+  CircleHelp,
+  Headset,
+  IndianRupee,
+  KeyRound,
+  MapPin,
+  Mic,
+  MicOff,
+  Send,
+  Sparkles,
+  Ticket,
+} from "lucide-react";
 
 import AssistantFab from "@/app/components/Assistant/AssistantFab";
 import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
@@ -14,12 +26,43 @@ type Turn = { role: "user" | "assistant"; content: string; href?: string };
 const SAFE_HREF =
   /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers)(\?[\w=&%-]*)?$/;
 
-const QUICK_ACTIONS = [
-  { label: "Book EV", ask: "How do I book a scooter?", icon: Bike },
-  { label: "Rates", ask: "What are the rental rates?", icon: IndianRupee },
-  { label: "Deposit", ask: "How does the security deposit work?", icon: KeyRound },
-  { label: "Rent to Own", ask: "What is Rent to Own?", icon: Sparkles },
-  { label: "हिन्दी मदद", ask: "स्कूटर कैसे बुक करें?", icon: HelpCircle },
+const HELP_TOPICS = [
+  {
+    label: "Book a ride",
+    ask: "How do I book a scooter?",
+    icon: Bike,
+    blurb: "KYC → pick hub → pay",
+  },
+  {
+    label: "Rates",
+    ask: "What are the rental rates?",
+    icon: IndianRupee,
+    blurb: "Hourly to monthly",
+  },
+  {
+    label: "Pickup OTP",
+    ask: "How does pickup OTP work?",
+    icon: MapPin,
+    blurb: "After first payment",
+  },
+  {
+    label: "Deposit",
+    ask: "How does the security deposit work?",
+    icon: KeyRound,
+    blurb: "Refund after return",
+  },
+  {
+    label: "Rent to Own",
+    ask: "What is Rent to Own?",
+    icon: Sparkles,
+    blurb: "₹280 / day · 18 months",
+  },
+  {
+    label: "Support",
+    ask: "How do I contact support?",
+    icon: Headset,
+    blurb: "Ticket or email",
+  },
 ] as const;
 
 export default function EvuddyAssistant() {
@@ -28,21 +71,57 @@ export default function EvuddyAssistant() {
   const voice = useVoiceAssistant();
   const bottomRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"home" | "chat">("home");
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [speakBack, setSpeakBack] = useState(true);
   const [language, setLanguage] = useState("auto");
+  const [riderName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    try {
+      return localStorage.getItem("kebu_rider_name") || "";
+    } catch {
+      return "";
+    }
+  });
+  const [hasRider] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return Boolean(
+        localStorage.getItem("kebu_rider_id") || localStorage.getItem("kebu_rider_name")
+      );
+    } catch {
+      return false;
+    }
+  });
   const [turns, setTurns] = useState<Turn[]>([
     {
       role: "assistant",
       content:
-        "Hi, I’m Eva — EVUDDY’s in-app ride buddy (like Uber/Ola/Rapido support). Ask booking, rates, KYC, deposit, or Rent to Own. Tap a chip or the mic (Hindi/English). I guide you fast — I never take payment or OTP.",
+        "Hi, I’m Eva — EVUDDY ride help. Tap a topic or type like Uber/Ola in-app help. I open the right page. I never take payment, OTP, or unlock.",
     },
   ]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
-  }, [turns, loading, voice.status, open]);
+  }, [turns, loading, voice.status, view, open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        setView("home");
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const greeting = useMemo(() => {
+    if (riderName) return `Hi ${riderName.split(" ")[0]} — need help with your ride?`;
+    return "How can Eva help you ride today?";
+  }, [riderName]);
 
   if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin-login")) {
     return null;
@@ -56,6 +135,7 @@ export default function EvuddyAssistant() {
   const ask = async (text: string) => {
     const asked = text.trim();
     if (asked.length < 2 || loading) return;
+    setView("chat");
     setQuestion("");
     const nextTurns = [...turns, { role: "user" as const, content: asked }];
     setTurns(nextTurns);
@@ -93,32 +173,82 @@ export default function EvuddyAssistant() {
   };
 
   return (
-    <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90] flex max-h-[calc(100dvh-1rem)] flex-col items-end gap-3 sm:right-6">
+    <>
+      <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[96] print:hidden sm:right-6">
+        <AssistantFab
+          open={open}
+          onClick={() => {
+            setOpen((value) => !value);
+            if (!open) setView("home");
+          }}
+          label="Ask Eva"
+          ariaLabel={open ? "Close EVUDDY assistant" : "Open EVUDDY assistant"}
+          tone="rider"
+        />
+      </div>
+
       {open ? (
+        <div className="fixed inset-0 z-[95] flex items-end justify-center bg-[#0B1B16]/45 px-3 py-4 backdrop-blur-[3px] print:hidden sm:items-center sm:py-10">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="Close Eva backdrop"
+            onClick={() => {
+              setOpen(false);
+              setView("home");
+            }}
+          />
+          <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0">
         <AssistantShell
           title="Eva"
-          subtitle="Hindi · voice · booking help"
+          subtitle="In-app ride help · Hindi + voice"
           language={language}
           onLanguage={setLanguage}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            setView("home");
+          }}
           speakBack={speakBack}
           onSpeakBack={() => setSpeakBack((value) => !value)}
           chips={
             <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {QUICK_ACTIONS.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <button
-                    key={action.label}
-                    type="button"
-                    onClick={() => void ask(action.ask)}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm hover:border-[#18B368] hover:text-[#0B1B16]"
-                  >
-                    <Icon size={13} className="text-[#18B368]" />
-                    {action.label}
-                  </button>
-                );
-              })}
+              <button
+                type="button"
+                onClick={() => setView("home")}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${
+                  view === "home"
+                    ? "bg-[#0B1B16] text-white"
+                    : "border border-slate-200 bg-white text-slate-700"
+                }`}
+              >
+                <CircleHelp size={13} />
+                Help home
+              </button>
+              {hasRider ? (
+                <button
+                  type="button"
+                  onClick={() => go("/book-bike")}
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#18B368]/30 bg-[#18B368]/10 px-3 py-1.5 text-[11px] font-bold text-[#0F7A45]"
+                >
+                  <Bike size={13} />
+                  My ride
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void ask("स्कूटर कैसे बुक करें?")}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700"
+              >
+                हिन्दी
+              </button>
+              <button
+                type="button"
+                onClick={() => go("/contact")}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700"
+              >
+                <Ticket size={13} className="text-[#18B368]" />
+                Human help
+              </button>
             </div>
           }
           footer={
@@ -169,50 +299,92 @@ export default function EvuddyAssistant() {
             </form>
           }
         >
-          {turns.map((turn, index) =>
-            turn.role === "user" ? (
-              <div key={`u-${index}`} className="ml-10 flex justify-end">
-                <div className="rounded-2xl rounded-tr-md bg-gradient-to-br from-[#18B368] to-[#12995A] px-3.5 py-2.5 text-sm font-medium text-white shadow-sm">
-                  {turn.content}
+          {view === "home" ? (
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-slate-100 bg-white px-3.5 py-3 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-9 w-9 overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-slate-200">
+                    <AssistantLogo size={36} />
+                  </span>
+                  <div>
+                    <p className="text-sm font-black text-[#0F172A]">{greeting}</p>
+                    <p className="text-[11px] text-slate-500">
+                      Instant answers · open the right page · never takes payment
+                    </p>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div key={`a-${index}`} className="mr-6 flex items-end gap-2">
-                <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-slate-200">
-                  <AssistantLogo size={28} />
-                </span>
-                <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm">
-                  {turn.content}
-                  {turn.href ? (
+              <div className="grid grid-cols-2 gap-2">
+                {HELP_TOPICS.map((topic) => {
+                  const Icon = topic.icon;
+                  return (
                     <button
+                      key={topic.label}
                       type="button"
-                      onClick={() => go(turn.href)}
-                      className="mt-2 inline-flex items-center rounded-full bg-[#18B368]/10 px-3 py-1 text-xs font-bold text-[#0F7A45]"
+                      onClick={() => void ask(topic.ask)}
+                      className="rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-[#18B368] hover:shadow-md"
                     >
-                      Open page →
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#18B368]/10 text-[#0F7A45]">
+                        <Icon size={16} />
+                      </span>
+                      <p className="mt-2 text-sm font-black text-[#0F172A]">{topic.label}</p>
+                      <p className="text-[11px] text-slate-500">{topic.blurb}</p>
                     </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setView("chat")}
+                className="w-full rounded-2xl bg-[#0B1B16] px-3 py-2.5 text-sm font-bold text-white"
+              >
+                Type or speak to Eva →
+              </button>
+            </div>
+          ) : (
+            <>
+              {turns.map((turn, index) =>
+                turn.role === "user" ? (
+                  <div key={`u-${index}`} className="ml-10 flex justify-end">
+                    <div className="rounded-2xl rounded-tr-md bg-gradient-to-br from-[#18B368] to-[#12995A] px-3.5 py-2.5 text-sm font-medium text-white shadow-sm">
+                      {turn.content}
+                    </div>
+                  </div>
+                ) : (
+                  <div key={`a-${index}`} className="mr-6 flex items-end gap-2">
+                    <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-slate-200">
+                      <AssistantLogo size={28} />
+                    </span>
+                    <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm">
+                      {turn.content}
+                      {turn.href ? (
+                        <button
+                          type="button"
+                          onClick={() => go(turn.href)}
+                          className="mt-2 inline-flex items-center rounded-full bg-[#18B368]/10 px-3 py-1 text-xs font-bold text-[#0F7A45]"
+                        >
+                          Open page →
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                )
+              )}
+              {loading || voice.status ? (
+                <div className="space-y-1">
+                  {loading ? <TypingDots /> : null}
+                  {voice.status ? (
+                    <p className="pl-9 text-xs font-semibold text-slate-400">{voice.status}</p>
                   ) : null}
                 </div>
-              </div>
-            )
+              ) : null}
+              <div ref={bottomRef} />
+            </>
           )}
-          {loading || voice.status ? (
-            <div className="space-y-1">
-              {loading ? <TypingDots /> : null}
-              {voice.status ? <p className="pl-9 text-xs font-semibold text-slate-400">{voice.status}</p> : null}
-            </div>
-          ) : null}
-          <div ref={bottomRef} />
         </AssistantShell>
+          </div>
+        </div>
       ) : null}
-
-      <AssistantFab
-        open={open}
-        onClick={() => setOpen((value) => !value)}
-        label="Ask Eva"
-        ariaLabel={open ? "Close EVUDDY assistant" : "Open EVUDDY assistant"}
-        tone="rider"
-      />
-    </div>
+    </>
   );
 }

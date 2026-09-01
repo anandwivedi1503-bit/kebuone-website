@@ -73,7 +73,7 @@ useState(false);
 
 
 const applyExistingFirebaseSession = async (typedPhone = "") => {
-  const user = auth.currentUser;
+  const user = auth?.app ? auth.currentUser : null;
   const sessionPhone = indianMobile(user?.phoneNumber || "");
   const typed = indianMobile(typedPhone);
   if (!user || !phoneRegex.test(sessionPhone)) {
@@ -102,6 +102,7 @@ useEffect(() => {
 }, []);
 
 useEffect(() => {
+  if (!auth?.app) return;
   const unsubscribe = onAuthStateChanged(auth, () => {
     void applyExistingFirebaseSession();
   });

@@ -506,6 +506,8 @@ useEffect(() => {
     }
   };
 
+  if (!auth?.app) return;
+
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (user?.phoneNumber) {
       const token = await user.getIdToken();

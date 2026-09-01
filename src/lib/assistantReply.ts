@@ -59,6 +59,12 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     en: "Email info@kebuone.in or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues. Hub staff see it on Support.",
     hi: "ईमेल info@kebuone.in या संपर्क पेज इस्तेमाल करें। पेमेंट के बाद Book EV पर Need help? है। हब स्टाफ Support पर देखते हैं।",
   },
+  {
+    keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक"],
+    href: "/book-bike",
+    en: "After your first payment (≥ ₹1), Book EV shows a Pickup OTP. Tell it to the yard. They unlock the scooter. Then swipe Ride started. I cannot enter OTP for you.",
+    hi: "पहली पेमेंट (≥ ₹1) के बाद Book EV पर Pickup OTP दिखता है। हब पर बताएँ — वे अनलॉक करेंगे। फिर Ride started स्वाइप करें। मैं OTP नहीं डाल सकता।",
+  },
 ];
 
 function clean(text: string) {

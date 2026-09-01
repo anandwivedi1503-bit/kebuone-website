@@ -14,7 +14,7 @@ import {
 
 import { onAuthStateChanged } from "firebase/auth";
 
-import { auth } from "@/lib/firebase";
+import { firebaseAuth } from "@/lib/firebase";
 import {
   getChosenPlan,
   getRiderProfile,
@@ -118,12 +118,14 @@ export default function Navbar() {
       setRiderLoggedIn(hasRiderPlanReady() || Boolean(profile.phone));
     };
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      refreshSession();
-      if (user?.phoneNumber) {
-        setRiderLoggedIn(true);
-      }
-    });
+    const unsubscribe = firebaseAuth
+      ? onAuthStateChanged(firebaseAuth, (user) => {
+          refreshSession();
+          if (user?.phoneNumber) {
+            setRiderLoggedIn(true);
+          }
+        })
+      : () => {};
 
     window.addEventListener(RIDER_SESSION_EVENT, refreshSession);
     window.addEventListener("storage", refreshSession);

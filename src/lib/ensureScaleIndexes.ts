@@ -1,5 +1,7 @@
 import Booking from "@/models/Booking";
+import Refund from "@/models/Refund";
 import Rider from "@/models/Rider";
+import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
 
 let started = false;
@@ -151,5 +153,79 @@ export async function ensureScaleIndexes() {
         { background: true, name: "booking_lastGpsAt" }
       ),
     "booking lastGpsAt"
+  );
+
+  // Ops Eva / command-center search at thousands of bookings / day
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { paymentStatus: 1, createdAt: -1 },
+        { background: true, name: "ops_booking_payment_created" }
+      ),
+    "ops booking paymentStatus"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { rideStatus: 1, createdAt: -1 },
+        { background: true, name: "ops_booking_ride_created" }
+      ),
+    "ops booking rideStatus"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { userPhone: 1, createdAt: -1 },
+        { background: true, name: "ops_booking_phone_created" }
+      ),
+    "ops booking userPhone"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { bookingId: 1 },
+        { background: true, name: "ops_booking_id" }
+      ),
+    "ops bookingId"
+  );
+  await createIndexSafe(
+    () =>
+      Rider.collection.createIndex(
+        { phone: 1 },
+        { background: true, name: "ops_rider_phone" }
+      ),
+    "ops rider phone"
+  );
+  await createIndexSafe(
+    () =>
+      Rider.collection.createIndex(
+        { approvalStatus: 1, createdAt: -1 },
+        { background: true, name: "ops_rider_kyc_created" }
+      ),
+    "ops rider approvalStatus"
+  );
+  await createIndexSafe(
+    () =>
+      Vehicle.collection.createIndex(
+        { vehicleStatus: 1, updatedAt: -1 },
+        { background: true, name: "ops_vehicle_status_updated" }
+      ),
+    "ops vehicle status"
+  );
+  await createIndexSafe(
+    () =>
+      Ticket.collection.createIndex(
+        { status: 1, createdAt: -1 },
+        { background: true, name: "ops_ticket_status_created" }
+      ),
+    "ops ticket status"
+  );
+  await createIndexSafe(
+    () =>
+      Refund.collection.createIndex(
+        { status: 1, createdAt: -1 },
+        { background: true, name: "ops_refund_status_created" }
+      ),
+    "ops refund status"
   );
 }
