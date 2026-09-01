@@ -96,8 +96,9 @@ export default function Leadership() {
             Chairman, Founder &amp; CEO and General Manager
           </h2>
           <p className="mt-4 max-w-2xl text-lg text-slate-600">
-            Official posters for Sunil Pathak, Bindu Singh and Anjali Mishra.
-            Open any poster to read the profile.
+            Official posters for Sunil Pathak, Bindu Singh and Anjali Mishra,
+            with Graphic Designer and Admin &amp; Front Desk on the second row.
+            Open any board poster to read the profile.
           </p>
 
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
