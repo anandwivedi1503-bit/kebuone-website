@@ -153,6 +153,7 @@ lg:top-4
 left-1/2
 -translate-x-1/2
 z-[999]
+overflow-visible
 w-[calc(100%-16px)]
 sm:w-[calc(100%-24px)]
 max-w-[1700px]
