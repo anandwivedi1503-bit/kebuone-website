@@ -174,7 +174,7 @@ export default function EvuddyAssistant() {
 
   return (
     <>
-      <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[96] print:hidden sm:right-6">
+      <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[1101] print:hidden sm:right-6">
         <AssistantFab
           open={open}
           onClick={() => {
@@ -188,7 +188,7 @@ export default function EvuddyAssistant() {
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-[95] flex items-end justify-center bg-[#0B1B16]/45 px-3 py-4 backdrop-blur-[3px] print:hidden sm:items-center sm:py-10">
+        <div className="fixed inset-0 z-[1100] flex items-end justify-center bg-[#0B1B16]/45 px-3 pb-4 pt-4 backdrop-blur-[3px] print:hidden sm:items-start sm:justify-center sm:px-4 sm:pb-10 sm:pt-[7.5rem]">
           <button
             type="button"
             className="absolute inset-0 cursor-default"
@@ -198,7 +198,7 @@ export default function EvuddyAssistant() {
               setView("home");
             }}
           />
-          <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0">
+          <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0 sm:max-h-[calc(100dvh-8.5rem)]">
         <AssistantShell
           title="Eva"
           subtitle="सिर्फ आसान हिंदी · आवाज़ में जवाब"
