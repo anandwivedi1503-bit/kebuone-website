@@ -36,7 +36,7 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "Hi, I’m Eva — your EVUDDY ride buddy. Ask about booking, rates, KYC, deposit, or Rent to Own. Tap the mic to speak Hindi or English. I cannot take payment or OTP.",
+        "Hi, I’m Eva — EVUDDY’s in-app ride buddy (like Uber/Ola/Rapido support). Ask booking, rates, KYC, deposit, or Rent to Own. Tap a chip or the mic (Hindi/English). I guide you fast — I never take payment or OTP.",
     },
   ]);
 

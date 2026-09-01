@@ -5,11 +5,14 @@ import {
   AlertTriangle,
   Bike,
   CreditCard,
+  LayoutDashboard,
   Mic,
   MicOff,
   Radio,
   Send,
+  ShieldCheck,
   Ticket,
+  Wallet,
 } from "lucide-react";
 
 import AssistantFab from "@/app/components/Assistant/AssistantFab";
@@ -23,16 +26,35 @@ type Hit = {
   title: string;
   detail: string;
   dashboard: string;
+  badge?: string;
 };
 
-type Turn = { role: "user" | "assistant"; content: string; hits?: Hit[] };
+type Stat = { label: string; value: string; dashboard?: string };
+
+type Action = {
+  type: "open_dashboard";
+  dashboard: string;
+  label: string;
+  autoNavigate?: boolean;
+};
+
+type Turn = {
+  role: "user" | "assistant";
+  content: string;
+  hits?: Hit[];
+  stats?: Stat[];
+  action?: Action | null;
+};
 
 const OPS_CHIPS = [
   { label: "Unpaid", ask: "unpaid bookings", icon: CreditCard },
   { label: "In ride", ask: "in ride scooters", icon: Radio },
-  { label: "Open tickets", ask: "open tickets", icon: Ticket },
+  { label: "KYC queue", ask: "pending kyc", icon: ShieldCheck },
+  { label: "Tickets", ask: "open tickets", icon: Ticket },
   { label: "Available", ask: "available scooters", icon: Bike },
-  { label: "Rent to Own", ask: "rent to own unpaid", icon: AlertTriangle },
+  { label: "Refunds", ask: "pending refunds", icon: Wallet },
+  { label: "Open bookings", ask: "open bookings dashboard", icon: LayoutDashboard },
+  { label: "RTO due", ask: "rent to own unpaid", icon: AlertTriangle },
 ] as const;
 
 const KIND_STYLE: Record<string, string> = {
@@ -41,6 +63,11 @@ const KIND_STYLE: Record<string, string> = {
   vehicle: "border-l-[#F59E0B] text-[#B45309]",
   ticket: "border-l-[#EC2A8C] text-[#BE185D]",
   hub: "border-l-[#0B1B16] text-[#0B1B16]",
+  refund: "border-l-[#7C3AED] text-[#6D28D9]",
+  wallet: "border-l-[#0891B2] text-[#0E7490]",
+  transaction: "border-l-[#059669] text-[#047857]",
+  partner: "border-l-[#DB2777] text-[#BE185D]",
+  battery: "border-l-[#CA8A04] text-[#A16207]",
 };
 
 export default function OpsAssistant({
@@ -58,7 +85,7 @@ export default function OpsAssistant({
     {
       role: "assistant",
       content:
-        "Ops Eva here. Search live bookings, riders, fleet, hubs, and tickets for this login — like a yard command desk. Tap a chip or ask for a BK- ID / phone. I cannot pay, refund, or enter OTP.",
+        "Ops Eva — live command search for EVUDDY. Ask like Uber/Ola ops: unpaid, in-ride, KYC queue, refunds, BK- IDs, phones. Say “open bookings” or “review KYC” and I’ll jump you there. Pay / OTP / unlock stay on staff buttons.",
     },
   ]);
 
@@ -80,14 +107,20 @@ export default function OpsAssistant({
         body: JSON.stringify({ question: asked, language }),
       });
       const data = await res.json();
+      const action = data.action as Action | null;
       setTurns([
         ...nextTurns,
         {
           role: "assistant",
           content: data.answer || data.message || "No answer just then.",
           hits: Array.isArray(data.hits) ? data.hits : [],
+          stats: Array.isArray(data.stats) ? data.stats : [],
+          action,
         },
       ]);
+      if (action?.type === "open_dashboard" && action.autoNavigate && action.dashboard) {
+        onOpenDashboard(action.dashboard);
+      }
     } catch {
       setTurns([
         ...nextTurns,
@@ -103,7 +136,7 @@ export default function OpsAssistant({
       {open ? (
         <AssistantShell
           title="Ops Eva"
-          subtitle="Live search · no payments"
+          subtitle="Live command search · Uber-style ops"
           liveLabel="Live"
           language={language}
           onLanguage={setLanguage}
@@ -139,9 +172,11 @@ export default function OpsAssistant({
                 onChange={(event) => setQuestion(event.target.value)}
                 className="h-12 flex-1 rounded-full border border-slate-200 bg-[#F8FAF9] px-4 text-sm outline-none focus:border-[#18B368]"
                 placeholder={
-                  voice.listening ? "Listening… tap mic to stop" : "BK-000001, phone, unpaid…"
+                  voice.listening
+                    ? "Listening… tap mic to stop"
+                    : "Search or command: unpaid · open KYC · BK-…"
                 }
-                maxLength={200}
+                maxLength={240}
               />
               <button
                 type="button"
@@ -194,6 +229,40 @@ export default function OpsAssistant({
                   </div>
                 </div>
               )}
+
+              {turn.stats?.length ? (
+                <div className="ml-9 flex flex-wrap gap-1.5">
+                  {turn.stats.map((stat) => (
+                    <button
+                      key={`${stat.label}-${stat.value}`}
+                      type="button"
+                      onClick={() => {
+                        if (stat.dashboard) onOpenDashboard(stat.dashboard);
+                      }}
+                      className="rounded-2xl border border-slate-200 bg-[#0B1B16] px-3 py-2 text-left text-white shadow-sm"
+                    >
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-white/60">
+                        {stat.label}
+                      </p>
+                      <p className="text-lg font-black leading-none text-[#7DFFB2]">{stat.value}</p>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              {turn.action?.dashboard ? (
+                <div className="ml-9">
+                  <button
+                    type="button"
+                    onClick={() => onOpenDashboard(turn.action!.dashboard)}
+                    className="inline-flex items-center gap-2 rounded-full bg-[#18B368] px-4 py-2 text-xs font-black text-white shadow-sm"
+                  >
+                    <LayoutDashboard size={14} />
+                    {turn.action.label || "Open dashboard"}
+                  </button>
+                </div>
+              ) : null}
+
               {turn.hits?.length ? (
                 <div className="ml-9 space-y-1.5">
                   {turn.hits.map((hit) => (
@@ -210,7 +279,7 @@ export default function OpsAssistant({
                           {hit.kind}
                         </p>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-                          Open →
+                          {hit.badge || "Open →"}
                         </span>
                       </div>
                       <p className="mt-0.5 font-black text-[#0F172A]">{hit.title}</p>
