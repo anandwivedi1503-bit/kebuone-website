@@ -1,4 +1,5 @@
 import { EVUDDY_KNOWLEDGE } from "@/lib/evuddyKnowledge";
+import { detectScriptLanguage, LANGUAGE_NAMES } from "@/lib/assistantLanguages";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -13,41 +14,41 @@ const BLOCKED =
 
 const FAQ: { keys: string[]; answer: string; href?: string }[] = [
   {
-    keys: ["book", "how to", "start", "kyc", "register"],
+    keys: ["book", "how to", "start", "kyc", "register", "बुक", "बुकिंग", "रजिस्टर", "स्कूटर"],
     href: "/ride-options",
     answer:
       "Book in four steps: (1) Register with your phone OTP and finish KYC. (2) Open Book EV, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. I can open ride options for you — I cannot take payment.",
   },
   {
-    keys: ["rate", "price", "hourly", "daily", "weekly", "monthly", "cost", "₹", "rs"],
+    keys: ["rate", "price", "hourly", "daily", "weekly", "monthly", "cost", "₹", "rs", "किराया", "रेट", "दाम"],
     href: "/book-bike?flow=rental",
     answer:
       "Listed rates (a scooter can differ): Hourly ₹60, Daily ₹230, Weekly ₹1610, Monthly ₹6900, plus 5% GST. Rentals also take a refundable security deposit (usually ₹2500).",
   },
   {
-    keys: ["deposit", "wallet", "refund"],
+    keys: ["deposit", "wallet", "refund", "जमा", "वॉलेट", "रिफंड"],
     answer:
       "The security deposit is part of the booking payment, not a separate wallet charge. After you return the scooter, staff approve the refund. It usually credits your EVUDDY wallet. They can send it back on Razorpay instead — never both. I cannot refund or move money from this chat.",
   },
   {
-    keys: ["own", "rto", "installment", "18"],
+    keys: ["own", "rto", "installment", "18", "रेंट टू ओन", "अपना"],
     href: "/rent-to-own",
     answer:
       "Rent to Own is ₹280 + 5% GST every day for 18 months, no security deposit. You get a daily receipt. After successful days, ownership transfers.",
   },
   {
-    keys: ["razorpay", "pay", "upi", "card"],
+    keys: ["razorpay", "pay", "upi", "card", "पेमेंट", "भुगतान"],
     answer:
       "UPI and cards go through Razorpay on the booking page. If your EVUDDY wallet has enough, you can pay from wallet there. I cannot collect payment or enter OTP for you.",
   },
   {
-    keys: ["hub", "city", "lucknow", "where"],
+    keys: ["hub", "city", "lucknow", "where", "हब", "शहर", "लखनऊ"],
     href: "/book-bike?flow=rental",
     answer:
       "Pick your city and hub on the booking page so you collect the scooter from that hub. Corporate office: Summit Building, 7th Floor, Gomti Nagar, Lucknow.",
   },
   {
-    keys: ["contact", "help", "ticket", "support", "email"],
+    keys: ["contact", "help", "ticket", "support", "email", "संपर्क", "मदद", "हेल्प"],
     href: "/contact",
     answer:
       "Email info@kebuone.in or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues. Hub staff see it on Support.",
@@ -60,34 +61,48 @@ function clean(text: string) {
 
 export function publicAssistantIntent(question: string): AssistantReply | null {
   const q = question.toLowerCase();
-  if (BLOCKED.test(q) && /\b(for me|on my behalf|do it|complete|enter|pay now)\b/.test(q)) {
+  if (
+    (BLOCKED.test(q) || /भुगतान|ओटीपी|रिफंड/.test(q)) &&
+    /\b(for me|on my behalf|do it|complete|enter|pay now|कर दो|भेज दो)\b/.test(q)
+  ) {
     return {
       answer:
-        "I cannot take payment, enter OTP, unlock a scooter, or issue a refund. Use the buttons on Book EV or ask hub staff.",
+        "I cannot take payment, enter OTP, unlock a scooter, or issue a refund. Use the buttons on Book EV or ask hub staff. / मैं भुगतान, OTP या रिफंड नहीं कर सकता। Book EV पर बटन इस्तेमाल करें।",
     };
   }
-  if (/\b(rent to own|rto|own the scooter)\b/.test(q)) {
+  if (/\b(rent to own|rto|own the scooter)\b/.test(q) || /रेंट टू ओन|अपना स्कूटर/.test(q)) {
     return {
-      answer: "Opening Rent to Own. Payment still happens on that page — not in this chat.",
+      answer: "Opening Rent to Own. Payment still happens on that page — not in this chat. / Rent to Own खोल रहा हूँ। भुगतान उसी पेज पर होगा।",
       href: "/rent-to-own",
       navigate: true,
     };
   }
-  if (/\b(book|ride|scooter|ev|rental)\b/.test(q) && /\b(open|start|go|take me|book now)\b/.test(q)) {
+  if (
+    (/\b(book|ride|scooter|ev|rental)\b/.test(q) && /\b(open|start|go|take me|book now)\b/.test(q)) ||
+    /बुक करो|बुकिंग खोलो|स्कूटर बुक/.test(q)
+  ) {
     return {
-      answer: "Opening ride options. Choose normal booking or Rent to Own, then pay on the booking page.",
+      answer: "Opening ride options. Choose normal booking or Rent to Own, then pay on the booking page. / राइड विकल्प खोल रहा हूँ।",
       href: "/ride-options",
       navigate: true,
     };
   }
-  if (/\b(register|kyc|sign up)\b/.test(q)) {
-    return { answer: "Opening registration. Complete KYC there — I cannot approve it.", href: "/register", navigate: true };
+  if (/\b(register|kyc|sign up)\b/.test(q) || /रजिस्टर|केवाईसी/.test(q)) {
+    return {
+      answer: "Opening registration. Complete KYC there — I cannot approve it. / रजिस्ट्रेशन खोल रहा हूँ।",
+      href: "/register",
+      navigate: true,
+    };
   }
-  if (/\b(contact|support|help desk|email)\b/.test(q)) {
-    return { answer: "Opening contact so you can reach the team.", href: "/contact", navigate: true };
+  if (/\b(contact|support|help desk|email)\b/.test(q) || /संपर्क|मदद/.test(q)) {
+    return {
+      answer: "Opening contact so you can reach the team. / संपर्क पेज खोल रहा हूँ।",
+      href: "/contact",
+      navigate: true,
+    };
   }
-  if (/\b(partner|invest|fleet)\b/.test(q)) {
-    return { answer: "Opening the fleet partner page.", href: "/partners", navigate: true };
+  if (/\b(partner|invest|fleet)\b/.test(q) || /पार्टनर|इन्वेस्ट/.test(q)) {
+    return { answer: "Opening the fleet partner page. / पार्टनर पेज खोल रहा हूँ।", href: "/partners", navigate: true };
   }
   return null;
 }
@@ -104,13 +119,15 @@ export function faqAnswer(question: string): AssistantReply {
   return best ? { answer: best.answer, href: best.href } : { answer: "" };
 }
 
-async function llmAnswer(history: ChatTurn[], question: string) {
-const system = `You are the EVUDDY website assistant for https://www.evuddy.com.
+async function llmAnswer(history: ChatTurn[], question: string, language: string) {
+  const replyLang =
+    language === "auto" ? LANGUAGE_NAMES[detectScriptLanguage(question)] : LANGUAGE_NAMES[language] || "the user's language";
+  const system = `You are the EVUDDY website assistant for https://www.evuddy.com.
 Only use this knowledge. Do not invent hubs, prices, or policies.
 You cannot take payments, change bookings, approve refunds, enter OTP, or unlock scooters.
 If asked to do those, refuse and tell the rider to use the website buttons.
 You may offer to open /ride-options, /rent-to-own, /register, /contact, or /partners.
-Keep answers short (under 120 words).
+Reply in ${replyLang}. Keep answers short (under 120 words).
 
 KNOWLEDGE:
 ${EVUDDY_KNOWLEDGE}`;
@@ -189,17 +206,24 @@ ${EVUDDY_KNOWLEDGE}`;
   return "";
 }
 
-export async function answerEvuddyQuestion(history: ChatTurn[], question: string): Promise<AssistantReply> {
+export async function answerEvuddyQuestion(
+  history: ChatTurn[],
+  question: string,
+  language = "auto"
+): Promise<AssistantReply> {
   const asked = clean(question);
   if (asked.length < 2) {
-    return { answer: "Ask anything about booking, rates, KYC, wallet deposits, or Rent to Own. You can also speak with the mic." };
+    return {
+      answer:
+        "Ask anything about booking, rates, KYC, wallet deposits, or Rent to Own. You can also speak with the mic. / बुकिंग, किराया या Rent to Own पूछें। माइक से बोल भी सकते हैं।",
+    };
   }
 
   const intent = publicAssistantIntent(asked);
   if (intent) return intent;
 
   try {
-    const llm = await llmAnswer(history, asked);
+    const llm = await llmAnswer(history, asked, language);
     if (llm) {
       const faq = faqAnswer(asked);
       return { answer: llm.slice(0, 900), href: faq.href };

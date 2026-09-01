@@ -42,11 +42,11 @@ export async function searchOpsRecords(session: AdminSessionInfo, question: stri
   const token = escapeRegex(q.replace(/['"]/g, "").trim());
   const fuzzy = token.length >= 3 ? new RegExp(token, "i") : null;
 
-  const wantUnpaid = /\b(unpaid|pending payment|due)\b/.test(lower);
-  const wantInRide = /\b(in ride|live ride|ongoing)\b/.test(lower);
-  const wantRto = /\b(rto|rent to own)\b/.test(lower);
-  const wantAvailable = /\b(available scooter|available bike|free scooter)\b/.test(lower);
-  const wantOpenTickets = /\b(open ticket|support|complaint)\b/.test(lower);
+  const wantUnpaid = /\b(unpaid|pending payment|due|बकाया|बाकी)\b/.test(lower);
+  const wantInRide = /\b(in ride|live ride|ongoing|राइड में)\b/.test(lower);
+  const wantRto = /\b(rto|rent to own|रेंट टू ओन)\b/.test(lower);
+  const wantAvailable = /\b(available scooter|available bike|free scooter|उपलब्ध)\b/.test(lower);
+  const wantOpenTickets = /\b(open ticket|support|complaint|टिकट|शिकायत)\b/.test(lower);
 
   const hits: OpsHit[] = [];
 

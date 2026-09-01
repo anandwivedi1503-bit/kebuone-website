@@ -14,6 +14,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const question = String(body.question || body.message || "").trim();
+    const language = String(body.language || "auto").trim();
     const rawHistory = Array.isArray(body.history) ? body.history : [];
     const history: ChatTurn[] = rawHistory
       .slice(-6)
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
         content: String(turn.content || "").slice(0, 500),
       }));
 
-    const reply = await answerEvuddyQuestion(history, question);
+    const reply = await answerEvuddyQuestion(history, question, language);
     return NextResponse.json({
       success: true,
       answer: reply.answer,

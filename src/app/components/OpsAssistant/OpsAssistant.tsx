@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Mic, MicOff, Search, Send, X } from "lucide-react";
 
+import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 
 type Hit = {
@@ -24,6 +25,7 @@ export default function OpsAssistant({
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [language, setLanguage] = useState("auto");
   const [turns, setTurns] = useState<Turn[]>([
     {
       role: "assistant",
@@ -43,7 +45,7 @@ export default function OpsAssistant({
       const res = await fetch("/api/ops-assistant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: asked }),
+        body: JSON.stringify({ question: asked, language }),
       });
       const data = await res.json();
       setTurns([
@@ -73,9 +75,23 @@ export default function OpsAssistant({
               <p className="text-sm font-black">Ops assistant</p>
               <p className="text-[11px] text-white/70">Search · coordinate · no payments</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close ops assistant">
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value)}
+                className="max-w-[108px] rounded-full bg-white/10 px-2 py-1 text-[11px] font-bold text-white outline-none"
+                aria-label="Ops assistant language"
+              >
+                {ASSISTANT_LANGUAGES.map((item) => (
+                  <option key={item.id} value={item.id} className="text-[#0F172A]">
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close ops assistant">
+                <X size={18} />
+              </button>
+            </div>
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
             {turns.map((turn, index) => (
@@ -109,7 +125,9 @@ export default function OpsAssistant({
                 ) : null}
               </div>
             ))}
-            {loading ? <p className="text-xs text-slate-400">Searching live data…</p> : null}
+            {loading || voice.status ? (
+              <p className="text-xs text-slate-400">{voice.status || "Searching live data…"}</p>
+            ) : null}
           </div>
           <form
             className="flex gap-2 border-t border-slate-100 p-3"
@@ -122,27 +140,26 @@ export default function OpsAssistant({
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               className="h-11 flex-1 rounded-full border border-slate-200 px-4 text-sm outline-none focus:border-[#18B368]"
-              placeholder={voice.listening ? "Listening…" : "Search bookings, riders, fleet…"}
+              placeholder={voice.listening ? "Listening… tap mic to stop" : "Search bookings, riders, fleet…"}
               maxLength={200}
             />
-            {voice.supported ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (voice.listening) {
-                    voice.stop();
-                    return;
-                  }
-                  voice.listen((text) => void ask(text));
-                }}
-                className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
-                  voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
-                }`}
-                aria-label={voice.listening ? "Stop listening" : "Speak"}
-              >
-                {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                void voice.listen(
+                  (text) => void ask(text),
+                  language,
+                  (message) =>
+                    setTurns((old) => [...old, { role: "assistant", content: message }])
+                );
+              }}
+              className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
+                voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
+              }`}
+              aria-label={voice.listening ? "Stop listening" : "Speak"}
+            >
+              {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
+            </button>
             <button
               type="submit"
               disabled={loading}
