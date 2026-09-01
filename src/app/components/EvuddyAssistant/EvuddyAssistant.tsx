@@ -97,7 +97,7 @@ export default function EvuddyAssistant() {
       {open ? (
         <AssistantShell
           title="Eva"
-          subtitle="EVUDDY ride buddy · voice + Hindi"
+          subtitle="Ride buddy · Hindi + voice help"
           language={language}
           onLanguage={setLanguage}
           onClose={() => setOpen(false)}
