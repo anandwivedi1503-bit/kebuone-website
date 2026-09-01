@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { MessageCircle, Mic, MicOff, Send, Volume2, X } from "lucide-react";
 
 import { ASSISTANT_STARTERS } from "@/lib/evuddyKnowledge";
+import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 
 type Turn = { role: "user" | "assistant"; content: string; href?: string };
@@ -19,11 +20,12 @@ export default function EvuddyAssistant() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [speakBack, setSpeakBack] = useState(true);
+  const [language, setLanguage] = useState("auto");
   const [turns, setTurns] = useState<Turn[]>([
     {
       role: "assistant",
       content:
-        "Hi, I am your EVUDDY assistant. Speak or type. I can open booking, Rent to Own, or contact. I cannot take payment, enter OTP, or unlock a scooter.",
+        "Namaste. I am your EVUDDY assistant. Tap the mic, speak in Hindi or English, then tap again. I can open booking or contact. I cannot take payment or OTP. / माइक दबाकर बोलें, फिर फिर से दबाएँ।",
     },
   ]);
 
@@ -55,6 +57,7 @@ export default function EvuddyAssistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: asked,
+          language,
           history: nextTurns.slice(-8),
         }),
       });
@@ -65,7 +68,7 @@ export default function EvuddyAssistant() {
         "Please use Book EV or info@kebuone.in — I could not answer just then.";
       const href = SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "";
       setTurns([...nextTurns, { role: "assistant", content: answer, href }]);
-      if (speakBack) voice.speak(answer);
+      if (speakBack) voice.speak(answer, language);
       if (href && data.navigate) go(href);
     } catch {
       setTurns([
@@ -83,13 +86,25 @@ export default function EvuddyAssistant() {
   return (
     <div className="pointer-events-none fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[80] flex flex-col items-end gap-3 sm:right-6">
       {open ? (
-        <div className="pointer-events-auto flex h-[min(32rem,70vh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)]">
-          <div className="flex items-center justify-between bg-[#0F172A] px-4 py-3 text-white">
-            <div>
+        <div className="pointer-events-auto flex h-[min(34rem,74vh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)]">
+          <div className="flex items-center justify-between gap-2 bg-[#0F172A] px-4 py-3 text-white">
+            <div className="min-w-0">
               <p className="text-sm font-black">EVUDDY assistant</p>
-              <p className="text-[11px] text-slate-300">Voice guide · not payments or OTP</p>
+              <p className="text-[11px] text-slate-300">Voice · Hindi / English · not payments</p>
             </div>
             <div className="flex items-center gap-2">
+              <select
+                value={language}
+                onChange={(event) => setLanguage(event.target.value)}
+                className="max-w-[108px] rounded-full bg-white/10 px-2 py-1 text-[11px] font-bold text-white outline-none"
+                aria-label="Assistant language"
+              >
+                {ASSISTANT_LANGUAGES.map((item) => (
+                  <option key={item.id} value={item.id} className="text-[#0F172A]">
+                    {item.label}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => setSpeakBack((value) => !value)}
@@ -125,7 +140,9 @@ export default function EvuddyAssistant() {
                 ) : null}
               </div>
             ))}
-            {loading ? <p className="text-xs text-slate-400">Working…</p> : null}
+            {loading || voice.status ? (
+              <p className="text-xs text-slate-400">{voice.status || "Working…"}</p>
+            ) : null}
           </div>
           <div className="flex flex-wrap gap-1 border-t border-slate-100 px-3 py-2">
             {ASSISTANT_STARTERS.map((starter) => (
@@ -138,6 +155,13 @@ export default function EvuddyAssistant() {
                 {starter}
               </button>
             ))}
+            <button
+              type="button"
+              onClick={() => void ask("स्कूटर कैसे बुक करें?")}
+              className="rounded-full bg-slate-50 px-2 py-1 text-[11px] font-semibold text-slate-600"
+            >
+              स्कूटर कैसे बुक करें?
+            </button>
           </div>
           <form
             className="flex gap-2 border-t border-slate-100 p-3"
@@ -150,27 +174,29 @@ export default function EvuddyAssistant() {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               className="h-11 flex-1 rounded-full border border-slate-200 px-4 text-sm outline-none focus:border-[#18B368]"
-              placeholder={voice.listening ? "Listening…" : "Ask or tap the mic…"}
+              placeholder={voice.listening ? "Listening… tap mic to stop" : "Type or tap mic to speak"}
               maxLength={500}
             />
-            {voice.supported ? (
-              <button
-                type="button"
-                onClick={() => {
-                  if (voice.listening) {
-                    voice.stop();
-                    return;
-                  }
-                  voice.listen((text) => void ask(text));
-                }}
-                className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
-                  voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
-                }`}
-                aria-label={voice.listening ? "Stop listening" : "Speak"}
-              >
-                {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
-              </button>
-            ) : null}
+            <button
+              type="button"
+              onClick={() => {
+                void voice.listen(
+                  (text) => void ask(text),
+                  language,
+                  (message) =>
+                    setTurns((old) => [
+                      ...old,
+                      { role: "assistant", content: message },
+                    ])
+                );
+              }}
+              className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
+                voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
+              }`}
+              aria-label={voice.listening ? "Stop listening" : "Speak"}
+            >
+              {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
+            </button>
             <button
               type="submit"
               disabled={loading}
