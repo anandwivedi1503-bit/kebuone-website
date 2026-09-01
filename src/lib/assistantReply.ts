@@ -1,6 +1,7 @@
 import { bilingual } from "@/lib/assistantCopy";
 import { detectScriptLanguage, LANGUAGE_NAMES } from "@/lib/assistantLanguages";
 import { EVUDDY_KNOWLEDGE } from "@/lib/evuddyKnowledge";
+import { llmChat, llmConfigured } from "@/lib/llmChat";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -243,94 +244,40 @@ export function faqAnswer(question: string, language = "auto"): AssistantReply {
   };
 }
 
-async function llmAnswer(history: ChatTurn[], question: string, language: string) {
+async function llmAnswer(
+  history: ChatTurn[],
+  question: string,
+  language: string,
+  faqHint?: string
+) {
   const replyLang =
     language === "auto"
       ? LANGUAGE_NAMES[detectScriptLanguage(question)]
       : LANGUAGE_NAMES[language] || "the user's language";
-  const system = `You are Eva, the EVUDDY in-app assistant for https://www.evuddy.com — Uber/Ola/Rapido/Zypp grade ride help.
-Only use this knowledge. Do not invent hubs, prices, investment returns, or policies.
-Cover bookings, rates, KYC, GST, wallet/deposit, Rent to Own, support tickets, fleet investment plans, leadership, careers, vision, and contact.
+  const system = `You are Eva, EVUDDY's ChatGPT-style in-app ride assistant for https://www.evuddy.com (Uber/Ola/Rapido/Zypp grade).
+Only use the knowledge below (and any FAQ hint). Do not invent hubs, prices, investment returns, or policies.
+Be warm, clear, and specific. Cover bookings, rates, GST, KYC, wallet/deposit, Rent to Own, tickets, fleet investment, leadership, careers, vision, contact.
 You cannot take payments, change bookings, approve refunds/KYC, enter OTP, or unlock scooters.
 If asked to do those, refuse and send the rider to website buttons or helpdesk@kebuone.in / +91 8726006512.
-You may offer to open /ride-options, /rent-to-own, /register, /contact, /partners, /careers, /vision, /Leadership, /about.
-Reply in ${replyLang}. Keep answers clear and under 140 words.
+You may suggest opening /ride-options, /rent-to-own, /register, /contact, /partners, /careers, /vision, /Leadership, /about.
+Reply in ${replyLang}. Under 140 words.
 
 KNOWLEDGE:
-${EVUDDY_KNOWLEDGE}`;
+${EVUDDY_KNOWLEDGE}
+${faqHint ? `\nFAQ HINT (ground your answer):\n${faqHint}` : ""}`;
 
-  const openaiKey = String(process.env.OPENAI_API_KEY || "").trim();
-  const groqKey = String(process.env.GROQ_API_KEY || "").trim();
-  const geminiKey = String(process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || "").trim();
-
-  const messages = [
-    ...history.slice(-6).map((turn) => ({
-      role: turn.role,
-      content: clean(turn.content),
-    })),
-    { role: "user" as const, content: question },
-  ];
-
-  if (openaiKey) {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${openaiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-        temperature: 0.2,
-        max_tokens: 320,
-        messages: [{ role: "system", content: system }, ...messages],
-      }),
-    });
-    if (!res.ok) throw new Error("openai");
-    const data = await res.json();
-    return String(data.choices?.[0]?.message?.content || "").trim();
-  }
-
-  if (groqKey) {
-    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${groqKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
-        temperature: 0.2,
-        max_tokens: 320,
-        messages: [{ role: "system", content: system }, ...messages],
-      }),
-    });
-    if (!res.ok) throw new Error("groq");
-    const data = await res.json();
-    return String(data.choices?.[0]?.message?.content || "").trim();
-  }
-
-  if (geminiKey) {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(geminiKey)}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: system }] },
-          contents: messages.map((turn) => ({
-            role: turn.role === "assistant" ? "model" : "user",
-            parts: [{ text: turn.content }],
-          })),
-          generationConfig: { temperature: 0.2, maxOutputTokens: 320 },
-        }),
-      }
-    );
-    if (!res.ok) throw new Error("gemini");
-    const data = await res.json();
-    return String(data.candidates?.[0]?.content?.parts?.[0]?.text || "").trim();
-  }
-
-  return "";
+  return llmChat({
+    system,
+    messages: [
+      ...history.slice(-6).map((turn) => ({
+        role: turn.role as "user" | "assistant",
+        content: clean(turn.content),
+      })),
+      { role: "user", content: question },
+    ],
+    maxTokens: 340,
+    temperature: 0.25,
+  });
 }
 
 export async function answerEvuddyQuestion(
@@ -344,8 +291,8 @@ export async function answerEvuddyQuestion(
       answer: bilingual(
         language,
         asked,
-        "Ask about booking, rates, Rent to Own, investment plans, tickets, KYC, or contact. You can also speak with the mic.",
-        "बुकिंग, किराया, Rent to Own, निवेश प्लान, टिकट, KYC या संपर्क पूछें। माइक से भी बोल सकते हैं।"
+        "Ask anything about EVUDDY — booking, rates, Rent to Own, investment, tickets, KYC, or contact. Mic works too.",
+        "EVUDDY के बारे में कुछ भी पूछें — बुकिंग, किराया, Rent to Own, निवेश, टिकट, KYC या संपर्क। माइक भी चलता है।"
       ),
     };
   }
@@ -354,15 +301,17 @@ export async function answerEvuddyQuestion(
   if (intent) return intent;
 
   const faq = faqAnswer(asked, language);
-  if ((faq.score || 0) >= 1 && faq.answer) return faq;
 
-  try {
-    const llm = await llmAnswer(history, asked, language);
-    if (llm) {
-      return { answer: llm.slice(0, 1000), href: faq.href };
+  // Prefer ChatGPT-style LLM when configured; FAQ is grounding + fallback.
+  if (llmConfigured()) {
+    try {
+      const llm = await llmAnswer(history, asked, language, faq.answer || "");
+      if (llm) {
+        return { answer: llm.slice(0, 1100), href: faq.href };
+      }
+    } catch (error) {
+      console.error("EVUDDY ASSISTANT LLM SKIPPED:", error);
     }
-  } catch (error) {
-    console.error("EVUDDY ASSISTANT LLM SKIPPED:", error);
   }
 
   if (faq.answer) return faq;
@@ -379,9 +328,5 @@ export async function answerEvuddyQuestion(
 }
 
 export function assistantConfigured() {
-  return Boolean(
-    String(process.env.OPENAI_API_KEY || "").trim() ||
-      String(process.env.GROQ_API_KEY || "").trim() ||
-      String(process.env.GEMINI_API_KEY || process.env.GOOGLE_GEMINI_API_KEY || "").trim()
-  );
+  return llmConfigured();
 }

@@ -113,6 +113,8 @@ export default function OpsAssistant({
   const [hits, setHits] = useState<Hit[]>([]);
   const [answer, setAnswer] = useState("");
   const [action, setAction] = useState<Action | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [modeTag, setModeTag] = useState<"ai" | "search">("search");
   const [recent, setRecent] = useState<string[]>(() =>
     typeof window === "undefined" ? [] : loadRecent()
   );
@@ -120,7 +122,7 @@ export default function OpsAssistant({
     {
       role: "assistant",
       content:
-        "Ops Eva command center. Search the live database like Uber ops — bookings, riders, KYC, tickets, refunds, fleet. Say “approve KYC for 98…” and I open Users with that record ready. I never click Approve/Pay for you — you finish on the staff button (audit-safe). Ctrl/⌘ K.",
+        "Ops Eva — ChatGPT-style ops command center. Type any name, phone, BK- ID, unpaid, KYC, tickets… I search the live DB in milliseconds and open the right dashboard with the record ready. Say “approve this rider” and I jump you there — you finish on the staff Approve button (audit-safe). Ctrl/⌘ K.",
     },
   ]);
 
@@ -200,6 +202,8 @@ export default function OpsAssistant({
         setHits(nextHits);
         setAnswer(data.answer || data.message || "");
         setAction(nextAction);
+        setElapsedMs(Number(data.elapsedMs || 0));
+        setModeTag(data.mode === "ai" ? "ai" : "search");
         if (nextStats.length) setPulse(nextStats);
         if (opts?.askMode) {
           setTurns((old) => [
@@ -244,7 +248,7 @@ export default function OpsAssistant({
     if (q.length < 2) return;
     const id = window.setTimeout(() => {
       void runSearch(q);
-    }, 280);
+    }, 160);
     return () => window.clearTimeout(id);
   }, [question, open, mode, runSearch]);
 
@@ -264,47 +268,62 @@ export default function OpsAssistant({
       </div>
 
       {open ? (
-        <div className="fixed inset-0 z-[95] flex items-start justify-center bg-[#0B1B16]/55 px-3 py-6 backdrop-blur-[3px] print:hidden sm:py-10">
+        <div className="fixed inset-0 z-[95] flex items-end justify-center bg-[#0B1B16]/55 px-3 py-4 backdrop-blur-[3px] print:hidden sm:items-start sm:py-10">
           <button
             type="button"
             className="absolute inset-0 cursor-default"
             aria-label="Close ops command center backdrop"
             onClick={() => setOpen(false)}
           />
-          <div className="relative flex max-h-[min(44rem,calc(100dvh-3rem))] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/20 bg-[#F4F7F5] shadow-[0_40px_120px_rgba(0,0,0,.45)] animate-[assistantPanelIn_.22s_ease] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif]">
-            <div className="shrink-0 bg-gradient-to-br from-[#0B1B16] via-[#102820] to-[#163528] px-4 py-3 text-white">
-              <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white p-1 ring-2 ring-[#18B368]/50">
-                  <AssistantLogo size={44} />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[15px] font-black">Ops Eva</p>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[#18B368]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#7DFFB2]">
-                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22C55E]" />
-                      Live
-                    </span>
-                    <span className="hidden items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/70 sm:inline-flex">
-                      <Command size={11} /> K
-                    </span>
+          <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] flex max-h-[min(44rem,calc(100dvh-7.5rem))] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/20 bg-[#F4F7F5] shadow-[0_40px_120px_rgba(0,0,0,.45)] animate-[assistantPanelIn_.22s_ease] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif] sm:mb-0 sm:max-h-[min(44rem,calc(100dvh-5rem))]">
+            <div className="shrink-0 bg-gradient-to-br from-[#0B1B16] via-[#102820] to-[#163528] px-3 py-3 text-white sm:px-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-3">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-white p-1 ring-2 ring-[#18B368]/50">
+                    <AssistantLogo size={44} />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-[15px] font-black">Ops Eva</p>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#18B368]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#7DFFB2]">
+                        <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22C55E]" />
+                        Live
+                      </span>
+                      <span className="hidden items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/70 sm:inline-flex">
+                        <Command size={11} /> K
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] leading-snug text-white/70">
+                      <span className="sm:hidden">Live DB search · ACL-safe</span>
+                      <span className="hidden sm:inline">
+                        Instant live DB search · ChatGPT-style answers · ACL-safe
+                      </span>
+                      {elapsedMs ? ` · last ${elapsedMs}ms` : ""}
+                      {modeTag === "ai" ? " · AI" : ""}
+                    </p>
                   </div>
-                  <p className="text-[11px] text-white/70">
-                    Command search for thousands of bookings · ACL-safe
-                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="shrink-0 rounded-full bg-white/10 p-1.5 sm:hidden"
+                    aria-label="Close"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
-                <div className="flex items-center gap-1">
-                  <div className="mr-1 flex rounded-full bg-white/10 p-0.5 text-[11px] font-bold">
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex flex-1 rounded-full bg-white/10 p-0.5 text-[11px] font-bold sm:mr-1 sm:flex-none">
                     <button
                       type="button"
                       onClick={() => setMode("command")}
-                      className={`rounded-full px-3 py-1 ${mode === "command" ? "bg-[#18B368] text-white" : "text-white/70"}`}
+                      className={`flex-1 rounded-full px-3 py-1.5 sm:flex-none sm:py-1 ${mode === "command" ? "bg-[#18B368] text-white" : "text-white/70"}`}
                     >
                       Search
                     </button>
                     <button
                       type="button"
                       onClick={() => setMode("ask")}
-                      className={`rounded-full px-3 py-1 ${mode === "ask" ? "bg-[#18B368] text-white" : "text-white/70"}`}
+                      className={`flex-1 rounded-full px-3 py-1.5 sm:flex-none sm:py-1 ${mode === "ask" ? "bg-[#18B368] text-white" : "text-white/70"}`}
                     >
                       Ask
                     </button>
@@ -312,7 +331,7 @@ export default function OpsAssistant({
                   <select
                     value={language}
                     onChange={(event) => setLanguage(event.target.value)}
-                    className="max-w-[84px] rounded-full border border-white/15 bg-white/10 px-2 py-1 text-[11px] font-bold text-white outline-none"
+                    className="max-w-[84px] shrink-0 rounded-full border border-white/15 bg-white/10 px-2 py-1.5 text-[11px] font-bold text-white outline-none sm:py-1"
                     aria-label="Ops language"
                   >
                     {ASSISTANT_LANGUAGES.map((item) => (
@@ -324,7 +343,7 @@ export default function OpsAssistant({
                   <button
                     type="button"
                     onClick={() => setOpen(false)}
-                    className="rounded-full bg-white/10 p-1.5"
+                    className="hidden shrink-0 rounded-full bg-white/10 p-1.5 sm:inline-flex"
                     aria-label="Close"
                   >
                     <X size={16} />
@@ -439,9 +458,21 @@ export default function OpsAssistant({
                     <p className="text-xs font-semibold text-slate-400">{voice.status}</p>
                   ) : null}
                   {!queryReady && !loading ? (
-                    <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-3 py-4 text-center text-sm text-slate-500">
-                      Type a booking id, phone, or unpaid / KYC / refunds. Indexed for high volume — results
-                      open the matching dashboard. Pay, OTP, and unlock stay on staff buttons.
+                    <div className="space-y-2 rounded-2xl border border-dashed border-slate-200 bg-white px-3 py-4 text-sm text-slate-600">
+                      <p className="text-center font-semibold text-slate-700">
+                        Search like a command palette — results in milliseconds
+                      </p>
+                      <p className="text-center text-xs text-slate-500">
+                        Try a name, 10-digit phone, BK- ID, “unpaid”, “pending kyc”, “open tickets”,
+                        or “approve rider …”. I open the dashboard with search prefilled. Approve/Pay
+                        stay on staff buttons.
+                      </p>
+                    </div>
+                  ) : null}
+                  {queryReady && elapsedMs ? (
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                      {modeTag === "ai" ? "AI + live search" : "Live search"} · {elapsedMs}ms ·{" "}
+                      {hits.length} hits
                     </p>
                   ) : null}
                   {!question && recent.length ? (
