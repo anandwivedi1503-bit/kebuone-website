@@ -58,7 +58,7 @@ export default function Careers() {
         primaryLabel="Apply now"
         secondaryHref="/about"
         secondaryLabel="About EVUDDY"
-        posterSrc="/careers/careers-poster.png?v=20260820"
+        posterSrc="/careers/careers-pic.png?v=20260901"
         posterAlt="EVUDDY careers — join the team building smart electric mobility"
       />
 
