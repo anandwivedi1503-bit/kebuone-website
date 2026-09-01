@@ -30,4 +30,5 @@ export const ASSISTANT_STARTERS = [
   "What are the rental rates?",
   "How does the security deposit work?",
   "What is Rent to Own?",
+  "स्कूटर कैसे बुक करें?",
 ];
