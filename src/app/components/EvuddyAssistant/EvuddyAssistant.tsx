@@ -98,7 +98,7 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "नमस्ते, मैं Eva हूँ — EVUDDY की हेल्प। बुकिंग, किराया, Rent to Own, फ्लीट निवेश (आधिकारिक पोस्टर), टिकट, KYC — आसान हिंदी में पूछें। सही पेज भी खोल दूँगी। भुगतान, OTP या अनलॉक मैं नहीं करूँगी।",
+        "नमस्ते! मैं Eva हूँ — EVUDDY की ChatGPT-स्टाइल हेल्प। बुकिंग, किराया, KYC, Rent to Own, फ्लीट निवेश, टिकट, लीडरशिप, करियर — कुछ भी आसान हिंदी में पूछें। सही पेज भी खोल दूँगी। भुगतान/OTP/अनलॉक चैट से नहीं होता।",
     },
   ]);
 
@@ -181,8 +181,8 @@ export default function EvuddyAssistant() {
             setOpen((value) => !value);
             if (!open) setView("home");
           }}
-          label="एवा से पूछें"
-          ariaLabel={open ? "EVUDDY असिस्टेंट बंद करें" : "EVUDDY असिस्टेंट खोलें"}
+          label="Ask Eva"
+          ariaLabel={open ? "Close EVUDDY assistant" : "Open EVUDDY assistant"}
           tone="rider"
         />
       </div>
@@ -201,8 +201,8 @@ export default function EvuddyAssistant() {
           <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0 sm:max-h-[calc(100dvh-8.5rem)]">
         <AssistantShell
           title="Eva"
-          subtitle="सिर्फ आसान हिंदी · आवाज़ में जवाब"
-          liveLabel="ऑनलाइन"
+          subtitle="ChatGPT-style EVUDDY help · हिंदी जवाब"
+          liveLabel="Online"
           language={language}
           onLanguage={() => undefined}
           showLanguageSelect={false}
@@ -279,8 +279,14 @@ export default function EvuddyAssistant() {
                   void voice.listen(
                     (text) => void ask(text),
                     "hi",
-                    (message) =>
-                      setTurns((old) => [...old, { role: "assistant", content: message }])
+                    (message) => {
+                      const hindi =
+                        /[\u0900-\u097F]/.test(message) || /वॉइस|माइक|बोल|टाइप|सुन/.test(message)
+                          ? message
+                          : "माइक से सुन नहीं पाई। Chrome/Safari में बोलें, या सवाल हिंदी में टाइप करें।";
+                      setTurns((old) => [...old, { role: "assistant", content: hindi }]);
+                    },
+                    true
                   );
                 }}
                 className={`relative flex h-12 w-12 items-center justify-center rounded-full text-white disabled:opacity-40 ${
@@ -314,7 +320,7 @@ export default function EvuddyAssistant() {
                   <div>
                     <p className="text-sm font-black text-[#0F172A]">{greeting}</p>
                     <p className="text-[11px] text-slate-500">
-                      आसान हिंदी जवाब · सही पेज खोलें · भुगतान नहीं लेती
+                      ChatGPT जैसी हिंदी हेल्प · सही पेज · भुगतान नहीं
                     </p>
                   </div>
                 </div>

@@ -124,7 +124,8 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
   const listen = async (
     onText: (text: string) => void,
     language = "auto",
-    onError?: (message: string) => void
+    onError?: (message: string) => void,
+    preferBrowser = false
   ) => {
     if (listening) {
       setStatus("समझ रही हूँ…");
@@ -195,6 +196,23 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
       }
     };
 
+    // Eva: use browser speech first so users never see "voice server not configured".
+    if (preferBrowser && speechCtor()) {
+      modeRef.current = "browser";
+      startBrowserBackup();
+      if (!recRef.current) {
+        fail("इस ब्राउज़र में माइक नहीं चल रहा। सवाल टाइप करें, या Chrome/Safari आज़माएँ।");
+        return false;
+      }
+      setListening(true);
+      timerRef.current = window.setTimeout(() => {
+        const text = backupRef.current;
+        if (text) finish(text);
+        else fail("आवाज़ नहीं सुनाई दी। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।");
+      }, 12000);
+      return true;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       const Ctor = speechCtor();
       if (!Ctor) {
@@ -246,11 +264,22 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
               finish(String(data.text));
               return;
             }
+            // Prefer browser speech text over any server error (incl. not configured).
             if (backup) {
               finish(backup);
               return;
             }
-            fail(data.message || "सुनाई नहीं दी। फिर से बोलकर देखें।");
+            if (res.status === 503 || data.code === "STT_NOT_CONFIGURED") {
+              fail(
+                "वॉइस सर्वर सेट नहीं है — Chrome/Safari में माइक से बोलें, या सवाल हिंदी में टाइप करें।"
+              );
+              return;
+            }
+            fail(
+              typeof data.message === "string" && data.message
+                ? data.message
+                : "सुनाई नहीं दी। फिर से बोलकर देखें।"
+            );
             return;
           } catch {
             if (backup) {
