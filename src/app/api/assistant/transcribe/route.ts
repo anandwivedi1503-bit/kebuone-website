@@ -11,25 +11,28 @@ export async function POST(req: Request) {
   try {
     if (!rateLimitAllowed(`assistant-stt:${clientIp(req)}`, 20, 10 * 60 * 1000)) {
       return NextResponse.json(
-        { success: false, message: "Please wait a moment before speaking again." },
+        { success: false, message: "थोड़ी देर बाद फिर बोलकर देखें।" },
         { status: 429 }
       );
     }
 
     const form = await req.formData();
     const file = form.get("audio");
-    const language = String(form.get("language") || "auto");
+    const language = String(form.get("language") || "hi");
 
     if (!(file instanceof File) || file.size < 800) {
       return NextResponse.json(
-        { success: false, message: "No speech captured. Hold the mic, speak, then tap again." },
+        {
+          success: false,
+          message: "आवाज़ नहीं मिली। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।",
+        },
         { status: 400 }
       );
     }
 
     if (file.size > MAX_BYTES) {
       return NextResponse.json(
-        { success: false, message: "Clip is too long. Speak for a few seconds only." },
+        { success: false, message: "बहुत लंबी क्लिप है। कुछ सेकंड ही बोलें।" },
         { status: 400 }
       );
     }
@@ -38,17 +41,18 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
+          code: "STT_NOT_CONFIGURED",
           message:
-            "Voice server is not configured yet. Type your question, or use Chrome/Safari speech if the browser offers it.",
+            "वॉइस सर्वर अभी सेट नहीं है। Chrome/Safari में बोलें (ब्राउज़र सुन लेगा) या सवाल टाइप करें।",
         },
         { status: 503 }
       );
     }
 
-    const text = await transcribeAudio(file, language === "auto" ? "" : language);
+    const text = await transcribeAudio(file, language === "auto" ? "hi" : language);
     if (!text) {
       return NextResponse.json(
-        { success: false, message: "Could not hear that. Please try again." },
+        { success: false, message: "सुनाई नहीं दी। फिर से साफ़ बोलकर देखें।" },
         { status: 422 }
       );
     }
@@ -57,7 +61,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("ASSISTANT TRANSCRIBE:", error);
     return NextResponse.json(
-      { success: false, message: "Voice is briefly unavailable. Please type instead." },
+      { success: false, message: "आवाज़ अभी उपलब्ध नहीं। कृपया टाइप करें।" },
       { status: 500 }
     );
   }
