@@ -42,14 +42,30 @@ export const board: LeaderPoster[] = [
   },
 ];
 
+/** Second row under board leadership posters. */
+export const teamRow: TeamMember[] = [
+  {
+    id: "designer",
+    name: "Akanksha Maurya",
+    role: "Graphic Designer",
+    image: "/leadership/designer.png",
+  },
+  {
+    id: "admin-front-desk",
+    name: "Aanya Singh",
+    role: "Admin & Front Desk",
+    image: "/leadership/admin-and-telecaller.png",
+  },
+];
+
 export const team: TeamMember[] = [
-  { id: "operations", name: "Team member", role: "Operations", image: "" },
   {
     id: "technology",
     name: "Anand Dhar Dwivedi",
     role: "Software Development Engineer (SDE)",
     image: "/anand-sde.png",
   },
+  { id: "operations", name: "Team member", role: "Operations", image: "" },
   { id: "finance", name: "Team member", role: "Finance", image: "" },
   { id: "hr", name: "Team member", role: "Human Resources", image: "" },
   { id: "marketing", name: "Team member", role: "Marketing", image: "" },

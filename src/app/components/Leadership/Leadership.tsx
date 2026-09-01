@@ -13,7 +13,13 @@ import {
   Zap,
 } from "lucide-react";
 
-import { board, team, type LeaderPoster, type TeamMember } from "./leadershipData";
+import {
+  board,
+  team,
+  teamRow,
+  type LeaderPoster,
+  type TeamMember,
+} from "./leadershipData";
 
 const values = [
   {
@@ -119,6 +125,24 @@ export default function Leadership() {
             ))}
           </div>
 
+          <div className="mt-10 grid max-w-4xl gap-6 sm:mx-auto sm:grid-cols-2">
+            {teamRow.map((member) => (
+              <article key={member.id} className="group text-left">
+                <figure className="overflow-hidden rounded-[28px] bg-white p-2.5 shadow-[0_28px_80px_rgba(8,17,47,0.1)] ring-1 ring-[#18B368]/10 transition group-hover:-translate-y-1 group-hover:shadow-[0_36px_90px_rgba(24,179,104,0.16)]">
+                  <PosterMedia
+                    src={member.image}
+                    alt={`${member.name}, ${member.role} at EVUDDY`}
+                    frame="tall"
+                  />
+                </figure>
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
+                  {member.role}
+                </p>
+                <h3 className="mt-1 text-2xl font-black">{member.name}</h3>
+              </article>
+            ))}
+          </div>
+
           <LeaderProfile leader={active} />
         </div>
       </section>
@@ -220,7 +244,7 @@ function LeaderProfile({ leader }: { leader: LeaderPoster }) {
 }
 
 function posterSrc(src: string) {
-  const stamp = "v20260820";
+  const stamp = "v20260901";
   if (!src) return src;
   if (/^https?:\/\//.test(src)) {
     return src.includes("?") ? `${src}&${stamp}` : `${src}?${stamp}`;
