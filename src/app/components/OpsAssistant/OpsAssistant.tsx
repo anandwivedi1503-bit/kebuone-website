@@ -1,9 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff, Search, Send, X } from "lucide-react";
+import Image from "next/image";
+import {
+  AlertTriangle,
+  Bike,
+  CreditCard,
+  Mic,
+  MicOff,
+  Radio,
+  Send,
+  Ticket,
+} from "lucide-react";
 
-import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
+import AssistantFab from "@/app/components/Assistant/AssistantFab";
+import AssistantShell, { TypingDots } from "@/app/components/Assistant/AssistantShell";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 
 type Hit = {
@@ -15,6 +26,22 @@ type Hit = {
 };
 
 type Turn = { role: "user" | "assistant"; content: string; hits?: Hit[] };
+
+const OPS_CHIPS = [
+  { label: "Unpaid", ask: "unpaid bookings", icon: CreditCard },
+  { label: "In ride", ask: "in ride scooters", icon: Radio },
+  { label: "Open tickets", ask: "open tickets", icon: Ticket },
+  { label: "Available", ask: "available scooters", icon: Bike },
+  { label: "Rent to Own", ask: "rent to own unpaid", icon: AlertTriangle },
+] as const;
+
+const KIND_STYLE: Record<string, string> = {
+  booking: "border-l-[#18B368] text-[#0F7A45]",
+  rider: "border-l-[#3B82F6] text-[#1D4ED8]",
+  vehicle: "border-l-[#F59E0B] text-[#B45309]",
+  ticket: "border-l-[#EC2A8C] text-[#BE185D]",
+  hub: "border-l-[#0B1B16] text-[#0B1B16]",
+};
 
 export default function OpsAssistant({
   onOpenDashboard,
@@ -31,7 +58,7 @@ export default function OpsAssistant({
     {
       role: "assistant",
       content:
-        "Ops search assistant. Ask for unpaid bookings, a rider phone, BK- IDs, available scooters, or open tickets. I only show what this login can see. I cannot pay, refund, or enter OTP.",
+        "Ops Eva here. Search live bookings, riders, fleet, hubs, and tickets for this login — like a yard command desk. Tap a chip or ask for a BK- ID / phone. I cannot pay, refund, or enter OTP.",
     },
   ]);
 
@@ -72,125 +99,147 @@ export default function OpsAssistant({
   };
 
   return (
-    <div className="pointer-events-none fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[80] flex flex-col items-end gap-3 print:hidden">
+    <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[80] flex flex-col items-end gap-3 print:hidden sm:right-6">
       {open ? (
-        <div className="pointer-events-auto flex h-[min(34rem,72vh)] w-[min(26rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif]">
-          <div className="flex items-center justify-between bg-[#0B1B16] px-4 py-3 text-white">
-            <div>
-              <p className="text-sm font-black">Ops assistant</p>
-              <p className="text-[11px] text-white/70">Search · coordinate · no payments</p>
+        <AssistantShell
+          title="Ops Eva"
+          subtitle="Live ops search · ACL-safe · no payments"
+          liveLabel="Live"
+          language={language}
+          onLanguage={setLanguage}
+          onClose={() => setOpen(false)}
+          chips={
+            <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {OPS_CHIPS.map((chip) => {
+                const Icon = chip.icon;
+                return (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    onClick={() => void ask(chip.ask)}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm hover:border-[#18B368]"
+                  >
+                    <Icon size={13} className="text-[#18B368]" />
+                    {chip.label}
+                  </button>
+                );
+              })}
             </div>
-            <div className="flex items-center gap-2">
-              <select
-                value={language}
-                onChange={(event) => setLanguage(event.target.value)}
-                className="max-w-[108px] rounded-full bg-white/10 px-2 py-1 text-[11px] font-bold text-white outline-none"
-                aria-label="Ops assistant language"
+          }
+          footer={
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void ask(question);
+              }}
+            >
+              <input
+                value={question}
+                onChange={(event) => setQuestion(event.target.value)}
+                className="h-12 flex-1 rounded-full border border-slate-200 bg-[#F8FAF9] px-4 text-sm outline-none focus:border-[#18B368]"
+                placeholder={
+                  voice.listening ? "Listening… tap mic to stop" : "BK-000001, phone, unpaid…"
+                }
+                maxLength={200}
+              />
+              <button
+                type="button"
+                disabled={!voice.supported}
+                title={voice.supported ? undefined : "Microphone is not available in this browser"}
+                onClick={() => {
+                  void voice.listen(
+                    (text) => void ask(text),
+                    language,
+                    (message) =>
+                      setTurns((old) => [...old, { role: "assistant", content: message }])
+                  );
+                }}
+                className={`relative flex h-12 w-12 items-center justify-center rounded-full text-white disabled:opacity-40 ${
+                  voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
+                }`}
+                aria-label={voice.listening ? "Stop listening" : "Speak"}
               >
-                {ASSISTANT_LANGUAGES.map((item) => (
-                  <option key={item.id} value={item.id} className="text-[#0F172A]">
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-              <button type="button" onClick={() => setOpen(false)} aria-label="Close ops assistant">
-                <X size={18} />
+                {voice.listening ? (
+                  <span className="absolute inset-0 animate-ping rounded-full bg-[#EC2A8C]/40" />
+                ) : null}
+                {voice.listening ? <MicOff size={17} /> : <Mic size={17} />}
               </button>
-            </div>
-          </div>
-          <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
-            {turns.map((turn, index) => (
-              <div key={`${turn.role}-${index}`}>
-                <div
-                  className={
-                    turn.role === "user"
-                      ? "ml-8 rounded-2xl bg-[#18B368] px-3 py-2 text-white"
-                      : "mr-4 rounded-2xl bg-slate-100 px-3 py-2 text-slate-700 whitespace-pre-wrap"
-                  }
-                >
-                  {turn.content}
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#18B368] text-white disabled:opacity-50"
+                aria-label="Search"
+              >
+                <Send size={17} />
+              </button>
+            </form>
+          }
+        >
+          {turns.map((turn, index) => (
+            <div key={`${turn.role}-${index}`} className="space-y-2">
+              {turn.role === "user" ? (
+                <div className="ml-10 flex justify-end">
+                  <div className="rounded-2xl rounded-tr-md bg-gradient-to-br from-[#18B368] to-[#12995A] px-3.5 py-2.5 text-sm font-medium text-white shadow-sm">
+                    {turn.content}
+                  </div>
                 </div>
-                {turn.hits?.length ? (
-                  <div className="mt-2 space-y-1">
-                    {turn.hits.map((hit) => (
-                      <button
-                        key={`${hit.kind}-${hit.id}-${hit.title}`}
-                        type="button"
-                        onClick={() => onOpenDashboard(hit.dashboard)}
-                        className="w-full rounded-2xl border border-slate-200 bg-white px-3 py-2 text-left hover:border-[#18B368]"
-                      >
-                        <p className="text-xs font-bold uppercase tracking-wide text-[#18B368]">
+              ) : (
+                <div className="mr-4 flex items-end gap-2">
+                  <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-slate-200">
+                    <Image src="/kebu-mascot.jpg" alt="" width={28} height={28} className="object-cover" />
+                  </span>
+                  <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-3.5 py-2.5 text-sm whitespace-pre-wrap text-slate-700 shadow-sm">
+                    {turn.content}
+                  </div>
+                </div>
+              )}
+              {turn.hits?.length ? (
+                <div className="ml-9 space-y-1.5">
+                  {turn.hits.map((hit) => (
+                    <button
+                      key={`${hit.kind}-${hit.id}-${hit.title}`}
+                      type="button"
+                      onClick={() => onOpenDashboard(hit.dashboard)}
+                      className={`w-full rounded-2xl border border-slate-200 border-l-4 bg-white px-3 py-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                        KIND_STYLE[hit.kind] || "border-l-[#18B368]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.16em]">
                           {hit.kind}
                         </p>
-                        <p className="font-black text-[#0F172A]">{hit.title}</p>
-                        <p className="text-xs text-slate-500">{hit.detail}</p>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))}
-            {loading || voice.status ? (
-              <p className="text-xs text-slate-400">{voice.status || "Searching live data…"}</p>
-            ) : null}
-            <div ref={bottomRef} />
-          </div>
-          <form
-            className="flex gap-2 border-t border-slate-100 p-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void ask(question);
-            }}
-          >
-            <input
-              value={question}
-              onChange={(event) => setQuestion(event.target.value)}
-              className="h-11 flex-1 rounded-full border border-slate-200 px-4 text-sm outline-none focus:border-[#18B368]"
-              placeholder={voice.listening ? "Listening… tap mic to stop" : "Search bookings, riders, fleet…"}
-              maxLength={200}
-            />
-            <button
-              type="button"
-              disabled={!voice.supported}
-              title={voice.supported ? undefined : "Microphone is not available in this browser"}
-              onClick={() => {
-                void voice.listen(
-                  (text) => void ask(text),
-                  language,
-                  (message) =>
-                    setTurns((old) => [...old, { role: "assistant", content: message }])
-                );
-              }}
-              className={`relative flex h-11 w-11 items-center justify-center rounded-full text-white disabled:opacity-40 ${
-                voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
-              }`}
-              aria-label={voice.listening ? "Stop listening" : "Speak"}
-            >
-              {voice.listening ? (
-                <span className="absolute inset-0 animate-ping rounded-full bg-[#EC2A8C]/40" />
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                          Open →
+                        </span>
+                      </div>
+                      <p className="mt-0.5 font-black text-[#0F172A]">{hit.title}</p>
+                      <p className="text-xs text-slate-500">{hit.detail}</p>
+                    </button>
+                  ))}
+                </div>
               ) : null}
-              {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[#18B368] text-white disabled:opacity-50"
-              aria-label="Search"
-            >
-              <Send size={16} />
-            </button>
-          </form>
-        </div>
+            </div>
+          ))}
+          {loading || voice.status ? (
+            <div className="space-y-1">
+              {loading ? <TypingDots /> : null}
+              {voice.status ? (
+                <p className="pl-9 text-xs font-semibold text-slate-400">{voice.status}</p>
+              ) : null}
+            </div>
+          ) : null}
+          <div ref={bottomRef} />
+        </AssistantShell>
       ) : null}
-      <button
-        type="button"
+
+      <AssistantFab
+        open={open}
         onClick={() => setOpen((value) => !value)}
-        className="pointer-events-auto flex h-14 items-center gap-2 rounded-full bg-[#0B1B16] px-4 font-bold text-white shadow-[0_16px_40px_rgba(15,23,42,.35)]"
-        aria-label="Open ops assistant"
-      >
-        <Search size={18} />
-        <span className="hidden sm:inline">Ops AI</span>
-      </button>
+        label="Ops Eva"
+        ariaLabel={open ? "Close ops assistant" : "Open ops assistant"}
+        tone="ops"
+      />
     </div>
   );
 }
