@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { Bike, HelpCircle, IndianRupee, KeyRound, Mic, MicOff, Send, Sparkles } from "lucide-react";
 
 import AssistantFab from "@/app/components/Assistant/AssistantFab";
+import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
 import AssistantShell, { TypingDots } from "@/app/components/Assistant/AssistantShell";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 
@@ -93,11 +93,11 @@ export default function EvuddyAssistant() {
   };
 
   return (
-    <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[80] flex flex-col items-end gap-3 sm:right-6">
+    <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90] flex max-h-[calc(100dvh-1rem)] flex-col items-end gap-3 sm:right-6">
       {open ? (
         <AssistantShell
           title="Eva"
-          subtitle="Ride buddy · Hindi + voice help"
+          subtitle="Hindi · voice · booking help"
           language={language}
           onLanguage={setLanguage}
           onClose={() => setOpen(false)}
@@ -178,8 +178,8 @@ export default function EvuddyAssistant() {
               </div>
             ) : (
               <div key={`a-${index}`} className="mr-6 flex items-end gap-2">
-                <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white ring-1 ring-slate-200">
-                  <Image src="/kebu-mascot.jpg" alt="" width={28} height={28} className="object-cover" />
+                <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-slate-200">
+                  <AssistantLogo size={28} />
                 </span>
                 <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-3.5 py-2.5 text-sm text-slate-700 shadow-sm">
                   {turn.content}

@@ -1,7 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { X } from "lucide-react";
+
+import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
 
 type Props = {
   open: boolean;
@@ -39,20 +40,13 @@ export default function AssistantFab({
       ) : null}
 
       <span
-        className={`relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-[#18B368] via-[#12A35C] to-[#EC2A8C] p-[3px] transition-transform duration-200 group-hover:scale-105 active:scale-95 ${glow}`}
+        className={`relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#18B368] via-[#12A35C] to-[#EC2A8C] p-[3px] transition-transform duration-200 group-hover:scale-105 active:scale-95 ${glow}`}
       >
-        <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white">
+        <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white p-1">
           {open ? (
             <X className="text-[#0B1B16]" size={26} strokeWidth={2.5} />
           ) : (
-            <Image
-              src="/kebu-mascot.jpg"
-              alt=""
-              width={56}
-              height={56}
-              className="h-[52px] w-[52px] object-cover"
-              priority
-            />
+            <AssistantLogo size={56} priority />
           )}
         </span>
         {!open ? (
