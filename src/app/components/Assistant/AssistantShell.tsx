@@ -15,6 +15,9 @@ type Props = {
   onClose: () => void;
   speakBack?: boolean;
   onSpeakBack?: () => void;
+  /** When false, hide language dropdown (Eva is Hindi-only). */
+  showLanguageSelect?: boolean;
+  languageBadge?: string;
   children: ReactNode;
   footer: ReactNode;
   chips?: ReactNode;
@@ -39,6 +42,8 @@ export default function AssistantShell({
   onClose,
   speakBack,
   onSpeakBack,
+  showLanguageSelect = true,
+  languageBadge,
   children,
   footer,
   chips,
@@ -66,18 +71,24 @@ export default function AssistantShell({
             <p className="mt-0.5 truncate text-[11px] leading-snug text-white/75 sm:whitespace-normal">{subtitle}</p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <select
-              value={language}
-              onChange={(event) => onLanguage(event.target.value)}
-              className="max-w-[72px] rounded-full border border-white/15 bg-white/10 px-1.5 py-1 text-[11px] font-bold text-white outline-none sm:max-w-[88px] sm:px-2"
-              aria-label="Assistant language"
-            >
-              {ASSISTANT_LANGUAGES.map((item) => (
-                <option key={item.id} value={item.id} className="text-[#0F172A]">
-                  {item.label}
-                </option>
-              ))}
-            </select>
+            {showLanguageSelect ? (
+              <select
+                value={language}
+                onChange={(event) => onLanguage(event.target.value)}
+                className="max-w-[72px] rounded-full border border-white/15 bg-white/10 px-1.5 py-1 text-[11px] font-bold text-white outline-none sm:max-w-[88px] sm:px-2"
+                aria-label="Assistant language"
+              >
+                {ASSISTANT_LANGUAGES.map((item) => (
+                  <option key={item.id} value={item.id} className="text-[#0F172A]">
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            ) : languageBadge ? (
+              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white">
+                {languageBadge}
+              </span>
+            ) : null}
             {onSpeakBack ? (
               <button
                 type="button"

@@ -74,7 +74,8 @@ export default function EvuddyAssistant() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [speakBack, setSpeakBack] = useState(true);
-  const [language, setLanguage] = useState("hi");
+  // Eva is Hindi-only — no English replies or English TTS.
+  const language = "hi";
   const [riderName] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -145,7 +146,7 @@ export default function EvuddyAssistant() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           question: asked,
-          language,
+          language: "hi",
           history: nextTurns.slice(-8),
         }),
       });
@@ -156,7 +157,7 @@ export default function EvuddyAssistant() {
         "अभी जवाब नहीं दे पाई। Book EV इस्तेमाल करें या हेल्पडेस्क helpdesk@kebuone.in / +91 8726006512 पर बात करें।";
       const href = SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "";
       setTurns([...nextTurns, { role: "assistant", content: answer, href }]);
-      if (speakBack) voice.speak(answer, language === "en" ? "en" : "hi");
+      if (speakBack) voice.speak(answer, "hi");
       if (href && data.navigate) go(href);
     } catch {
       setTurns([
@@ -180,8 +181,8 @@ export default function EvuddyAssistant() {
             setOpen((value) => !value);
             if (!open) setView("home");
           }}
-          label="Ask Eva"
-          ariaLabel={open ? "Close EVUDDY assistant" : "Open EVUDDY assistant"}
+          label="एवा से पूछें"
+          ariaLabel={open ? "EVUDDY असिस्टेंट बंद करें" : "EVUDDY असिस्टेंट खोलें"}
           tone="rider"
         />
       </div>
@@ -200,9 +201,12 @@ export default function EvuddyAssistant() {
           <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0">
         <AssistantShell
           title="Eva"
-          subtitle="आसान हिंदी मदद · आवाज़ में जवाब"
+          subtitle="सिर्फ आसान हिंदी · आवाज़ में जवाब"
+          liveLabel="ऑनलाइन"
           language={language}
-          onLanguage={setLanguage}
+          onLanguage={() => undefined}
+          showLanguageSelect={false}
+          languageBadge="हिन्दी"
           onClose={() => {
             setOpen(false);
             setView("home");
@@ -274,7 +278,7 @@ export default function EvuddyAssistant() {
                 onClick={() => {
                   void voice.listen(
                     (text) => void ask(text),
-                    language === "en" ? "en" : "hi",
+                    "hi",
                     (message) =>
                       setTurns((old) => [...old, { role: "assistant", content: message }])
                   );
@@ -282,7 +286,7 @@ export default function EvuddyAssistant() {
                 className={`relative flex h-12 w-12 items-center justify-center rounded-full text-white disabled:opacity-40 ${
                   voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
                 }`}
-                aria-label={voice.listening ? "Stop listening" : "Speak"}
+                aria-label={voice.listening ? "सुनना बंद करें" : "बोलें"}
               >
                 {voice.listening ? (
                   <span className="absolute inset-0 animate-ping rounded-full bg-[#EC2A8C]/40" />
@@ -339,7 +343,7 @@ export default function EvuddyAssistant() {
                 onClick={() => setView("chat")}
                 className="w-full rounded-2xl bg-[#0B1B16] px-3 py-2.5 text-sm font-bold text-white"
               >
-                Type or speak to Eva →
+                हिंदी में लिखें या बोलें →
               </button>
             </div>
           ) : (
@@ -364,7 +368,7 @@ export default function EvuddyAssistant() {
                           onClick={() => go(turn.href)}
                           className="mt-2 inline-flex items-center rounded-full bg-[#18B368]/10 px-3 py-1 text-xs font-bold text-[#0F7A45]"
                         >
-                          Open page →
+                          पेज खोलें →
                         </button>
                       ) : null}
                     </div>
