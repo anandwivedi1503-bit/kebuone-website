@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import EvuddyAssistant from "./components/EvuddyAssistant/EvuddyAssistant";
 
@@ -11,6 +11,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const notoDeva = Noto_Sans_Devanagari({
+  variable: "--font-noto-deva",
+  subsets: ["devanagari"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -35,7 +41,7 @@ export default function RootLayout({
     <html
   lang="en"
   data-scroll-behavior="smooth"
-  className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+  className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} h-full antialiased`}
 >
       <body className="min-h-full flex flex-col">
         {children}
