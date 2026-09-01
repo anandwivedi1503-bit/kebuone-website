@@ -1,23 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { MessageCircle, Send, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { MessageCircle, Mic, MicOff, Send, Volume2, X } from "lucide-react";
 
 import { ASSISTANT_STARTERS } from "@/lib/evuddyKnowledge";
+import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 
-type Turn = { role: "user" | "assistant"; content: string };
+type Turn = { role: "user" | "assistant"; content: string; href?: string };
+
+const SAFE_HREF = /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers)(\?[\w=&%-]*)?$/;
 
 export default function EvuddyAssistant() {
   const pathname = usePathname();
+  const router = useRouter();
+  const voice = useVoiceAssistant();
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
+  const [speakBack, setSpeakBack] = useState(true);
   const [turns, setTurns] = useState<Turn[]>([
     {
       role: "assistant",
       content:
-        "Hi, I am the EVUDDY assistant. I can explain booking, rates, KYC, wallet deposits, and Rent to Own. I cannot take payment — use Razorpay or wallet on the booking page.",
+        "Hi, I am your EVUDDY assistant. Speak or type. I can open booking, Rent to Own, or contact. I cannot take payment, enter OTP, or unlock a scooter.",
     },
   ]);
 
@@ -30,6 +36,11 @@ export default function EvuddyAssistant() {
   if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin-login")) {
     return null;
   }
+
+  const go = (href?: string) => {
+    if (!href || !SAFE_HREF.test(href)) return;
+    router.push(href);
+  };
 
   const ask = async (text: string) => {
     const asked = text.trim();
@@ -48,22 +59,20 @@ export default function EvuddyAssistant() {
         }),
       });
       const data = await res.json();
-      setTurns([
-        ...nextTurns,
-        {
-          role: "assistant",
-          content:
-            data.answer ||
-            data.message ||
-            "Please use Book a bike or info@kebuone.in — I could not answer just then.",
-        },
-      ]);
+      const answer =
+        data.answer ||
+        data.message ||
+        "Please use Book EV or info@kebuone.in — I could not answer just then.";
+      const href = SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "";
+      setTurns([...nextTurns, { role: "assistant", content: answer, href }]);
+      if (speakBack) voice.speak(answer);
+      if (href && data.navigate) go(href);
     } catch {
       setTurns([
         ...nextTurns,
         {
           role: "assistant",
-          content: "Network issue. Book at /book-bike or email info@kebuone.in.",
+          content: "Network issue. Book at /ride-options or email info@kebuone.in.",
         },
       ]);
     } finally {
@@ -78,11 +87,21 @@ export default function EvuddyAssistant() {
           <div className="flex items-center justify-between bg-[#0F172A] px-4 py-3 text-white">
             <div>
               <p className="text-sm font-black">EVUDDY assistant</p>
-              <p className="text-[11px] text-slate-300">Bookings, rates, KYC — not payments</p>
+              <p className="text-[11px] text-slate-300">Voice guide · not payments or OTP</p>
             </div>
-            <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant">
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setSpeakBack((value) => !value)}
+                className={`rounded-full p-1.5 ${speakBack ? "bg-[#18B368]" : "bg-white/10"}`}
+                aria-label="Toggle speak back"
+              >
+                <Volume2 size={16} />
+              </button>
+              <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant">
+                <X size={18} />
+              </button>
+            </div>
           </div>
           <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm">
             {turns.map((turn, index) => (
@@ -95,9 +114,18 @@ export default function EvuddyAssistant() {
                 }
               >
                 {turn.content}
+                {turn.href ? (
+                  <button
+                    type="button"
+                    onClick={() => go(turn.href)}
+                    className="mt-2 block text-xs font-bold text-[#18B368]"
+                  >
+                    Open page →
+                  </button>
+                ) : null}
               </div>
             ))}
-            {loading ? <p className="text-xs text-slate-400">Thinking…</p> : null}
+            {loading ? <p className="text-xs text-slate-400">Working…</p> : null}
           </div>
           <div className="flex flex-wrap gap-1 border-t border-slate-100 px-3 py-2">
             {ASSISTANT_STARTERS.map((starter) => (
@@ -122,9 +150,27 @@ export default function EvuddyAssistant() {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               className="h-11 flex-1 rounded-full border border-slate-200 px-4 text-sm outline-none focus:border-[#18B368]"
-              placeholder="Ask about EVUDDY…"
+              placeholder={voice.listening ? "Listening…" : "Ask or tap the mic…"}
               maxLength={500}
             />
+            {voice.supported ? (
+              <button
+                type="button"
+                onClick={() => {
+                  if (voice.listening) {
+                    voice.stop();
+                    return;
+                  }
+                  voice.listen((text) => void ask(text));
+                }}
+                className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
+                  voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
+                }`}
+                aria-label={voice.listening ? "Stop listening" : "Speak"}
+              >
+                {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
+              </button>
+            ) : null}
             <button
               type="submit"
               disabled={loading}

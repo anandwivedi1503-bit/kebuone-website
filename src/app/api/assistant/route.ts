@@ -22,10 +22,12 @@ export async function POST(req: Request) {
         content: String(turn.content || "").slice(0, 500),
       }));
 
-    const answer = await answerEvuddyQuestion(history, question);
+    const reply = await answerEvuddyQuestion(history, question);
     return NextResponse.json({
       success: true,
-      answer,
+      answer: reply.answer,
+      href: reply.href || "",
+      navigate: Boolean(reply.navigate),
       mode: assistantConfigured() ? "ai" : "guide",
     });
   } catch {
