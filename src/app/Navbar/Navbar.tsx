@@ -10,7 +10,6 @@ import {
   Building2,
   LogOut,
   Wallet,
-  User,
 } from "lucide-react";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -19,12 +18,12 @@ import { auth } from "@/lib/firebase";
 import {
   getChosenPlan,
   getRiderProfile,
-  hasRiderBookingLock,
   hasRiderPlanReady,
   logoutRider,
   riderResumeHref,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
+import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
 
 import {
   motion,
@@ -70,10 +69,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
-  const [bookingLock, setBookingLock] = useState(false);
   const [chosenPlan, setChosenPlanUi] = useState("");
-  const [riderPhone, setRiderPhone] = useState("");
-  const [riderId, setRiderId] = useState("");
   const [resumeHref, setResumeHref] = useState("/ride-options");
 
   useEffect(() => {
@@ -117,10 +113,7 @@ export default function Navbar() {
   useEffect(() => {
     const refreshSession = () => {
       const profile = getRiderProfile();
-      setBookingLock(hasRiderBookingLock());
       setChosenPlanUi(getChosenPlan());
-      setRiderPhone(profile.phone);
-      setRiderId(profile.riderId);
       setResumeHref(riderResumeHref());
       setRiderLoggedIn(hasRiderPlanReady() || Boolean(profile.phone));
     };
@@ -160,6 +153,7 @@ lg:top-4
 left-1/2
 -translate-x-1/2
 z-[999]
+overflow-visible
 w-[calc(100%-16px)]
 sm:w-[calc(100%-24px)]
 max-w-[1700px]
@@ -305,15 +299,8 @@ group-hover:w-full
 
 <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-3 xl:ml-5">
 
-{bookingLock || chosenPlan ? (
-  <span
-    className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 h-12 font-bold text-slate-400"
-    title="Finish payment on your ride first"
-  >
-    <Building2 size={18} />
-    Fleet Partner
-  </span>
-) : (
+{!(riderLoggedIn || chosenPlan) && (
+<>
 <Link href="/partners">
 
 <button
@@ -350,17 +337,7 @@ Fleet Partner
 </button>
 
 </Link>
-)}
 
-{bookingLock || chosenPlan ? (
-  <span
-    className="flex items-center gap-2 rounded-full border border-slate-200 bg-slate-100 px-4 h-12 font-bold text-slate-400"
-    title="Finish payment on your ride first"
-  >
-    <Wallet size={18} />
-    Invest
-  </span>
-) : (
 <Link href="/partners#fleet-investment">
 
 <button
@@ -394,31 +371,7 @@ Invest
 </button>
 
 </Link>
-)}
 
-{chosenPlan || bookingLock ? (
-<Link href={resumeHref}>
-<button
-type="button"
-className="
-flex
-items-center
-gap-2
-rounded-full
-bg-[#0B1B16]
-px-4
-xl:px-5
-h-12
-xl:h-13
-font-bold
-text-white
-"
->
-<User size={18} />
-My ride
-</button>
-</Link>
-) : (
 <Link href="/ride-options">
 
 <button
@@ -457,56 +410,20 @@ className="transition-transform duration-300 group-hover:translate-x-1"
 </button>
 
 </Link>
+</>
 )}
 
-{(riderLoggedIn || chosenPlan) && (
-  <div className="flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-3 xl:px-4 h-12 max-w-[220px]">
-    <User size={16} className="shrink-0 text-[#18B368]" />
-    <span className="truncate text-xs font-bold text-[#0F172A]">
-      {riderId || "Rider"}
-      {riderPhone ? ` · ${riderPhone}` : ""}
-    </span>
-  </div>
-)}
-
-{riderLoggedIn && (
-<button
-type="button"
-onClick={handleLogout}
-className="
-flex
-items-center
-gap-2
-rounded-full
-border
-border-slate-200
-bg-white
-px-4
-xl:px-5
-h-12
-xl:h-13
-font-bold
-text-[#0F172A]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:border-[#EC2A8C]
-hover:text-[#EC2A8C]
-"
->
-<LogOut size={16} />
-Logout
-</button>
-)}
+{(riderLoggedIn || chosenPlan) && <RiderAccountMenu />}
 
 </div>
 
 {/* ================= Mobile Button ================= */}
 
+<div className="flex items-center gap-2 lg:hidden">
+{(riderLoggedIn || chosenPlan) && <RiderAccountMenu compact />}
 <button
 onClick={() => setMenuOpen(!menuOpen)}
 className="
-lg:hidden
 relative
 z-[1001]
 p-2
@@ -527,6 +444,7 @@ duration-300
 )}
 
 </button>
+</div>
 
 </div>
 
@@ -626,24 +544,27 @@ className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold 
 <div className="px-4
 lg:px-6 pb-10 space-y-4">
 
-{(riderLoggedIn || chosenPlan) && (
-  <div className="rounded-2xl border border-[#18B368]/20 bg-[#F7FBF8] px-4 py-4">
-    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">Your ride</p>
-    <p className="mt-1 font-black text-[#0F172A]">{riderId || "Rider"}</p>
-    {riderPhone ? <p className="text-sm text-slate-500">+91 {riderPhone}</p> : null}
-  </div>
-)}
-
-{bookingLock || chosenPlan ? (
-<button
-type="button"
-disabled
-className="w-full h-14 rounded-full border border-slate-200 bg-slate-100 text-slate-400 font-semibold flex items-center justify-center gap-2"
->
-<Building2 size={20}/>
-Fleet Partner
-</button>
+{(riderLoggedIn || chosenPlan) ? (
+<>
+  <Link
+    href={resumeHref}
+    onClick={()=>setMenuOpen(false)}
+    className="flex w-full items-center justify-center gap-2 h-14 rounded-full bg-[#111827] text-white font-semibold"
+  >
+    Continue my ride
+    <ChevronRight size={18}/>
+  </Link>
+  <button
+    type="button"
+    onClick={handleLogout}
+    className="w-full h-14 rounded-full border border-[#EC2A8C]/30 bg-white text-[#EC2A8C] font-semibold flex items-center justify-center gap-2"
+  >
+    <LogOut size={18} />
+    Log out
+  </button>
+</>
 ) : (
+<>
 <Link
 href="/partners"
 onClick={()=>setMenuOpen(false)}
@@ -679,18 +600,7 @@ Fleet Partner
 </button>
 
 </Link>
-)}
 
-{bookingLock || chosenPlan ? (
-<button
-type="button"
-disabled
-className="w-full h-14 rounded-full border border-slate-200 bg-slate-100 text-slate-400 font-semibold flex items-center justify-center gap-2"
->
-<Wallet size={20}/>
-Invest
-</button>
-) : (
 <Link
 href="/partners#fleet-investment"
 onClick={()=>setMenuOpen(false)}
@@ -722,10 +632,9 @@ Invest
 </button>
 
 </Link>
-)}
 
 <Link
-href={chosenPlan || bookingLock ? resumeHref : "/ride-options"}
+href="/ride-options"
 onClick={()=>setMenuOpen(false)}
 >
 
@@ -735,23 +644,14 @@ className="w-full h-14 rounded-full bg-[#111827] text-white font-semibold hover:
 
 >
 
-{chosenPlan || bookingLock ? "My ride" : "Book Ride"}
+Book Ride
 
 <ChevronRight size={18}/>
 
 </button>
 
 </Link>
-
-{riderLoggedIn && (
-<button
-type="button"
-onClick={handleLogout}
-className="w-full h-14 rounded-full border border-slate-200 bg-white text-[#0F172A] font-semibold hover:border-[#EC2A8C] hover:text-[#EC2A8C] transition flex items-center justify-center gap-2"
->
-<LogOut size={18} />
-Logout
-</button>
+</>
 )}
 
 </div>

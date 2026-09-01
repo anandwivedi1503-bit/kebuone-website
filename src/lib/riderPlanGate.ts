@@ -3,6 +3,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
 export const RIDER_SESSION_EVENT = "kebu-rider-session";
+export const RIDER_ACCOUNT_OPEN_EVENT = "kebu-open-rider-account";
 
 const PLAN_READY_KEY = "kebu_rider_plan_ready";
 const CHOSEN_PLAN_KEY = "kebu_rider_chosen_plan";
@@ -122,12 +123,30 @@ export function riderResumeHref() {
 
 export function getRiderProfile() {
   if (typeof window === "undefined") {
-    return { riderId: "", phone: "" };
+    return { riderId: "", phone: "", name: "" };
   }
   return {
     riderId: window.localStorage.getItem("kebu_rider_id") || "",
     phone: window.localStorage.getItem("kebu_rider_phone") || "",
+    name: window.localStorage.getItem("kebu_rider_name") || "",
   };
+}
+
+export function rememberRiderProfile(profile: {
+  riderId?: string;
+  phone?: string;
+  name?: string;
+}) {
+  if (typeof window === "undefined") return;
+  if (profile.riderId) window.localStorage.setItem("kebu_rider_id", profile.riderId);
+  if (profile.phone) window.localStorage.setItem("kebu_rider_phone", profile.phone);
+  if (profile.name) window.localStorage.setItem("kebu_rider_name", profile.name);
+  emitRiderSession();
+}
+
+export function openRiderAccountMenu() {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(RIDER_ACCOUNT_OPEN_EVENT));
 }
 
 function readJson<T>(key: string): T | null {
@@ -191,6 +210,7 @@ export async function logoutRider() {
   removeKey(RTO_DRAFT_KEY);
   window.localStorage.removeItem("kebu_rider_id");
   window.localStorage.removeItem("kebu_rider_phone");
+  window.localStorage.removeItem("kebu_rider_name");
   emitRiderSession();
 
   try {

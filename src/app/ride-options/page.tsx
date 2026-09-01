@@ -20,6 +20,7 @@ import {
   hasRiderPlanReady,
   logoutRider,
   markRiderPlanReady,
+  rememberRiderProfile,
   riderResumeHref,
   setChosenPlan,
   setRideOptionsView,
@@ -165,6 +166,8 @@ export default function RideOptionsPage() {
       bookingEnabled?: boolean;
       approvalStatus?: string;
       status?: string;
+      fullName?: string;
+      phone?: string;
     };
   }) => {
     if (!data.success || !data.data) {
@@ -173,7 +176,11 @@ export default function RideOptionsPage() {
     }
 
     if (data.data.riderId) {
-      localStorage.setItem("kebu_rider_id", data.data.riderId);
+      rememberRiderProfile({
+        riderId: data.data.riderId,
+        phone: data.data.phone,
+        name: data.data.fullName,
+      });
       setRiderId(data.data.riderId);
     }
 
