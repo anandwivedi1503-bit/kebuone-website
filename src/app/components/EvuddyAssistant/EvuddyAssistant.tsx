@@ -27,38 +27,38 @@ const SAFE_HREF =
 
 const HELP_TOPICS = [
   {
-    label: "Book a ride",
-    ask: "How do I book a scooter?",
+    label: "बुक करें",
+    ask: "स्कूटर कैसे बुक करें?",
     icon: Bike,
-    blurb: "KYC → pick hub → pay",
+    blurb: "KYC → हब → पेमेंट",
   },
   {
-    label: "Rates",
-    ask: "What are the rental rates?",
+    label: "किराया",
+    ask: "किराया कितना है?",
     icon: IndianRupee,
-    blurb: "Hourly to monthly",
+    blurb: "घंटे से महीने तक",
   },
   {
     label: "Rent to Own",
-    ask: "What is Rent to Own?",
+    ask: "Rent to Own क्या है?",
     icon: Sparkles,
-    blurb: "₹280 / day · 18 months",
+    blurb: "₹280 / दिन · 18 महीने",
   },
   {
-    label: "Invest",
-    ask: "Tell me about fleet investment plans",
+    label: "निवेश",
+    ask: "फ्लीट पार्टनर निवेश प्लान और पोस्टर बताओ",
     icon: PiggyBank,
-    blurb: "Partner plans · 50/50",
+    blurb: "आपको 60% · पोस्टर देखें",
   },
   {
-    label: "Tickets",
-    ask: "How do support tickets work?",
+    label: "टिकट",
+    ask: "सपोर्ट टिकट कैसे बनता है?",
     icon: Ticket,
-    blurb: "Need help? on Book EV",
+    blurb: "Book EV पर Need help?",
   },
   {
-    label: "Helpdesk",
-    ask: "How do I contact support?",
+    label: "हेल्पडेस्क",
+    ask: "हेल्पडेस्क कैसे संपर्क करें?",
     icon: Headset,
     blurb: "helpdesk@kebuone.in",
   },
@@ -74,7 +74,7 @@ export default function EvuddyAssistant() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [speakBack, setSpeakBack] = useState(true);
-  const [language, setLanguage] = useState("auto");
+  const [language, setLanguage] = useState("hi");
   const [riderName] = useState(() => {
     if (typeof window === "undefined") return "";
     try {
@@ -97,7 +97,7 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "Hi, I’m Eva — ChatGPT-style EVUDDY help. Ask anything about bookings, Rent to Own, investment, tickets, KYC, rates, or the website. I answer fast and can open the right page. I never take payment, OTP, or unlock.",
+        "नमस्ते, मैं Eva हूँ — EVUDDY की हेल्प। बुकिंग, किराया, Rent to Own, फ्लीट निवेश (आधिकारिक पोस्टर), टिकट, KYC — आसान हिंदी में पूछें। सही पेज भी खोल दूँगी। भुगतान, OTP या अनलॉक मैं नहीं करूँगी।",
     },
   ]);
 
@@ -118,8 +118,8 @@ export default function EvuddyAssistant() {
   }, [open]);
 
   const greeting = useMemo(() => {
-    if (riderName) return `Hi ${riderName.split(" ")[0]} — need help with your ride?`;
-    return "How can Eva help you ride today?";
+    if (riderName) return `नमस्ते ${riderName.split(" ")[0]} — राइड में क्या मदद चाहिए?`;
+    return "आज Eva आपकी कैसे मदद करे?";
   }, [riderName]);
 
   if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin-login")) {
@@ -153,17 +153,17 @@ export default function EvuddyAssistant() {
       const answer =
         data.answer ||
         data.message ||
-        "Please use Book EV or helpdesk@kebuone.in / +91 8726006512 — I could not answer just then.";
+        "अभी जवाब नहीं दे पाई। Book EV इस्तेमाल करें या हेल्पडेस्क helpdesk@kebuone.in / +91 8726006512 पर बात करें।";
       const href = SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "";
       setTurns([...nextTurns, { role: "assistant", content: answer, href }]);
-      if (speakBack) voice.speak(answer, language);
+      if (speakBack) voice.speak(answer, language === "en" ? "en" : "hi");
       if (href && data.navigate) go(href);
     } catch {
       setTurns([
         ...nextTurns,
         {
           role: "assistant",
-          content: "Network issue. Book at /ride-options or call helpdesk +91 8726006512.",
+          content: "नेटवर्क समस्या है। /ride-options पर बुक करें या हेल्पडेस्क +91 8726006512 पर कॉल करें।",
         },
       ]);
     } finally {
@@ -200,7 +200,7 @@ export default function EvuddyAssistant() {
           <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0">
         <AssistantShell
           title="Eva"
-          subtitle="In-app ride help · Hindi + voice"
+          subtitle="आसान हिंदी मदद · आवाज़ में जवाब"
           language={language}
           onLanguage={setLanguage}
           onClose={() => {
@@ -221,7 +221,7 @@ export default function EvuddyAssistant() {
                 }`}
               >
                 <CircleHelp size={13} />
-                Help home
+                होम
               </button>
               {hasRider ? (
                 <button
@@ -230,15 +230,15 @@ export default function EvuddyAssistant() {
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#18B368]/30 bg-[#18B368]/10 px-3 py-1.5 text-[11px] font-bold text-[#0F7A45]"
                 >
                   <Bike size={13} />
-                  My ride
+                  मेरी राइड
                 </button>
               ) : null}
               <button
                 type="button"
-                onClick={() => void ask("स्कूटर कैसे बुक करें?")}
+                onClick={() => void ask("फ्लीट पार्टनर निवेश प्लान और पोस्टर बताओ")}
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700"
               >
-                हिन्दी
+                निवेश
               </button>
               <button
                 type="button"
@@ -246,7 +246,7 @@ export default function EvuddyAssistant() {
                 className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700"
               >
                 <Ticket size={13} className="text-[#18B368]" />
-                Human help
+                इंसान से बात
               </button>
             </div>
           }
@@ -262,7 +262,9 @@ export default function EvuddyAssistant() {
                 value={question}
                 onChange={(event) => setQuestion(event.target.value)}
                 className="h-12 flex-1 rounded-full border border-slate-200 bg-[#F8FAF9] px-4 text-sm outline-none focus:border-[#18B368]"
-                placeholder={voice.listening ? "Listening… tap mic to stop" : "Ask Eva anything…"}
+                placeholder={
+                  voice.listening ? "सुन रही हूँ… रोकने के लिए माइक दबाएँ" : "हिंदी में कुछ भी पूछें…"
+                }
                 maxLength={500}
               />
               <button
@@ -272,7 +274,7 @@ export default function EvuddyAssistant() {
                 onClick={() => {
                   void voice.listen(
                     (text) => void ask(text),
-                    language,
+                    language === "en" ? "en" : "hi",
                     (message) =>
                       setTurns((old) => [...old, { role: "assistant", content: message }])
                   );
@@ -308,7 +310,7 @@ export default function EvuddyAssistant() {
                   <div>
                     <p className="text-sm font-black text-[#0F172A]">{greeting}</p>
                     <p className="text-[11px] text-slate-500">
-                      Instant answers · open the right page · never takes payment
+                      आसान हिंदी जवाब · सही पेज खोलें · भुगतान नहीं लेती
                     </p>
                   </div>
                 </div>

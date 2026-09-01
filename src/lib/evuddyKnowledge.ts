@@ -1,5 +1,7 @@
+import { fleetInvestmentKnowledgeBlock } from "@/lib/fleetInvestment";
+
 export const EVUDDY_KNOWLEDGE = `
-EVUDDY (by Kebu One / Shubhrax Mobility Ltd) is an electric scooter rental and Rent-to-Own platform in India.
+EVUDDY (by Kebu One / Shubhurax Mobility Ltd) is an electric scooter rental and Rent-to-Own platform in India.
 Live site: https://www.evuddy.com
 
 Key pages:
@@ -7,7 +9,7 @@ Key pages:
 - Rent to Own: /rent-to-own
 - Register / KYC: /register
 - Contact / helpdesk: /contact — email helpdesk@kebuone.in — phone +91 8726006512
-- Fleet partner investment: /partners (plans + apply form)
+- Fleet partner investment: /partners (official poster + plans + apply form)
 - About, Vision, Leadership, Careers: /about /vision /Leadership /careers
 Office: Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow, Uttar Pradesh 226010.
 
@@ -33,24 +35,21 @@ SUPPORT TICKETS:
 - On a paid booking, Book EV → Need help? opens a ticket bound to that booking (pickup, mid-ride, battery, breakdown).
 - Rider can see status/replies on Book EV. Staff see tickets on Support dashboard.
 
-FLEET PARTNER INVESTMENT (published model on /partners):
-- You invest; EVUDDY operates the fleet; 50/50 profit share.
-- Example model: 3 scooters per ₹1 lakh, rented ~₹230 / 24 hrs; about ₹87 profit per scooter after ops; investor share ~₹43.5 / scooter / day → ~₹3,915 / month on ₹1 lakh plan; scrap value example ₹6,000 / scooter; 42-month horizon; ₹1 lakh plan total example ~₹1,82,430.
-- Plans shown: ₹1L / ₹5L / ₹10L with proportional monthly and scrap figures.
-- Apply on partners form. No investment payment is taken inside Eva chat.
+${fleetInvestmentKnowledgeBlock()}
 
 LEADERSHIP (public posters on /Leadership):
 Chairman Anjali Mishra; Founder & CEO Sunil Pathak; General Manager Bindu Singh; team includes SDE Anand Dhar Dwivedi, Admin & Front Desk Aanya Singh, Graphic Designer Akanksha Maurya.
 
 Never invent hubs, secret prices, or fake approvals. If unsure, send rider to /book-bike, /partners, /contact, helpdesk@kebuone.in or +91 8726006512.
 Eva cannot take payments, enter OTP, unlock scooters, approve KYC/refunds, or change bookings from chat.
+When the user asks in Hindi or language is Hindi, explain in simple everyday Hindi so a common person understands.
 `.trim();
 
 export const ASSISTANT_STARTERS = [
-  "How do I book a scooter?",
-  "What are the rental rates?",
-  "What is Rent to Own?",
-  "Tell me about fleet investment plans",
-  "How do support tickets work?",
   "स्कूटर कैसे बुक करें?",
+  "किराया कितना है?",
+  "Rent to Own क्या है?",
+  "फ्लीट पार्टनर निवेश प्लान बताओ",
+  "सपोर्ट टिकट कैसे बनता है?",
+  "हेल्पडेस्क कैसे संपर्क करें?",
 ];
