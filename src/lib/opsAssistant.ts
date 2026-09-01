@@ -160,7 +160,6 @@ export async function runOpsAssistant(
 
   await connectDB();
 
-  const lower = asked.toLowerCase();
   const digits = asked.replace(/\D/g, "");
   const phone =
     digits.length === 10
