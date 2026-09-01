@@ -38,6 +38,8 @@ export async function POST(req: Request) {
       hits: result.hits,
       stats: result.stats,
       action: result.action || null,
+      elapsedMs: result.elapsedMs || 0,
+      mode: result.mode || "search",
     });
   } catch (error) {
     console.error("OPS ASSISTANT:", error);

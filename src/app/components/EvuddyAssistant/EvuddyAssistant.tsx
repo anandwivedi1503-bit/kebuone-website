@@ -97,7 +97,7 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "Hi, I’m Eva — EVUDDY ride help. Ask about bookings, Rent to Own, investment plans, tickets, KYC, rates, or leadership. I open the right page. I never take payment, OTP, or unlock.",
+        "Hi, I’m Eva — ChatGPT-style EVUDDY help. Ask anything about bookings, Rent to Own, investment, tickets, KYC, rates, or the website. I answer fast and can open the right page. I never take payment, OTP, or unlock.",
     },
   ]);
 

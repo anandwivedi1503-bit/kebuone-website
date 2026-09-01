@@ -1,40 +1,20 @@
-import { API_DASHBOARDS } from "@/lib/adminCan";
-import { sessionHasAnyDashboard, type AdminSessionInfo } from "@/lib/adminAuth";
+import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { DASHBOARD_LABELS } from "@/lib/adminRoles";
-import { connectDB } from "@/lib/mongodb";
-import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
-import Battery from "@/models/Battery";
-import Booking from "@/models/Booking";
-import Hub from "@/models/Hub";
-import Partner from "@/models/Partner";
-import Refund from "@/models/Refund";
-import Rider from "@/models/Rider";
-import Ticket from "@/models/Ticket";
-import Transaction from "@/models/Transaction";
-import Vehicle from "@/models/Vehicle";
-import Wallet from "@/models/Wallet";
+import { llmChat, llmConfigured } from "@/lib/llmChat";
+import {
+  parseOpsQuery,
+  universalOpsSearch,
+  type OpsHit,
+  type OpsStat,
+} from "@/lib/opsSearch";
 
-export type OpsHit = {
-  kind: string;
-  id: string;
-  title: string;
-  detail: string;
-  dashboard: string;
-  badge?: string;
-};
-
-export type OpsStat = {
-  label: string;
-  value: string;
-  dashboard?: string;
-};
+export type { OpsHit, OpsStat };
 
 export type OpsAction = {
   type: "open_dashboard";
   dashboard: string;
   label: string;
   autoNavigate?: boolean;
-  /** Prefills dashboard search when Ops Eva jumps there. */
   focusQuery?: string;
 };
 
@@ -43,6 +23,8 @@ export type OpsAssistantResult = {
   hits: OpsHit[];
   stats: OpsStat[];
   action?: OpsAction;
+  elapsedMs?: number;
+  mode?: "ai" | "search";
 };
 
 const DASHBOARD_ALIASES: { keys: RegExp; id: string }[] = [
@@ -70,14 +52,6 @@ const DASHBOARD_ALIASES: { keys: RegExp; id: string }[] = [
   { keys: /\b(admin home|home|overview)\b/i, id: "admin" },
 ];
 
-function escapeRegex(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function can(session: AdminSessionInfo, keys: readonly string[]) {
-  return sessionHasAnyDashboard(session, ...keys);
-}
-
 function canOpenDashboard(session: AdminSessionInfo, dashboard: string) {
   if (session.role === "super") return true;
   return session.dashboards.includes(dashboard);
@@ -99,7 +73,6 @@ function resolveOpenDashboard(question: string): string {
     /\b(open|go to|take me|show me|switch to|launch|खोलो|खोल)\b/i.test(question) ||
     /\b(approve|process|handle|review)\b/i.test(lower);
   if (!wantsOpen && !/\bopen\b/i.test(lower)) {
-    // Still allow bare “bookings dashboard” style
     if (!/\b(dashboard|section|page|screen)\b/i.test(lower)) return "";
   }
   for (const row of DASHBOARD_ALIASES) {
@@ -115,85 +88,225 @@ function moneyDanger(question: string) {
   );
 }
 
-/** Fast live pulse for the ops command center (Uber/Ola-style control tower). */
-export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]> {
-  await connectDB();
-  const stats: OpsStat[] = [];
-  const tasks: Array<Promise<void>> = [];
+export { getOpsPulse } from "@/lib/opsPulse";
 
-  if (can(session, API_DASHBOARDS.bookingsRead)) {
-    tasks.push(
-      (async () => {
-        const [unpaid, inRide, rtoDue] = await Promise.all([
-          Booking.countDocuments({
-            ...NOT_DELETED_FILTER,
-            paymentStatus: { $in: ["Pending", "Partial"] },
-          }).maxTimeMS(1800),
-          Booking.countDocuments({
-            ...NOT_DELETED_FILTER,
-            rideStatus: "In Ride",
-          }).maxTimeMS(1800),
-          Booking.countDocuments({
-            ...NOT_DELETED_FILTER,
-            rentalMode: "Rent To Own",
-            paymentStatus: { $in: ["Pending", "Partial"] },
-          }).maxTimeMS(1800),
-        ]);
-        stats.push(
-          { label: "Unpaid", value: String(unpaid), dashboard: "bookings" },
-          { label: "In ride", value: String(inRide), dashboard: "fleet" },
-          { label: "RTO due", value: String(rtoDue), dashboard: "renttoown" }
-        );
-      })()
-    );
-  }
-  if (can(session, API_DASHBOARDS.tickets)) {
-    tasks.push(
-      (async () => {
-        const open = await Ticket.countDocuments({
-          ...NOT_DELETED_FILTER,
-          status: { $in: ["OPEN", "IN-PROGRESS"] },
-        }).maxTimeMS(1800);
-        stats.push({ label: "Tickets", value: String(open), dashboard: "support" });
-      })()
-    );
-  }
-  if (can(session, API_DASHBOARDS.ridersRead)) {
-    tasks.push(
-      (async () => {
-        const pending = await Rider.countDocuments({
-          ...NOT_DELETED_FILTER,
-          $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
-        }).maxTimeMS(1800);
-        stats.push({ label: "KYC", value: String(pending), dashboard: "kyc" });
-      })()
-    );
-  }
-  if (can(session, API_DASHBOARDS.vehiclesRead)) {
-    tasks.push(
-      (async () => {
-        const available = await Vehicle.countDocuments({
-          ...NOT_DELETED_FILTER,
-          vehicleStatus: "Available",
-        }).maxTimeMS(1800);
-        stats.push({ label: "Available", value: String(available), dashboard: "vehicles" });
-      })()
-    );
-  }
-  if (can(session, API_DASHBOARDS.refunds)) {
-    tasks.push(
-      (async () => {
-        const pending = await Refund.countDocuments({
-          ...NOT_DELETED_FILTER,
-          status: "PENDING",
-        }).maxTimeMS(1800);
-        stats.push({ label: "Refunds", value: String(pending), dashboard: "refunds" });
-      })()
-    );
+function buildAction(
+  session: AdminSessionInfo,
+  asked: string,
+  q: ReturnType<typeof parseOpsQuery>,
+  hits: OpsHit[]
+): OpsAction | undefined {
+  const openDashboardId = resolveOpenDashboard(asked);
+  let action: OpsAction | undefined;
+  if (openDashboardId && canOpenDashboard(session, openDashboardId)) {
+    action = {
+      type: "open_dashboard",
+      dashboard: openDashboardId,
+      label: `Open ${DASHBOARD_LABELS[openDashboardId] || openDashboardId}`,
+      autoNavigate: /\b(open|go to|take me|switch to|launch|खोलो|खोल|approve|review|process)\b/i.test(
+        asked
+      ),
+    };
   }
 
-  await Promise.all(tasks);
-  return stats;
+  const focusQuery =
+    q.bookingId ||
+    q.riderId ||
+    q.phone ||
+    q.ticketId ||
+    q.vehicleToken ||
+    hits.find((hit) => hit.id)?.id ||
+    "";
+
+  const wantInstruction =
+    /\b(approve|click|press|process|handle|review|find|show me|take me|jump|locate|search)\b/i.test(
+      asked
+    ) || /मंज़ूर|खोजो|दिखाओ|खोलो/.test(asked);
+
+  if (/\b(approve|click|press|process|review|handle)\b/i.test(asked) || /मंज़ूर/.test(asked)) {
+    if (q.wantRefunds && canOpenDashboard(session, "refunds")) {
+      return {
+        type: "open_dashboard",
+        dashboard: "refunds",
+        label: "Open Refunds — finish Approve there",
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    }
+    if (
+      (q.wantKyc || hits.some((hit) => hit.kind === "rider")) &&
+      canOpenDashboard(session, "users")
+    ) {
+      return {
+        type: "open_dashboard",
+        dashboard: "users",
+        label: "Open Users — finish Approve there",
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    }
+    if (q.wantKyc && canOpenDashboard(session, "kyc")) {
+      return {
+        type: "open_dashboard",
+        dashboard: "kyc",
+        label: "Open KYC — finish Approve there",
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    }
+    if (hits[0]?.dashboard && canOpenDashboard(session, hits[0].dashboard)) {
+      return {
+        type: "open_dashboard",
+        dashboard: hits[0].dashboard,
+        label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard} — finish on staff buttons`,
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    }
+  }
+
+  if (wantInstruction && focusQuery && hits[0]?.dashboard) {
+    return {
+      type: "open_dashboard",
+      dashboard: hits[0].dashboard,
+      label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard}`,
+      autoNavigate: true,
+      focusQuery,
+    };
+  }
+
+  if (q.wantReadyPickup && canOpenDashboard(session, "bookings")) {
+    return {
+      type: "open_dashboard",
+      dashboard: "bookings",
+      label: "Open Bookings — Ready for Pickup",
+      autoNavigate: true,
+      focusQuery: "Ready For Pickup",
+    };
+  }
+
+  if (!action && hits[0]?.dashboard && canOpenDashboard(session, hits[0].dashboard)) {
+    action = {
+      type: "open_dashboard",
+      dashboard: hits[0].dashboard,
+      label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard}`,
+      autoNavigate: false,
+      focusQuery: focusQuery || undefined,
+    };
+  }
+
+  if (action && focusQuery && !action.focusQuery) {
+    action = { ...action, focusQuery };
+  }
+
+  return action;
+}
+
+export function formatOpsAnswer(
+  question: string,
+  hits: OpsHit[],
+  stats: OpsStat[],
+  action: OpsAction | undefined,
+  hindi: boolean,
+  elapsedMs?: number
+) {
+  const parts: string[] = [];
+  if (typeof elapsedMs === "number") {
+    parts.push(hindi ? `खोज ${elapsedMs}ms में।` : `Search ${elapsedMs}ms.`);
+  }
+  if (stats.length) {
+    parts.push(
+      hindi
+        ? `लाइव आँकड़े: ${stats.map((s) => `${s.label} ${s.value}`).join(" · ")}`
+        : `Live pulse: ${stats.map((s) => `${s.label} ${s.value}`).join(" · ")}`
+    );
+  }
+  if (hits.length) {
+    const lines = hits.slice(0, 8).map((hit, index) => `${index + 1}. ${hit.title} — ${hit.detail}`);
+    parts.push(
+      hindi
+        ? `${hits.length} रिकॉर्ड। टैप करके डैशबोर्ड खोलें।\n${lines.join("\n")}`
+        : `${hits.length} match${hits.length === 1 ? "" : "es"}. Tap a card to jump.\n${lines.join("\n")}`
+    );
+  } else if (!stats.length && !action) {
+    parts.push(
+      hindi
+        ? `“${question}” के लिए कुछ नहीं मिला। BK- ID, 10 अंक फोन, नाम, “unpaid”, “in ride”, “pending kyc” आज़माएँ।`
+        : `No matches for “${question}”. Try BK- ID, phone, name, “unpaid”, “in ride”, or “pending kyc”.`
+    );
+  }
+  if (action?.autoNavigate) {
+    parts.push(
+      hindi
+        ? `${action.label} खोल रहा हूँ${action.focusQuery ? ` · खोज: ${action.focusQuery}` : ""}। Approve/Pay वहीं स्टाफ बटन से — चैट से क्लिक नहीं।`
+        : `${action.label}${action.focusQuery ? ` · search: ${action.focusQuery}` : ""}. Finish Approve/Pay on the staff button — chat never clicks it.`
+    );
+  }
+  parts.push(
+    hindi
+      ? "भुगतान, OTP, अनलॉक या रिफंड मंज़ूरी चैट से नहीं — डैशबोर्ड बटन से।"
+      : "Pay, OTP, unlock, and refund approval stay on dashboard buttons — not in chat."
+  );
+  return parts.join("\n\n");
+}
+
+async function synthesizeOpsAnswer(options: {
+  question: string;
+  hindi: boolean;
+  hits: OpsHit[];
+  stats: OpsStat[];
+  action?: OpsAction;
+  elapsedMs: number;
+}): Promise<string> {
+  if (!llmConfigured()) return "";
+  const { question, hindi, hits, stats, action, elapsedMs } = options;
+  const context = JSON.stringify(
+    {
+      elapsedMs,
+      stats,
+      action: action
+        ? {
+            dashboard: action.dashboard,
+            label: action.label,
+            focusQuery: action.focusQuery,
+            autoNavigate: action.autoNavigate,
+          }
+        : null,
+      hits: hits.slice(0, 12).map((hit) => ({
+        kind: hit.kind,
+        id: hit.id,
+        title: hit.title,
+        detail: hit.detail,
+        dashboard: hit.dashboard,
+      })),
+    },
+    null,
+    0
+  );
+
+  const system = `You are Ops Eva, EVUDDY's admin command-center copilot (Uber/Ola ops grade + ChatGPT clarity).
+You receive LIVE database search results as JSON. Answer only from that JSON — never invent booking ids, phones, or counts.
+Help the admin work in seconds: summarize what was found, what to do next, which dashboard to open.
+If they asked to approve/click/pay: explain the record is ready and they must press the real staff button (you cannot click Approve/Pay/OTP/unlock from chat — audit-safe).
+${hindi ? "Reply in clear Hindi (Devanagari), short and operational." : "Reply in clear English, short and operational."}
+Max 120 words. Use short bullets when listing records.`;
+
+  try {
+    return await llmChat({
+      system,
+      messages: [
+        {
+          role: "user",
+          content: `Admin asked: ${question}\n\nLive results JSON:\n${context}`,
+        },
+      ],
+      maxTokens: 280,
+      temperature: 0.15,
+    });
+  } catch (error) {
+    console.error("OPS EVA LLM SKIPPED:", error);
+    return "";
+  }
 }
 
 export async function runOpsAssistant(
@@ -207,10 +320,11 @@ export async function runOpsAssistant(
   if (asked.length < 2) {
     return {
       answer: hindi
-        ? "BK- ID, फोन, unpaid, in-ride, KYC, refunds पूछें — या “open bookings” कहें। भुगतान/OTP यहाँ से नहीं होगा।"
-        : "Ask for a BK- ID, phone, unpaid rides, in-ride fleet, KYC queue, refunds — or say “open bookings”. I search live data for this login. I cannot pay or enter OTP.",
+        ? "BK- ID, फोन, नाम, unpaid, in-ride, KYC, refunds पूछें — या “open bookings”. मैं लाइव डेटा खोजता हूँ। भुगतान/OTP यहाँ से नहीं।"
+        : "Ask a BK- ID, phone, name, unpaid rides, in-ride fleet, KYC, refunds — or say “open bookings”. I search live data in seconds. I cannot pay or enter OTP.",
       hits: [],
       stats: [],
+      mode: llmConfigured() ? "ai" : "search",
     };
   }
 
@@ -238,618 +352,45 @@ export async function runOpsAssistant(
             autoNavigate: true,
           }
         : undefined,
+      mode: llmConfigured() ? "ai" : "search",
     };
   }
 
-  await connectDB();
+  const q = parseOpsQuery(asked);
+  const { hits, stats, elapsedMs } = await universalOpsSearch(session, q);
+  const action = buildAction(session, asked, q, hits);
 
-  const digits = asked.replace(/\D/g, "");
-  const phone =
-    digits.length === 10
-      ? digits
-      : digits.length === 12 && digits.startsWith("91")
-        ? digits.slice(2)
-        : "";
-  const bookingId = (asked.match(/\b(?:BK|RTO)-\d+\b/i) || [])[0]?.toUpperCase() || "";
-  const riderId = (asked.match(/\bRDR-\d+\b/i) || [])[0]?.toUpperCase() || "";
-  const ticketId = (asked.match(/\bTKT-[A-Z0-9-]+\b/i) || [])[0] || "";
-  const vehicleToken = (asked.match(/\b(?:EV|VH|VEH)[-_]?\w+\b/i) || [])[0] || "";
-  const token = escapeRegex(asked.replace(/['"]/g, "").trim());
-  const fuzzy = token.length >= 3 ? new RegExp(token, "i") : null;
-
-  const wantUnpaid = /\b(unpaid|pending payment|due|partial|बकाया|बाकी)\b/i.test(asked);
-  const wantInRide = /\b(in ride|live ride|ongoing|on trip|राइड में)\b/i.test(asked);
-  const wantReadyPickup = /\b(ready for pickup|pickup ready|awaiting pickup|pickup queue)\b/i.test(
-    asked
-  );
-  const wantRto = /\b(rto|rent to own|रेंट टू ओन)\b/i.test(asked);
-  const wantAvailable = /\b(available scooter|available bike|free scooter|available fleet|उपलब्ध)\b/i.test(
-    asked
-  );
-  const wantOpenTickets = /\b(open ticket|support|complaint|टिकट|शिकायत)\b/i.test(asked);
-  const wantKyc = /\b(kyc|pending kyc|approve rider|verification)\b/i.test(asked);
-  const wantRefunds = /\b(refund|refunds|deposit return)\b/i.test(asked);
-  const wantCounts = /\b(how many|count|total|kitne|कितने|संख्या)\b/i.test(asked);
-  const wantInstruction =
-    /\b(approve|click|press|process|handle|review|find|show me|take me|jump|locate|search)\b/i.test(
-      asked
-    ) || /मंज़ूर|खोजो|दिखाओ|खोलो/.test(asked);
-  const wantSummary =
-    wantCounts || /\b(overview|summary|today|live status|status board|pulse)\b/i.test(asked);
-
-  const openDashboardId = resolveOpenDashboard(asked);
-  let action: OpsAction | undefined;
-  if (openDashboardId && canOpenDashboard(session, openDashboardId)) {
-    action = {
-      type: "open_dashboard",
-      dashboard: openDashboardId,
-      label: `Open ${DASHBOARD_LABELS[openDashboardId] || openDashboardId}`,
-      autoNavigate: /\b(open|go to|take me|switch to|launch|खोलो|खोल|approve|review|process)\b/i.test(
-        asked
-      ),
-    };
-  }
-
-  const hits: OpsHit[] = [];
-  const stats: OpsStat[] = [];
-  const tasks: Array<Promise<void>> = [];
-
-  // Live pulse stats for command-center feel
-  if (wantSummary || wantCounts || wantUnpaid || wantInRide || wantOpenTickets || wantKyc || wantAvailable) {
-    if (can(session, API_DASHBOARDS.bookingsRead)) {
-      tasks.push(
-        (async () => {
-          const [unpaid, inRide, rtoDue] = await Promise.all([
-            Booking.countDocuments({
-              ...NOT_DELETED_FILTER,
-              paymentStatus: { $in: ["Pending", "Partial"] },
-            }).maxTimeMS(2000),
-            Booking.countDocuments({
-              ...NOT_DELETED_FILTER,
-              rideStatus: "In Ride",
-            }).maxTimeMS(2000),
-            Booking.countDocuments({
-              ...NOT_DELETED_FILTER,
-              rentalMode: "Rent To Own",
-              paymentStatus: { $in: ["Pending", "Partial"] },
-            }).maxTimeMS(2000),
-          ]);
-          if (wantSummary || wantCounts || wantUnpaid) {
-            stats.push({ label: "Unpaid", value: String(unpaid), dashboard: "bookings" });
-          }
-          if (wantSummary || wantCounts || wantInRide) {
-            stats.push({ label: "In ride", value: String(inRide), dashboard: "fleet" });
-          }
-          if (wantSummary || wantCounts || wantRto) {
-            stats.push({ label: "RTO due", value: String(rtoDue), dashboard: "renttoown" });
-          }
-        })()
-      );
-    }
-    if (can(session, API_DASHBOARDS.tickets) && (wantSummary || wantCounts || wantOpenTickets)) {
-      tasks.push(
-        (async () => {
-          const open = await Ticket.countDocuments({
-            ...NOT_DELETED_FILTER,
-            status: { $in: ["OPEN", "IN-PROGRESS"] },
-          }).maxTimeMS(2000);
-          stats.push({ label: "Open tickets", value: String(open), dashboard: "support" });
-        })()
-      );
-    }
-    if (can(session, API_DASHBOARDS.ridersRead) && (wantSummary || wantCounts || wantKyc)) {
-      tasks.push(
-        (async () => {
-          const pending = await Rider.countDocuments({
-            ...NOT_DELETED_FILTER,
-            $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
-          }).maxTimeMS(2000);
-          stats.push({ label: "KYC pending", value: String(pending), dashboard: "kyc" });
-        })()
-      );
-    }
-    if (can(session, API_DASHBOARDS.vehiclesRead) && (wantSummary || wantCounts || wantAvailable)) {
-      tasks.push(
-        (async () => {
-          const available = await Vehicle.countDocuments({
-            ...NOT_DELETED_FILTER,
-            vehicleStatus: "Available",
-          }).maxTimeMS(2000);
-          stats.push({ label: "Available", value: String(available), dashboard: "vehicles" });
-        })()
-      );
-    }
-    if (can(session, API_DASHBOARDS.refunds) && (wantSummary || wantCounts || wantRefunds)) {
-      tasks.push(
-        (async () => {
-          const pending = await Refund.countDocuments({
-            ...NOT_DELETED_FILTER,
-            status: "PENDING",
-          }).maxTimeMS(2000);
-          stats.push({ label: "Refunds due", value: String(pending), dashboard: "refunds" });
-        })()
-      );
-    }
-  }
-
-  if (can(session, API_DASHBOARDS.bookingsRead)) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        const and: Record<string, unknown>[] = [];
-        if (bookingId) and.push({ bookingId });
-        if (riderId) and.push({ riderId });
-        if (phone) and.push({ userPhone: phone });
-        if (wantUnpaid) and.push({ paymentStatus: { $in: ["Pending", "Partial"] } });
-        if (wantInRide) and.push({ rideStatus: "In Ride" });
-        if (wantReadyPickup) and.push({ rideStatus: "Ready For Pickup" });
-        if (wantRto) and.push({ rentalMode: "Rent To Own" });
-        if (!and.length && fuzzy && !wantKyc && !wantRefunds) {
-          and.push({
-            $or: [
-              { bookingId: fuzzy },
-              { riderId: fuzzy },
-              { userName: fuzzy },
-              { userPhone: fuzzy },
-              { vehicleId: fuzzy },
-              { pickupCity: fuzzy },
-              { startHub: fuzzy },
-            ],
-          });
-        }
-        if (and.length) filter.$and = and;
-        else if (
-          !wantUnpaid &&
-          !wantInRide &&
-          !wantReadyPickup &&
-          !wantRto &&
-          !phone &&
-          !bookingId &&
-          !riderId
-        ) {
-          return;
-        }
-        const rows = await Booking.find(filter)
-          .select(
-            "bookingId riderId userName userPhone rideStatus paymentStatus pendingAmount pickupCity startHub rentalMode vehicleId"
-          )
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .lean()
-          .maxTimeMS(2500);
-        for (const row of rows) {
-          hits.push({
-            kind: "booking",
-            id: String(row.bookingId || ""),
-            title: String(row.bookingId || "Booking"),
-            detail: `${row.userName || row.riderId || ""} · ${row.rideStatus || ""} · ${row.paymentStatus || ""} · pending ₹${Number(row.pendingAmount || 0)} · ${row.startHub || row.pickupCity || ""}`,
-            dashboard: String(row.rentalMode) === "Rent To Own" ? "renttoown" : "bookings",
-            badge: String(row.paymentStatus || row.rideStatus || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.ridersRead) && (riderId || phone || wantKyc || fuzzy)) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = {};
-        const and: Record<string, unknown>[] = [{ ...NOT_DELETED_FILTER }];
-        if (riderId) and.push({ riderId });
-        else if (phone) and.push({ phone });
-        else if (wantKyc) and.push({ $or: [{ approvalStatus: "Pending" }, { status: "Pending" }] });
-        else if (fuzzy) {
-          and.push({
-            $or: [{ riderId: fuzzy }, { fullName: fuzzy }, { phone: fuzzy }, { email: fuzzy }],
-          });
-        } else return;
-        filter.$and = and;
-        const rows = await Rider.find(filter)
-          .select("riderId fullName phone approvalStatus status bookingEnabled")
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .lean()
-          .maxTimeMS(2500);
-        for (const row of rows) {
-          hits.push({
-            kind: "rider",
-            id: String(row.riderId || ""),
-            title: String(row.fullName || row.riderId || "Rider"),
-            detail: `${row.riderId || ""} · ${row.phone || ""} · ${row.approvalStatus || row.status || ""} · booking ${row.bookingEnabled ? "on" : "off"}`,
-            dashboard: wantKyc || String(row.approvalStatus) === "Pending" ? "kyc" : "users",
-            badge: String(row.approvalStatus || row.status || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.vehiclesRead) && (wantAvailable || vehicleToken || fuzzy)) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        const and: Record<string, unknown>[] = [];
-        if (wantAvailable) and.push({ vehicleStatus: "Available" });
-        if (vehicleToken) {
-          const vFuzzy = new RegExp(escapeRegex(vehicleToken), "i");
-          and.push({
-            $or: [{ vehicleId: vFuzzy }, { registrationNumber: vFuzzy }],
-          });
-        } else if (!wantAvailable && fuzzy) {
-          and.push({
-            $or: [
-              { vehicleId: fuzzy },
-              { registrationNumber: fuzzy },
-              { currentHub: fuzzy },
-              { vehicleModel: fuzzy },
-            ],
-          });
-        }
-        if (!and.length) return;
-        filter.$and = and;
-        const rows = await Vehicle.find(filter)
-          .select(
-            "vehicleId registrationNumber vehicleStatus currentHub vehicleModel batteryPercentage"
-          )
-          .sort({ updatedAt: -1 })
-          .limit(10)
-          .lean()
-          .maxTimeMS(2500);
-        for (const row of rows) {
-          hits.push({
-            kind: "vehicle",
-            id: String(row.vehicleId || ""),
-            title: String(row.vehicleId || row.registrationNumber || "Vehicle"),
-            detail: `${row.registrationNumber || ""} · ${row.vehicleStatus || ""} · ${row.currentHub || ""} · ${row.batteryPercentage ?? ""}%`,
-            dashboard: "vehicles",
-            badge: String(row.vehicleStatus || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (
-    can(session, API_DASHBOARDS.tickets) &&
-    (wantOpenTickets || ticketId || riderId || phone || (fuzzy && /\b(ticket|support|complaint)\b/i.test(asked)))
-  ) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        const and: Record<string, unknown>[] = [];
-        if (ticketId) and.push({ ticketId });
-        if (riderId) and.push({ riderId });
-        if (phone) and.push({ riderPhone: phone });
-        if (wantOpenTickets) and.push({ status: { $in: ["OPEN", "IN-PROGRESS"] } });
-        if (fuzzy && !ticketId && !wantOpenTickets) {
-          and.push({
-            $or: [
-              { ticketId: fuzzy },
-              { bookingId: fuzzy },
-              { description: fuzzy },
-              { riderPhone: fuzzy },
-            ],
-          });
-        }
-        if (and.length) filter.$and = and;
-        const rows = await Ticket.find(filter)
-          .select("ticketId bookingId riderId status category riderPhone")
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .lean()
-          .maxTimeMS(2500);
-        for (const row of rows) {
-          hits.push({
-            kind: "ticket",
-            id: String(row.ticketId || ""),
-            title: String(row.ticketId || "Ticket"),
-            detail: `${row.category || ""} · ${row.status || ""} · ${row.bookingId || row.riderId || ""}`,
-            dashboard: "support",
-            badge: String(row.status || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.refunds) && (wantRefunds || bookingId || riderId || phone)) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        const and: Record<string, unknown>[] = [];
-        if (wantRefunds && !bookingId && !riderId && !phone) and.push({ status: "PENDING" });
-        if (bookingId) and.push({ bookingId });
-        if (riderId) and.push({ riderId });
-        const rows = await Refund.find(and.length ? { ...filter, $and: and } : { ...filter, status: "PENDING" })
-          .select("refundId bookingId riderId amount status")
-          .sort({ createdAt: -1 })
-          .limit(10)
-          .lean()
-          .maxTimeMS(2500);
-        for (const row of rows) {
-          hits.push({
-            kind: "refund",
-            id: String(row.refundId || ""),
-            title: String(row.refundId || "Refund"),
-            detail: `${row.bookingId || ""} · ₹${Number(row.amount || 0)} · ${row.status || ""}`,
-            dashboard: "refunds",
-            badge: String(row.status || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.walletRead) && (phone || riderId || /\bwallet\b/i.test(asked))) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        if (riderId) filter.riderId = riderId;
-        else if (phone) filter.phone = phone;
-        else return;
-        const rows = await Wallet.find(filter)
-          .select("riderId phone balance status")
-          .limit(5)
-          .lean()
-          .maxTimeMS(2000);
-        for (const row of rows) {
-          hits.push({
-            kind: "wallet",
-            id: String(row.riderId || row.phone || ""),
-            title: `Wallet ${row.riderId || row.phone || ""}`,
-            detail: `Balance ₹${Number(row.balance || 0)} · ${row.status || ""}`,
-            dashboard: "wallet",
-            badge: String(row.status || "Wallet"),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.transactions) && (bookingId || /\btransaction\b/i.test(asked))) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        if (bookingId) filter.bookingId = bookingId;
-        else if (fuzzy) filter.$or = [{ bookingId: fuzzy }, { transactionId: fuzzy }, { userName: fuzzy }];
-        else return;
-        const rows = await Transaction.find(filter)
-          .select("transactionId bookingId userName amount status paymentMethod")
-          .sort({ createdAt: -1 })
-          .limit(8)
-          .lean()
-          .maxTimeMS(2000);
-        for (const row of rows) {
-          hits.push({
-            kind: "transaction",
-            id: String(row.transactionId || ""),
-            title: String(row.transactionId || "Txn"),
-            detail: `${row.bookingId || ""} · ₹${Number(row.amount || 0)} · ${row.paymentMethod || ""} · ${row.status || ""}`,
-            dashboard: "transactions",
-            badge: String(row.status || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.partners) && /\bpartner\b/i.test(asked) && fuzzy) {
-    tasks.push(
-      (async () => {
-        const rows = await Partner.find({
-          ...NOT_DELETED_FILTER,
-          $or: [
-            { organizationName: fuzzy },
-            { fullName: fuzzy },
-            { phone: fuzzy },
-            { email: fuzzy },
-          ],
-        })
-          .select("organizationName fullName phone applicationStatus")
-          .limit(8)
-          .lean()
-          .maxTimeMS(2000);
-        for (const row of rows) {
-          hits.push({
-            kind: "partner",
-            id: String(row.organizationName || row.fullName || ""),
-            title: String(row.organizationName || row.fullName || "Partner"),
-            detail: `${row.fullName || ""} · ${row.phone || ""} · ${row.applicationStatus || ""}`,
-            dashboard: "partner",
-            badge: String(row.applicationStatus || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.batteries) && /\bbatter(y|ies)\b/i.test(asked)) {
-    tasks.push(
-      (async () => {
-        const rows = await Battery.find(NOT_DELETED_FILTER)
-          .select("batteryId status hubName chargePercentage batteryHealth")
-          .sort({ updatedAt: -1 })
-          .limit(8)
-          .lean()
-          .maxTimeMS(2000);
-        for (const row of rows) {
-          hits.push({
-            kind: "battery",
-            id: String(row.batteryId || ""),
-            title: String(row.batteryId || "Battery"),
-            detail: `${row.status || ""} · ${row.hubName || ""} · charge ${row.chargePercentage ?? ""}% · health ${row.batteryHealth ?? ""}%`,
-            dashboard: "battery",
-            badge: String(row.status || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  if (can(session, API_DASHBOARDS.hubsRead) && /\b(hub|yard)\b/i.test(asked)) {
-    tasks.push(
-      (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        if (fuzzy) filter.$or = [{ hubName: fuzzy }, { hubCode: fuzzy }, { city: fuzzy }];
-        const rows = await Hub.find(filter)
-          .select("hubName hubCode city status")
-          .limit(8)
-          .lean()
-          .maxTimeMS(2000);
-        for (const row of rows) {
-          hits.push({
-            kind: "hub",
-            id: String(row.hubCode || row.hubName || ""),
-            title: String(row.hubName || row.hubCode || "Hub"),
-            detail: `${row.hubCode || ""} · ${row.city || ""} · ${row.status || ""}`,
-            dashboard: "hub",
-            badge: String(row.status || ""),
-          });
-        }
-      })()
-    );
-  }
-
-  await Promise.all(tasks);
-
-  // Prefer a dashboard open when the admin clearly asked to open something and we have no hits
   if (action?.autoNavigate && !hits.length && !stats.length) {
     return {
       answer: hindi
-        ? `${action.label} खोल रहा हूँ। संवेदनशील कदम (भुगतान / OTP / रिफंड मंज़ूरी) वहीं स्टाफ बटन से करें।`
-        : `Opening ${DASHBOARD_LABELS[action.dashboard] || action.dashboard}. Sensitive steps (pay / OTP / refund approve) stay on the staff buttons there.`,
+        ? `${action.label} खोल रहा हूँ। संवेदनशील कदम वहीं स्टाफ बटन से करें।`
+        : `Opening ${DASHBOARD_LABELS[action.dashboard] || action.dashboard}. Sensitive steps stay on staff buttons.`,
       hits: [],
       stats: [],
       action,
+      elapsedMs,
+      mode: llmConfigured() ? "ai" : "search",
     };
   }
 
-  if (!action && hits[0]?.dashboard && canOpenDashboard(session, hits[0].dashboard)) {
-    action = {
-      type: "open_dashboard",
-      dashboard: hits[0].dashboard,
-      label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard}`,
-      autoNavigate: false,
-    };
-  }
+  const fallback = formatOpsAnswer(asked, hits, stats, action, hindi, elapsedMs);
+  const ai = await synthesizeOpsAnswer({
+    question: asked,
+    hindi,
+    hits,
+    stats,
+    action,
+    elapsedMs,
+  });
 
-  // Instruction-style: jump to the right board with search prefilled (never silent approve/pay).
-  const focusQuery =
-    bookingId ||
-    riderId ||
-    phone ||
-    ticketId ||
-    vehicleToken ||
-    hits.find((hit) => hit.id)?.id ||
-    "";
-
-  if (/\b(approve|click|press|process|review|handle)\b/i.test(asked) || /मंज़ूर/.test(asked)) {
-    if (wantRefunds && canOpenDashboard(session, "refunds")) {
-      action = {
-        type: "open_dashboard",
-        dashboard: "refunds",
-        label: "Open Refunds — finish Approve there",
-        autoNavigate: true,
-        focusQuery: focusQuery || undefined,
-      };
-    } else if (
-      (wantKyc || hits.some((hit) => hit.kind === "rider")) &&
-      canOpenDashboard(session, "users")
-    ) {
-      action = {
-        type: "open_dashboard",
-        dashboard: "users",
-        label: "Open Users — finish Approve there",
-        autoNavigate: true,
-        focusQuery: focusQuery || undefined,
-      };
-    } else if (wantKyc && canOpenDashboard(session, "kyc")) {
-      action = {
-        type: "open_dashboard",
-        dashboard: "kyc",
-        label: "Open KYC — finish Approve there",
-        autoNavigate: true,
-        focusQuery: focusQuery || undefined,
-      };
-    } else if (hits[0]?.dashboard && canOpenDashboard(session, hits[0].dashboard)) {
-      action = {
-        type: "open_dashboard",
-        dashboard: hits[0].dashboard,
-        label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard} — finish on staff buttons`,
-        autoNavigate: true,
-        focusQuery: focusQuery || undefined,
-      };
-    }
-  } else if (wantInstruction && focusQuery && hits[0]?.dashboard) {
-    action = {
-      type: "open_dashboard",
-      dashboard: hits[0].dashboard,
-      label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard}`,
-      autoNavigate: true,
-      focusQuery,
-    };
-  } else if (wantReadyPickup && canOpenDashboard(session, "bookings")) {
-    action = {
-      type: "open_dashboard",
-      dashboard: "bookings",
-      label: "Open Bookings — Ready for Pickup",
-      autoNavigate: true,
-      focusQuery: "Ready For Pickup",
-    };
-  }
-
-  const answer = formatOpsAnswer(asked, hits, stats, action, hindi);
   return {
-    answer,
+    answer: ai || fallback,
     hits: hits.slice(0, 24),
     stats: stats.slice(0, 8),
     action,
+    elapsedMs,
+    mode: ai ? "ai" : "search",
   };
-}
-
-export function formatOpsAnswer(
-  question: string,
-  hits: OpsHit[],
-  stats: OpsStat[],
-  action: OpsAction | undefined,
-  hindi: boolean
-) {
-  const parts: string[] = [];
-  if (stats.length) {
-    parts.push(
-      hindi
-        ? `लाइव आँकड़े: ${stats.map((s) => `${s.label} ${s.value}`).join(" · ")}`
-        : `Live pulse: ${stats.map((s) => `${s.label} ${s.value}`).join(" · ")}`
-    );
-  }
-  if (hits.length) {
-    const lines = hits.slice(0, 8).map((hit, index) => `${index + 1}. ${hit.title} — ${hit.detail}`);
-    parts.push(
-      hindi
-        ? `${hits.length} रिकॉर्ड। टैप करके डैशबोर्ड खोलें।\n${lines.join("\n")}`
-        : `${hits.length} match${hits.length === 1 ? "" : "es"}. Tap a card to jump.\n${lines.join("\n")}`
-    );
-  } else if (!stats.length && !action) {
-    parts.push(
-      hindi
-        ? `“${question}” के लिए कुछ नहीं मिला। BK- ID, 10 अंक फोन, “unpaid”, “in ride”, “pending kyc”, “open tickets” आज़माएँ।`
-        : `No matches for “${question}”. Try BK- ID, 10-digit phone, “unpaid”, “in ride”, “pending kyc”, or “open tickets”.`
-    );
-  }
-  if (action?.autoNavigate) {
-    parts.push(
-      hindi
-        ? `${action.label} खोल रहा हूँ${action.focusQuery ? ` · खोज: ${action.focusQuery}` : ""}। संवेदनशील Approve/Pay वहीं स्टाफ बटन से पूरा करें — चैट से क्लिक नहीं होगा।`
-        : `${action.label}${action.focusQuery ? ` · search: ${action.focusQuery}` : ""}. Sensitive Approve/Pay finishes on the staff button there — chat never clicks it for you (audit-safe).`
-    );
-  }
-  parts.push(
-    hindi
-      ? "भुगतान, OTP, अनलॉक या रिफंड मंज़ूरी चैट से नहीं — डैशबोर्ड बटन से।"
-      : "Pay, OTP, unlock, and refund approval stay on dashboard buttons — not in chat."
-  );
-  return parts.join("\n\n");
 }
 
 /** @deprecated use runOpsAssistant */
