@@ -27,6 +27,7 @@ import RefundDashboard from "../RefundDashboard/RefundDashboard";
 import RentToOwnDashboard from "../RentToOwnDashboard/RentToOwnDashboard";
 import AuditLogsDashboard from "../AuditLogsDashboard/AuditLogsDashboard";
 import TeamAccess from "../TeamAccess/TeamAccess";
+import OpsAssistant from "../OpsAssistant/OpsAssistant";
 import { ALL_DASHBOARDS } from "@/lib/adminRoles";
 
 type SessionInfo = {
@@ -117,6 +118,7 @@ export default function DashboardContainer() {
           ) : null}
         </div>
       </main>
+      <OpsAssistant onOpenDashboard={setActiveDashboard} />
     </div>
   );
 }

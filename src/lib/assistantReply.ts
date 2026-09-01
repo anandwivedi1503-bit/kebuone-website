@@ -2,41 +2,55 @@ import { EVUDDY_KNOWLEDGE } from "@/lib/evuddyKnowledge";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
-const FAQ: { keys: string[]; answer: string }[] = [
+export type AssistantReply = {
+  answer: string;
+  href?: string;
+  navigate?: boolean;
+};
+
+const BLOCKED =
+  /\b(pay|payment|razorpay|upi|otp|unlock|refund|wallet debit|charge card)\b/i;
+
+const FAQ: { keys: string[]; answer: string; href?: string }[] = [
   {
-    keys: ["book", "how to", "start", "otp", "kyc", "register"],
+    keys: ["book", "how to", "start", "kyc", "register"],
+    href: "/ride-options",
     answer:
-      "Book in four steps: (1) Register with your phone OTP and finish KYC. (2) Open Book a bike, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. Start here: https://www.evuddy.com/book-bike",
+      "Book in four steps: (1) Register with your phone OTP and finish KYC. (2) Open Book EV, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. I can open ride options for you — I cannot take payment.",
   },
   {
     keys: ["rate", "price", "hourly", "daily", "weekly", "monthly", "cost", "₹", "rs"],
+    href: "/book-bike?flow=rental",
     answer:
-      "Listed rates (a scooter can differ): Hourly ₹60, Daily ₹230, Weekly ₹1610, Monthly ₹6900, plus 5% GST. Rentals also take a refundable security deposit (usually ₹2500). See live scooters on https://www.evuddy.com/book-bike",
+      "Listed rates (a scooter can differ): Hourly ₹60, Daily ₹230, Weekly ₹1610, Monthly ₹6900, plus 5% GST. Rentals also take a refundable security deposit (usually ₹2500).",
   },
   {
     keys: ["deposit", "wallet", "refund"],
     answer:
-      "The security deposit is part of the booking payment, not a separate wallet charge. After you return the scooter, staff approve the refund. It usually credits your EVUDDY wallet. They can send it back on Razorpay instead — never both. Wallet is also where returned deposits sit so you can pay a later booking.",
+      "The security deposit is part of the booking payment, not a separate wallet charge. After you return the scooter, staff approve the refund. It usually credits your EVUDDY wallet. They can send it back on Razorpay instead — never both. I cannot refund or move money from this chat.",
   },
   {
     keys: ["own", "rto", "installment", "18"],
+    href: "/rent-to-own",
     answer:
-      "Rent to Own is ₹280 + 5% GST every day for 18 months, no security deposit. You get a daily receipt. After successful days, ownership transfers. https://www.evuddy.com/rent-to-own",
+      "Rent to Own is ₹280 + 5% GST every day for 18 months, no security deposit. You get a daily receipt. After successful days, ownership transfers.",
   },
   {
     keys: ["razorpay", "pay", "upi", "card"],
     answer:
-      "UPI and cards go through Razorpay on evuddy.com. If your EVUDDY wallet has enough (refunded deposits or credits), you can also pay from wallet. Login OTP is still your phone OTP, not email.",
+      "UPI and cards go through Razorpay on the booking page. If your EVUDDY wallet has enough, you can pay from wallet there. I cannot collect payment or enter OTP for you.",
   },
   {
     keys: ["hub", "city", "lucknow", "where"],
+    href: "/book-bike?flow=rental",
     answer:
-      "Pick your city and hub on the booking page so you collect the scooter from that hub. Corporate office: Summit Building, 7th Floor, Gomti Nagar, Lucknow. Live hubs: https://www.evuddy.com/book-bike",
+      "Pick your city and hub on the booking page so you collect the scooter from that hub. Corporate office: Summit Building, 7th Floor, Gomti Nagar, Lucknow.",
   },
   {
     keys: ["contact", "help", "ticket", "support", "email"],
+    href: "/contact",
     answer:
-      "Email info@kebuone.in or use https://www.evuddy.com/contact. After you pay, Book EV has Need help? for pickup or mid-ride issues (breakdown, battery, unlock, payment). Hub staff see it on Support.",
+      "Email info@kebuone.in or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues. Hub staff see it on Support.",
   },
 ];
 
@@ -44,24 +58,59 @@ function clean(text: string) {
   return text.trim().slice(0, 500);
 }
 
-export function faqAnswer(question: string) {
+export function publicAssistantIntent(question: string): AssistantReply | null {
   const q = question.toLowerCase();
-  let best: { score: number; answer: string } | null = null;
+  if (BLOCKED.test(q) && /\b(for me|on my behalf|do it|complete|enter|pay now)\b/.test(q)) {
+    return {
+      answer:
+        "I cannot take payment, enter OTP, unlock a scooter, or issue a refund. Use the buttons on Book EV or ask hub staff.",
+    };
+  }
+  if (/\b(rent to own|rto|own the scooter)\b/.test(q)) {
+    return {
+      answer: "Opening Rent to Own. Payment still happens on that page — not in this chat.",
+      href: "/rent-to-own",
+      navigate: true,
+    };
+  }
+  if (/\b(book|ride|scooter|ev|rental)\b/.test(q) && /\b(open|start|go|take me|book now)\b/.test(q)) {
+    return {
+      answer: "Opening ride options. Choose normal booking or Rent to Own, then pay on the booking page.",
+      href: "/ride-options",
+      navigate: true,
+    };
+  }
+  if (/\b(register|kyc|sign up)\b/.test(q)) {
+    return { answer: "Opening registration. Complete KYC there — I cannot approve it.", href: "/register", navigate: true };
+  }
+  if (/\b(contact|support|help desk|email)\b/.test(q)) {
+    return { answer: "Opening contact so you can reach the team.", href: "/contact", navigate: true };
+  }
+  if (/\b(partner|invest|fleet)\b/.test(q)) {
+    return { answer: "Opening the fleet partner page.", href: "/partners", navigate: true };
+  }
+  return null;
+}
+
+export function faqAnswer(question: string): AssistantReply {
+  const q = question.toLowerCase();
+  let best: { score: number; answer: string; href?: string } | null = null;
   for (const row of FAQ) {
     const score = row.keys.filter((key) => q.includes(key)).length;
     if (score > 0 && (!best || score > best.score)) {
-      best = { score, answer: row.answer };
+      best = { score, answer: row.answer, href: row.href };
     }
   }
-  return best?.answer || "";
+  return best ? { answer: best.answer, href: best.href } : { answer: "" };
 }
 
 async function llmAnswer(history: ChatTurn[], question: string) {
-  const system = `You are the EVUDDY website assistant for https://www.evuddy.com.
+const system = `You are the EVUDDY website assistant for https://www.evuddy.com.
 Only use this knowledge. Do not invent hubs, prices, or policies.
-You cannot take payments, change bookings, approve refunds, or bypass KYC.
-If asked to do those, explain the rider must use the website buttons.
-Keep answers short (under 120 words). Include a relevant https://www.evuddy.com link when useful.
+You cannot take payments, change bookings, approve refunds, enter OTP, or unlock scooters.
+If asked to do those, refuse and tell the rider to use the website buttons.
+You may offer to open /ride-options, /rent-to-own, /register, /contact, or /partners.
+Keep answers short (under 120 words).
 
 KNOWLEDGE:
 ${EVUDDY_KNOWLEDGE}`;
@@ -140,23 +189,33 @@ ${EVUDDY_KNOWLEDGE}`;
   return "";
 }
 
-export async function answerEvuddyQuestion(history: ChatTurn[], question: string) {
+export async function answerEvuddyQuestion(history: ChatTurn[], question: string): Promise<AssistantReply> {
   const asked = clean(question);
   if (asked.length < 2) {
-    return "Ask anything about booking, rates, deposits, Rent to Own, or pickup OTP.";
+    return { answer: "Ask anything about booking, rates, KYC, wallet deposits, or Rent to Own. You can also speak with the mic." };
   }
+
+  const intent = publicAssistantIntent(asked);
+  if (intent) return intent;
 
   try {
     const llm = await llmAnswer(history, asked);
-    if (llm) return llm.slice(0, 900);
+    if (llm) {
+      const faq = faqAnswer(asked);
+      return { answer: llm.slice(0, 900), href: faq.href };
+    }
   } catch (error) {
     console.error("EVUDDY ASSISTANT LLM SKIPPED:", error);
   }
 
   const faq = faqAnswer(asked);
-  if (faq) return faq;
+  if (faq.answer) return faq;
 
-  return "I can help with EVUDDY bookings, rates, KYC, wallet deposits, Rent to Own, and pickup. Try Book a bike at https://www.evuddy.com/book-bike or write to info@kebuone.in. I cannot take payment or change a booking from this chat.";
+  return {
+    answer:
+      "I can help with EVUDDY bookings, rates, KYC, wallet deposits, Rent to Own, and pickup. Say “open booking” and I will take you there. I cannot take payment or change a booking from this chat.",
+    href: "/ride-options",
+  };
 }
 
 export function assistantConfigured() {
