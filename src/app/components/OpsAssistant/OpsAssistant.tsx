@@ -1,24 +1,28 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Bike,
+  Command,
   CreditCard,
   LayoutDashboard,
   Mic,
   MicOff,
   Radio,
+  Search,
   Send,
   ShieldCheck,
   Ticket,
   Wallet,
+  X,
 } from "lucide-react";
 
 import AssistantFab from "@/app/components/Assistant/AssistantFab";
 import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
-import AssistantShell, { TypingDots } from "@/app/components/Assistant/AssistantShell";
+import { TypingDots } from "@/app/components/Assistant/AssistantShell";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
+import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
 
 type Hit = {
   kind: string;
@@ -46,29 +50,47 @@ type Turn = {
   action?: Action | null;
 };
 
-const OPS_CHIPS = [
+const COMMANDS = [
   { label: "Unpaid", ask: "unpaid bookings", icon: CreditCard },
   { label: "In ride", ask: "in ride scooters", icon: Radio },
-  { label: "KYC queue", ask: "pending kyc", icon: ShieldCheck },
+  { label: "KYC", ask: "pending kyc", icon: ShieldCheck },
   { label: "Tickets", ask: "open tickets", icon: Ticket },
   { label: "Available", ask: "available scooters", icon: Bike },
   { label: "Refunds", ask: "pending refunds", icon: Wallet },
-  { label: "Open bookings", ask: "open bookings dashboard", icon: LayoutDashboard },
+  { label: "Bookings", ask: "open bookings dashboard", icon: LayoutDashboard },
   { label: "RTO due", ask: "rent to own unpaid", icon: AlertTriangle },
 ] as const;
 
 const KIND_STYLE: Record<string, string> = {
-  booking: "border-l-[#18B368] text-[#0F7A45]",
-  rider: "border-l-[#3B82F6] text-[#1D4ED8]",
-  vehicle: "border-l-[#F59E0B] text-[#B45309]",
-  ticket: "border-l-[#EC2A8C] text-[#BE185D]",
-  hub: "border-l-[#0B1B16] text-[#0B1B16]",
-  refund: "border-l-[#7C3AED] text-[#6D28D9]",
-  wallet: "border-l-[#0891B2] text-[#0E7490]",
-  transaction: "border-l-[#059669] text-[#047857]",
-  partner: "border-l-[#DB2777] text-[#BE185D]",
-  battery: "border-l-[#CA8A04] text-[#A16207]",
+  booking: "border-l-[#18B368]",
+  rider: "border-l-[#3B82F6]",
+  vehicle: "border-l-[#F59E0B]",
+  ticket: "border-l-[#EC2A8C]",
+  hub: "border-l-[#0B1B16]",
+  refund: "border-l-[#7C3AED]",
+  wallet: "border-l-[#0891B2]",
+  transaction: "border-l-[#059669]",
+  partner: "border-l-[#DB2777]",
+  battery: "border-l-[#CA8A04]",
 };
+
+const RECENT_KEY = "evuddy_ops_eva_recent";
+
+function loadRecent(): string[] {
+  try {
+    const raw = localStorage.getItem(RECENT_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.map(String).slice(0, 8) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(query: string) {
+  const next = [query, ...loadRecent().filter((item) => item !== query)].slice(0, 8);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(next));
+  return next;
+}
 
 export default function OpsAssistant({
   onOpenDashboard,
@@ -76,239 +98,474 @@ export default function OpsAssistant({
   onOpenDashboard: (id: string) => void;
 }) {
   const voice = useVoiceAssistant();
+  const inputRef = useRef<HTMLInputElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const searchGen = useRef(0);
   const [open, setOpen] = useState(false);
+  const [mode, setMode] = useState<"command" | "ask">("command");
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [language, setLanguage] = useState("auto");
+  const [pulse, setPulse] = useState<Stat[]>([]);
+  const [hits, setHits] = useState<Hit[]>([]);
+  const [answer, setAnswer] = useState("");
+  const [action, setAction] = useState<Action | null>(null);
+  const [recent, setRecent] = useState<string[]>(() =>
+    typeof window === "undefined" ? [] : loadRecent()
+  );
   const [turns, setTurns] = useState<Turn[]>([
     {
       role: "assistant",
       content:
-        "Ops Eva — live command search for EVUDDY. Ask like Uber/Ola ops: unpaid, in-ride, KYC queue, refunds, BK- IDs, phones. Say “open bookings” or “review KYC” and I’ll jump you there. Pay / OTP / unlock stay on staff buttons.",
+        "Ops Eva command center. Search thousands of bookings in one box — or ask in plain language. Ctrl/⌘ K opens me. Sensitive pay/OTP stays on staff buttons.",
     },
   ]);
 
+  const queryReady = question.trim().length >= 2;
+  const groupedHits = useMemo(() => {
+    if (question.trim().length < 2) return [] as [string, Hit[]][];
+    const map = new Map<string, Hit[]>();
+    for (const hit of hits) {
+      const list = map.get(hit.kind) || [];
+      list.push(hit);
+      map.set(hit.kind, list);
+    }
+    return [...map.entries()];
+  }, [hits, question]);
+
+  const loadPulse = useCallback(async () => {
+    try {
+      const res = await fetch("/api/ops-assistant/pulse", { cache: "no-store" });
+      const data = await res.json();
+      if (data.success && Array.isArray(data.stats)) setPulse(data.stats);
+    } catch {
+      // keep last pulse
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const start = window.setTimeout(() => {
+      void loadPulse();
+      inputRef.current?.focus();
+    }, 0);
+    const timer = window.setInterval(() => void loadPulse(), 20000);
+    return () => {
+      window.clearTimeout(start);
+      window.clearInterval(timer);
+    };
+  }, [open, loadPulse]);
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setOpen(true);
+        setMode("command");
+      }
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
-  }, [turns, loading, voice.status, open]);
+  }, [turns, loading, mode]);
 
-  const ask = async (text: string) => {
-    const asked = text.trim();
-    if (asked.length < 2 || loading) return;
-    setQuestion("");
-    const nextTurns = [...turns, { role: "user" as const, content: asked }];
-    setTurns(nextTurns);
-    setLoading(true);
-    try {
-      const res = await fetch("/api/ops-assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: asked, language }),
-      });
-      const data = await res.json();
-      const action = data.action as Action | null;
-      setTurns([
-        ...nextTurns,
-        {
-          role: "assistant",
-          content: data.answer || data.message || "No answer just then.",
-          hits: Array.isArray(data.hits) ? data.hits : [],
-          stats: Array.isArray(data.stats) ? data.stats : [],
-          action,
-        },
-      ]);
-      if (action?.type === "open_dashboard" && action.autoNavigate && action.dashboard) {
-        onOpenDashboard(action.dashboard);
+  const runSearch = useCallback(
+    async (text: string, opts?: { askMode?: boolean; navigate?: boolean }) => {
+      const asked = text.trim();
+      if (asked.length < 2) return;
+      const gen = ++searchGen.current;
+      setLoading(true);
+      setRecent(saveRecent(asked));
+      if (opts?.askMode) {
+        setTurns((old) => [...old, { role: "user", content: asked }]);
       }
-    } catch {
-      setTurns([
-        ...nextTurns,
-        { role: "assistant", content: "Network issue. Use the dashboard filters instead." },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      try {
+        const res = await fetch("/api/ops-assistant", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ question: asked, language }),
+        });
+        const data = await res.json();
+        if (gen !== searchGen.current) return;
+        const nextHits = Array.isArray(data.hits) ? data.hits : [];
+        const nextStats = Array.isArray(data.stats) ? data.stats : [];
+        const nextAction = (data.action as Action | null) || null;
+        setHits(nextHits);
+        setAnswer(data.answer || data.message || "");
+        setAction(nextAction);
+        if (nextStats.length) setPulse(nextStats);
+        if (opts?.askMode) {
+          setTurns((old) => [
+            ...old,
+            {
+              role: "assistant",
+              content: data.answer || data.message || "No answer.",
+              hits: nextHits,
+              stats: nextStats,
+              action: nextAction,
+            },
+          ]);
+        }
+        if (
+          nextAction?.type === "open_dashboard" &&
+          nextAction.dashboard &&
+          (nextAction.autoNavigate || opts?.navigate)
+        ) {
+          onOpenDashboard(nextAction.dashboard);
+        }
+      } catch {
+        if (gen !== searchGen.current) return;
+        setAnswer("Network issue. Use sidebar filters.");
+        if (opts?.askMode) {
+          setTurns((old) => [
+            ...old,
+            { role: "assistant", content: "Network issue. Use sidebar filters." },
+          ]);
+        }
+      } finally {
+        if (gen === searchGen.current) setLoading(false);
+      }
+    },
+    [language, onOpenDashboard]
+  );
+
+  useEffect(() => {
+    if (!open || mode !== "command") return;
+    const q = question.trim();
+    if (q.length < 2) return;
+    const id = window.setTimeout(() => {
+      void runSearch(q);
+    }, 280);
+    return () => window.clearTimeout(id);
+  }, [question, open, mode, runSearch]);
 
   return (
-    <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[90] flex max-h-[calc(100dvh-1rem)] flex-col items-end gap-3 print:hidden sm:right-6">
-      {open ? (
-        <AssistantShell
-          title="Ops Eva"
-          subtitle="Live command search · Uber-style ops"
-          liveLabel="Live"
-          language={language}
-          onLanguage={setLanguage}
-          onClose={() => setOpen(false)}
-          chips={
-            <div className="flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {OPS_CHIPS.map((chip) => {
-                const Icon = chip.icon;
-                return (
-                  <button
-                    key={chip.label}
-                    type="button"
-                    onClick={() => void ask(chip.ask)}
-                    className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm hover:border-[#18B368]"
-                  >
-                    <Icon size={13} className="text-[#18B368]" />
-                    {chip.label}
-                  </button>
-                );
-              })}
-            </div>
-          }
-          footer={
-            <form
-              className="flex items-center gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void ask(question);
-              }}
-            >
-              <input
-                value={question}
-                onChange={(event) => setQuestion(event.target.value)}
-                className="h-12 flex-1 rounded-full border border-slate-200 bg-[#F8FAF9] px-4 text-sm outline-none focus:border-[#18B368]"
-                placeholder={
-                  voice.listening
-                    ? "Listening… tap mic to stop"
-                    : "Search or command: unpaid · open KYC · BK-…"
-                }
-                maxLength={240}
-              />
-              <button
-                type="button"
-                disabled={!voice.supported}
-                title={voice.supported ? undefined : "Microphone is not available in this browser"}
-                onClick={() => {
-                  void voice.listen(
-                    (text) => void ask(text),
-                    language,
-                    (message) =>
-                      setTurns((old) => [...old, { role: "assistant", content: message }])
-                  );
-                }}
-                className={`relative flex h-12 w-12 items-center justify-center rounded-full text-white disabled:opacity-40 ${
-                  voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
-                }`}
-                aria-label={voice.listening ? "Stop listening" : "Speak"}
-              >
-                {voice.listening ? (
-                  <span className="absolute inset-0 animate-ping rounded-full bg-[#EC2A8C]/40" />
-                ) : null}
-                {voice.listening ? <MicOff size={17} /> : <Mic size={17} />}
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex h-12 w-12 items-center justify-center rounded-full bg-[#18B368] text-white disabled:opacity-50"
-                aria-label="Search"
-              >
-                <Send size={17} />
-              </button>
-            </form>
-          }
-        >
-          {turns.map((turn, index) => (
-            <div key={`${turn.role}-${index}`} className="space-y-2">
-              {turn.role === "user" ? (
-                <div className="ml-10 flex justify-end">
-                  <div className="rounded-2xl rounded-tr-md bg-gradient-to-br from-[#18B368] to-[#12995A] px-3.5 py-2.5 text-sm font-medium text-white shadow-sm">
-                    {turn.content}
-                  </div>
-                </div>
-              ) : (
-                <div className="mr-4 flex items-end gap-2">
-                  <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-slate-200">
-                    <AssistantLogo size={28} />
-                  </span>
-                  <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-3.5 py-2.5 text-sm whitespace-pre-wrap text-slate-700 shadow-sm">
-                    {turn.content}
-                  </div>
-                </div>
-              )}
+    <>
+      <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[96] print:hidden sm:right-6">
+        <AssistantFab
+          open={open}
+          onClick={() => {
+            setOpen((value) => !value);
+            setMode("command");
+          }}
+          label="Ops Eva"
+          ariaLabel={open ? "Close ops command center" : "Open ops command center"}
+          tone="ops"
+        />
+      </div>
 
-              {turn.stats?.length ? (
-                <div className="ml-9 flex flex-wrap gap-1.5">
-                  {turn.stats.map((stat) => (
+      {open ? (
+        <div className="fixed inset-0 z-[95] flex items-start justify-center bg-[#0B1B16]/55 px-3 py-6 backdrop-blur-[3px] print:hidden sm:py-10">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="Close ops command center backdrop"
+            onClick={() => setOpen(false)}
+          />
+          <div className="relative flex max-h-[min(44rem,calc(100dvh-3rem))] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/20 bg-[#F4F7F5] shadow-[0_40px_120px_rgba(0,0,0,.45)] animate-[assistantPanelIn_.22s_ease] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif]">
+            <div className="shrink-0 bg-gradient-to-br from-[#0B1B16] via-[#102820] to-[#163528] px-4 py-3 text-white">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-white p-1 ring-2 ring-[#18B368]/50">
+                  <AssistantLogo size={44} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[15px] font-black">Ops Eva</p>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#18B368]/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#7DFFB2]">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#22C55E]" />
+                      Live
+                    </span>
+                    <span className="hidden items-center gap-1 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold text-white/70 sm:inline-flex">
+                      <Command size={11} /> K
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-white/70">
+                    Command search for thousands of bookings · ACL-safe
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="mr-1 flex rounded-full bg-white/10 p-0.5 text-[11px] font-bold">
                     <button
-                      key={`${stat.label}-${stat.value}`}
+                      type="button"
+                      onClick={() => setMode("command")}
+                      className={`rounded-full px-3 py-1 ${mode === "command" ? "bg-[#18B368] text-white" : "text-white/70"}`}
+                    >
+                      Search
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setMode("ask")}
+                      className={`rounded-full px-3 py-1 ${mode === "ask" ? "bg-[#18B368] text-white" : "text-white/70"}`}
+                    >
+                      Ask
+                    </button>
+                  </div>
+                  <select
+                    value={language}
+                    onChange={(event) => setLanguage(event.target.value)}
+                    className="max-w-[84px] rounded-full border border-white/15 bg-white/10 px-2 py-1 text-[11px] font-bold text-white outline-none"
+                    aria-label="Ops language"
+                  >
+                    {ASSISTANT_LANGUAGES.map((item) => (
+                      <option key={item.id} value={item.id} className="text-[#0F172A]">
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setOpen(false)}
+                    className="rounded-full bg-white/10 p-1.5"
+                    aria-label="Close"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+
+              {pulse.length ? (
+                <div className="mt-3 flex gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  {pulse.map((stat) => (
+                    <button
+                      key={stat.label}
                       type="button"
                       onClick={() => {
                         if (stat.dashboard) onOpenDashboard(stat.dashboard);
                       }}
-                      className="rounded-2xl border border-slate-200 bg-[#0B1B16] px-3 py-2 text-left text-white shadow-sm"
+                      className="min-w-[5.5rem] rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-left"
                     >
-                      <p className="text-[10px] font-bold uppercase tracking-wide text-white/60">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-white/55">
                         {stat.label}
                       </p>
-                      <p className="text-lg font-black leading-none text-[#7DFFB2]">{stat.value}</p>
+                      <p className="text-xl font-black text-[#7DFFB2]">{stat.value}</p>
                     </button>
                   ))}
                 </div>
               ) : null}
+            </div>
 
-              {turn.action?.dashboard ? (
-                <div className="ml-9">
-                  <button
-                    type="button"
-                    onClick={() => onOpenDashboard(turn.action!.dashboard)}
-                    className="inline-flex items-center gap-2 rounded-full bg-[#18B368] px-4 py-2 text-xs font-black text-white shadow-sm"
-                  >
-                    <LayoutDashboard size={14} />
-                    {turn.action.label || "Open dashboard"}
-                  </button>
+            <div className="shrink-0 border-b border-slate-200 bg-white px-3 py-3">
+              <form
+                className="flex items-center gap-2"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void runSearch(question, {
+                    askMode: mode === "ask",
+                    navigate: mode === "command",
+                  });
+                }}
+              >
+                <div className="relative flex-1">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <input
+                    ref={inputRef}
+                    value={question}
+                    onChange={(event) => setQuestion(event.target.value)}
+                    className="h-12 w-full rounded-full border border-slate-200 bg-[#F8FAF9] pl-10 pr-4 text-sm outline-none focus:border-[#18B368]"
+                    placeholder={
+                      mode === "command"
+                        ? "Search BK- ID, phone, unpaid, KYC, refunds…"
+                        : "Ask: how many unpaid? open wallet…"
+                    }
+                    maxLength={240}
+                  />
                 </div>
-              ) : null}
-
-              {turn.hits?.length ? (
-                <div className="ml-9 space-y-1.5">
-                  {turn.hits.map((hit) => (
+                <button
+                  type="button"
+                  disabled={!voice.supported}
+                  onClick={() => {
+                    void voice.listen(
+                      (text) => {
+                        setQuestion(text);
+                        void runSearch(text, { askMode: mode === "ask", navigate: true });
+                      },
+                      language
+                    );
+                  }}
+                  className={`relative flex h-12 w-12 items-center justify-center rounded-full text-white ${
+                    voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
+                  }`}
+                  aria-label={voice.listening ? "Stop listening" : "Speak"}
+                >
+                  {voice.listening ? <MicOff size={17} /> : <Mic size={17} />}
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[#18B368] text-white disabled:opacity-50"
+                  aria-label="Run"
+                >
+                  <Send size={17} />
+                </button>
+              </form>
+              <div className="mt-2 flex gap-2 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {COMMANDS.map((chip) => {
+                  const Icon = chip.icon;
+                  return (
                     <button
-                      key={`${hit.kind}-${hit.id}-${hit.title}`}
+                      key={chip.label}
                       type="button"
-                      onClick={() => onOpenDashboard(hit.dashboard)}
-                      className={`w-full rounded-2xl border border-slate-200 border-l-4 bg-white px-3 py-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
-                        KIND_STYLE[hit.kind] || "border-l-[#18B368]"
-                      }`}
+                      onClick={() => {
+                        setQuestion(chip.ask);
+                        void runSearch(chip.ask, { askMode: mode === "ask", navigate: true });
+                      }}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200 bg-[#F8FAF9] px-3 py-1.5 text-[11px] font-bold text-slate-700"
                     >
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.16em]">
-                          {hit.kind}
-                        </p>
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
-                          {hit.badge || "Open →"}
-                        </span>
-                      </div>
-                      <p className="mt-0.5 font-black text-[#0F172A]">{hit.title}</p>
-                      <p className="text-xs text-slate-500">{hit.detail}</p>
+                      <Icon size={13} className="text-[#18B368]" />
+                      {chip.label}
                     </button>
-                  ))}
-                </div>
-              ) : null}
+                  );
+                })}
+              </div>
             </div>
-          ))}
-          {loading || voice.status ? (
-            <div className="space-y-1">
-              {loading ? <TypingDots /> : null}
-              {voice.status ? (
-                <p className="pl-9 text-xs font-semibold text-slate-400">{voice.status}</p>
-              ) : null}
-            </div>
-          ) : null}
-          <div ref={bottomRef} />
-        </AssistantShell>
-      ) : null}
 
-      <AssistantFab
-        open={open}
-        onClick={() => setOpen((value) => !value)}
-        label="Ops Eva"
-        ariaLabel={open ? "Close ops assistant" : "Open ops assistant"}
-        tone="ops"
-      />
-    </div>
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3">
+              {mode === "command" ? (
+                <div className="space-y-3">
+                  {loading ? <TypingDots /> : null}
+                  {voice.status ? (
+                    <p className="text-xs font-semibold text-slate-400">{voice.status}</p>
+                  ) : null}
+                  {!queryReady && !loading ? (
+                    <p className="rounded-2xl border border-dashed border-slate-200 bg-white px-3 py-4 text-center text-sm text-slate-500">
+                      Type a booking id, phone, or unpaid / KYC / refunds. Indexed for high volume — results
+                      open the matching dashboard. Pay, OTP, and unlock stay on staff buttons.
+                    </p>
+                  ) : null}
+                  {!question && recent.length ? (
+                    <div>
+                      <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-slate-400">
+                        Recent
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {recent.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => {
+                              setQuestion(item);
+                              void runSearch(item, { navigate: true });
+                            }}
+                            className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 ring-1 ring-slate-200"
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                  {queryReady && answer ? (
+                    <p className="whitespace-pre-wrap rounded-2xl border border-slate-100 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm">
+                      {answer}
+                    </p>
+                  ) : null}
+                  {queryReady && action?.dashboard ? (
+                    <button
+                      type="button"
+                      onClick={() => onOpenDashboard(action.dashboard)}
+                      className="inline-flex items-center gap-2 rounded-full bg-[#18B368] px-4 py-2 text-xs font-black text-white"
+                    >
+                      <LayoutDashboard size={14} />
+                      {action.label}
+                    </button>
+                  ) : null}
+                  {groupedHits.map(([kind, rows]) => (
+                    <div key={kind}>
+                      <p className="mb-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">
+                        {kind} · {rows.length}
+                      </p>
+                      <div className="space-y-1.5">
+                        {rows.map((hit) => (
+                          <button
+                            key={`${hit.kind}-${hit.id}-${hit.title}`}
+                            type="button"
+                            onClick={() => onOpenDashboard(hit.dashboard)}
+                            className={`w-full rounded-2xl border border-slate-200 border-l-4 bg-white px-3 py-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                              KIND_STYLE[hit.kind] || "border-l-[#18B368]"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <p className="font-black text-[#0F172A]">{hit.title}</p>
+                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">
+                                {hit.badge || "Open →"}
+                              </span>
+                            </div>
+                            <p className="text-xs text-slate-500">{hit.detail}</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {!loading && question.trim().length >= 2 && !hits.length && !answer ? (
+                    <p className="text-sm text-slate-500">No matches yet — try BK- ID or a phone.</p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {turns.map((turn, index) => (
+                    <div key={`${turn.role}-${index}`} className="space-y-2">
+                      {turn.role === "user" ? (
+                        <div className="ml-10 flex justify-end">
+                          <div className="rounded-2xl rounded-tr-md bg-[#18B368] px-3.5 py-2.5 text-sm font-medium text-white">
+                            {turn.content}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mr-4 flex items-end gap-2">
+                          <span className="mb-0.5 flex h-7 w-7 shrink-0 overflow-hidden rounded-full bg-white p-0.5 ring-1 ring-slate-200">
+                            <AssistantLogo size={28} />
+                          </span>
+                          <div className="rounded-2xl rounded-tl-md border border-slate-100 bg-white px-3.5 py-2.5 text-sm whitespace-pre-wrap text-slate-700 shadow-sm">
+                            {turn.content}
+                          </div>
+                        </div>
+                      )}
+                      {turn.action?.dashboard ? (
+                        <div className="ml-9">
+                          <button
+                            type="button"
+                            onClick={() => onOpenDashboard(turn.action!.dashboard)}
+                            className="inline-flex items-center gap-2 rounded-full bg-[#18B368] px-4 py-2 text-xs font-black text-white"
+                          >
+                            <LayoutDashboard size={14} />
+                            {turn.action.label}
+                          </button>
+                        </div>
+                      ) : null}
+                      {turn.hits?.length ? (
+                        <div className="ml-9 space-y-1.5">
+                          {turn.hits.slice(0, 8).map((hit) => (
+                            <button
+                              key={`${hit.kind}-${hit.id}-${index}`}
+                              type="button"
+                              onClick={() => onOpenDashboard(hit.dashboard)}
+                              className={`w-full rounded-2xl border border-slate-200 border-l-4 bg-white px-3 py-2 text-left ${
+                                KIND_STYLE[hit.kind] || "border-l-[#18B368]"
+                              }`}
+                            >
+                              <p className="font-black text-[#0F172A]">{hit.title}</p>
+                              <p className="text-xs text-slate-500">{hit.detail}</p>
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                  {loading ? <TypingDots /> : null}
+                  <div ref={bottomRef} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }
