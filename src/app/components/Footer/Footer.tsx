@@ -253,10 +253,10 @@ export default function Footer() {
         />
 
         <a
-          href="mailto:info@kebuone.com"
+          href="mailto:helpdesk@kebuone.in"
           className="transition hover:text-white"
         >
-          info@kebuone.com
+          helpdesk@kebuone.in
         </a>
 
       </div>
@@ -272,10 +272,10 @@ export default function Footer() {
         />
 
         <a
-          href="tel:+918726006516"
+          href="tel:+918726006512"
           className="transition hover:text-white"
         >
-          +91 8726006516
+          +91 8726006512
         </a>
 
       </div>

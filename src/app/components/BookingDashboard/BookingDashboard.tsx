@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -20,7 +21,7 @@ export default function BookingDashboard(){
 const [bookings,setBookings]=useState<any[]>([]);
 const [loading,setLoading]=useState(true);
 const [loadError,setLoadError]=useState("");
-const [search,setSearch]=useState("");
+const [search,setSearch]=useState(() => consumeOpsFocus());
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [paymentFilter, setPaymentFilter] = useState("ALL");
 const [modeFilter, setModeFilter] = useState("ALL");

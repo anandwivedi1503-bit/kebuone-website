@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -213,7 +214,7 @@ export default function UserManagement() {
     useState<Rider[]>([]);
 
   const [search, setSearch] =
-    useState("");
+    useState(() => consumeOpsFocus());
 
   const [statusFilter, setStatusFilter] =
     useState("All");

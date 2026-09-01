@@ -34,6 +34,8 @@ export type OpsAction = {
   dashboard: string;
   label: string;
   autoNavigate?: boolean;
+  /** Prefills dashboard search when Ops Eva jumps there. */
+  focusQuery?: string;
 };
 
 export type OpsAssistantResult = {
@@ -257,6 +259,9 @@ export async function runOpsAssistant(
 
   const wantUnpaid = /\b(unpaid|pending payment|due|partial|बकाया|बाकी)\b/i.test(asked);
   const wantInRide = /\b(in ride|live ride|ongoing|on trip|राइड में)\b/i.test(asked);
+  const wantReadyPickup = /\b(ready for pickup|pickup ready|awaiting pickup|pickup queue)\b/i.test(
+    asked
+  );
   const wantRto = /\b(rto|rent to own|रेंट टू ओन)\b/i.test(asked);
   const wantAvailable = /\b(available scooter|available bike|free scooter|available fleet|उपलब्ध)\b/i.test(
     asked
@@ -265,8 +270,12 @@ export async function runOpsAssistant(
   const wantKyc = /\b(kyc|pending kyc|approve rider|verification)\b/i.test(asked);
   const wantRefunds = /\b(refund|refunds|deposit return)\b/i.test(asked);
   const wantCounts = /\b(how many|count|total|kitne|कितने|संख्या)\b/i.test(asked);
+  const wantInstruction =
+    /\b(approve|click|press|process|handle|review|find|show me|take me|jump|locate|search)\b/i.test(
+      asked
+    ) || /मंज़ूर|खोजो|दिखाओ|खोलो/.test(asked);
   const wantSummary =
-    wantCounts || /\b(overview|summary|today|live status|status board)\b/i.test(asked);
+    wantCounts || /\b(overview|summary|today|live status|status board|pulse)\b/i.test(asked);
 
   const openDashboardId = resolveOpenDashboard(asked);
   let action: OpsAction | undefined;
@@ -373,6 +382,7 @@ export async function runOpsAssistant(
         if (phone) and.push({ userPhone: phone });
         if (wantUnpaid) and.push({ paymentStatus: { $in: ["Pending", "Partial"] } });
         if (wantInRide) and.push({ rideStatus: "In Ride" });
+        if (wantReadyPickup) and.push({ rideStatus: "Ready For Pickup" });
         if (wantRto) and.push({ rentalMode: "Rent To Own" });
         if (!and.length && fuzzy && !wantKyc && !wantRefunds) {
           and.push({
@@ -388,7 +398,15 @@ export async function runOpsAssistant(
           });
         }
         if (and.length) filter.$and = and;
-        else if (!wantUnpaid && !wantInRide && !wantRto && !phone && !bookingId && !riderId) {
+        else if (
+          !wantUnpaid &&
+          !wantInRide &&
+          !wantReadyPickup &&
+          !wantRto &&
+          !phone &&
+          !bookingId &&
+          !riderId
+        ) {
           return;
         }
         const rows = await Booking.find(filter)
@@ -716,23 +734,69 @@ export async function runOpsAssistant(
     };
   }
 
-  // If they asked to approve KYC/refunds, open that board even with hits
-  if (/\b(approve|process|review)\b/i.test(asked)) {
-    if (wantKyc && canOpenDashboard(session, "kyc")) {
-      action = {
-        type: "open_dashboard",
-        dashboard: "kyc",
-        label: "Open KYC",
-        autoNavigate: true,
-      };
-    } else if (wantRefunds && canOpenDashboard(session, "refunds")) {
+  // Instruction-style: jump to the right board with search prefilled (never silent approve/pay).
+  const focusQuery =
+    bookingId ||
+    riderId ||
+    phone ||
+    ticketId ||
+    vehicleToken ||
+    hits.find((hit) => hit.id)?.id ||
+    "";
+
+  if (/\b(approve|click|press|process|review|handle)\b/i.test(asked) || /मंज़ूर/.test(asked)) {
+    if (wantRefunds && canOpenDashboard(session, "refunds")) {
       action = {
         type: "open_dashboard",
         dashboard: "refunds",
-        label: "Open Refunds",
+        label: "Open Refunds — finish Approve there",
         autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    } else if (
+      (wantKyc || hits.some((hit) => hit.kind === "rider")) &&
+      canOpenDashboard(session, "users")
+    ) {
+      action = {
+        type: "open_dashboard",
+        dashboard: "users",
+        label: "Open Users — finish Approve there",
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    } else if (wantKyc && canOpenDashboard(session, "kyc")) {
+      action = {
+        type: "open_dashboard",
+        dashboard: "kyc",
+        label: "Open KYC — finish Approve there",
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    } else if (hits[0]?.dashboard && canOpenDashboard(session, hits[0].dashboard)) {
+      action = {
+        type: "open_dashboard",
+        dashboard: hits[0].dashboard,
+        label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard} — finish on staff buttons`,
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
       };
     }
+  } else if (wantInstruction && focusQuery && hits[0]?.dashboard) {
+    action = {
+      type: "open_dashboard",
+      dashboard: hits[0].dashboard,
+      label: `Open ${DASHBOARD_LABELS[hits[0].dashboard] || hits[0].dashboard}`,
+      autoNavigate: true,
+      focusQuery,
+    };
+  } else if (wantReadyPickup && canOpenDashboard(session, "bookings")) {
+    action = {
+      type: "open_dashboard",
+      dashboard: "bookings",
+      label: "Open Bookings — Ready for Pickup",
+      autoNavigate: true,
+      focusQuery: "Ready For Pickup",
+    };
   }
 
   const answer = formatOpsAnswer(asked, hits, stats, action, hindi);
@@ -776,8 +840,8 @@ export function formatOpsAnswer(
   if (action?.autoNavigate) {
     parts.push(
       hindi
-        ? `${action.label} खोल रहा हूँ।`
-        : `${action.label} now.`
+        ? `${action.label} खोल रहा हूँ${action.focusQuery ? ` · खोज: ${action.focusQuery}` : ""}। संवेदनशील Approve/Pay वहीं स्टाफ बटन से पूरा करें — चैट से क्लिक नहीं होगा।`
+        : `${action.label}${action.focusQuery ? ` · search: ${action.focusQuery}` : ""}. Sensitive Approve/Pay finishes on the staff button there — chat never clicks it for you (audit-safe).`
     );
   }
   parts.push(

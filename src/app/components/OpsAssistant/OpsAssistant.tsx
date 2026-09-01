@@ -23,6 +23,7 @@ import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
 import { TypingDots } from "@/app/components/Assistant/AssistantShell";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
+import { writeOpsFocus } from "@/lib/opsFocus";
 
 type Hit = {
   kind: string;
@@ -40,6 +41,7 @@ type Action = {
   dashboard: string;
   label: string;
   autoNavigate?: boolean;
+  focusQuery?: string;
 };
 
 type Turn = {
@@ -59,6 +61,7 @@ const COMMANDS = [
   { label: "Refunds", ask: "pending refunds", icon: Wallet },
   { label: "Bookings", ask: "open bookings dashboard", icon: LayoutDashboard },
   { label: "RTO due", ask: "rent to own unpaid", icon: AlertTriangle },
+  { label: "Pickup ready", ask: "ready for pickup", icon: Bike },
 ] as const;
 
 const KIND_STYLE: Record<string, string> = {
@@ -117,7 +120,7 @@ export default function OpsAssistant({
     {
       role: "assistant",
       content:
-        "Ops Eva command center. Search thousands of bookings in one box — or ask in plain language. Ctrl/⌘ K opens me. Sensitive pay/OTP stays on staff buttons.",
+        "Ops Eva command center. Search the live database like Uber ops — bookings, riders, KYC, tickets, refunds, fleet. Say “approve KYC for 98…” and I open Users with that record ready. I never click Approve/Pay for you — you finish on the staff button (audit-safe). Ctrl/⌘ K.",
     },
   ]);
 
@@ -215,6 +218,8 @@ export default function OpsAssistant({
           nextAction.dashboard &&
           (nextAction.autoNavigate || opts?.navigate)
         ) {
+          if (nextAction.focusQuery) writeOpsFocus(nextAction.focusQuery);
+          else if (nextHits[0]?.id) writeOpsFocus(nextHits[0].id);
           onOpenDashboard(nextAction.dashboard);
         }
       } catch {
@@ -469,7 +474,10 @@ export default function OpsAssistant({
                   {queryReady && action?.dashboard ? (
                     <button
                       type="button"
-                      onClick={() => onOpenDashboard(action.dashboard)}
+                      onClick={() => {
+                        if (action.focusQuery) writeOpsFocus(action.focusQuery);
+                        onOpenDashboard(action.dashboard);
+                      }}
                       className="inline-flex items-center gap-2 rounded-full bg-[#18B368] px-4 py-2 text-xs font-black text-white"
                     >
                       <LayoutDashboard size={14} />
@@ -486,7 +494,10 @@ export default function OpsAssistant({
                           <button
                             key={`${hit.kind}-${hit.id}-${hit.title}`}
                             type="button"
-                            onClick={() => onOpenDashboard(hit.dashboard)}
+                            onClick={() => {
+                              writeOpsFocus(hit.id || hit.title);
+                              onOpenDashboard(hit.dashboard);
+                            }}
                             className={`w-full rounded-2xl border border-slate-200 border-l-4 bg-white px-3 py-2.5 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
                               KIND_STYLE[hit.kind] || "border-l-[#18B368]"
                             }`}
@@ -531,7 +542,10 @@ export default function OpsAssistant({
                         <div className="ml-9">
                           <button
                             type="button"
-                            onClick={() => onOpenDashboard(turn.action!.dashboard)}
+                            onClick={() => {
+                              if (turn.action?.focusQuery) writeOpsFocus(turn.action.focusQuery);
+                              onOpenDashboard(turn.action!.dashboard);
+                            }}
                             className="inline-flex items-center gap-2 rounded-full bg-[#18B368] px-4 py-2 text-xs font-black text-white"
                           >
                             <LayoutDashboard size={14} />
@@ -545,7 +559,10 @@ export default function OpsAssistant({
                             <button
                               key={`${hit.kind}-${hit.id}-${index}`}
                               type="button"
-                              onClick={() => onOpenDashboard(hit.dashboard)}
+                              onClick={() => {
+                                writeOpsFocus(hit.id || hit.title);
+                                onOpenDashboard(hit.dashboard);
+                              }}
                               className={`w-full rounded-2xl border border-slate-200 border-l-4 bg-white px-3 py-2 text-left ${
                                 KIND_STYLE[hit.kind] || "border-l-[#18B368]"
                               }`}

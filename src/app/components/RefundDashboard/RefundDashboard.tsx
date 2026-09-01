@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -15,7 +16,7 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 export default function RefundDashboard(){
 
 const [refunds,setRefunds]=useState<any[]>([]);
-const [search,setSearch] = useState("")
+const [search,setSearch] = useState(() => consumeOpsFocus())
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [selectedRefund, setSelectedRefund] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");

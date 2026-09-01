@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -22,7 +23,7 @@ const [editingTicket,setEditingTicket]=useState<any>(null);
 const [showEditModal,setShowEditModal]=useState(false);
 const [statusFilter,setStatusFilter]=useState("ALL");
 const [categoryFilter,setCategoryFilter]=useState("ALL");
-const [search,setSearch]=useState("");
+const [search,setSearch]=useState(() => consumeOpsFocus());
 const [ticketQueue,setTicketQueue]=useState<"riders" | "website">("riders");
 
 const isWebsiteEnquiry = (ticket: { bookingId?: string; ticketSource?: string }) =>
