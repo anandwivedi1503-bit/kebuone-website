@@ -17,20 +17,26 @@ const directory = [
   {
     title: "Customer Support",
     text: "Bookings, rentals, payments and rider help for EVUDDY scooters.",
-    value: "info@kebuone.in",
-    href: "mailto:info@kebuone.in",
+    value: "helpdesk@kebuone.in",
+    href: "mailto:helpdesk@kebuone.in",
+  },
+  {
+    title: "Helpdesk phone",
+    text: "Call EVUDDY helpdesk for booking and ride support.",
+    value: "+91 8726006512",
+    href: "tel:+918726006512",
   },
   {
     title: "Business Partnerships",
     text: "Fleet operators, hubs and partners who want EVUDDY scooters on the road.",
-    value: "info@kebuone.in",
-    href: "mailto:info@kebuone.in",
+    value: "helpdesk@kebuone.in",
+    href: "mailto:helpdesk@kebuone.in",
   },
   {
     title: "Careers",
     text: "Join the team building smart electric mobility.",
-    value: "info@kebuone.in",
-    href: "mailto:info@kebuone.in",
+    value: "helpdesk@kebuone.in",
+    href: "mailto:helpdesk@kebuone.in",
   },
   {
     title: "Corporate Office",
@@ -271,10 +277,19 @@ export default function ContactUs() {
             </figure>
             <article className="rounded-[22px] border border-slate-100 bg-white p-6">
               <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
-                General enquiries
+                Helpdesk
               </p>
-              <a href="mailto:info@kebuone.in" className="mt-2 inline-block text-xl font-black text-[#08112F]">
-                info@kebuone.in
+              <a
+                href="mailto:helpdesk@kebuone.in"
+                className="mt-2 inline-block text-xl font-black text-[#08112F]"
+              >
+                helpdesk@kebuone.in
+              </a>
+              <a
+                href="tel:+918726006512"
+                className="mt-2 block text-lg font-black text-[#08112F]"
+              >
+                +91 8726006512
               </a>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow,

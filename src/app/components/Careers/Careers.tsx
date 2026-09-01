@@ -134,7 +134,7 @@ export default function Careers() {
 
       <CareersApply />
 
-      <BrandCta title="Ready to build with us?" href="mailto:info@kebuone.in" label="Email careers" />
+      <BrandCta title="Ready to build with us?" href="mailto:helpdesk@kebuone.in" label="Email careers" />
     </div>
   );
 }

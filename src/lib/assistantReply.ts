@@ -22,7 +22,7 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["book", "how to", "start", "kyc", "register", "बुक", "बुकिंग", "रजिस्टर", "स्कूटर", "कैसे"],
     href: "/ride-options",
-    en: "Book in four steps: (1) Register with your phone OTP and finish KYC. (2) Open Book EV, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. I can open ride options — I cannot take payment.",
+    en: "Book in four steps: (1) Register with phone OTP and finish KYC. (2) Open Book EV, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. I can open ride options — I cannot take payment.",
     hi: "बुकिंग चार कदम: (1) फोन OTP से रजिस्टर करें और KYC पूरा करें। (2) Book EV खोलें, शहर, हब और स्कूटर चुनें। (3) किराया + 5% GST + रिफंडेबल डिपॉजिट Razorpay या वॉलेट से दें। (4) पिकअप OTP हब पर दिखाएँ। मैं पेज खोल सकता हूँ, भुगतान नहीं ले सकता।",
   },
   {
@@ -43,27 +43,57 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     hi: "Rent to Own: 18 महीने तक रोज़ ₹280 + 5% GST, कोई सिक्योरिटी डिपॉजिट नहीं। रोज़ रसीद मिलती है। सफल दिनों के बाद मालिकाना हक ट्रांसफर होता है।",
   },
   {
-    keys: ["razorpay", "pay", "upi", "card", "पेमेंट", "भुगतान"],
-    en: "UPI and cards go through Razorpay on the booking page. If your EVUDDY wallet has enough, you can pay from wallet there. I cannot collect payment or enter OTP for you.",
-    hi: "UPI और कार्ड बुकिंग पेज पर Razorpay से चलते हैं। वॉलेट में बैलेंस हो तो वहीं से पे कर सकते हैं। मैं भुगतान या OTP नहीं ले सकता।",
+    keys: ["razorpay", "pay", "upi", "card", "पेमेंट", "भुगतान", "gst"],
+    en: "UPI and cards go through Razorpay on the booking page. GST is 5% on rent (CGST 2.5% + SGST 2.5%). If your EVUDDY wallet has enough, you can pay from wallet there. I cannot collect payment or enter OTP for you.",
+    hi: "UPI और कार्ड बुकिंग पेज पर Razorpay से चलते हैं। किराये पर 5% GST (CGST 2.5% + SGST 2.5%)। वॉलेट में बैलेंस हो तो वहीं से पे कर सकते हैं। मैं भुगतान या OTP नहीं ले सकता।",
   },
   {
-    keys: ["hub", "city", "lucknow", "where", "हब", "शहर", "लखनऊ"],
+    keys: ["hub", "city", "lucknow", "where", "हब", "शहर", "लखनऊ", "office", "address"],
     href: "/book-bike?flow=rental",
-    en: "Pick your city and hub on the booking page so you collect the scooter from that hub. Corporate office: Summit Building, 7th Floor, Gomti Nagar, Lucknow.",
-    hi: "बुकिंग पेज पर शहर और हब चुनें — स्कूटर उसी हब से लें। कॉर्पोरेट ऑफिस: Summit Building, 7th Floor, गोमती नगर, लखनऊ।",
+    en: "Pick your city and hub on the booking page so you collect the scooter from that hub. Corporate office: Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow.",
+    hi: "बुकिंग पेज पर शहर और हब चुनें — स्कूटर उसी हब से लें। कॉर्पोरेट ऑफिस: Summit Building, 7th Floor, विभूति खंड, गोमती नगर, लखनऊ।",
   },
   {
-    keys: ["contact", "help", "ticket", "support", "email", "संपर्क", "मदद", "हेल्प"],
+    keys: ["contact", "help", "ticket", "support", "email", "phone", "helpdesk", "संपर्क", "मदद", "हेल्प", "टिकट"],
     href: "/contact",
-    en: "Email info@kebuone.in or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues. Hub staff see it on Support.",
-    hi: "ईमेल info@kebuone.in या संपर्क पेज इस्तेमाल करें। पेमेंट के बाद Book EV पर Need help? है। हब स्टाफ Support पर देखते हैं।",
+    en: "Helpdesk: helpdesk@kebuone.in or +91 8726006512, or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues — that creates a support ticket staff see on Support.",
+    hi: "हेल्पडेस्क: helpdesk@kebuone.in या +91 8726006512, या संपर्क पेज। पेमेंट के बाद Book EV पर Need help? से सपोर्ट टिकट बनता है — स्टाफ Support पर देखते हैं।",
   },
   {
-    keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक"],
+    keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक", "ride end", "ride started"],
     href: "/book-bike",
-    en: "After your first payment (≥ ₹1), Book EV shows a Pickup OTP. Tell it to the yard. They unlock the scooter. Then swipe Ride started. I cannot enter OTP for you.",
-    hi: "पहली पेमेंट (≥ ₹1) के बाद Book EV पर Pickup OTP दिखता है। हब पर बताएँ — वे अनलॉक करेंगे। फिर Ride started स्वाइप करें। मैं OTP नहीं डाल सकता।",
+    en: "After your first payment (≥ ₹1), Book EV shows a Pickup OTP. Tell it to the yard. They unlock the scooter. Then swipe Ride started. For ride end: remaining rent ₹0, return to yard, swipe Ride end, tell that OTP to the yard. I cannot enter OTP for you.",
+    hi: "पहली पेमेंट (≥ ₹1) के बाद Book EV पर Pickup OTP दिखता है। हब पर बताएँ — वे अनलॉक करेंगे। फिर Ride started स्वाइप करें। राइड एंड: बाकी किराया ₹0, यार्ड लौटें, Ride end स्वाइप करें, OTP बताएँ। मैं OTP नहीं डाल सकता।",
+  },
+  {
+    keys: ["invest", "investment", "partner", "fleet partner", "roi", "return", "profit", "इन्वेस्ट", "पार्टनर", "निवेश"],
+    href: "/partners",
+    en: "Fleet Partner Investment on /partners: you fund scooters, EVUDDY operates them, profit share is 50/50 on the published model (example ~₹3,915/month on a ₹1 lakh plan over ~42 months, plus scrap). Plans include ₹1L, ₹5L, ₹10L. Apply on the partners form — I cannot take investment money in chat.",
+    hi: "फ्लीट पार्टनर निवेश /partners पर: आप स्कूटर फंड करते हैं, EVUDDY चलाती है, प्रकाशित मॉडल में 50/50 प्रॉफिट शेयर (उदाहरण ₹1 लाख प्लान पर ~₹3,915/महीना, ~42 महीने + स्क्रैप)। प्लान ₹1L / ₹5L / ₹10L। पार्टनर्स फॉर्म से आवेदन करें — चैट में निवेश पैसे नहीं ले सकता।",
+  },
+  {
+    keys: ["leadership", "ceo", "chairman", "team", "लीडरशिप", "टीम"],
+    href: "/Leadership",
+    en: "Leadership posters: Chairman Anjali Mishra, Founder & CEO Sunil Pathak, General Manager Bindu Singh. Team posters include SDE Anand Dhar Dwivedi, Admin & Front Desk Aanya Singh, and Graphic Designer Akanksha Maurya.",
+    hi: "लीडरशिप: चेयरमैन अंजलि मिश्रा, फाउंडर व CEO सुनील पाठक, GM बिंदू सिंह। टीम में SDE आनंद धर द्विवेदी, Admin & Front Desk आन्या सिंह, Graphic Designer आकांक्षा मौर्य।",
+  },
+  {
+    keys: ["career", "careers", "job", "hiring", "join", "करियर", "नौकरी"],
+    href: "/careers",
+    en: "Open Careers to apply. Roles span technology, operations, business, support, fleet, marketing, people and finance. You can also email helpdesk@kebuone.in.",
+    hi: "Careers पेज पर आवेदन करें — टेक्नोलॉजी, ऑप्स, बिज़नेस, सपोर्ट आदि। ईमेल helpdesk@kebuone.in भी कर सकते हैं।",
+  },
+  {
+    keys: ["vision", "mission", "about", "विजन", "मिशन", "अबाउट"],
+    href: "/vision",
+    en: "Mission: make electric mobility affordable, accessible, and asset-building. Vision: empower gig workers and businesses with sustainable transport so every ride can lead to ownership. More on /vision and /about.",
+    hi: "मिशन: इलेक्ट्रिक मोबिलिटी सस्ती, सुलभ और एसेट-बिल्डिंग। विजन: गिग वर्कर्स व बिज़नेस के लिए सस्टेनेबल ट्रांसपोर्ट — हर राइड ओनरशिप तक ले जा सके। /vision और /about देखें।",
+  },
+  {
+    keys: ["segment", "b2b", "b2c", "fleet", "business", "सेगमेंट"],
+    href: "/partners",
+    en: "EVUDDY serves B2C rentals, Rent to Own, and B2B/fleet partners who invest or operate scooters. Riders book on Book EV; partners apply on /partners.",
+    hi: "EVUDDY: B2C किराया, Rent to Own, और B2B/फ्लीट पार्टनर। राइडर Book EV पर बुक करते हैं; पार्टनर /partners पर अप्लाई करते हैं।",
   },
 ];
 
@@ -86,8 +116,8 @@ export function publicAssistantIntent(question: string, language = "auto"): Assi
       answer: bilingual(
         language,
         question,
-        "I cannot take payment, enter OTP, unlock a scooter, or issue a refund. Use the buttons on Book EV or ask hub staff.",
-        "मैं भुगतान, OTP, अनलॉक या रिफंड नहीं कर सकता। Book EV पर बटन इस्तेमाल करें या हब स्टाफ से कहें।"
+        "I cannot take payment, enter OTP, unlock a scooter, or issue a refund. Use the buttons on Book EV or ask hub staff / helpdesk@kebuone.in.",
+        "मैं भुगतान, OTP, अनलॉक या रिफंड नहीं कर सकता। Book EV पर बटन इस्तेमाल करें या helpdesk@kebuone.in पर संपर्क करें।"
       ),
     };
   }
@@ -142,24 +172,53 @@ export function publicAssistantIntent(question: string, language = "auto"): Assi
 
   if (
     (OPEN_CMD.test(q) || /संपर्क पेज/.test(q)) &&
-    (/\b(contact|support|help desk|email)\b/.test(q) || /संपर्क|मदद/.test(q))
+    (/\b(contact|support|help desk|helpdesk|email)\b/.test(q) || /संपर्क|मदद/.test(q))
   ) {
     return {
       answer: bilingual(
         language,
         question,
-        "Opening contact so you can reach the team.",
-        "संपर्क पेज खोल रहा हूँ।"
+        "Opening contact — helpdesk@kebuone.in · +91 8726006512.",
+        "संपर्क पेज खोल रहा हूँ — helpdesk@kebuone.in · +91 8726006512।"
       ),
       href: "/contact",
       navigate: true,
     };
   }
 
-  if (OPEN_CMD.test(q) && (/\b(partner|invest|fleet)\b/.test(q) || /पार्टनर|इन्वेस्ट/.test(q))) {
+  if (OPEN_CMD.test(q) && (/\b(partner|invest|fleet|investment)\b/.test(q) || /पार्टनर|इन्वेस्ट|निवेश/.test(q))) {
     return {
-      answer: bilingual(language, question, "Opening the fleet partner page.", "पार्टनर पेज खोल रहा हूँ।"),
+      answer: bilingual(
+        language,
+        question,
+        "Opening fleet partner investment. Apply on the form — no payment in chat.",
+        "फ्लीट पार्टनर निवेश पेज खोल रहा हूँ। फॉर्म से आवेदन करें — चैट में भुगतान नहीं।"
+      ),
       href: "/partners",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(career|careers|job)\b/.test(q) || /करियर|नौकरी/.test(q))) {
+    return {
+      answer: bilingual(language, question, "Opening Careers.", "Careers खोल रहा हूँ।"),
+      href: "/careers",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(vision|mission|about)\b/.test(q) || /विजन|मिशन/.test(q))) {
+    return {
+      answer: bilingual(language, question, "Opening Vision.", "Vision खोल रहा हूँ।"),
+      href: "/vision",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(leadership|team)\b/.test(q) || /लीडरशिप/.test(q))) {
+    return {
+      answer: bilingual(language, question, "Opening Leadership.", "Leadership खोल रहा हूँ।"),
+      href: "/Leadership",
       navigate: true,
     };
   }
@@ -189,12 +248,13 @@ async function llmAnswer(history: ChatTurn[], question: string, language: string
     language === "auto"
       ? LANGUAGE_NAMES[detectScriptLanguage(question)]
       : LANGUAGE_NAMES[language] || "the user's language";
-  const system = `You are Eva, the EVUDDY ride assistant for https://www.evuddy.com — like an in-app buddy on Uber/Ola/Rapido/Zypp.
-Only use this knowledge. Do not invent hubs, prices, or policies.
-You cannot take payments, change bookings, approve refunds, enter OTP, or unlock scooters.
-If asked to do those, refuse and tell the rider to use the website buttons.
-You may offer to open /ride-options, /rent-to-own, /register, /contact, or /partners.
-Reply in ${replyLang}. Keep answers short (under 120 words). Sound clear, warm, and operational.
+  const system = `You are Eva, the EVUDDY in-app assistant for https://www.evuddy.com — Uber/Ola/Rapido/Zypp grade ride help.
+Only use this knowledge. Do not invent hubs, prices, investment returns, or policies.
+Cover bookings, rates, KYC, GST, wallet/deposit, Rent to Own, support tickets, fleet investment plans, leadership, careers, vision, and contact.
+You cannot take payments, change bookings, approve refunds/KYC, enter OTP, or unlock scooters.
+If asked to do those, refuse and send the rider to website buttons or helpdesk@kebuone.in / +91 8726006512.
+You may offer to open /ride-options, /rent-to-own, /register, /contact, /partners, /careers, /vision, /Leadership, /about.
+Reply in ${replyLang}. Keep answers clear and under 140 words.
 
 KNOWLEDGE:
 ${EVUDDY_KNOWLEDGE}`;
@@ -221,7 +281,7 @@ ${EVUDDY_KNOWLEDGE}`;
       body: JSON.stringify({
         model: process.env.OPENAI_MODEL || "gpt-4o-mini",
         temperature: 0.2,
-        max_tokens: 280,
+        max_tokens: 320,
         messages: [{ role: "system", content: system }, ...messages],
       }),
     });
@@ -240,7 +300,7 @@ ${EVUDDY_KNOWLEDGE}`;
       body: JSON.stringify({
         model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
         temperature: 0.2,
-        max_tokens: 280,
+        max_tokens: 320,
         messages: [{ role: "system", content: system }, ...messages],
       }),
     });
@@ -261,7 +321,7 @@ ${EVUDDY_KNOWLEDGE}`;
             role: turn.role === "assistant" ? "model" : "user",
             parts: [{ text: turn.content }],
           })),
-          generationConfig: { temperature: 0.2, maxOutputTokens: 280 },
+          generationConfig: { temperature: 0.2, maxOutputTokens: 320 },
         }),
       }
     );
@@ -284,8 +344,8 @@ export async function answerEvuddyQuestion(
       answer: bilingual(
         language,
         asked,
-        "Ask anything about booking, rates, KYC, wallet deposits, or Rent to Own. You can also speak with the mic.",
-        "बुकिंग, किराया, KYC, वॉलेट डिपॉजिट या Rent to Own पूछें। माइक से बोल भी सकते हैं।"
+        "Ask about booking, rates, Rent to Own, investment plans, tickets, KYC, or contact. You can also speak with the mic.",
+        "बुकिंग, किराया, Rent to Own, निवेश प्लान, टिकट, KYC या संपर्क पूछें। माइक से भी बोल सकते हैं।"
       ),
     };
   }
@@ -294,12 +354,12 @@ export async function answerEvuddyQuestion(
   if (intent) return intent;
 
   const faq = faqAnswer(asked, language);
-  if ((faq.score || 0) >= 2 && faq.answer) return faq;
+  if ((faq.score || 0) >= 1 && faq.answer) return faq;
 
   try {
     const llm = await llmAnswer(history, asked, language);
     if (llm) {
-      return { answer: llm.slice(0, 900), href: faq.href };
+      return { answer: llm.slice(0, 1000), href: faq.href };
     }
   } catch (error) {
     console.error("EVUDDY ASSISTANT LLM SKIPPED:", error);
@@ -311,8 +371,8 @@ export async function answerEvuddyQuestion(
     answer: bilingual(
       language,
       asked,
-      "I can help with EVUDDY bookings, rates, KYC, wallet deposits, Rent to Own, and pickup. Say “open booking” and I will take you there. I cannot take payment or change a booking from this chat.",
-      "मैं EVUDDY बुकिंग, किराया, KYC, वॉलेट डिपॉजिट, Rent to Own और पिकअप बता सकता हूँ। “बुकिंग खोलो” कहें तो पेज खोल दूँगा। भुगतान या बुकिंग बदलना इस चैट से नहीं होगा।"
+      "I can help with EVUDDY bookings, rates, KYC, deposits, Rent to Own, support tickets, fleet investment, leadership, and contact (helpdesk@kebuone.in · +91 8726006512). Say “open booking” or “open partners”. I cannot take payment or change a booking from chat.",
+      "मैं EVUDDY बुकिंग, किराया, KYC, डिपॉजिट, Rent to Own, सपोर्ट टिकट, फ्लीट निवेश, लीडरशिप और संपर्क (helpdesk@kebuone.in · +91 8726006512) बता सकता हूँ। “बुकिंग खोलो” या “पार्टनर खोलो” कहें। भुगतान या बुकिंग बदलना चैट से नहीं होगा।"
     ),
     href: "/ride-options",
   };

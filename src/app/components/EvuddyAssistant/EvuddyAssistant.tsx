@@ -7,10 +7,9 @@ import {
   CircleHelp,
   Headset,
   IndianRupee,
-  KeyRound,
-  MapPin,
   Mic,
   MicOff,
+  PiggyBank,
   Send,
   Sparkles,
   Ticket,
@@ -24,7 +23,7 @@ import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant"
 type Turn = { role: "user" | "assistant"; content: string; href?: string };
 
 const SAFE_HREF =
-  /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers)(\?[\w=&%-]*)?$/;
+  /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers)(\?[\w=&%-]*)?(#[\w-]*)?$/;
 
 const HELP_TOPICS = [
   {
@@ -40,28 +39,28 @@ const HELP_TOPICS = [
     blurb: "Hourly to monthly",
   },
   {
-    label: "Pickup OTP",
-    ask: "How does pickup OTP work?",
-    icon: MapPin,
-    blurb: "After first payment",
-  },
-  {
-    label: "Deposit",
-    ask: "How does the security deposit work?",
-    icon: KeyRound,
-    blurb: "Refund after return",
-  },
-  {
     label: "Rent to Own",
     ask: "What is Rent to Own?",
     icon: Sparkles,
     blurb: "₹280 / day · 18 months",
   },
   {
-    label: "Support",
+    label: "Invest",
+    ask: "Tell me about fleet investment plans",
+    icon: PiggyBank,
+    blurb: "Partner plans · 50/50",
+  },
+  {
+    label: "Tickets",
+    ask: "How do support tickets work?",
+    icon: Ticket,
+    blurb: "Need help? on Book EV",
+  },
+  {
+    label: "Helpdesk",
     ask: "How do I contact support?",
     icon: Headset,
-    blurb: "Ticket or email",
+    blurb: "helpdesk@kebuone.in",
   },
 ] as const;
 
@@ -98,7 +97,7 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "Hi, I’m Eva — EVUDDY ride help. Tap a topic or type like Uber/Ola in-app help. I open the right page. I never take payment, OTP, or unlock.",
+        "Hi, I’m Eva — EVUDDY ride help. Ask about bookings, Rent to Own, investment plans, tickets, KYC, rates, or leadership. I open the right page. I never take payment, OTP, or unlock.",
     },
   ]);
 
@@ -154,7 +153,7 @@ export default function EvuddyAssistant() {
       const answer =
         data.answer ||
         data.message ||
-        "Please use Book EV or info@kebuone.in — I could not answer just then.";
+        "Please use Book EV or helpdesk@kebuone.in / +91 8726006512 — I could not answer just then.";
       const href = SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "";
       setTurns([...nextTurns, { role: "assistant", content: answer, href }]);
       if (speakBack) voice.speak(answer, language);
@@ -164,7 +163,7 @@ export default function EvuddyAssistant() {
         ...nextTurns,
         {
           role: "assistant",
-          content: "Network issue. Book at /ride-options or email info@kebuone.in.",
+          content: "Network issue. Book at /ride-options or call helpdesk +91 8726006512.",
         },
       ]);
     } finally {
