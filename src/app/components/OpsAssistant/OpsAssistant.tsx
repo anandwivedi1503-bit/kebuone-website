@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Mic, MicOff, Search, Send, X } from "lucide-react";
 
 import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
@@ -22,6 +22,7 @@ export default function OpsAssistant({
   onOpenDashboard: (id: string) => void;
 }) {
   const voice = useVoiceAssistant();
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,6 +34,10 @@ export default function OpsAssistant({
         "Ops search assistant. Ask for unpaid bookings, a rider phone, BK- IDs, available scooters, or open tickets. I only show what this login can see. I cannot pay, refund, or enter OTP.",
     },
   ]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [turns, loading, voice.status, open]);
 
   const ask = async (text: string) => {
     const asked = text.trim();
@@ -69,7 +74,7 @@ export default function OpsAssistant({
   return (
     <div className="pointer-events-none fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[80] flex flex-col items-end gap-3 print:hidden">
       {open ? (
-        <div className="pointer-events-auto flex h-[min(34rem,72vh)] w-[min(26rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)]">
+        <div className="pointer-events-auto flex h-[min(34rem,72vh)] w-[min(26rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif]">
           <div className="flex items-center justify-between bg-[#0B1B16] px-4 py-3 text-white">
             <div>
               <p className="text-sm font-black">Ops assistant</p>
@@ -128,6 +133,7 @@ export default function OpsAssistant({
             {loading || voice.status ? (
               <p className="text-xs text-slate-400">{voice.status || "Searching live data…"}</p>
             ) : null}
+            <div ref={bottomRef} />
           </div>
           <form
             className="flex gap-2 border-t border-slate-100 p-3"
@@ -145,6 +151,8 @@ export default function OpsAssistant({
             />
             <button
               type="button"
+              disabled={!voice.supported}
+              title={voice.supported ? undefined : "Microphone is not available in this browser"}
               onClick={() => {
                 void voice.listen(
                   (text) => void ask(text),
@@ -153,11 +161,14 @@ export default function OpsAssistant({
                     setTurns((old) => [...old, { role: "assistant", content: message }])
                 );
               }}
-              className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
+              className={`relative flex h-11 w-11 items-center justify-center rounded-full text-white disabled:opacity-40 ${
                 voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
               }`}
               aria-label={voice.listening ? "Stop listening" : "Speak"}
             >
+              {voice.listening ? (
+                <span className="absolute inset-0 animate-ping rounded-full bg-[#EC2A8C]/40" />
+              ) : null}
               {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
             </button>
             <button

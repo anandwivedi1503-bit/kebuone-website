@@ -230,10 +230,15 @@ export async function searchOpsRecords(session: AdminSessionInfo, question: stri
   return hits.slice(0, 20);
 }
 
-export function formatOpsAnswer(question: string, hits: OpsHit[]) {
+export function formatOpsAnswer(question: string, hits: OpsHit[], language = "auto") {
+  const hindi = language === "hi" || language === "mr" || /[\u0900-\u097F]/.test(question);
   if (!hits.length) {
-    return `No matching ops records for “${question}”. Try a booking ID (BK-000001), rider ID, 10-digit phone, or “unpaid bookings”. I only search what this login can see. I cannot pay, refund, or confirm OTP.`;
+    return hindi
+      ? `“${question}” के लिए कोई रिकॉर्ड नहीं मिला। BK-000001, राइडर ID, 10 अंकों का फोन, या “unpaid bookings” आज़माएँ। मैं केवल इस लॉगिन की डेटा दिखाता हूँ। भुगतान, रिफंड या OTP नहीं कर सकता।`
+      : `No matching ops records for “${question}”. Try a booking ID (BK-000001), rider ID, 10-digit phone, or “unpaid bookings”. I only search what this login can see. I cannot pay, refund, or confirm OTP.`;
   }
   const lines = hits.slice(0, 8).map((hit, index) => `${index + 1}. ${hit.title} — ${hit.detail}`);
-  return `Found ${hits.length} record${hits.length === 1 ? "" : "s"}. Tap a result to open that dashboard.\n${lines.join("\n")}\n\nI cannot take payment, refund, unlock, or enter OTP. Confirm those on the dashboard.`;
+  return hindi
+    ? `${hits.length} रिकॉर्ड मिले। डैशबोर्ड खोलने के लिए टैप करें।\n${lines.join("\n")}\n\nभुगतान, रिफंड, अनलॉक या OTP यहाँ से नहीं होगा।`
+    : `Found ${hits.length} record${hits.length === 1 ? "" : "s"}. Tap a result to open that dashboard.\n${lines.join("\n")}\n\nI cannot take payment, refund, unlock, or enter OTP. Confirm those on the dashboard.`;
 }

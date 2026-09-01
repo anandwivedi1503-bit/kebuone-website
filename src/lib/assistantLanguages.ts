@@ -1,5 +1,5 @@
 export const ASSISTANT_LANGUAGES = [
-  { id: "auto", label: "Auto", stt: "", tts: "en-IN" },
+  { id: "auto", label: "Auto", stt: "", tts: "hi-IN" },
   { id: "en", label: "English", stt: "en", tts: "en-IN" },
   { id: "hi", label: "हिन्दी", stt: "hi", tts: "hi-IN" },
   { id: "ta", label: "தமிழ்", stt: "ta", tts: "ta-IN" },
@@ -15,12 +15,13 @@ export const ASSISTANT_LANGUAGES = [
 
 export type AssistantLanguageId = (typeof ASSISTANT_LANGUAGES)[number]["id"];
 
+const MARATHI_HINT = /(आहे|नाही|तुम्ही|आम्ही|कसा|कशी|कसे|मराठी|पुणे|मुंबई)/;
+
 export function languageMeta(id: string) {
   return ASSISTANT_LANGUAGES.find((item) => item.id === id) || ASSISTANT_LANGUAGES[0];
 }
 
 export function detectScriptLanguage(text: string): AssistantLanguageId {
-  if (/[\u0900-\u097F]/.test(text)) return "hi";
   if (/[\u0B80-\u0BFF]/.test(text)) return "ta";
   if (/[\u0C00-\u0C7F]/.test(text)) return "te";
   if (/[\u0C80-\u0CFF]/.test(text)) return "kn";
@@ -29,6 +30,7 @@ export function detectScriptLanguage(text: string): AssistantLanguageId {
   if (/[\u0A80-\u0AFF]/.test(text)) return "gu";
   if (/[\u0A00-\u0A7F]/.test(text)) return "pa";
   if (/[\u0600-\u06FF]/.test(text)) return "ur";
+  if (/[\u0900-\u097F]/.test(text)) return MARATHI_HINT.test(text) ? "mr" : "hi";
   return "en";
 }
 
@@ -50,4 +52,19 @@ export const LANGUAGE_NAMES: Record<string, string> = {
   ml: "Malayalam",
   pa: "Punjabi",
   ur: "Urdu",
+};
+
+export const BROWSER_STT_LANG: Record<string, string> = {
+  auto: "hi-IN",
+  en: "en-IN",
+  hi: "hi-IN",
+  ta: "ta-IN",
+  te: "te-IN",
+  mr: "mr-IN",
+  bn: "bn-IN",
+  gu: "gu-IN",
+  kn: "kn-IN",
+  ml: "ml-IN",
+  pa: "pa-IN",
+  ur: "ur-IN",
 };

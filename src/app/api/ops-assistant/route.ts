@@ -33,6 +33,7 @@ export async function POST(req: Request) {
 
     const body = await req.json();
     const question = String(body.question || "").trim();
+    const language = String(body.language || "auto").trim();
     if (question.length < 2) {
       return NextResponse.json({
         success: true,
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     const hits = await searchOpsRecords(session, question);
     return NextResponse.json({
       success: true,
-      answer: formatOpsAnswer(question, hits),
+      answer: formatOpsAnswer(question, hits, language),
       hits,
     });
   } catch (error) {

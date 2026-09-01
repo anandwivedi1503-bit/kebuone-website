@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { MessageCircle, Mic, MicOff, Send, Volume2, X } from "lucide-react";
 
@@ -16,6 +16,7 @@ export default function EvuddyAssistant() {
   const pathname = usePathname();
   const router = useRouter();
   const voice = useVoiceAssistant();
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -25,15 +26,13 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "Namaste. I am your EVUDDY assistant. Tap the mic, speak in Hindi or English, then tap again. I can open booking or contact. I cannot take payment or OTP. / माइक दबाकर बोलें, फिर फिर से दबाएँ।",
+        "Namaste. Tap the mic, speak in Hindi or English, then tap again. I can open booking or contact. I cannot take payment or OTP. / माइक दबाकर बोलें, फिर फिर से दबाएँ।",
     },
   ]);
 
   useEffect(() => {
-    if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin-login")) {
-      setOpen(false);
-    }
-  }, [pathname]);
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [turns, loading, voice.status, open]);
 
   if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin-login")) {
     return null;
@@ -86,7 +85,7 @@ export default function EvuddyAssistant() {
   return (
     <div className="pointer-events-none fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[80] flex flex-col items-end gap-3 sm:right-6">
       {open ? (
-        <div className="pointer-events-auto flex h-[min(34rem,74vh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)]">
+        <div className="pointer-events-auto flex h-[min(34rem,74vh)] w-[min(24rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_80px_rgba(15,23,42,.22)] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif]">
           <div className="flex items-center justify-between gap-2 bg-[#0F172A] px-4 py-3 text-white">
             <div className="min-w-0">
               <p className="text-sm font-black">EVUDDY assistant</p>
@@ -110,6 +109,7 @@ export default function EvuddyAssistant() {
                 onClick={() => setSpeakBack((value) => !value)}
                 className={`rounded-full p-1.5 ${speakBack ? "bg-[#18B368]" : "bg-white/10"}`}
                 aria-label="Toggle speak back"
+                aria-pressed={speakBack}
               >
                 <Volume2 size={16} />
               </button>
@@ -143,6 +143,7 @@ export default function EvuddyAssistant() {
             {loading || voice.status ? (
               <p className="text-xs text-slate-400">{voice.status || "Working…"}</p>
             ) : null}
+            <div ref={bottomRef} />
           </div>
           <div className="flex flex-wrap gap-1 border-t border-slate-100 px-3 py-2">
             {ASSISTANT_STARTERS.map((starter) => (
@@ -179,6 +180,8 @@ export default function EvuddyAssistant() {
             />
             <button
               type="button"
+              disabled={!voice.supported}
+              title={voice.supported ? undefined : "Microphone is not available in this browser"}
               onClick={() => {
                 void voice.listen(
                   (text) => void ask(text),
@@ -190,11 +193,14 @@ export default function EvuddyAssistant() {
                     ])
                 );
               }}
-              className={`flex h-11 w-11 items-center justify-center rounded-full text-white ${
+              className={`relative flex h-11 w-11 items-center justify-center rounded-full text-white disabled:opacity-40 ${
                 voice.listening ? "bg-[#EC2A8C]" : "bg-[#0B1B16]"
               }`}
               aria-label={voice.listening ? "Stop listening" : "Speak"}
             >
+              {voice.listening ? (
+                <span className="absolute inset-0 animate-ping rounded-full bg-[#EC2A8C]/40" />
+              ) : null}
               {voice.listening ? <MicOff size={16} /> : <Mic size={16} />}
             </button>
             <button
