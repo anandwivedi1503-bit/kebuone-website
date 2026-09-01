@@ -1,6 +1,10 @@
 import { bilingual } from "@/lib/assistantCopy";
 import { detectScriptLanguage, LANGUAGE_NAMES } from "@/lib/assistantLanguages";
 import { EVUDDY_KNOWLEDGE } from "@/lib/evuddyKnowledge";
+import {
+  fleetInvestmentFaqEnglish,
+  fleetInvestmentFaqHindi,
+} from "@/lib/fleetInvestment";
 import { llmChat, llmConfigured } from "@/lib/llmChat";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
@@ -24,13 +28,13 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     keys: ["book", "how to", "start", "kyc", "register", "बुक", "बुकिंग", "रजिस्टर", "स्कूटर", "कैसे"],
     href: "/ride-options",
     en: "Book in four steps: (1) Register with phone OTP and finish KYC. (2) Open Book EV, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. I can open ride options — I cannot take payment.",
-    hi: "बुकिंग चार कदम: (1) फोन OTP से रजिस्टर करें और KYC पूरा करें। (2) Book EV खोलें, शहर, हब और स्कूटर चुनें। (3) किराया + 5% GST + रिफंडेबल डिपॉजिट Razorpay या वॉलेट से दें। (4) पिकअप OTP हब पर दिखाएँ। मैं पेज खोल सकता हूँ, भुगतान नहीं ले सकता।",
+    hi: "स्कूटर बुक करना आसान है — चार कदम: (1) फोन OTP से रजिस्टर करें, KYC पूरा करें। (2) Book EV खोलें — शहर, हब और स्कूटर चुनें। (3) किराया + 5% GST + जमा (डिपाजिट) Razorpay या वॉलेट से दें। (4) हब पर पिकअप OTP दिखाएँ। मैं पेज खोल दूँगी, पैसे नहीं लूँगी।",
   },
   {
     keys: ["rate", "rates", "price", "prices", "hourly", "daily", "weekly", "monthly", "cost", "₹", "rs", "किराया", "रेट", "दाम"],
     href: "/book-bike?flow=rental",
     en: "Listed rates (a scooter can differ): Hourly ₹60, Daily ₹230, Weekly ₹1,610, Monthly ₹6,900, plus 5% GST. Rentals also take a refundable security deposit (usually ₹2,500).",
-    hi: "सूची दरें (स्कूटर बदल सकता है): घंटे ₹60, दिन ₹230, सप्ताह ₹1,610, महीना ₹6,900, साथ 5% GST। किराये पर आमतौर पर ₹2,500 रिफंडेबल सिक्योरिटी डिपॉजिट भी लगता है।",
+    hi: "किराया साफ़ है: घंटे का ₹60, दिन का ₹230, हफ़्ते का ₹1,610, महीने का ₹6,900 — ऊपर से 5% GST। किराये पर आमतौर पर ₹2,500 जमा (वापस मिलने वाला) भी लगता है। स्कूटर के हिसाब से थोड़ा बदल सकता है।",
   },
   {
     keys: ["deposit", "wallet", "refund", "जमा", "वॉलेट", "रिफंड", "डिपॉजिट"],
@@ -41,7 +45,7 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     keys: ["own", "rto", "installment", "18", "रेंट टू ओन", "अपना"],
     href: "/rent-to-own",
     en: "Rent to Own is ₹280 + 5% GST every day for 18 months, no security deposit. You get a daily receipt. After successful days, ownership transfers.",
-    hi: "Rent to Own: 18 महीने तक रोज़ ₹280 + 5% GST, कोई सिक्योरिटी डिपॉजिट नहीं। रोज़ रसीद मिलती है। सफल दिनों के बाद मालिकाना हक ट्रांसफर होता है।",
+    hi: "Rent to Own मतलब स्कूटर अपना बनाना: 18 महीने तक रोज़ ₹280 + 5% GST। कोई जमा नहीं। रोज़ रसीद मिलती है। पूरे दिन पूरे होने पर स्कूटर आपका हो जाता है।",
   },
   {
     keys: ["razorpay", "pay", "upi", "card", "पेमेंट", "भुगतान", "gst"],
@@ -67,10 +71,27 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     hi: "पहली पेमेंट (≥ ₹1) के बाद Book EV पर Pickup OTP दिखता है। हब पर बताएँ — वे अनलॉक करेंगे। फिर Ride started स्वाइप करें। राइड एंड: बाकी किराया ₹0, यार्ड लौटें, Ride end स्वाइप करें, OTP बताएँ। मैं OTP नहीं डाल सकता।",
   },
   {
-    keys: ["invest", "investment", "partner", "fleet partner", "roi", "return", "profit", "इन्वेस्ट", "पार्टनर", "निवेश"],
-    href: "/partners",
-    en: "Fleet Partner Investment on /partners: you fund scooters, EVUDDY operates them, profit share is 50/50 on the published model (example ~₹3,915/month on a ₹1 lakh plan over ~42 months, plus scrap). Plans include ₹1L, ₹5L, ₹10L. Apply on the partners form — I cannot take investment money in chat.",
-    hi: "फ्लीट पार्टनर निवेश /partners पर: आप स्कूटर फंड करते हैं, EVUDDY चलाती है, प्रकाशित मॉडल में 50/50 प्रॉफिट शेयर (उदाहरण ₹1 लाख प्लान पर ~₹3,915/महीना, ~42 महीने + स्क्रैप)। प्लान ₹1L / ₹5L / ₹10L। पार्टनर्स फॉर्म से आवेदन करें — चैट में निवेश पैसे नहीं ले सकता।",
+    keys: [
+      "invest",
+      "investment",
+      "partner",
+      "fleet partner",
+      "roi",
+      "return",
+      "profit",
+      "poster",
+      "इन्वेस्ट",
+      "पार्टनर",
+      "निवेश",
+      "मुनाफा",
+      "रिटर्न",
+      "पोस्टर",
+      "60%",
+      "साठ",
+    ],
+    href: "/partners#investment-poster",
+    en: fleetInvestmentFaqEnglish(),
+    hi: fleetInvestmentFaqHindi(),
   },
   {
     keys: ["leadership", "ceo", "chairman", "team", "लीडरशिप", "टीम"],
@@ -187,15 +208,15 @@ export function publicAssistantIntent(question: string, language = "auto"): Assi
     };
   }
 
-  if (OPEN_CMD.test(q) && (/\b(partner|invest|fleet|investment)\b/.test(q) || /पार्टनर|इन्वेस्ट|निवेश/.test(q))) {
+  if (OPEN_CMD.test(q) && (/\b(partner|invest|fleet|investment|poster)\b/.test(q) || /पार्टनर|इन्वेस्ट|निवेश|पोस्टर/.test(q))) {
     return {
       answer: bilingual(
         language,
         question,
-        "Opening fleet partner investment. Apply on the form — no payment in chat.",
-        "फ्लीट पार्टनर निवेश पेज खोल रहा हूँ। फॉर्म से आवेदन करें — चैट में भुगतान नहीं।"
+        "Opening the official Fleet Partner Investment poster and plans. Apply on the form — no payment in chat.",
+        "आधिकारिक फ्लीट पार्टनर निवेश पोस्टर और प्लान खोल रही हूँ। फॉर्म से आवेदन करें — चैट में पैसे नहीं लिए जाते।"
       ),
-      href: "/partners",
+      href: "/partners#investment-poster",
       navigate: true,
     };
   }
@@ -250,17 +271,18 @@ async function llmAnswer(
   language: string,
   faqHint?: string
 ) {
-  const replyLang =
-    language === "auto"
-      ? LANGUAGE_NAMES[detectScriptLanguage(question)]
-      : LANGUAGE_NAMES[language] || "the user's language";
-  const system = `You are Eva, EVUDDY's ChatGPT-style in-app ride assistant for https://www.evuddy.com (Uber/Ola/Rapido/Zypp grade).
+  const preferSimpleHindi = language === "hi" || language === "auto" || language === "mr";
+  const replyLang = preferSimpleHindi
+    ? "simple everyday Hindi (सामान्य बोलचाल की हिंदी) that any common person in India understands — use Devanagari, short sentences, clear ₹ amounts; avoid heavy English jargon"
+    : LANGUAGE_NAMES[language] || LANGUAGE_NAMES[detectScriptLanguage(question)] || "the user's language";
+  const system = `You are Eva, EVUDDY's friendly in-app ride assistant for https://www.evuddy.com.
 Only use the knowledge below (and any FAQ hint). Do not invent hubs, prices, investment returns, or policies.
+For Fleet Partner Investment always use the official poster numbers (60% to investor, 40% company, ₹87 profit/scooter/day, plans ₹1L/₹5L/₹10L with totals ₹2,15,316 / ₹10,76,580 / ₹21,53,160 over 42 months) and point users to /partners#investment-poster.
 Be warm, clear, and specific. Cover bookings, rates, GST, KYC, wallet/deposit, Rent to Own, tickets, fleet investment, leadership, careers, vision, contact.
 You cannot take payments, change bookings, approve refunds/KYC, enter OTP, or unlock scooters.
 If asked to do those, refuse and send the rider to website buttons or helpdesk@kebuone.in / +91 8726006512.
-You may suggest opening /ride-options, /rent-to-own, /register, /contact, /partners, /careers, /vision, /Leadership, /about.
-Reply in ${replyLang}. Under 140 words.
+You may suggest opening /ride-options, /rent-to-own, /register, /contact, /partners#investment-poster, /careers, /vision, /Leadership, /about.
+Reply in ${replyLang}. Under 140 words. Your reply will be spoken aloud in Hindi, so write naturally for speech.
 
 KNOWLEDGE:
 ${EVUDDY_KNOWLEDGE}

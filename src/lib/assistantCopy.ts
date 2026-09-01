@@ -1,12 +1,11 @@
 import { detectScriptLanguage } from "@/lib/assistantLanguages";
 
 export function preferHindi(language: string, text = "") {
-  if (language === "hi" || language === "mr") return true;
-  if (language === "auto") {
-    const detected = detectScriptLanguage(text);
-    return detected === "hi" || detected === "mr";
-  }
-  return false;
+  // Default Eva experience is simple Hindi for common users.
+  if (!language || language === "hi" || language === "mr" || language === "auto") return true;
+  if (language === "en") return false;
+  const detected = detectScriptLanguage(text);
+  return detected === "hi" || detected === "mr";
 }
 
 export function bilingual(language: string, text: string, en: string, hi: string) {

@@ -35,10 +35,18 @@ function pickVoice(lang: string) {
   if (typeof window === "undefined" || !window.speechSynthesis) return null;
   const voices = window.speechSynthesis.getVoices();
   const wanted = lang.toLowerCase().replace("_", "-");
+  const base = wanted.slice(0, 2);
+  const exact = voices.filter(
+    (voice) => voice.lang.replace("_", "-").toLowerCase() === wanted
+  );
+  const prefixed = voices.filter((voice) => voice.lang.toLowerCase().startsWith(base));
+  const pool = exact.length ? exact : prefixed;
+  if (!pool.length) return null;
+  // Prefer natural Hindi / Indian voices when available.
   return (
-    voices.find((voice) => voice.lang.replace("_", "-").toLowerCase() === wanted) ||
-    voices.find((voice) => voice.lang.toLowerCase().startsWith(wanted.slice(0, 2))) ||
-    null
+    pool.find((voice) => /hindi|हिन्दी|india|google.*hi|microsoft.*hi/i.test(voice.name)) ||
+    pool.find((voice) => /female|woman|neerja|swara|kajal/i.test(voice.name)) ||
+    pool[0]
   );
 }
 
@@ -282,11 +290,13 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
     }
   };
 
-  const speak = (text: string, language = "auto") => {
+  const speak = (text: string, language = "hi") => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    const utterance = new SpeechSynthesisUtterance(text.slice(0, 320));
-    utterance.lang = ttsLangFor(text, language);
-    utterance.rate = 1.02;
+    // Eva speaks Hindi for common users unless they explicitly pick another language.
+    const forceHindi = !language || language === "auto" || language === "hi" || language === "mr";
+    const utterance = new SpeechSynthesisUtterance(text.slice(0, 420));
+    utterance.lang = forceHindi ? "hi-IN" : ttsLangFor(text, language);
+    utterance.rate = forceHindi ? 0.96 : 1.02;
     const voice = pickVoice(utterance.lang);
     if (voice) utterance.voice = voice;
     window.speechSynthesis.cancel();
