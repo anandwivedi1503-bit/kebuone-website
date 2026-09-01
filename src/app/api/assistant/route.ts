@@ -7,14 +7,15 @@ export async function POST(req: Request) {
   try {
     if (!rateLimitAllowed(`assistant:${clientIp(req)}`, 30, 10 * 60 * 1000)) {
       return NextResponse.json(
-        { success: false, message: "Please wait a moment before asking again." },
+        { success: false, message: "थोड़ी देर बाद फिर पूछें।" },
         { status: 429 }
       );
     }
 
     const body = await req.json();
     const question = String(body.question || body.message || "").trim();
-    const language = String(body.language || "auto").trim();
+    // Eva replies only in Hindi for every rider.
+    const language = "hi";
     const rawHistory = Array.isArray(body.history) ? body.history : [];
     const history: ChatTurn[] = rawHistory
       .slice(-6)
@@ -33,7 +34,10 @@ export async function POST(req: Request) {
     });
   } catch {
     return NextResponse.json(
-      { success: false, message: "Assistant is briefly unavailable. Use Book a bike or contact." },
+      {
+        success: false,
+        message: "अभी असिस्टेंट उपलब्ध नहीं है। Book EV या हेल्पडेस्क इस्तेमाल करें।",
+      },
       { status: 500 }
     );
   }

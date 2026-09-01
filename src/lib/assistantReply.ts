@@ -1,5 +1,4 @@
 import { bilingual } from "@/lib/assistantCopy";
-import { detectScriptLanguage, LANGUAGE_NAMES } from "@/lib/assistantLanguages";
 import { EVUDDY_KNOWLEDGE } from "@/lib/evuddyKnowledge";
 import {
   fleetInvestmentFaqEnglish,
@@ -268,25 +267,23 @@ export function faqAnswer(question: string, language = "auto"): AssistantReply {
 async function llmAnswer(
   history: ChatTurn[],
   question: string,
-  language: string,
   faqHint?: string
 ) {
-  const preferSimpleHindi = language === "hi" || language === "auto" || language === "mr";
-  const replyLang = preferSimpleHindi
-    ? "simple everyday Hindi (सामान्य बोलचाल की हिंदी) that any common person in India understands — use Devanagari, short sentences, clear ₹ amounts; avoid heavy English jargon"
-    : LANGUAGE_NAMES[language] || LANGUAGE_NAMES[detectScriptLanguage(question)] || "the user's language";
-  const system = `You are Eva, EVUDDY's friendly in-app ride assistant for https://www.evuddy.com.
-Only use the knowledge below (and any FAQ hint). Do not invent hubs, prices, investment returns, or policies.
-For Fleet Partner Investment always use the official poster numbers (60% to investor, 40% company, ₹87 profit/scooter/day, plans ₹1L/₹5L/₹10L with totals ₹2,15,316 / ₹10,76,580 / ₹21,53,160 over 42 months) and point users to /partners#investment-poster.
-Be warm, clear, and specific. Cover bookings, rates, GST, KYC, wallet/deposit, Rent to Own, tickets, fleet investment, leadership, careers, vision, contact.
-You cannot take payments, change bookings, approve refunds/KYC, enter OTP, or unlock scooters.
-If asked to do those, refuse and send the rider to website buttons or helpdesk@kebuone.in / +91 8726006512.
-You may suggest opening /ride-options, /rent-to-own, /register, /contact, /partners#investment-poster, /careers, /vision, /Leadership, /about.
-Reply in ${replyLang}. Under 140 words. Your reply will be spoken aloud in Hindi, so write naturally for speech.
+  const system = `आप Eva हैं — EVUDDY (https://www.evuddy.com) की दोस्ताना इन-ऐप हेल्प असिस्टेंट।
+केवल नीचे दिए ज्ञान और FAQ संकेत का उपयोग करें। हब, कीमत, निवेश रिटर्न या नीतियाँ गढ़ें नहीं।
+फ्लीट पार्टनर निवेश में हमेशा आधिकारिक पोस्टर के नंबर इस्तेमाल करें (निवेशक 60%, कंपनी 40%, ₹87 मुनाफा/स्कूटर/दिन, प्लान ₹1L/₹5L/₹10L — कुल रिटर्न ₹2,15,316 / ₹10,76,580 / ₹21,53,160, 42 महीने) और /partners#investment-poster बताएँ।
+गर्मजोशी से, साफ़ और ठोस जवाब दें — बुकिंग, किराया, GST, KYC, वॉलेट/जमा, Rent to Own, टिकट, निवेश, लीडरशिप, करियर, विजन, संपर्क।
+आप भुगतान, बुकिंग बदलाव, रिफंड/KYC मंज़ूरी, OTP या अनलॉक नहीं कर सकते। ऐसे अनुरोध पर मना करें और Book EV बटन या helpdesk@kebuone.in / +91 8726006512 बताएँ।
+पेज सुझा सकते हैं: /ride-options, /rent-to-own, /register, /contact, /partners#investment-poster, /careers, /vision, /Leadership, /about.
+
+CRITICAL LANGUAGE RULE:
+- हर जवाब केवल आसान बोलचाल की हिंदी (देवनागरी) में लिखें।
+- अंग्रेज़ी वाक्य या अंग्रेज़ी पैराग्राफ न लिखें। प्रोडक्ट नाम (EVUDDY, Book EV, Rent to Own, Razorpay, OTP, KYC, GST) और ₹ राशियाँ ठीक हैं।
+- आम आदमी समझे — छोटे वाक्य। 140 शब्दों से कम। जवाब आवाज़ में हिंदी में बोला जाएगा।
 
 KNOWLEDGE:
 ${EVUDDY_KNOWLEDGE}
-${faqHint ? `\nFAQ HINT (ground your answer):\n${faqHint}` : ""}`;
+${faqHint ? `\nFAQ HINT (इसी को हिंदी में समझाएँ):\n${faqHint}` : ""}`;
 
   return llmChat({
     system,
@@ -295,27 +292,28 @@ ${faqHint ? `\nFAQ HINT (ground your answer):\n${faqHint}` : ""}`;
         role: turn.role as "user" | "assistant",
         content: clean(turn.content),
       })),
-      { role: "user", content: question },
+      {
+        role: "user",
+        content: `उपयोगकर्ता का सवाल (अंग्रेज़ी हो तो भी जवाब सिर्फ हिंदी में दें): ${question}`,
+      },
     ],
     maxTokens: 340,
-    temperature: 0.25,
+    temperature: 0.2,
   });
 }
 
 export async function answerEvuddyQuestion(
   history: ChatTurn[],
   question: string,
-  language = "auto"
+  _language = "hi"
 ): Promise<AssistantReply> {
+  // Eva always answers in simple Hindi for common users — ignore requested language.
+  const language = "hi";
   const asked = clean(question);
   if (asked.length < 2) {
     return {
-      answer: bilingual(
-        language,
-        asked,
-        "Ask anything about EVUDDY — booking, rates, Rent to Own, investment, tickets, KYC, or contact. Mic works too.",
-        "EVUDDY के बारे में कुछ भी पूछें — बुकिंग, किराया, Rent to Own, निवेश, टिकट, KYC या संपर्क। माइक भी चलता है।"
-      ),
+      answer:
+        "EVUDDY के बारे में कुछ भी पूछें — बुकिंग, किराया, Rent to Own, निवेश, टिकट, KYC या संपर्क। माइक से भी बोल सकते हैं।",
     };
   }
 
@@ -327,7 +325,7 @@ export async function answerEvuddyQuestion(
   // Prefer ChatGPT-style LLM when configured; FAQ is grounding + fallback.
   if (llmConfigured()) {
     try {
-      const llm = await llmAnswer(history, asked, language, faq.answer || "");
+      const llm = await llmAnswer(history, asked, faq.answer || "");
       if (llm) {
         return { answer: llm.slice(0, 1100), href: faq.href };
       }
@@ -339,12 +337,8 @@ export async function answerEvuddyQuestion(
   if (faq.answer) return faq;
 
   return {
-    answer: bilingual(
-      language,
-      asked,
-      "I can help with EVUDDY bookings, rates, KYC, deposits, Rent to Own, support tickets, fleet investment, leadership, and contact (helpdesk@kebuone.in · +91 8726006512). Say “open booking” or “open partners”. I cannot take payment or change a booking from chat.",
-      "मैं EVUDDY बुकिंग, किराया, KYC, डिपॉजिट, Rent to Own, सपोर्ट टिकट, फ्लीट निवेश, लीडरशिप और संपर्क (helpdesk@kebuone.in · +91 8726006512) बता सकता हूँ। “बुकिंग खोलो” या “पार्टनर खोलो” कहें। भुगतान या बुकिंग बदलना चैट से नहीं होगा।"
-    ),
+    answer:
+      "मैं EVUDDY बुकिंग, किराया, KYC, जमा, Rent to Own, सपोर्ट टिकट, फ्लीट निवेश, लीडरशिप और संपर्क (helpdesk@kebuone.in · +91 8726006512) आसान हिंदी में बताती हूँ। “बुकिंग खोलो” या “पार्टनर खोलो” कहें। भुगतान या बुकिंग बदलना चैट से नहीं होगा।",
     href: "/ride-options",
   };
 }

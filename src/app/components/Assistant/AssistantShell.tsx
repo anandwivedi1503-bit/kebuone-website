@@ -15,6 +15,9 @@ type Props = {
   onClose: () => void;
   speakBack?: boolean;
   onSpeakBack?: () => void;
+  /** When false, hide language dropdown (Eva is Hindi-only). */
+  showLanguageSelect?: boolean;
+  languageBadge?: string;
   children: ReactNode;
   footer: ReactNode;
   chips?: ReactNode;
@@ -39,12 +42,14 @@ export default function AssistantShell({
   onClose,
   speakBack,
   onSpeakBack,
+  showLanguageSelect = true,
+  languageBadge,
   children,
   footer,
   chips,
 }: Props) {
   return (
-    <div className="pointer-events-auto flex h-[min(40rem,calc(100dvh-7rem))] w-full flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[#F4F7F5] shadow-[0_40px_120px_rgba(0,0,0,.45)] animate-[assistantPanelIn_.28s_ease] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif] sm:h-[min(40rem,calc(100dvh-5rem))]">
+    <div className="pointer-events-auto flex h-[min(40rem,calc(100dvh-7rem))] max-h-[inherit] w-full flex-col overflow-hidden rounded-[28px] border border-white/70 bg-[#F4F7F5] shadow-[0_40px_120px_rgba(0,0,0,.45)] animate-[assistantPanelIn_.28s_ease] [font-family:var(--font-noto-deva),var(--font-geist-sans),sans-serif] sm:h-[min(40rem,calc(100dvh-9rem))]">
       <div className="relative shrink-0 bg-gradient-to-br from-[#0B1B16] via-[#102820] to-[#163528] px-3 py-3 text-white sm:px-3.5">
         <div className="pointer-events-none absolute -right-8 -top-10 h-28 w-28 rounded-full bg-[#18B368]/20 blur-2xl" />
         <div className="pointer-events-none absolute -left-6 bottom-0 h-20 w-20 rounded-full bg-[#EC2A8C]/15 blur-2xl" />
@@ -66,18 +71,24 @@ export default function AssistantShell({
             <p className="mt-0.5 truncate text-[11px] leading-snug text-white/75 sm:whitespace-normal">{subtitle}</p>
           </div>
           <div className="flex shrink-0 items-center gap-1">
-            <select
-              value={language}
-              onChange={(event) => onLanguage(event.target.value)}
-              className="max-w-[72px] rounded-full border border-white/15 bg-white/10 px-1.5 py-1 text-[11px] font-bold text-white outline-none sm:max-w-[88px] sm:px-2"
-              aria-label="Assistant language"
-            >
-              {ASSISTANT_LANGUAGES.map((item) => (
-                <option key={item.id} value={item.id} className="text-[#0F172A]">
-                  {item.label}
-                </option>
-              ))}
-            </select>
+            {showLanguageSelect ? (
+              <select
+                value={language}
+                onChange={(event) => onLanguage(event.target.value)}
+                className="max-w-[72px] rounded-full border border-white/15 bg-white/10 px-1.5 py-1 text-[11px] font-bold text-white outline-none sm:max-w-[88px] sm:px-2"
+                aria-label="Assistant language"
+              >
+                {ASSISTANT_LANGUAGES.map((item) => (
+                  <option key={item.id} value={item.id} className="text-[#0F172A]">
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            ) : languageBadge ? (
+              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-[11px] font-bold text-white">
+                {languageBadge}
+              </span>
+            ) : null}
             {onSpeakBack ? (
               <button
                 type="button"

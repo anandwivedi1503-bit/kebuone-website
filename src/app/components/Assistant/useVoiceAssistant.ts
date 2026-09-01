@@ -127,13 +127,13 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
     onError?: (message: string) => void
   ) => {
     if (listening) {
-      setStatus("Understanding…");
+      setStatus("समझ रही हूँ…");
       if (modeRef.current === "browser") {
         window.clearTimeout(timerRef.current);
         haltRecognition();
         const text = backupRef.current.trim();
         if (text) finishRef.current(text);
-        else failRef.current("No speech captured. Tap the mic, speak clearly, then tap again.");
+        else failRef.current("आवाज़ नहीं सुनाई दी। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।");
         return true;
       }
       stopRecorder();
@@ -143,7 +143,7 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
     resolvedRef.current = false;
     backupRef.current = "";
     chunksRef.current = [];
-    setStatus("Listening… tap mic again when done");
+    setStatus("सुन रही हूँ… बोलकर माइक फिर दबाएँ");
 
     const finish = (text: string) => {
       if (resolvedRef.current) return;
@@ -198,7 +198,7 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
     if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
       const Ctor = speechCtor();
       if (!Ctor) {
-        fail("This browser cannot use the mic. Please type, or try Chrome/Safari.");
+        fail("इस ब्राउज़र में माइक नहीं चल रहा। टाइप करें, या Chrome/Safari आज़माएँ।");
         return false;
       }
       modeRef.current = "browser";
@@ -207,7 +207,7 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
       timerRef.current = window.setTimeout(() => {
         const text = backupRef.current;
         if (text) finish(text);
-        else fail("No speech captured. Tap the mic, speak clearly, then tap again.");
+        else fail("आवाज़ नहीं सुनाई दी। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।");
       }, 12000);
       return true;
     }
@@ -234,12 +234,12 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
         });
         const backup = backupRef.current.trim();
         if (blob.size >= 800) {
-          setStatus("Understanding…");
+          setStatus("समझ रही हूँ…");
           try {
             const form = new FormData();
             const ext = blob.type.includes("mp4") ? "m4a" : "webm";
             form.append("audio", blob, `speech.${ext}`);
-            form.append("language", language);
+            form.append("language", language === "en" ? "en" : "hi");
             const res = await fetch(transcribeUrl, { method: "POST", body: form });
             const data = await res.json();
             if (data.text) {
@@ -250,14 +250,14 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
               finish(backup);
               return;
             }
-            fail(data.message || "Could not hear that. Please try again.");
+            fail(data.message || "सुनाई नहीं दी। फिर से बोलकर देखें।");
             return;
           } catch {
             if (backup) {
               finish(backup);
               return;
             }
-            fail("Voice upload failed. Please type instead.");
+            fail("आवाज़ भेजने में समस्या। कृपया टाइप करें।");
             return;
           }
         }
@@ -265,7 +265,7 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
           finish(backup);
           return;
         }
-        fail("No speech captured. Tap the mic, speak clearly, then tap again.");
+        fail("आवाज़ नहीं सुनाई दी। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।");
       };
       modeRef.current = "record";
       recorder.start(250);
@@ -281,22 +281,22 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
         timerRef.current = window.setTimeout(() => {
           const text = backupRef.current;
           if (text) finish(text);
-          else fail("Mic permission denied. Allow microphone for this site and try again.");
+          else fail("माइक की अनुमति नहीं मिली। साइट के लिए माइक ऑन करें।");
         }, 12000);
         return true;
       }
-      fail("Mic permission denied. Allow microphone for evuddy.com and try again.");
+      fail("माइक की अनुमति नहीं मिली। evuddy.com के लिए माइक ऑन करें।");
       return false;
     }
   };
 
   const speak = (text: string, language = "hi") => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    // Eva speaks Hindi for common users unless they explicitly pick another language.
-    const forceHindi = !language || language === "auto" || language === "hi" || language === "mr";
+    // Default / Auto / Hindi → Hindi voice. Only explicit "en" (etc.) switches away.
+    const useHindi = !language || language === "auto" || language === "hi" || language === "mr";
     const utterance = new SpeechSynthesisUtterance(text.slice(0, 420));
-    utterance.lang = forceHindi ? "hi-IN" : ttsLangFor(text, language);
-    utterance.rate = forceHindi ? 0.96 : 1.02;
+    utterance.lang = useHindi ? "hi-IN" : ttsLangFor(text, language);
+    utterance.rate = useHindi ? 0.96 : 1.02;
     const voice = pickVoice(utterance.lang);
     if (voice) utterance.voice = voice;
     window.speechSynthesis.cancel();
