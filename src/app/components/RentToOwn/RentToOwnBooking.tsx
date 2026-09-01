@@ -276,6 +276,7 @@ export default function RentToOwnBooking() {
   }, [city, step]);
 
   useEffect(() => {
+    if (!auth?.app) return;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user?.phoneNumber) return;
       const token = await user.getIdToken();

@@ -1,5 +1,5 @@
 import { getApp, getApps, initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -10,6 +10,22 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+/**
+ * Safe client Firebase Auth.
+ * Missing/invalid keys must not crash the whole site (navbar, Eva, booking shells).
+ */
+function initAuth(): Auth | null {
+  if (!firebaseConfig.apiKey) return null;
+  try {
+    const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+    return getAuth(app);
+  } catch (error) {
+    console.warn("FIREBASE CLIENT INIT SKIPPED:", error);
+    return null;
+  }
+}
 
-export const auth = getAuth(app);
+export const firebaseAuth: Auth | null = initAuth();
+
+/** Runtime may be null when Firebase is not configured — guard before OTP/login use. */
+export const auth = firebaseAuth as Auth;

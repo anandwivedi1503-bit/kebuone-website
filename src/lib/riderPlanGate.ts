@@ -1,6 +1,6 @@
 import { signOut } from "firebase/auth";
 
-import { auth } from "@/lib/firebase";
+import { firebaseAuth } from "@/lib/firebase";
 
 export const RIDER_SESSION_EVENT = "kebu-rider-session";
 export const RIDER_ACCOUNT_OPEN_EVENT = "kebu-open-rider-account";
@@ -214,7 +214,7 @@ export async function logoutRider() {
   emitRiderSession();
 
   try {
-    await signOut(auth);
+    if (firebaseAuth) await signOut(firebaseAuth);
   } catch {
     // Still send the rider home even if Firebase sign-out fails.
   }
