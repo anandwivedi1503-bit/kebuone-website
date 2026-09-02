@@ -134,26 +134,37 @@ export default function Hero() {
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-[10px] font-bold tracking-[0.22em] text-slate-500 sm:text-[11px]"
+            className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white/80 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-slate-600 shadow-sm sm:text-[11px]"
           >
-            SMART · ELECTRIC · MOBILITY
+            <span className="h-1.5 w-1.5 rounded-full bg-[#18B368]" />
+            INDIA&apos;S SMART EV RENTAL
           </motion.p>
 
-          <h1 className="mt-3 max-w-[16ch] text-[clamp(2.1rem,8vw,4.75rem)] font-black leading-[0.92] tracking-[-0.06em] text-[#0F172A]">
-            Ride smart.
-            <span className="mt-1 block italic evuddy-ink">Ride EVUDDY.</span>
+          <h1 className="mt-4 max-w-[18ch] text-[clamp(2.1rem,8vw,4.75rem)] font-black leading-[0.92] tracking-[-0.06em] text-[#0F172A]">
+            Ride the city.
+            <span className="mt-1 block italic evuddy-ink">Own the journey.</span>
           </h1>
 
-          <p className="mt-4 max-w-md text-sm leading-6 text-slate-500 sm:text-base">
-            Book in minutes. Ride the city. Own the journey.
+          <p className="mt-4 max-w-lg text-sm leading-6 text-slate-500 sm:text-base">
+            Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
+            <span className="mt-1 block font-medium text-slate-600">
+              मिनटों में बुक करें. शहर घूमें. राइड अपना बनाएँ.
+            </span>
           </p>
 
-          <Link href="/ride-options" className="mt-6 w-full max-w-xs sm:w-auto sm:max-w-none">
-            <span className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] sm:h-16 sm:w-auto sm:px-10 sm:text-base">
-              Reserve Your EV
-              <ArrowRight className="h-5 w-5" />
-            </span>
-          </Link>
+          <div className="mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
+            <Link href="/ride-options" className="w-full sm:w-auto">
+              <span className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] sm:h-14 sm:px-10 sm:text-base">
+                Book an EV
+                <ArrowRight className="h-5 w-5" />
+              </span>
+            </Link>
+            <Link href="/ride-options" className="w-full sm:w-auto">
+              <span className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-[#0F172A] sm:h-14 sm:px-8 sm:text-base">
+                Rent to Own ₹280/day
+              </span>
+            </Link>
+          </div>
         </div>
 
         <HeroCityRide />

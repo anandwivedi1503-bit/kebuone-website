@@ -1,26 +1,26 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Leaf, ShieldCheck, Sparkles } from "lucide-react";
+import { Bike, Briefcase, KeyRound } from "lucide-react";
 
 const cards = [
   {
-    icon: Leaf,
-    title: "Electric first",
-    text: "Every decision is guided by cleaner transport and a smarter EV future.",
-    label: "EVUDDY Vision",
+    icon: Bike,
+    title: "Daily commute",
+    text: "Hourly to monthly scooters from a live hub. GST-correct fare. Refundable deposit on normal rentals.",
+    label: "B2C riders",
   },
   {
-    icon: ShieldCheck,
-    title: "Trust and transparency",
-    text: "Fair pricing, dependable service and long-term reliability for every rider.",
-    label: "Our commitment",
+    icon: Briefcase,
+    title: "Gig & delivery",
+    text: "Quiet electric range for city work. Pickup OTP at the yard. GPS on the scooter while you ride.",
+    label: "Work on EVUDDY",
   },
   {
-    icon: Sparkles,
-    title: "Built for tomorrow",
-    text: "We keep evolving the ride experience for riders, partners and cities.",
-    label: "Future ready",
+    icon: KeyRound,
+    title: "Ride to own",
+    text: "₹280 + GST a day for 18 months. No security deposit. Daily receipt. Ownership after a successful term.",
+    label: "Rent to Own",
   },
 ];
 
@@ -31,16 +31,16 @@ export default function TrustSection() {
         <div className="mx-auto max-w-3xl text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
             <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            OUR COMMITMENT
+            WHO RIDES EVUDDY
           </span>
           <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            Built on trust.{" "}
+            One scooter.{" "}
             <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              Designed for tomorrow.
+              Three Indian journeys.
             </span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
-            A cleaner, more reliable mobility ecosystem for riders, partners and businesses.
+            Built for riders, gig work and people who want the scooter to become theirs.
           </p>
         </div>
 
@@ -53,7 +53,7 @@ export default function TrustSection() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="rounded-[24px] border border-slate-100 bg-white/70 p-6 shadow-[0_12px_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-8"
+                className="rounded-[24px] border border-slate-100 bg-[#F7FBF8] p-6 shadow-[0_12px_40px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-8"
               >
                 <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#18B368] text-white">
                   <Icon size={22} />
@@ -73,7 +73,7 @@ export default function TrustSection() {
             &ldquo;The future of mobility isn&apos;t just electric. It&apos;s intelligent, sustainable, and built around people.&rdquo;
           </p>
           <p className="mx-auto mt-5 max-w-2xl text-sm text-white/70 sm:text-base">
-            EVUDDY connects technology, sustainability and everyday convenience into one ride experience.
+            EVUDDY connects KYC, hub OTP, Razorpay and Rent to Own into one India-first ride.
           </p>
           <p className="mt-6 text-sm font-bold tracking-[0.18em] text-[#6EE7A8]">— TEAM EVUDDY</p>
         </blockquote>
