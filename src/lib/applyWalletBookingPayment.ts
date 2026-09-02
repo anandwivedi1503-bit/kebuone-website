@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
+import { isMongoTransactionUnsupported } from "@/lib/mongoTransaction";
 
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
 import { writeAudit } from "@/lib/writeAudit";
@@ -37,18 +38,25 @@ async function rollback(session: mongoose.ClientSession | null) {
   await session.endSession();
 }
 
-export async function applyWalletBookingPayment(input: {
-  bookingMongoId: string;
-  paidAmount: number;
-}) {
+export async function applyWalletBookingPayment(
+  input: {
+    bookingMongoId: string;
+    paidAmount: number;
+  },
+  useTxn = true
+) {
   const { bookingMongoId, paidAmount } = input;
   let session: mongoose.ClientSession | null = null;
 
   try {
-    session = await mongoose.startSession();
-    session.startTransaction();
+    if (useTxn) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
 
-    const booking = await Booking.findById(bookingMongoId).session(session);
+    const booking = session
+      ? await Booking.findById(bookingMongoId).session(session)
+      : await Booking.findById(bookingMongoId);
     if (!booking) {
       await rollback(session);
       return { ok: false as const, status: 404, message: "Booking not found." };
@@ -110,10 +118,11 @@ export async function applyWalletBookingPayment(input: {
       };
     }
 
-    const wallet = await Wallet.findOne({
+    const walletQuery = Wallet.findOne({
       riderId: rider.riderId,
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    }).session(session);
+    });
+    const wallet = session ? await walletQuery.session(session) : await walletQuery;
 
     if (!isWalletUsable(wallet)) {
       await rollback(session);
@@ -130,10 +139,40 @@ export async function applyWalletBookingPayment(input: {
       };
     }
 
-    wallet.balance = Number((Number(wallet.balance || 0) - paidAmount).toFixed(2));
-    wallet.totalSpent = Number((Number(wallet.totalSpent || 0) + paidAmount).toFixed(2));
-    wallet.lastDebitAt = new Date();
-    await wallet.save({ session });
+    // Atomic spendable check + debit (balance - freeze >= paidAmount).
+    const debited = await Wallet.findOneAndUpdate(
+      {
+        _id: wallet._id,
+        status: "Active",
+        adminBlocked: { $ne: true },
+        $expr: {
+          $gte: [
+            {
+              $subtract: [
+                { $ifNull: ["$balance", 0] },
+                { $ifNull: ["$freezeAmount", 0] },
+              ],
+            },
+            paidAmount,
+          ],
+        },
+      },
+      {
+        $inc: { balance: -paidAmount, totalSpent: paidAmount },
+        $set: { lastDebitAt: new Date() },
+      },
+      { new: true, ...(session ? { session } : {}) }
+    );
+    if (!debited) {
+      await rollback(session);
+      return {
+        ok: false as const,
+        status: 409,
+        message: "Wallet balance changed. Refresh Book EV and try again.",
+      };
+    }
+    wallet.balance = debited.balance;
+    wallet.totalSpent = debited.totalSpent;
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
@@ -150,84 +189,85 @@ export async function applyWalletBookingPayment(input: {
     const transactionId = generateWalletTransactionId();
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-W-${transactionId.slice(-8)}`;
 
-    await Transaction.create(
-      [
-        {
-          transactionId,
-          bookingId: booking.bookingId,
-          userId: String(booking.userId || booking.userPhone || "Rider"),
-          userName: booking.userName || "Rider",
-          amount: paidAmount,
-          gstAmount: taxOnPayment.gstAmount,
-          cgstAmount: taxOnPayment.cgstAmount,
-          sgstAmount: taxOnPayment.sgstAmount,
-          cgstRate: CGST_RATE,
-          sgstRate: SGST_RATE,
-          paymentMethod: "Wallet",
-          transactionType: "Booking Payment",
-          invoiceNumber,
-          invoiceGenerated: true,
-          status: "Success",
-          remarks:
-            booking.rentalMode === "Rent To Own"
-              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
-              : "Wallet booking payment",
-        },
-      ],
-      { session }
-    );
+    const paymentTxn = {
+      transactionId,
+      bookingId: booking.bookingId,
+      userId: String(booking.userId || booking.userPhone || "Rider"),
+      userName: booking.userName || "Rider",
+      amount: paidAmount,
+      gstAmount: taxOnPayment.gstAmount,
+      cgstAmount: taxOnPayment.cgstAmount,
+      sgstAmount: taxOnPayment.sgstAmount,
+      cgstRate: CGST_RATE,
+      sgstRate: SGST_RATE,
+      paymentMethod: "Wallet",
+      transactionType: "Booking Payment",
+      invoiceNumber,
+      invoiceGenerated: true,
+      status: "Success",
+      remarks:
+        booking.rentalMode === "Rent To Own"
+          ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+          : "Wallet booking payment",
+    };
+    if (session) {
+      await Transaction.create([paymentTxn], { session });
+    } else {
+      await Transaction.create(paymentTxn);
+    }
 
-    await WalletTransaction.create(
-      [
-        {
-          transactionId: generateWalletTransactionId(),
-          riderId: booking.riderId,
-          userId: booking.userId,
-          userName: booking.userName,
-          amount: paidAmount,
-          transactionType: "Booking Payment",
-          paymentMethod: "Wallet",
-          bookingId: booking.bookingId,
-          balanceAfter: Number(wallet.balance || 0),
-          remarks:
-            booking.rentalMode === "Rent To Own"
-              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
-              : "Booking paid from wallet.",
-          status: "Success",
-        },
-      ],
-      { session }
-    );
+    const walletTxn = {
+      transactionId: generateWalletTransactionId(),
+      riderId: booking.riderId,
+      userId: booking.userId,
+      userName: booking.userName,
+      amount: paidAmount,
+      transactionType: "Booking Payment",
+      paymentMethod: "Wallet",
+      bookingId: booking.bookingId,
+      balanceAfter: Number(wallet.balance || 0),
+      remarks:
+        booking.rentalMode === "Rent To Own"
+          ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+          : "Booking paid from wallet.",
+      status: "Success",
+    };
+    if (session) {
+      await WalletTransaction.create([walletTxn], { session });
+    } else {
+      await WalletTransaction.create(walletTxn);
+    }
 
-    const existingDepositHold = await WalletTransaction.findOne({
+    const holdQuery = WalletTransaction.findOne({
       bookingId: booking.bookingId,
       transactionType: "Security Deposit Hold",
-    }).session(session);
+    });
+    const existingDepositHold = session ? await holdQuery.session(session) : await holdQuery;
 
     if (!existingDepositHold && pendingAmount <= 0 && Number(booking.securityDeposit || 0) > 0) {
       wallet.securityDepositHold = Math.max(
         Number(wallet.securityDepositHold || 0),
         Number(booking.securityDeposit || 0)
       );
-      await wallet.save({ session });
-      await WalletTransaction.create(
-        [
-          {
-            transactionId: generateWalletTransactionId(),
-            riderId: booking.riderId,
-            userId: booking.userId,
-            userName: booking.userName,
-            amount: Number(booking.securityDeposit || 0),
-            transactionType: "Security Deposit Hold",
-            paymentMethod: "Wallet",
-            bookingId: booking.bookingId,
-            balanceAfter: Number(wallet.balance || 0),
-            remarks: "Security deposit held for bike booking.",
-            status: "Success",
-          },
-        ],
-        { session }
-      );
+      await wallet.save(session ? { session } : {});
+      const holdTxn = {
+        transactionId: generateWalletTransactionId(),
+        riderId: booking.riderId,
+        userId: booking.userId,
+        userName: booking.userName,
+        amount: Number(booking.securityDeposit || 0),
+        transactionType: "Security Deposit Hold",
+        paymentMethod: "Wallet",
+        bookingId: booking.bookingId,
+        balanceAfter: Number(wallet.balance || 0),
+        remarks: "Security deposit held for bike booking.",
+        status: "Success",
+      };
+      if (session) {
+        await WalletTransaction.create([holdTxn], { session });
+      } else {
+        await WalletTransaction.create(holdTxn);
+      }
     }
 
     const updatedBooking = await Booking.findOneAndUpdate(
@@ -243,7 +283,7 @@ export async function applyWalletBookingPayment(input: {
           ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
         },
       },
-      { new: true, session }
+      { new: true, ...(session ? { session } : {}) }
     );
 
     if (!updatedBooking) {
@@ -274,7 +314,7 @@ export async function applyWalletBookingPayment(input: {
             lockStatus: progress.vehicleLockStatus,
           },
         },
-        { session }
+        session ? { session } : {}
       );
 
       if (!updatedVehicle) {
@@ -296,15 +336,17 @@ export async function applyWalletBookingPayment(input: {
             currentBookingId: booking.bookingId,
           },
         },
-        { session }
+        session ? { session } : {}
       );
     }
 
     await queueDepositRefundIfEligible(updatedBooking, session);
 
-    await session.commitTransaction();
-    await session.endSession();
-    session = null;
+    if (session) {
+      await session.commitTransaction();
+      await session.endSession();
+      session = null;
+    }
 
     const issuedPickupOtp =
       updatedBooking.pickupOTPVerified
@@ -370,6 +412,9 @@ export async function applyWalletBookingPayment(input: {
     };
   } catch (error) {
     await rollback(session);
+    if (useTxn && isMongoTransactionUnsupported(error)) {
+      return applyWalletBookingPayment(input, false);
+    }
     console.error("WALLET BOOKING PAYMENT ERROR:", error);
     return { ok: false as const, status: 500, message: "Wallet payment failed." };
   }

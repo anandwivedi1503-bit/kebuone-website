@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
 import { releaseUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { recordJobHeartbeat } from "@/lib/jobHeartbeat";
 
 export async function POST(req: Request) {
   const cronSecret = process.env.CRON_SECRET || "";
@@ -15,5 +16,6 @@ export async function POST(req: Request) {
 
   await connectDB();
   const result = await releaseUnpaidBookings(100);
+  await recordJobHeartbeat("unpaidSweep", { unpaid: result, source: "cron" });
   return NextResponse.json({ success: true, ...result });
 }

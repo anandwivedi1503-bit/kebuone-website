@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import mongoose from "mongoose";
+import { isMongoTransactionUnsupported } from "@/lib/mongoTransaction";
 
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
 import { writeAudit } from "@/lib/writeAudit";
@@ -40,12 +41,15 @@ async function rollback(session: mongoose.ClientSession | null) {
   await session.endSession();
 }
 
-export async function applyStaffBookingPayment(input: {
-  bookingId: string;
-  paidAmount: number;
-  collectedBy: string;
-  notes?: string;
-}) {
+export async function applyStaffBookingPayment(
+  input: {
+    bookingId: string;
+    paidAmount: number;
+    collectedBy: string;
+    notes?: string;
+  },
+  useTxn = true
+) {
   const bookingId = String(input.bookingId || "").trim().toUpperCase();
   const paidAmount = Number(Number(input.paidAmount).toFixed(2));
   const collectedBy = String(input.collectedBy || "yard").trim().slice(0, 80) || "yard";
@@ -60,13 +64,16 @@ export async function applyStaffBookingPayment(input: {
   }
 
   try {
-    session = await mongoose.startSession();
-    session.startTransaction();
+    if (useTxn) {
+      session = await mongoose.startSession();
+      session.startTransaction();
+    }
 
-    const booking = await Booking.findOne({
+    const bookingQuery = Booking.findOne({
       bookingId,
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    }).session(session);
+    });
+    const booking = session ? await bookingQuery.session(session) : await bookingQuery;
 
     if (!booking) {
       await rollback(session);
@@ -133,75 +140,77 @@ export async function applyStaffBookingPayment(input: {
           paidNow: paidAmount,
         });
 
-    await Transaction.create(
-      [
-        {
-          transactionId,
-          bookingId: booking.bookingId,
-          userId: String(booking.userId || booking.userPhone || "Rider"),
-          userName: booking.userName || "Rider",
-          amount: paidAmount,
-          gstAmount: taxOnPayment.gstAmount,
-          cgstAmount: taxOnPayment.cgstAmount,
-          sgstAmount: taxOnPayment.sgstAmount,
-          cgstRate: CGST_RATE,
-          sgstRate: SGST_RATE,
-          paymentMethod: "Cash",
-          transactionSource: "Admin Panel",
-          transactionType: "Booking Payment",
-          invoiceNumber,
-          invoiceGenerated: true,
-          status: "Success",
-          remarks: (notes
-            ? notes
-            : booking.rentalMode === "Rent To Own"
-              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1} · cash at yard by ${collectedBy}`
-              : `Cash collected at yard by ${collectedBy}`
-          ).slice(0, 500),
-          collectedBy,
-          collectedAt: new Date(),
-          cashHandoverStatus: "DueToCompany",
-          updatedBy: collectedBy,
-        },
-      ],
-      { session }
-    );
+    const cashTxn = {
+      transactionId,
+      bookingId: booking.bookingId,
+      userId: String(booking.userId || booking.userPhone || "Rider"),
+      userName: booking.userName || "Rider",
+      amount: paidAmount,
+      gstAmount: taxOnPayment.gstAmount,
+      cgstAmount: taxOnPayment.cgstAmount,
+      sgstAmount: taxOnPayment.sgstAmount,
+      cgstRate: CGST_RATE,
+      sgstRate: SGST_RATE,
+      paymentMethod: "Cash",
+      transactionSource: "Admin Panel",
+      transactionType: "Booking Payment",
+      invoiceNumber,
+      invoiceGenerated: true,
+      status: "Success",
+      remarks: (notes
+        ? notes
+        : booking.rentalMode === "Rent To Own"
+          ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1} · cash at yard by ${collectedBy}`
+          : `Cash collected at yard by ${collectedBy}`
+      ).slice(0, 500),
+      collectedBy,
+      collectedAt: new Date(),
+      cashHandoverStatus: "DueToCompany",
+      updatedBy: collectedBy,
+    };
+    if (session) {
+      await Transaction.create([cashTxn], { session });
+    } else {
+      await Transaction.create(cashTxn);
+    }
 
-    const wallet = await Wallet.findOne({
+    const walletQuery = Wallet.findOne({
       riderId: rider.riderId,
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    }).session(session);
+    });
+    const wallet = session ? await walletQuery.session(session) : await walletQuery;
 
     if (wallet && pendingAmount <= 0 && Number(booking.securityDeposit || 0) > 0) {
-      const existingDepositHold = await WalletTransaction.findOne({
+      const holdQuery = WalletTransaction.findOne({
         bookingId: booking.bookingId,
         transactionType: "Security Deposit Hold",
-      }).session(session);
+      });
+      const existingDepositHold = session ? await holdQuery.session(session) : await holdQuery;
 
       if (!existingDepositHold) {
         wallet.securityDepositHold = Math.max(
           Number(wallet.securityDepositHold || 0),
           Number(booking.securityDeposit || 0)
         );
-        await wallet.save({ session });
-        await WalletTransaction.create(
-          [
-            {
-              transactionId: generateWalletTransactionId(),
-              riderId: booking.riderId,
-              userId: booking.userId,
-              userName: booking.userName,
-              amount: Number(booking.securityDeposit || 0),
-              transactionType: "Security Deposit Hold",
-              paymentMethod: "Cash",
-              bookingId: booking.bookingId,
-              balanceAfter: Number(wallet.balance || 0),
-              remarks: "Security deposit held after cash collection.",
-              status: "Success",
-            },
-          ],
-          { session }
-        );
+        await wallet.save(session ? { session } : {});
+        const holdTxn = {
+          transactionId: generateWalletTransactionId(),
+          riderId: booking.riderId,
+          userId: booking.userId,
+          userName: booking.userName,
+          amount: Number(booking.securityDeposit || 0),
+          transactionType: "Security Deposit Hold",
+          paymentMethod: "Cash",
+          bookingId: booking.bookingId,
+          balanceAfter: Number(wallet.balance || 0),
+          remarks: "Security deposit held after cash collection.",
+          status: "Success",
+        };
+        if (session) {
+          await WalletTransaction.create([holdTxn], { session });
+        } else {
+          await WalletTransaction.create(holdTxn);
+        }
       }
     }
 
@@ -218,7 +227,7 @@ export async function applyStaffBookingPayment(input: {
           ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
         },
       },
-      { new: true, session }
+      { new: true, ...(session ? { session } : {}) }
     );
 
     if (!updatedBooking) {
@@ -245,7 +254,7 @@ export async function applyStaffBookingPayment(input: {
             lockStatus: progress.vehicleLockStatus,
           },
         },
-        { session }
+        session ? { session } : {}
       );
 
       if (!updatedVehicle) {
@@ -267,15 +276,17 @@ export async function applyStaffBookingPayment(input: {
             currentBookingId: booking.bookingId,
           },
         },
-        { session }
+        session ? { session } : {}
       );
     }
 
     await queueDepositRefundIfEligible(updatedBooking, session);
 
-    await session.commitTransaction();
-    await session.endSession();
-    session = null;
+    if (session) {
+      await session.commitTransaction();
+      await session.endSession();
+      session = null;
+    }
 
     const nextPending = Number(updatedBooking.pendingAmount || 0);
     const nextPaymentStatus = String(updatedBooking.paymentStatus || paymentStatus);
@@ -332,6 +343,9 @@ export async function applyStaffBookingPayment(input: {
     };
   } catch (error) {
     await rollback(session);
+    if (useTxn && isMongoTransactionUnsupported(error)) {
+      return applyStaffBookingPayment(input, false);
+    }
     console.error("CASH BOOKING PAYMENT ERROR:", error);
     return { ok: false as const, status: 500, message: "Cash payment failed." };
   }

@@ -15,6 +15,10 @@ import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
 import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
+import {
+  hubForbiddenResponse,
+  staffCanAccessBooking,
+} from "@/lib/staffHubScope";
 
 async function rollback(session: mongoose.ClientSession | null) {
   if (!session) return;
@@ -65,6 +69,11 @@ export async function POST(req: Request) {
         { success: false, message: "Booking not found." },
         { status: 404 }
       );
+    }
+
+    if (!staffCanAccessBooking(gate.session, booking)) {
+      await rollback(session);
+      return hubForbiddenResponse();
     }
 
     if (isRentToOwnBooking(booking) && !booking.ownershipTransferred) {

@@ -8,6 +8,7 @@ import {
 } from "@/lib/adminAuth";
 import { STAFF_DASHBOARDS } from "@/lib/adminRoles";
 import { connectDB } from "@/lib/mongodb";
+import { normalizeHubCodes } from "@/lib/staffHubScope";
 import AdminStaff from "@/models/AdminStaff";
 
 function clean(value: unknown) {
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
   const dashboards = Array.isArray(body.dashboards)
     ? body.dashboards.filter((id: string) => STAFF_DASHBOARDS.includes(id))
     : [];
+  const hubs = normalizeHubCodes(body.hubs);
 
   if (!/^[a-z0-9._-]{3,40}$/.test(username)) {
     return NextResponse.json(
@@ -82,7 +84,9 @@ export async function POST(req: Request) {
     passwordHash,
     passwordSalt,
     dashboards,
+    hubs,
     isActive: true,
+    sessionVersion: 0,
   });
 
   return NextResponse.json({
@@ -92,6 +96,7 @@ export async function POST(req: Request) {
       username: created.username,
       displayName: created.displayName,
       dashboards: created.dashboards,
+      hubs: created.hubs,
       isActive: created.isActive,
     },
   });

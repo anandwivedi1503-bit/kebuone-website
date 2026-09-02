@@ -1,3 +1,4 @@
+/** In-process limiter (per Node instance). Use Redis/edge limits before multi-instance scale-out. */
 const hits = new Map<string, number[]>();
 
 export function rateLimitAllowed(

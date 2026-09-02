@@ -3,8 +3,6 @@
  import { useEffect, useState } from "react";
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
-import { walletSpendable } from "@/lib/walletMoney";
-import { isRevenueTransaction, revenueAmount } from "@/lib/opsRevenue";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import {
   AlertTriangle,
@@ -52,6 +50,58 @@ const formatActivityTime = (value: any) => {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
+type CommandCenterCounts = {
+  riders: number;
+  vehicles: number;
+  hubs: number;
+  activeHubs: number;
+  availableVehicles: number;
+  activeRides: number;
+  openTickets: number;
+  processingRefunds: number;
+  onlineVehicles: number;
+  offlineVehicles: number;
+  lowBatteryVehicles: number;
+  geofenceAlerts: number;
+  readyBatteries: number;
+  chargingBatteries: number;
+  lowChargeBatteries: number;
+  pendingSwaps: number;
+  completedSwaps: number;
+  pendingPartners: number;
+  approvedPartners: number;
+  wallets: number;
+  blockedWallets: number;
+  totalWalletBalance: number;
+  totalRevenue: number;
+};
+
+const EMPTY_COUNTS: CommandCenterCounts = {
+  riders: 0,
+  vehicles: 0,
+  hubs: 0,
+  activeHubs: 0,
+  availableVehicles: 0,
+  activeRides: 0,
+  openTickets: 0,
+  processingRefunds: 0,
+  onlineVehicles: 0,
+  offlineVehicles: 0,
+  lowBatteryVehicles: 0,
+  geofenceAlerts: 0,
+  readyBatteries: 0,
+  chargingBatteries: 0,
+  lowChargeBatteries: 0,
+  pendingSwaps: 0,
+  completedSwaps: 0,
+  pendingPartners: 0,
+  approvedPartners: 0,
+  wallets: 0,
+  blockedWallets: 0,
+  totalWalletBalance: 0,
+  totalRevenue: 0,
+};
+
 type AdminDashboardProps = {
   setActiveDashboard?: (dashboard: string) => void;
 };
@@ -72,19 +122,16 @@ export default function AdminDashboard({
     dashboards: string[];
   } | null>(null);
 
-  const [riders, setRiders] = useState<any[]>([]);
-  const [vehicles, setVehicles] = useState<any[]>([]);
-  const [hubs, setHubs] = useState<any[]>([]);
+  const [counts, setCounts] = useState<CommandCenterCounts>(EMPTY_COUNTS);
   const [bookings, setBookings] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
-  const [iotData, setIotData] = useState<any[]>([]);
   const [refunds, setRefunds] = useState<any[]>([]);
-  const [batteries, setBatteries] = useState<any[]>([]);
-const [batterySwaps, setBatterySwaps] = useState<any[]>([]);
+  const [batterySwaps, setBatterySwaps] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
-  const [wallets, setWallets] = useState<any[]>([]);
-  const [stats, setStats] = useState<any>(null);
+  const [searchHits, setSearchHits] = useState<
+    Array<{ id: string; title: string; subtitle: string; dashboard: string }>
+  >([]);
 
 const [loading, setLoading] = useState(true);
 const [lastUpdated, setLastUpdated] = useState("");
@@ -150,43 +197,17 @@ const [refreshing, setRefreshing] = useState(false);
 
    const loadDashboard = async () => {
     try {
-      const urls = [
-        "/api/riders?limit=500",
-        "/api/vehicles",
-        "/api/hubs",
-        "/api/bookings?limit=500",
-        "/api/tickets?limit=500",
-        "/api/transactions?limit=500",
-        "/api/iot",
-        "/api/refunds?limit=500",
-        "/api/batteries",
-        "/api/battery-swaps",
-        "/api/partners",
-        "/api/wallet?limit=500",
-        "/api/analytics?period=all",
-      ];
+      const res = await fetch("/api/admin/command-center", { cache: "no-store" });
+      const data = await res.json();
+      if (!data.success) return;
 
-      const responses = await Promise.all(
-        urls.map((url) => fetch(url))
-      );
-
-      const data = await Promise.all(
-        responses.map((r) => r.json())
-      );
-
-      setRiders(data[0].data || []);
-      setVehicles(data[1].data || []);
-      setHubs(data[2].data || []);
-      setBookings(data[3].data || []);
-      setTickets(data[4].data || []);
-      setTransactions(data[5].data || []);
-      setIotData(data[6].data || []);
-      setRefunds(data[7].data || []);
-      setBatteries(data[8].data || []);
-      setBatterySwaps(data[9].data || []);
-      setPartners(data[10].data || []);
-      setWallets(data[11].data || []);
-      setStats(data[12].data || null);
+      setCounts({ ...EMPTY_COUNTS, ...(data.counts || {}) });
+      setBookings(data.recent?.bookings || []);
+      setTransactions(data.recent?.transactions || []);
+      setTickets(data.recent?.tickets || []);
+      setRefunds(data.recent?.refunds || []);
+      setBatterySwaps(data.recent?.batterySwaps || []);
+      setPartners(data.recent?.partners || []);
 
       setLastUpdated(
   new Date().toLocaleString("en-IN", {
@@ -204,85 +225,65 @@ const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
   loadDashboard();
 
-  const timer = setInterval(loadDashboard, 12000);
+  const timer = setInterval(loadDashboard, 20000);
 
   return () => clearInterval(timer);
 }, []);
 
-  const totalRevenue = Number(
-    stats?.totalRevenue ??
-      transactions
-        .filter((item: any) => isRevenueTransaction(item))
-        .reduce((sum: number, item: any) => sum + revenueAmount(item), 0)
-  );
+  useEffect(() => {
+    const keyword = search.trim();
+    if (keyword.length < 2) {
+      setSearchHits([]);
+      return;
+    }
+    const timer = window.setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/admin/command-center?q=${encodeURIComponent(keyword)}`,
+          { cache: "no-store" }
+        );
+        const data = await res.json();
+        setSearchHits(
+          Array.isArray(data.hits)
+            ? data.hits.slice(0, 20).map((hit: any) => ({
+                id: String(hit.id || hit.title),
+                title: String(hit.title || "Result"),
+                subtitle: String(hit.detail || hit.badge || ""),
+                dashboard: String(hit.dashboard || "bookings"),
+              }))
+            : []
+        );
+      } catch {
+        setSearchHits([]);
+      }
+    }, 280);
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
-  const activeRides = Number(
-    stats?.activeRides ??
-      bookings.filter(
-        (item: any) => item.rideStatus === "In Ride"
-      ).length
-  );
-
-  const getGpsStatus = (status: unknown) =>
-  String(status || "").trim().toUpperCase();
-
-const onlineVehicles = iotData.filter(
-  (item: any) => getGpsStatus(item.gpsStatus) === "ONLINE"
-).length;
-
-const offlineVehicles = iotData.filter(
-  (item: any) => getGpsStatus(item.gpsStatus) === "OFFLINE"
-).length;
-const availableVehicles = vehicles.filter(
-  (item: any) => item.vehicleStatus === "Available"
-).length;
-  const openTickets = tickets.filter((item: any) => item.status === "OPEN").length;
-  const processingRefunds = refunds.filter((item: any) =>
-    item.refundStatus === "PROCESSING" || item.refundStatus === "PENDING"
-  ).length;
-  const activeHubs = hubs.filter((item: any) => item.status === "Active").length;
-  const lowBatteryVehicles = iotData.filter((item: any) => item.batteryPercentage <= 20).length;
-  const geofenceAlerts = iotData.filter((item: any) => item.alertType).length;
-
-
+  const totalRevenue = counts.totalRevenue;
+  const activeRides = counts.activeRides;
+  const onlineVehicles = counts.onlineVehicles;
+  const offlineVehicles = counts.offlineVehicles;
+  const availableVehicles = counts.availableVehicles;
+  const openTickets = counts.openTickets;
+  const processingRefunds = counts.processingRefunds;
+  const activeHubs = counts.activeHubs;
+  const lowBatteryVehicles = counts.lowBatteryVehicles;
+  const geofenceAlerts = counts.geofenceAlerts;
   const criticalAlerts = lowBatteryVehicles + geofenceAlerts + offlineVehicles + processingRefunds;
-
-  const readyBatteries = batteries.filter(
-(b)=>b.status==="READY"
-).length;
-
-const chargingBatteries = batteries.filter(
-(b)=>b.status==="CHARGING"
-).length;
-
-const lowChargeBatteries = batteries.filter(
-(b)=>b.chargePercentage<=20
-).length;
-
-const pendingSwaps = batterySwaps.filter(
-(s)=>s.status==="PENDING"
-).length;
-
-const completedSwaps = batterySwaps.filter(
-(s)=>s.status==="COMPLETED"
-).length;
-
-const pendingPartners = partners.filter(
-(p)=>p.applicationStatus==="Pending"
-).length;
-
-const approvedPartners = partners.filter(
-(p)=>p.applicationStatus==="Approved"
-).length;
-
-const blockedWallets = wallets.filter(
-(w)=>w.status==="Blocked"
-).length;
-
-const totalWalletBalance = wallets.reduce(
-(sum,w)=>sum+walletSpendable(w),
-0
-);
+  const readyBatteries = counts.readyBatteries;
+  const chargingBatteries = counts.chargingBatteries;
+  const lowChargeBatteries = counts.lowChargeBatteries;
+  const pendingSwaps = counts.pendingSwaps;
+  const completedSwaps = counts.completedSwaps;
+  const pendingPartners = counts.pendingPartners;
+  const approvedPartners = counts.approvedPartners;
+  const blockedWallets = counts.blockedWallets;
+  const totalWalletBalance = counts.totalWalletBalance;
+  const riders = { length: counts.riders };
+  const vehicles = { length: counts.vehicles };
+  const hubs = { length: counts.hubs };
+  const wallets = { length: counts.wallets };
 
 const systemHealth =
 criticalAlerts === 0
@@ -621,81 +622,6 @@ const openDashboard = (dashboard: string) => {
   setNotificationOpen(false);
   setActiveDashboard?.(dashboard);
 };
-
-const searchHits = searchKeyword
-  ? [
-      ...riders
-        .filter((item: any) =>
-          [item.fullName, item.phone, item.email, item.riderId]
-            .join(" ")
-            .toLowerCase()
-            .includes(searchKeyword)
-        )
-        .slice(0, 5)
-        .map((item: any) => ({
-          id: String(item._id || item.riderId),
-          title: item.fullName || item.riderId || "Rider",
-          subtitle: item.phone || item.email || "Rider",
-          dashboard: "users",
-        })),
-      ...vehicles
-        .filter((item: any) =>
-          [item.vehicleId, item.registrationNumber, item.vehicleModel, item.currentHub]
-            .join(" ")
-            .toLowerCase()
-            .includes(searchKeyword)
-        )
-        .slice(0, 5)
-        .map((item: any) => ({
-          id: String(item._id || item.vehicleId),
-          title: item.vehicleId || "Vehicle",
-          subtitle: `${item.vehicleStatus || "Status"} · ${item.currentHub || "Hub"}`,
-          dashboard: "fleet",
-        })),
-      ...bookings
-        .filter((item: any) =>
-          [item.bookingId, item.userName, item.userPhone, item.vehicleId]
-            .join(" ")
-            .toLowerCase()
-            .includes(searchKeyword)
-        )
-        .slice(0, 5)
-        .map((item: any) => ({
-          id: String(item._id || item.bookingId),
-          title: item.bookingId || "Booking",
-          subtitle: `${item.userName || item.userPhone || "Rider"} · ${item.rideStatus || ""}`,
-          dashboard: "bookings",
-        })),
-      ...tickets
-        .filter((item: any) =>
-          [item.ticketId, item.category, item.status]
-            .join(" ")
-            .toLowerCase()
-            .includes(searchKeyword)
-        )
-        .slice(0, 4)
-        .map((item: any) => ({
-          id: String(item._id || item.ticketId),
-          title: item.ticketId || "Ticket",
-          subtitle: item.status || "Support",
-          dashboard: "support",
-        })),
-      ...wallets
-        .filter((item: any) =>
-          [item.riderId, item.phone, item.walletId]
-            .join(" ")
-            .toLowerCase()
-            .includes(searchKeyword)
-        )
-        .slice(0, 4)
-        .map((item: any) => ({
-          id: String(item._id || item.riderId),
-          title: item.riderId || "Wallet",
-          subtitle: item.status || "Wallet",
-          dashboard: "wallet",
-        })),
-    ]
-  : [];
 
 const refreshDashboard = async () => {
 

@@ -12,6 +12,7 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 import ActionButton from "../DashboardUI/ActionButton";
 import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 
 export default function HubDashboard() {
 
@@ -30,12 +31,12 @@ const loadHubs = () => {
   Promise.all([
     fetch("/api/hubs").then((res)=>res.json()),
     fetch("/api/vehicles").then((res)=>res.json()),
-    fetch("/api/bookings?limit=500", { cache: "no-store" }).then((res)=>res.json()),
+    fetch("/api/ops/yard-queue", { cache: "no-store" }).then((res)=>res.json()),
   ])
     .then(([hubData, vehicleData, bookingData])=>{
       if (hubData?.data) setHubs(hubData.data||[]);
       if (vehicleData?.success) setVehicles(vehicleData.data||[]);
-      if (bookingData?.success) setBookings(bookingData.data||[]);
+      if (bookingData?.success) setBookings(bookingData.liveBookings||[]);
     })
     .catch(() => undefined);
 };
@@ -136,6 +137,7 @@ subtitle="Yard desk uses the same live bookings as Booking Management. Collect r
 />
 
 <OpsMoneyStrip />
+<YardQueueStrip />
 
 <KPIGrid>
 

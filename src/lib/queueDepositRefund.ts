@@ -1,5 +1,6 @@
-import { generateSixDigitOtp } from "@/lib/otp";
 import type mongoose from "mongoose";
+
+import { nextSeqId } from "@/lib/nextSeqId";
 import Refund from "@/models/Refund";
 
 type BookingDoc = {
@@ -31,15 +32,18 @@ export async function queueDepositRefundIfEligible(
     ? await Refund.findOne({ bookingId: booking.bookingId }).session(session)
     : await Refund.findOne({ bookingId: booking.bookingId });
 
+  // Any existing refund row for this booking (ticket or deposit) — keep prior behaviour.
   if (existingRefund) {
     return false;
   }
+
+  const refundId = await nextSeqId("RF", "refundSequence", 8, session);
 
   if (session) {
     await Refund.create(
       [
         {
-          refundId: "RF-" + Date.now(),
+          refundId,
           bookingId: booking.bookingId,
           riderId: booking.riderId,
           amount: booking.securityDeposit,
@@ -51,7 +55,7 @@ export async function queueDepositRefundIfEligible(
     );
   } else {
     await Refund.create({
-      refundId: "RF-" + Date.now(),
+      refundId,
       bookingId: booking.bookingId,
       riderId: booking.riderId,
       amount: booking.securityDeposit,

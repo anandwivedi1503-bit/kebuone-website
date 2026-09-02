@@ -7,6 +7,10 @@ import {
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
+import {
+  hubForbiddenResponse,
+  staffCanAccessBooking,
+} from "@/lib/staffHubScope";
 import { isOtpExpired, otpMatches } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
@@ -81,6 +85,12 @@ export async function POST(req: Request) {
         },
         { status: 404 }
       );
+    }
+
+    if (!staffCanAccessBooking(gate.session, booking)) {
+      await rollback(session);
+      session = null;
+      return hubForbiddenResponse();
     }
 
     if (Number(booking.receivedAmount || 0) < 1) {

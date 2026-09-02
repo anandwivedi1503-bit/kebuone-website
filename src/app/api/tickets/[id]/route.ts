@@ -9,6 +9,7 @@ import Refund from "@/models/Refund";
 import mongoose from "mongoose";
 import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
 import { appendBoundedText } from "@/lib/listQuery";
+import { nextSeqId } from "@/lib/nextSeqId";
 import { writeAudit } from "@/lib/writeAudit";
 
 const allowedStatuses = [
@@ -228,7 +229,7 @@ if (
         await Refund.create(
           [
             {
-              refundId: `RF-${Date.now()}`,
+              refundId: await nextSeqId("RF", "refundSequence", 8, session),
               bookingId: booking.bookingId,
               ticketId: existingTicket.ticketId,
               riderId: booking.riderId,
