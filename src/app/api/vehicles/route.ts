@@ -559,7 +559,7 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     await connectDB();
     void maybeSweepUnpaidBookings();
@@ -598,30 +598,55 @@ export async function GET() {
 
     /*
      * Public / rider-facing vehicle
-     * availability.
+     * availability. Optional city/hub keeps Book EV fast
+     * when many cities are live. No params = same as before.
      */
+    const { searchParams } = new URL(req.url);
+    const cityFilter = clean(searchParams.get("city"));
+    const hubFilter = clean(searchParams.get("hub") || searchParams.get("currentHub")).toUpperCase();
+    const availability: Record<string, unknown>[] = [
+      {
+        $or: [
+          { isDeleted: false },
+          { isDeleted: { $exists: false } },
+        ],
+      },
+      {
+        $or: [
+          { isActive: true },
+          { isActive: { $exists: false } },
+        ],
+      },
+      {
+        $or: [
+          { vehicleStatus: "Available" },
+          { vehicleStatus: "available" },
+        ],
+      },
+    ];
+    if (hubFilter) {
+      availability.push({ currentHub: hubFilter });
+    } else if (cityFilter) {
+      const hubCodes = (
+        await Hub.distinct("hubCode", {
+          status: "Active",
+          city: new RegExp(
+            `^${cityFilter.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i"
+          ),
+          $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+        })
+      )
+        .map((code) => String(code || "").trim().toUpperCase())
+        .filter(Boolean);
+      availability.push({
+        currentHub: { $in: hubCodes.length ? hubCodes : ["__none__"] },
+      });
+    }
+
     const vehicles =
       await Vehicle.find({
-        $and: [
-          {
-            $or: [
-              { isDeleted: false },
-              { isDeleted: { $exists: false } },
-            ],
-          },
-          {
-            $or: [
-              { isActive: true },
-              { isActive: { $exists: false } },
-            ],
-          },
-          {
-            $or: [
-              { vehicleStatus: "Available" },
-              { vehicleStatus: "available" },
-            ],
-          },
-        ],
+        $and: availability,
       })
         .select(
           [

@@ -5,6 +5,7 @@ import {
   fleetInvestmentFaqHindi,
 } from "@/lib/fleetInvestment";
 import { llmChat, llmConfigured } from "@/lib/llmChat";
+import { wantsOwnAccountHelp } from "@/lib/riderAssistantIntent";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -172,6 +173,18 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     en: "See /privacy-policy, /terms-and-conditions and /refund-policy for full legal text. High level: GST on rent, deposit rules on rentals, RTO is installment-based with no deposit.",
     hi: "कानूनी डिटेल इन पेजों पर है:\n• प्राइवेसी — /privacy-policy\n• नियम व शर्तें — /terms-and-conditions\n• रिफंड — /refund-policy\nसंक्षेप: किराये पर GST, जमा किराये पर लागू, Rent to Own में डिपॉजिट नहीं।",
   },
+  {
+    keys: ["hours", "timing", "open", "समय", "खुला", "टाइमिंग", "office hours"],
+    href: "/book-bike",
+    en: "Pickup and return follow the hub you choose on Book EV. The corporate office in Gomti Nagar is HQ, not a walk-in scooter counter unless that hub is listed on Book EV.",
+    hi: "स्कूटर उसी हब के समय पर मिलता/वापस होता है जो आप Book EV पर चुनते हैं। गोमती नगर ऑफिस मुख्यालय है — वहाँ तभी जाएँ जब Book EV पर वही हब दिखे।",
+  },
+  {
+    keys: ["kyc pending", "approval", "मंज़ूरी", "पेंडिंग", "waiting", "इंतज़ार", "verify"],
+    href: "/register",
+    en: "After you submit KYC, staff must approve before booking is enabled. Eva cannot approve KYC. If you are signed in, ask “मेरा KYC?” for your status.",
+    hi: "KYC जमा करने के बाद स्टाफ मंज़ूरी देते हैं — बिना मंज़ूरी बुकिंग नहीं खुलती। मैं KYC पास नहीं कर सकती। साइन-इन हों तो पूछें “मेरा KYC?” — अपना स्टेटस बता दूँगी।",
+  },
 ];
 
 function clean(text: string) {
@@ -327,9 +340,9 @@ async function llmAnswer(history: ChatTurn[], question: string, faqHint?: string
   const system = `You are Eva — EVUDDY's futuristic, ChatGPT-grade in-app assistant for https://www.evuddy.com.
 
 PERSONA
-- Warm, sharp, helpful, modern. Speak like ChatGPT in simple everyday Hindi (देवनागरी).
-- Short paragraphs or clear bullets. Feel human, not robotic.
-- Cover ANY website / EVUDDY question using ONLY the knowledge below (and FAQ hint). Do not invent hubs, live stock, secret prices, or policies.
+- You are Eva, a capable female concierge for EVUDDY — warm, sharp, never robotic.
+- Speak like a helpful colleague in simple everyday Hindi (देवनागरी). Short paragraphs or clear bullets.
+- Cover ANY public website / EVUDDY question using ONLY the knowledge below (and FAQ hint). Do not invent hubs, live stock, secret prices, or policies.
 - For Fleet Partner Investment always use official poster numbers (60% investor / 40% company, ₹87 profit/scooter/day, plans ₹1L→₹2,15,316 · ₹5L→₹10,76,580 · ₹10L→₹21,53,160 over 42 months) and mention /partners#investment-poster.
 - You may suggest opening: /ride-options /book-bike /rent-to-own /register /contact /partners#investment-poster /careers /vision /Leadership /about /refund-policy /terms-and-conditions /privacy-policy.
 - Never take payments, enter OTP, unlock scooters, approve KYC/refunds, or change bookings. Refuse those and send to website buttons or helpdesk@kebuone.in / +91 8726006512.
@@ -361,7 +374,8 @@ ${faqHint ? `\nFAQ HINT (rephrase naturally in Hindi, do not ignore facts):\n${f
 export async function answerEvuddyQuestion(
   history: ChatTurn[],
   question: string,
-  _language = "hi"
+  _language = "hi",
+  ownAccount?: AssistantReply | null
 ): Promise<AssistantReply> {
   const language = "hi";
   const asked = clean(question);
@@ -375,6 +389,10 @@ export async function answerEvuddyQuestion(
 
   const intent = publicAssistantIntent(asked, language);
   if (intent) return intent;
+
+  if (ownAccount && wantsOwnAccountHelp(asked)) {
+    return ownAccount;
+  }
 
   const faq = faqAnswer(asked, language);
 

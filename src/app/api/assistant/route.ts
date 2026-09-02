@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 
 import { answerEvuddyQuestion, assistantConfigured, type ChatTurn } from "@/lib/assistantReply";
+import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
+import { riderAssistantHelp } from "@/lib/riderAssistantHelp";
+import { wantsOwnAccountHelp } from "@/lib/riderAssistantIntent";
 
 export async function POST(req: Request) {
   try {
@@ -24,7 +27,17 @@ export async function POST(req: Request) {
         content: String(turn.content || "").slice(0, 500),
       }));
 
-    const reply = await answerEvuddyQuestion(history, question, language);
+    let ownAccount = null;
+    if (wantsOwnAccountHelp(question)) {
+      try {
+        await connectDB();
+        ownAccount = await riderAssistantHelp(req, body.firebaseIdToken);
+      } catch (error) {
+        console.error("ASSISTANT ACCOUNT HELP SKIPPED:", error);
+      }
+    }
+
+    const reply = await answerEvuddyQuestion(history, question, language, ownAccount);
     return NextResponse.json({
       success: true,
       answer: reply.answer,

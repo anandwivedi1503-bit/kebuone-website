@@ -231,9 +231,12 @@ const [pickupOtp, setPickupOtp] = useState("");
     const hubUrl = selectedCity
       ? `/api/hubs?city=${encodeURIComponent(selectedCity)}`
       : "/api/hubs";
+    const vehicleUrl = selectedCity
+      ? `/api/vehicles?city=${encodeURIComponent(selectedCity)}`
+      : "/api/vehicles";
 
     const [vehicleRes, cityRes, hubRes] = await Promise.all([
-      fetch("/api/vehicles"),
+      fetch(vehicleUrl),
       fetch("/api/cities"),
       fetch(hubUrl),
     ]);
