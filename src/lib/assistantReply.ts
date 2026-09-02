@@ -5,7 +5,7 @@ import {
   fleetInvestmentFaqHindi,
 } from "@/lib/fleetInvestment";
 import { llmChat, llmConfigured } from "@/lib/llmChat";
-import { wantsOwnAccountHelp } from "@/lib/riderAssistantIntent";
+import { wantsOwnAccountHelp, type EvaRiderSession } from "@/lib/riderAssistantIntent";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
@@ -44,7 +44,7 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     ],
     href: "/ride-options",
     en: "Book in four steps: (1) Register with phone OTP and finish KYC. (2) Open Book EV, pick city, hub and scooter. (3) Pay rent + 5% GST + refundable deposit with Razorpay, or wallet if you have balance. (4) Show the pickup OTP at the hub. I can open ride options — I cannot take payment.",
-    hi: "बिल्कुल! स्कूटर बुक करना आसान है — चार साफ़ कदम:\n1) फोन OTP से रजिस्टर करें और KYC पूरा करें।\n2) Book EV खोलें — शहर, हब और स्कूटर चुनें।\n3) किराया + 5% GST + जमा (आमतौर पर ₹2,500) Razorpay या वॉलेट से दें।\n4) हब पर Pickup OTP दिखाएँ — यार्ड अनलॉक करेगा।\nमैं पेज खोल दूँगी, पैसे या OTP नहीं लूँगी। और कुछ पूछना है?",
+    hi: "बिल्कुल जी! स्कूटर बुक करना आसान है — चार साफ़ कदम:\n1) फोन OTP से रजिस्टर कीजिए, KYC पूरा कीजिए।\n2) Book EV खोलिए — शहर, हब और स्कूटर चुनिए।\n3) किराया + 5% GST + जमा (आमतौर पर ₹2,500) Razorpay या वॉलेट से दीजिए।\n4) हब पर Pickup OTP दिखाइए — यार्ड अनलॉक करेगा।\nमैं पेज खोल दूँगी, पैसे या OTP नहीं लूँगी। और कुछ पूछना है?",
   },
   {
     keys: [
@@ -422,39 +422,75 @@ export function faqAnswer(question: string, language = "hi"): AssistantReply {
   };
 }
 
-function greetingReply(): AssistantReply {
+function asRiderSession(
+  value?: EvaRiderSession | AssistantReply | null
+): EvaRiderSession | null {
+  if (!value) return null;
+  if ("statusAnswer" in value && typeof value.statusAnswer === "string") {
+    return value;
+  }
+  const reply = value as AssistantReply;
+  if (!reply.answer) return null;
   return {
-    answer:
-      "नमस्ते! मैं Eva हूँ — EVUDDY की पूरी वेबसाइट गाइड। होम, बुकिंग, किराया, KYC, Rent to Own, निवेश पोस्टर, संपर्क, About, Vision, Leadership, Careers, प्राइवेसी/टर्म्स/रिफंड — सब आसान हिंदी में। सही पेज खोल भी दूँगी। भुगतान/OTP/अनलॉक/रिफंड चैट से नहीं होता। पूछें — “वेबसाइट पर क्या-क्या है?” या “किराया कितना है?”",
+    signedIn: true,
+    stage: "legacy",
+    firstName: "",
+    isNewRider: false,
+    canBook: true,
+    briefing: reply.answer,
+    href: reply.href || "/book-bike",
+    statusAnswer: reply.answer,
   };
 }
 
-function directoryReply(): AssistantReply {
+function greetingReply(session?: EvaRiderSession | null): AssistantReply {
+  if (session?.statusAnswer) {
+    return { answer: session.statusAnswer, href: session.href };
+  }
   return {
     answer:
-      "मैं पूरी EVUDDY वेबसाइट जानती हूँ। पूछ सकते हैं:\n• स्कूटर बुक / KYC / किराया-GST\n• स्कूटर रेंज-स्पीड-GPS (होम)\n• Rent to Own ₹280/दिन\n• फ्लीट निवेश पोस्टर (60% आपका)\n• About, Vision, Leadership, Careers\n• संपर्क, टिकट, 24×7 हेल्पडेस्क\n• प्राइवेसी, टर्म्स, रिफंड\nकहें “बुकिंग खोलो”, “अबाउट खोलो”, या अपना सवाल लिखें। helpdesk@kebuone.in · +91 8726006512।",
-    href: "/",
+      "नमस्ते जी! मैं Eva हूँ — EVUDDY वाली। बोलचाल की हिंदी में सब समझती हूँ: बुकिंग, KYC, किराया, Rent to Own, निवेश, Careers, लीडरशिप। पेज भी खोल दूँगी। बस याद रखिए — पैसे, OTP, अनलॉक, रिफंड मैं नहीं कर सकती, वो Book EV के बटन पर है। पूछिए, “किराया कितना है?” या लॉगिन हों तो “मेरा अकाउंट कैसा है?”",
   };
 }
 
-async function llmAnswer(history: ChatTurn[], question: string, faqHint?: string) {
-  const system = `You are Eva — EVUDDY's futuristic, ChatGPT-grade in-app assistant for https://www.evuddy.com.
+function directoryReply(session?: EvaRiderSession | null): AssistantReply {
+  const prefix = session?.firstName ? `${session.firstName} जी, ` : "";
+  return {
+    answer:
+      `${prefix}पूरी साइट मैं संभालती हूँ। पूछ लीजिए:\n• स्कूटर कैसे बुक करें / KYC कहाँ तक है\n• किराया-GST, रेंज-स्पीड\n• Rent to Own ₹280/दिन\n• फ्लीट निवेश (60% आपका)\n• About, Vision, Leadership, Careers\n• संपर्क, 24×7 हेल्पडेस्क\nबोलिए “बुकिंग खोलो” या अपना हाल। helpdesk@kebuone.in · +91 8726006512।`,
+    href: session?.href || "/",
+  };
+}
 
-PERSONA
-- You are Eva, a capable female concierge for EVUDDY — warm, sharp, never robotic.
-- Speak like a helpful colleague in simple everyday Hindi (देवनागरी). Short paragraphs or clear bullets.
-- Cover ANY public website question using ONLY the knowledge below (and FAQ hint): Home, Ride options, Book EV, Rent to Own, Register, Contact, Partners/Invest, About, Vision, Leadership, Careers, Privacy, Terms, Refund. Do not invent hubs, live stock, secret prices, unnamed staff, or dashboard steps.
-- For Fleet Partner Investment always use official poster numbers (60% investor / 40% company, ₹87 profit/scooter/day, plans ₹1L→₹2,15,316 · ₹5L→₹10,76,580 · ₹10L→₹21,53,160 over 42 months) and mention /partners#investment-poster.
+async function llmAnswer(
+  history: ChatTurn[],
+  question: string,
+  faqHint?: string,
+  rider?: EvaRiderSession | null
+) {
+  const system = `You are Eva — EVUDDY's in-app humanoid concierge for https://www.evuddy.com.
+
+PERSONA / HINDI
+- You are Eva, a warm Indian woman (like a smart Lucknow/Delhi colleague, not a Sanskrit textbook and not an English bot).
+- Reply only in natural spoken Hindi (देवनागरी). Short sentences. Use जी, ना, बस, चलिए, ज़रा, देखिए where it fits.
+- Keep product words in Latin: EVUDDY, Book EV, Rent to Own, Razorpay, OTP, KYC, GST, GPS.
+- Never write English paragraphs. Do not sound robotic ("मैं आपकी सहायता के लिए यहाँ हूँ").
+
+THIS RIDER (private live snapshot — do not invent extra facts, do not ignore it):
+${rider?.briefing || "Not signed in (or no profile). Talk as a guest. If they ask 'my booking/KYC', tell them to login with phone OTP on /ride-options then complete /register."}
+
+RULES
+- Cover ANY public website question using ONLY the knowledge below (and FAQ hint): Home, Ride options, Book EV, Rent to Own, Register, Contact, Partners/Invest, About, Vision, Leadership, Careers, Privacy, Terms, Refund.
+- If the rider is new / KYC pending / rejected / blocked, say that clearly in Hindi and give the next real button. You cannot approve KYC.
+- If they have a live booking, explain ride/payment status and the next Book EV button. NEVER read or ask them to paste Pickup/Ride-end OTP here. NEVER take payment or unlock.
+- Do not invent hubs, live stock, secret prices, unnamed staff, or dashboard steps.
+- Fleet Partner Investment: official poster numbers only (60% investor / 40% company, ₹87 profit/scooter/day, plans ₹1L→₹2,15,316 · ₹5L→₹10,76,580 · ₹10L→₹21,53,160 over 42 months) and /partners#investment-poster.
 - You may suggest opening: / /ride-options /book-bike /rent-to-own /register /contact /partners#investment-poster /careers /vision /Leadership /about /refund-policy /terms-and-conditions /privacy-policy.
-- Staff /admin-login and /dashboard are not for riders. Never operate money, KYC approval, unlocks, or refunds.
-- Never take payments, enter OTP, unlock scooters, approve KYC/refunds, take investment money, or change bookings. Refuse those and send to website buttons or helpdesk@kebuone.in / +91 8726006512.
-- If the user only greets or says हाँ/ठीक, welcome them and offer 2–3 concrete things you can help with.
-- Keep answers under ~180 Hindi words. Product names (EVUDDY, Book EV, Rent to Own, Razorpay, OTP, KYC, GST) and ₹ amounts may stay in Latin script.
-- NEVER reply in English paragraphs. Hindi only.
+- Keep answers under ~180 Hindi words.
 
 KNOWLEDGE:
 ${EVUDDY_KNOWLEDGE}
-${faqHint ? `\nFAQ HINT (rephrase naturally in Hindi, do not ignore facts):\n${faqHint}` : ""}`;
+${faqHint ? `\nFAQ HINT (rephrase in spoken Hindi, do not ignore facts):\n${faqHint}` : ""}`;
 
   return llmChat({
     system,
@@ -465,7 +501,7 @@ ${faqHint ? `\nFAQ HINT (rephrase naturally in Hindi, do not ignore facts):\n${f
       })),
       {
         role: "user",
-        content: `उपयोगकर्ता का संदेश (अंग्रेज़ी हो तो भी जवाब सिर्फ आसान हिंदी में ChatGPT जैसे दें): ${question}`,
+        content: `देसी बोलचाल हिंदी में जवाब दीजिए, अंग्रेज़ी पैराग्राफ नहीं। सवाल: ${question}`,
       },
     ],
     maxTokens: 520,
@@ -477,34 +513,40 @@ export async function answerEvuddyQuestion(
   history: ChatTurn[],
   question: string,
   _language = "hi",
-  ownAccount?: AssistantReply | null
+  ownAccount?: EvaRiderSession | AssistantReply | null
 ): Promise<AssistantReply> {
   const language = "hi";
   const asked = clean(question);
-  if (asked.length < 1) {
-    return greetingReply();
-  }
+  const rider = asRiderSession(ownAccount);
 
-  if (isGreetingOrAck(asked)) {
-    return greetingReply();
+  if (asked.length < 1 || isGreetingOrAck(asked)) {
+    return greetingReply(rider);
   }
 
   const intent = publicAssistantIntent(asked, language);
   if (intent) return intent;
 
-  if (ownAccount && wantsOwnAccountHelp(asked)) {
-    return ownAccount;
+  if (rider && wantsOwnAccountHelp(asked)) {
+    return { answer: rider.statusAnswer, href: rider.href };
+  }
+
+  if (
+    rider &&
+    !rider.canBook &&
+    /बुक|book|kyc|केवाईसी|रजिस्टर|register|राइड|scooter/i.test(asked)
+  ) {
+    return { answer: rider.statusAnswer, href: rider.href };
   }
 
   const faq = faqAnswer(asked, language);
 
   if (llmConfigured()) {
     try {
-      const llm = await llmAnswer(history, asked, faq.answer || "");
+      const llm = await llmAnswer(history, asked, faq.answer || "", rider);
       if (llm) {
         return {
           answer: llm.slice(0, 1400),
-          href: faq.href,
+          href: faq.href || rider?.href,
         };
       }
     } catch (error) {
@@ -513,15 +555,20 @@ export async function answerEvuddyQuestion(
   }
 
   if (faq.answer && (faq.score || 0) >= 1) {
+    if (rider?.firstName) {
+      return {
+        ...faq,
+        answer: `${rider.firstName} जी, ${faq.answer}`,
+      };
+    }
     return faq;
   }
 
-  // Soft match: if question mentions EVUDDY / website / help, give directory.
   if (/\b(evuddy|website|site|help|help me|assist|जानकारी|वेबसाइट|मदद|बता)\b/i.test(asked)) {
-    return directoryReply();
+    return directoryReply(rider);
   }
 
-  return directoryReply();
+  return rider ? { answer: rider.statusAnswer, href: rider.href } : directoryReply();
 }
 
 export function assistantConfigured() {

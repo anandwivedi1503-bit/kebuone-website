@@ -58,6 +58,8 @@ assert.ok((ceo.score || 0) >= 1);
 assert.match(ceo.answer, /सुनील पाठक|Sunil Pathak/i);
 
 assert.equal(wantsOwnAccountHelp("मेरी बुकिंग कैसी है?"), true);
+assert.equal(wantsOwnAccountHelp("मैं नया रजिस्टर हुआ हूँ"), true);
+assert.equal(wantsOwnAccountHelp("मेरा अकाउंट कैसा है?"), true);
 assert.equal(wantsOwnAccountHelp("किराया कितना है?"), false);
 
 const unsignedOwnFaq = faqAnswer("मेरी बुकिंग", "hi");
@@ -70,6 +72,15 @@ async function runAsyncCases() {
     href: "/book-bike",
   });
   assert.equal(signedInStatus.answer, "SIGNED_IN_STATUS_ONLY");
+
+  const namasteWithRider = await answerEvuddyQuestion([], "नमस्ते", "hi", {
+    answer: "SIGNED_IN_HELLO",
+    href: "/register",
+  });
+  assert.equal(namasteWithRider.answer, "SIGNED_IN_HELLO");
+
+  const guestNamaste = await answerEvuddyQuestion([], "नमस्ते", "hi", null);
+  assert.match(guestNamaste.answer, /Eva/);
 }
 
 void runAsyncCases()

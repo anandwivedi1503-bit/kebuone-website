@@ -13,6 +13,7 @@ import {
   Send,
   Sparkles,
   Ticket,
+  UserRound,
 } from "lucide-react";
 
 import AssistantFab from "@/app/components/Assistant/AssistantFab";
@@ -50,6 +51,12 @@ const HELP_TOPICS = [
     ask: "फ्लीट पार्टनर निवेश प्लान और पोस्टर बताओ",
     icon: PiggyBank,
     blurb: "आपको 60% · पोस्टर देखें",
+  },
+  {
+    label: "मेरा अकाउंट",
+    ask: "मेरा अकाउंट कैसा है?",
+    icon: UserRound,
+    blurb: "KYC · बुकिंग · अगला कदम",
   },
   {
     label: "टिकट",
@@ -99,9 +106,10 @@ export default function EvuddyAssistant() {
     {
       role: "assistant",
       content:
-        "नमस्ते! मैं Eva हूँ — EVUDDY की ChatGPT-स्टाइल हेल्प। बुकिंग, किराया, KYC, Rent to Own, फ्लीट निवेश, टिकट, लीडरशिप, करियर — कुछ भी आसान हिंदी में पूछें। सही पेज भी खोल दूँगी। भुगतान/OTP/अनलॉक चैट से नहीं होता।",
+        "नमस्ते जी! मैं Eva हूँ — EVUDDY वाली। बोलचाल हिंदी में पूछिए, मैं समझ जाती हूँ। लॉगिन हों तो अपना KYC/बुकिंग हाल भी बता दूँगी। पैसे, OTP, अनलॉक चैट से नहीं होते।",
     },
   ]);
+  const greetedRef = useRef(false);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
@@ -119,9 +127,50 @@ export default function EvuddyAssistant() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
 
+  useEffect(() => {
+    if (!open || greetedRef.current) return;
+    let cancelled = false;
+    const hydrate = async () => {
+      try {
+        const firebaseIdToken = (await firebaseAuth?.currentUser?.getIdToken()) || "";
+        if (!firebaseIdToken || cancelled) return;
+        const res = await fetch("/api/assistant", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${firebaseIdToken}`,
+          },
+          body: JSON.stringify({
+            question: "नमस्ते",
+            language: "hi",
+            history: [],
+            firebaseIdToken,
+          }),
+        });
+        const data = await res.json();
+        const answer = String(data.answer || "").trim();
+        if (!answer || cancelled) return;
+        greetedRef.current = true;
+        setTurns([
+          {
+            role: "assistant",
+            content: answer,
+            href: SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "",
+          },
+        ]);
+      } catch {
+        /* guest copy stays */
+      }
+    };
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
+
   const greeting = useMemo(() => {
-    if (riderName) return `नमस्ते ${riderName.split(" ")[0]} — राइड में क्या मदद चाहिए?`;
-    return "आज Eva आपकी कैसे मदद करे?";
+    if (riderName) return `नमस्ते ${riderName.split(" ")[0]} जी — बताइए, क्या हाल है राइड का?`;
+    return "बोलिए जी, Eva सुन रही है।";
   }, [riderName]);
 
   if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin-login")) {
@@ -212,7 +261,7 @@ export default function EvuddyAssistant() {
           <div className="relative mb-[max(4.5rem,env(safe-area-inset-bottom))] w-full max-w-lg sm:mb-0 sm:max-h-[calc(100dvh-8.5rem)]">
         <AssistantShell
           title="Eva"
-          subtitle="ChatGPT-style EVUDDY help · हिंदी जवाब"
+          subtitle="देसी हिंदी · आपका लाइव KYC/राइड हाल"
           liveLabel="Online"
           language={language}
           onLanguage={() => undefined}
