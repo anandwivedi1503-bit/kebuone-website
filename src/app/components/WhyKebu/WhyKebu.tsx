@@ -7,23 +7,23 @@ import { ArrowRight, HeartHandshake, Leaf, MapPinned, ShieldCheck } from "lucide
 const features = [
   {
     icon: ShieldCheck,
-    title: "Trusted partners",
-    text: "Verified operations focused on safety, reliability and quality.",
+    title: "Yard-locked pickup",
+    text: "OTP after first payment. No scooter leaves a hub without the yard.",
   },
   {
     icon: MapPinned,
-    title: "Smart tracking",
-    text: "Live updates from booking until your ride is complete.",
+    title: "Live GPS on the scooter",
+    text: "Same IoT feed ops use — lock, battery and location while you ride.",
   },
   {
     icon: Leaf,
-    title: "Electric first",
-    text: "Cleaner city travel with sustainability at the core.",
+    title: "Electric, GST-correct",
+    text: "5% GST on rent only. Deposit is refundable and not taxed.",
   },
   {
     icon: HeartHandshake,
-    title: "Customer first",
-    text: "Clear pricing, responsive support and a simple booking flow.",
+    title: "24×7 rider helpdesk",
+    text: "helpdesk@kebuone.in · +91 8726006512 · tickets on Book EV.",
   },
 ];
 
@@ -59,13 +59,14 @@ export default function WhyChoose() {
               <Leaf size={28} />
             </div>
             <h3 className="mt-6 text-3xl font-black leading-tight text-[#0F172A] sm:text-4xl">
-              Sustainable by design
+              Built like India&apos;s next EV network.
             </h3>
             <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-lg">
-              An electric-first ecosystem for smarter transport, cleaner cities and a better everyday commute.
+              Hubs, KYC, Razorpay, OTP pickup and Rent to Own on one platform — for daily riders,
+              gig work and people who want to own the scooter.
             </p>
             <span className="mt-6 inline-flex rounded-full bg-[#18B368]/10 px-4 py-2 text-sm font-semibold text-[#18B368]">
-              Future-ready platform
+              #safeRideWithEvuddy
             </span>
           </motion.div>
 

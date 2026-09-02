@@ -14,26 +14,30 @@ const steps = [
   {
     n: "01",
     icon: LayoutGrid,
-    title: "Register as a rider",
-    text: "Complete a one-time signup with your phone and KYC so you can start booking.",
+    title: "Register once",
+    hi: "फोन OTP + KYC",
+    text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
   },
   {
     n: "02",
     icon: CalendarCheck,
-    title: "Pick hub and plan",
-    text: "Choose city, hub, scooter and hourly, daily, weekly or monthly rental.",
+    title: "Pick hub & plan",
+    hi: "शहर · हब · स्कूटर",
+    text: "Choose city, hub and hourly, daily, weekly, monthly — or Rent to Own.",
   },
   {
     n: "03",
     icon: MapPinned,
-    title: "Pay securely",
-    text: "Pay rental plus GST and a refundable deposit with Razorpay.",
+    title: "Pay on Book EV",
+    hi: "Razorpay / वॉलेट",
+    text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
   },
   {
     n: "04",
     icon: ShieldCheck,
     title: "Ride with OTP",
-    text: "Collect the scooter at the hub with your pickup OTP and enjoy the ride.",
+    hi: "यार्ड पर दिखाएँ",
+    text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
   },
 ];
 
@@ -47,17 +51,18 @@ export default function HowItWorks() {
             HOW IT WORKS
           </span>
           <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            Four steps to{" "}
+            Four steps.{" "}
             <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              your EV
+              Phone-first.
             </span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
-            From registration to pickup, the flow is built for phones first.
+            Same flow millions of Indian riders expect — KYC, hub pickup, OTP, live GPS.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="relative mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="pointer-events-none absolute left-[12%] right-[12%] top-10 hidden h-px bg-gradient-to-r from-[#18B368]/0 via-[#18B368]/40 to-[#18B368]/0 xl:block" />
           {steps.map((step) => {
             const Icon = step.icon;
             return (
@@ -66,7 +71,7 @@ export default function HowItWorks() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="relative overflow-hidden rounded-[24px] border border-slate-100 bg-white/70 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-7"
+                className="relative overflow-hidden rounded-[24px] border border-slate-100 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-7"
               >
                 <span className="absolute right-4 top-3 text-5xl font-black text-[#18B368]/10">
                   {step.n}
@@ -75,6 +80,9 @@ export default function HowItWorks() {
                   <Icon size={22} />
                 </div>
                 <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{step.title}</h3>
+                <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#18B368]">
+                  {step.hi}
+                </p>
                 <p className="mt-2 text-sm leading-6 text-slate-500">{step.text}</p>
               </motion.div>
             );

@@ -11,7 +11,7 @@ export default function InvestHomeInvite() {
   return (
     <section className="bg-white py-6 sm:py-8">
       <div className="mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="flex flex-col items-stretch justify-between gap-5 rounded-[28px] border border-[#18B368]/15 bg-[#F4FBF7] px-5 py-5 sm:flex-row sm:items-center sm:px-8 sm:py-7">
+        <div className="flex flex-col items-stretch justify-between gap-5 rounded-[28px] border border-white/10 bg-[#0B1B16] px-5 py-6 text-white sm:flex-row sm:items-center sm:px-8 sm:py-8">
           <Link
             href={`${INVEST}`}
             className="relative mx-auto w-full max-w-[140px] shrink-0 overflow-hidden rounded-2xl border border-white bg-white shadow-md sm:mx-0 sm:max-w-[160px]"
@@ -25,14 +25,14 @@ export default function InvestHomeInvite() {
             />
           </Link>
           <div className="min-w-0 flex-1 text-center sm:text-left">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#18B368]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6EE7A8]">
               Fleet Partner Investment
             </p>
-            <h3 className="mt-1 text-xl font-black tracking-tight text-[#0F172A] sm:text-2xl">
+            <h3 className="mt-1 text-xl font-black tracking-tight text-white sm:text-2xl">
               From ₹1 lakh. You earn {FLEET_INVESTMENT.investorSharePercent}%.{" "}
               {FLEET_INVESTMENT.tenureMonths} months.
             </h3>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-slate-500">
+            <p className="mt-1 max-w-xl text-sm leading-6 text-white/65">
               Official poster: ₹1L returns {FLEET_INVESTMENT_STARTER.totalLabel} · ₹5L / ₹10L plans · then
               apply on Invest.
             </p>

@@ -196,13 +196,13 @@ export default function EvuddyNetwork() {
             Live EVUDDY network
           </p>
           <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] sm:text-5xl lg:text-[3.4rem]">
-            India, wired for
+            Hubs across India.
             <span className="mt-1 block bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              electric pickup.
+              Pickup at the yard.
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-base">
-            Hover the map. Nodes pulse. Packets travel city to city. Tap a hub and Google Maps opens the real yard.
+            Choose a live city. Open Google Maps to the hub. Pay, show OTP, ride — return when remaining rent is ₹0.
           </p>
         </div>
 

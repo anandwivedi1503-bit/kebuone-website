@@ -37,9 +37,9 @@ export default function PartnerSection() {
             PARTNER WITH EVUDDY
           </span>
           <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            Grow together.{" "}
+            Fleet, hub, franchise.{" "}
             <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              Build the future.
+              One EV network.
             </span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">

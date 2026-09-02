@@ -42,15 +42,8 @@ export default function Services() {
           </motion.h2>
 
           <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-slate-500 sm:text-lg">
-            A smart electric scooter for city commuting, with long range, fast charging and a premium ride.
+            A smart electric scooter for Indian city commuting — long range, hub charging and GPS on every ride.
           </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Hourly ₹60</span>
-            <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Daily ₹230</span>
-            <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Weekly ₹1,610</span>
-            <span className="rounded-full bg-[#F7FBF8] px-4 py-2 text-sm font-semibold">Monthly ₹6,900</span>
-            <span className="w-full rounded-full bg-[#0B1B16] px-4 py-2 text-center text-sm font-semibold text-white sm:w-auto">Rent to Own ₹280/day · 18 months</span>
-          </div>
         </div>
 
         <motion.div
