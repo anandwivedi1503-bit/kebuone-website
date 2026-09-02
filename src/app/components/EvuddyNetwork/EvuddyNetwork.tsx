@@ -50,6 +50,24 @@ const CITY_COORDS: Record<string, { x: number; y: number; lat: number; lng: numb
   Chandigarh: { x: 147.58, y: 157.43, lat: 30.7333, lng: 76.7794 },
 };
 
+function projectIndia(lat: number, lng: number) {
+  const x = ((lng - 68.1) / (97.4 - 68.1)) * 430 + 25;
+  const y = ((37.1 - lat) / (37.1 - 8)) * 480 + 40;
+  return {
+    x: Math.min(460, Math.max(20, x)),
+    y: Math.min(530, Math.max(70, y)),
+  };
+}
+
+function cityPoint(name: string, lat?: number, lng?: number) {
+  const hit = Object.keys(CITY_COORDS).find((key) => key.toLowerCase() === name.toLowerCase());
+  if (hit) return CITY_COORDS[hit];
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { ...projectIndia(lat as number, lng as number), lat: lat as number, lng: lng as number };
+  }
+  return { x: 210.3, y: 215.78, lat: 26.8467, lng: 80.9462 };
+}
+
 const FALLBACK_CITIES: CityMark[] = [
   { name: "Delhi", x: 154.05, y: 189.31, hubs: "Capital hub", hubCount: 1, lat: 28.6139, lng: 77.209 },
   { name: "Mathura", x: 160.97, y: 206.16, hubs: "Pickup yard", hubCount: 1, lat: 27.4924, lng: 77.6737 },
@@ -117,31 +135,37 @@ export default function EvuddyNetwork() {
   }, []);
 
   const marks = useMemo(() => {
-    const fromApi = liveCities
-      .map((name) => {
-        const hit = Object.keys(CITY_COORDS).find((key) => key.toLowerCase() === name.toLowerCase());
-        if (!hit) return null;
-        const point = CITY_COORDS[hit];
-        const cityHubs = liveHubs.filter((hub) => String(hub.city || "").toLowerCase() === name.toLowerCase());
-        const first = cityHubs[0];
-        return {
-          name,
-          x: point.x,
-          y: point.y,
-          lat: first?.latitude || point.lat,
-          lng: first?.longitude || point.lng,
-          hubCount: cityHubs.length,
-          hubs: first?.hubName
-            ? first.hubName
-            : cityHubs.length
-              ? `${cityHubs.length} live hub${cityHubs.length === 1 ? "" : "s"}`
-              : "EVUDDY hub",
-        };
-      })
-      .filter((item): item is CityMark => Boolean(item));
+    const fromApi = liveCities.map((name) => {
+      const cityHubs = liveHubs.filter(
+        (hub) => String(hub.city || "").toLowerCase() === name.toLowerCase()
+      );
+      const first = cityHubs[0];
+      const lat = Number(first?.latitude);
+      const lng = Number(first?.longitude);
+      const point = cityPoint(name, lat, lng);
+      return {
+        name,
+        x: point.x,
+        y: point.y,
+        lat: Number.isFinite(lat) ? lat : point.lat,
+        lng: Number.isFinite(lng) ? lng : point.lng,
+        hubCount: cityHubs.length,
+        hubs: first?.hubName
+          ? first.hubName
+          : cityHubs.length
+            ? `${cityHubs.length} live hub${cityHubs.length === 1 ? "" : "s"}`
+            : "EVUDDY hub",
+      } satisfies CityMark;
+    });
 
     return fromApi.length > 0 ? fromApi : FALLBACK_CITIES;
   }, [liveCities, liveHubs]);
+
+  useEffect(() => {
+    if (marks.length && !marks.some((city) => city.name === active.name)) {
+      setActive(marks[0]);
+    }
+  }, [marks, active.name]);
 
   const selected = marks.find((city) => city.name === active.name) ?? marks[0] ?? FALLBACK_CITIES[0];
 
@@ -197,12 +221,13 @@ export default function EvuddyNetwork() {
           </p>
           <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] sm:text-5xl lg:text-[3.4rem]">
             Hubs across India.
-            <span className="mt-1 block bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
+            <span className="mt-1 block text-[#18B368]">
               Pickup at the yard.
             </span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-base">
-            Choose a live city. Open Google Maps to the hub. Pay, show OTP, ride — return when remaining rent is ₹0.
+            Cities and hubs load from EVUDDY operations — not a marketing list. Choose a live city,
+            open Maps to the yard, pay, show OTP, ride.
           </p>
         </div>
 
