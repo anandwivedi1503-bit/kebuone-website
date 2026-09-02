@@ -1,6 +1,8 @@
 import Navbar from "./Navbar/Navbar";
 import AnchorScroll from "./components/AnchorScroll/AnchorScroll";
 import Hero from "./components/Hero/Hero";
+import HomeProductBand from "./components/HomeProductBand/HomeProductBand";
+import HomeProofStrip from "./components/HomeProofStrip/HomeProofStrip";
 import EvuddyNetwork from "./components/EvuddyNetwork/EvuddyNetwork";
 import Services from "./components/Services/Services";
 import WhyKebu from "./components/WhyKebu/WhyKebu";
@@ -12,25 +14,20 @@ import Footer from "./components/Footer/Footer";
 
 export default function Home() {
   return (
-      <main>
-            <AnchorScroll />
-            <Navbar />
-
-                  <Hero />
-                  <EvuddyNetwork />
-                  <Services />
-
-
-                  <WhyKebu />
-                  <InvestHomeInvite />
-                  <HowItWorks />
-
-
-
-                  <Stats />
-                  <Testimonials />
-
-                  <Footer />
-                      </main>
-                        );
-                        }
+    <main>
+      <AnchorScroll />
+      <Navbar />
+      <Hero />
+      <HomeProductBand />
+      <HomeProofStrip />
+      <EvuddyNetwork />
+      <Services />
+      <WhyKebu />
+      <InvestHomeInvite />
+      <HowItWorks />
+      <Stats />
+      <Testimonials />
+      <Footer />
+    </main>
+  );
+}

@@ -61,10 +61,8 @@ export default function Footer() {
 
       <div className="pointer-events-none absolute inset-0 hidden items-center justify-center overflow-hidden lg:flex">
 
-        <h1 className="select-none text-[220px] font-black tracking-[25px] text-white/[0.025]">
-
+        <h1 className="select-none text-[7rem] font-medium tracking-[0.4em] text-white/[0.035] lg:text-[9rem]">
           EVUDDY
-
         </h1>
 
       </div>
@@ -119,10 +117,10 @@ export default function Footer() {
                 Ready For The Future?
               </span>
 
-              <h2 className="mt-8 text-3xl font-black leading-tight sm:text-5xl md:text-7xl">
-                Move Smarter.
+              <h2 className="mt-8 text-3xl font-medium leading-[1.1] tracking-[-0.04em] sm:text-5xl">
+                Move smarter.
                 <br />
-                Move Electric.
+                Move electric.
               </h2>
 
               <p
@@ -336,6 +334,13 @@ export default function Footer() {
         className="block text-gray-400 transition hover:text-white"
       >
         About Us
+      </Link>
+
+      <Link
+        href="/Leadership"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Leadership
       </Link>
 
       <Link
