@@ -25,11 +25,9 @@ export async function riderAssistantHelp(
 
   const rider = await Rider.findOne({
     $and: [NOT_DELETED_FILTER, { $or: riderLookups }],
-  })
-    .select(
-      "riderId fullName approvalStatus status bookingEnabled kycStatus currentBookingId firebaseUid phone"
-    )
-    .lean();
+  }).select(
+    "riderId fullName approvalStatus status bookingEnabled kycStatus currentBookingId firebaseUid phone"
+  );
 
   if (!rider || !firebaseUserOwnsRider(firebaseUser, rider)) {
     return {
@@ -65,8 +63,7 @@ export async function riderAssistantHelp(
     .select(
       "bookingId rideStatus paymentStatus pendingAmount receivedAmount rentalMode pickupCity startHub vehicleId"
     )
-    .sort({ createdAt: -1 })
-    .lean();
+    .sort({ createdAt: -1 });
 
   const kyc = String(rider.approvalStatus || rider.kycStatus || rider.status || "");
   const kycLine = rider.bookingEnabled
