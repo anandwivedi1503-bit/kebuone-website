@@ -5,7 +5,7 @@ import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 export async function POST(req: Request) {
   try {
-    if (!rateLimitAllowed(`assistant:${clientIp(req)}`, 30, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`assistant:${clientIp(req)}`, 30, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "थोड़ी देर बाद फिर पूछें।" },
         { status: 429 }

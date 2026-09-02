@@ -5,6 +5,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { denyIfRiderOutOfHub } from "@/lib/staffHubScope";
 
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
@@ -333,6 +334,17 @@ export async function PATCH(
         },
         { status: 404 }
       );
+    }
+
+    const riderHubBlock = await denyIfRiderOutOfHub(
+      gate.session,
+      String(wallet.riderId || "")
+    );
+    if (riderHubBlock) {
+      await session.abortTransaction();
+      session.endSession();
+      session = null;
+      return riderHubBlock;
     }
 
     /*

@@ -478,6 +478,11 @@ export async function applyCapturedRazorpayPayment(
     };
   } catch (error) {
     console.error("APPLY CAPTURED PAYMENT ERROR:", error);
+    const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
+    void notifyOpsAlert(
+      "Payment apply failed",
+      `${razorpayPaymentId || "payment"} — ${errorMessage(error)}`
+    );
     return { ok: false, status: 500, message: errorMessage(error) };
   }
 }

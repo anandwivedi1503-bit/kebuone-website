@@ -20,6 +20,10 @@ import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
 import Refund from "@/models/Refund";
 import { getBookingPayableAmount } from "@/lib/gst";
+import {
+  hubForbiddenResponse,
+  staffCanAccessBooking,
+} from "@/lib/staffHubScope";
 
 const allowedPaymentModes = [
   "Cash",
@@ -195,9 +199,12 @@ export async function PATCH(
       );
     }
 
-    /* ---------------------------------------------------------------------- */
-    /* TERMINAL BOOKING PROTECTION                                            */
-    /* ---------------------------------------------------------------------- */
+    if (!staffCanAccessBooking(gate.session, booking)) {
+      await session.abortTransaction();
+      session.endSession();
+      session = null;
+      return hubForbiddenResponse();
+    }
 
     if (booking.rideStatus === "Completed") {
       await session.abortTransaction();

@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { ALL_DASHBOARDS } from "@/lib/adminRoles";
 
 export const SESSION_COOKIE_NAME = "kebu_admin_session";
+export const MFA_COOKIE_NAME = "kebu_admin_mfa";
 export const SESSION_MAX_AGE_SECONDS =
   Number(process.env.ADMIN_SESSION_MAX_AGE || 60 * 60 * 8);
 
@@ -56,7 +57,10 @@ export function createAdminSessionToken(info?: AdminSessionInfo) {
   const expiresAt = Date.now() + SESSION_MAX_AGE_SECONDS * 1000;
   const nonce = crypto.randomBytes(24).toString("hex");
 
-  if (!info || info.role === "super") {
+  const isEnvBootstrap =
+    !info || (info.role === "super" && info.username === "superadmin" && !info.sessionVersion);
+
+  if (isEnvBootstrap) {
     const payload = `${expiresAt}.${nonce}`;
     return `${payload}.${sign(payload)}`;
   }
@@ -110,7 +114,13 @@ export function readAdminSessionFromToken(
     const parsed = JSON.parse(
       Buffer.from(parts[2], "base64url").toString("utf8")
     ) as AdminSessionInfo;
-    if (parsed.role !== "staff" || !Array.isArray(parsed.dashboards)) {
+    if (parsed.role !== "staff" && parsed.role !== "super") {
+      return null;
+    }
+    if (parsed.role === "super" && !Array.isArray(parsed.dashboards)) {
+      parsed.dashboards = [...ALL_DASHBOARDS];
+    }
+    if (parsed.role === "staff" && !Array.isArray(parsed.dashboards)) {
       return null;
     }
     return parsed;
@@ -125,7 +135,7 @@ export async function getAdminSession(): Promise<AdminSessionInfo | null> {
     cookieStore.get(SESSION_COOKIE_NAME)?.value
   );
   if (!parsed) return null;
-  if (parsed.role !== "staff") return parsed;
+  if (parsed.role === "super" && parsed.username === "superadmin") return parsed;
 
   try {
     const { connectDB } = await import("@/lib/mongodb");
@@ -135,27 +145,29 @@ export async function getAdminSession(): Promise<AdminSessionInfo | null> {
       username: parsed.username,
       isActive: true,
     })
-      .select("username dashboards isActive sessionVersion hubs")
+      .select("username dashboards isActive sessionVersion hubs staffRole")
       .lean()) as {
       username?: string;
       dashboards?: string[];
       sessionVersion?: number;
       hubs?: string[];
+      staffRole?: string;
     } | null;
     if (!staff) return null;
     const tokenVersion = Number(parsed.sessionVersion || 0);
-    const dbVersion = Number(
-      (staff as { sessionVersion?: number }).sessionVersion || 0
-    );
+    const dbVersion = Number(staff.sessionVersion || 0);
     if (tokenVersion !== dbVersion) return null;
+    const namedSuper = staff.staffRole === "super";
     return {
-      role: "staff",
+      role: namedSuper ? "super" : "staff",
       username: String(staff.username),
-      dashboards: Array.isArray(staff.dashboards)
-        ? staff.dashboards.map(String)
-        : [],
+      dashboards: namedSuper
+        ? [...ALL_DASHBOARDS]
+        : Array.isArray(staff.dashboards)
+          ? staff.dashboards.map(String)
+          : [],
       sessionVersion: dbVersion,
-      hubs: Array.isArray(staff.hubs) ? staff.hubs.map(String) : [],
+      hubs: namedSuper ? [] : Array.isArray(staff.hubs) ? staff.hubs.map(String) : [],
     };
   } catch {
     return null;
@@ -171,6 +183,23 @@ export async function denyStaffDeletes() {
   if (!session) return unauthorizedResponse();
   if (session.role !== "super") return forbiddenResponse();
   return null;
+}
+
+export function createMfaPendingToken(username: string) {
+  const expiresAt = Date.now() + 5 * 60 * 1000;
+  const payload = `${expiresAt}.${username}`;
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readMfaPendingUsername(token?: string) {
+  if (!token) return null;
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+  const [expiresAt, username, signature] = parts;
+  if (!expiresAt || !username || !signature || !/^\d+$/.test(expiresAt)) return null;
+  if (Number(expiresAt) < Date.now()) return null;
+  if (!safeEqual(sign(`${expiresAt}.${username}`), signature)) return null;
+  return username;
 }
 
 export function getAdminSessionCookieOptions() {

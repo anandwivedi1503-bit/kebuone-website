@@ -9,7 +9,7 @@ const MAX_BYTES = 4 * 1024 * 1024;
 
 export async function POST(req: Request) {
   try {
-    if (!rateLimitAllowed(`assistant-stt:${clientIp(req)}`, 20, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`assistant-stt:${clientIp(req)}`, 20, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "थोड़ी देर बाद फिर बोलकर देखें।" },
         { status: 429 }

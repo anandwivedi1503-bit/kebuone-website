@@ -13,13 +13,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: false, message: "Sign in to ops first." }, { status: 401 });
     }
 
-    if (!rateLimitAllowed(`ops-pulse:${session.username}`, 60, 60 * 1000)) {
+    if (!(await rateLimitAllowed(`ops-pulse:${session.username}`, 60, 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "Please wait a moment." },
         { status: 429 }
       );
     }
-    if (!rateLimitAllowed(`ops-pulse-ip:${clientIp(req)}`, 90, 60 * 1000)) {
+    if (!(await rateLimitAllowed(`ops-pulse-ip:${clientIp(req)}`, 90, 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "Please wait a moment." },
         { status: 429 }

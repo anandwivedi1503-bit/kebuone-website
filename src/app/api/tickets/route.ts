@@ -15,6 +15,7 @@ import {
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
 import { findBookingRider } from "@/lib/findBookingRider";
@@ -92,7 +93,7 @@ export async function POST(req: Request) {
   let session: mongoose.ClientSession | null = null;
 
   try {
-    if (!rateLimitAllowed(`tickets:${clientIp(req)}`, 12, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`tickets:${clientIp(req)}`, 12, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, errors: ["Too many requests. Please try again later."] },
         { status: 429 }
@@ -396,6 +397,8 @@ export async function GET(req: Request) {
     const { page, limit, skip, q } = parsed;
     const filter: Record<string, unknown> = {};
     applyOpsListFilters(filter, parsed);
+    const bookingIds = await scopedBookingIds(gate.session);
+    Object.assign(filter, idInScopeFilter("bookingId", bookingIds));
 
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

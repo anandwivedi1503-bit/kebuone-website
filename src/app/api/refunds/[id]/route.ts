@@ -13,6 +13,7 @@ import mongoose from "mongoose";
 import { refundRazorpayPayment } from "@/lib/razorpay/refundRazorpayPayment";
 import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
+import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -69,6 +70,21 @@ export async function PATCH(
     session.startTransaction();
 
     const { id } = await params;
+
+    const earlyRefund = (await Refund.findById(id)
+      .select("bookingId")
+      .lean()) as { bookingId?: string } | null;
+    if (earlyRefund) {
+      const hubBlock = await denyIfBookingOutOfHub(
+        gate.session,
+        String(earlyRefund.bookingId || "")
+      );
+      if (hubBlock) {
+        await session.abortTransaction();
+        session.endSession();
+        return hubBlock;
+      }
+    }
 
     const body = await req.json();
 

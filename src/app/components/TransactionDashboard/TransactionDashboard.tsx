@@ -52,7 +52,7 @@ try {
 
 setLoading(true);
 
-const res = await fetch("/api/transactions?limit=500");
+const res = await fetch("/api/transactions?limit=80");
 
 const data = await res.json();
 

@@ -329,8 +329,8 @@ if (
     }
 
     if (
-      !rateLimitAllowed(`booking:${rider.riderId}`, 12, 10 * 60 * 1000) ||
-      !rateLimitAllowed(`booking-ip:${clientIp(req)}`, 40, 10 * 60 * 1000)
+      !(await rateLimitAllowed(`booking:${rider.riderId}`, 12, 10 * 60 * 1000)) ||
+      !(await rateLimitAllowed(`booking-ip:${clientIp(req)}`, 40, 10 * 60 * 1000))
     ) {
       await session.abortTransaction();
       await session.endSession();

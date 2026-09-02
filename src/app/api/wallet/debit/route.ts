@@ -13,6 +13,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { denyIfRiderOutOfHub } from "@/lib/staffHubScope";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 function normalizeRiderId(value: unknown): string {
@@ -127,9 +128,11 @@ export async function POST(req: Request) {
       );
     }
 
-    /*
-     * AMOUNT
-     */
+    const riderHubBlock = await denyIfRiderOutOfHub(
+      gate.session,
+      normalizedRiderId
+    );
+    if (riderHubBlock) return riderHubBlock;
     debitAmount =
       parseAmount(body.amount);
 

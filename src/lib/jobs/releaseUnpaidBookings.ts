@@ -148,6 +148,11 @@ export async function maybeSweepUnpaidBookings() {
     return { unpaid, rto };
   } catch (error) {
     console.error("UNPAID BOOKING SWEEP ERROR:", error);
+    const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
+    void notifyOpsAlert(
+      "Unpaid sweep failed",
+      String(error instanceof Error ? error.message : error)
+    );
     return null;
   }
 }

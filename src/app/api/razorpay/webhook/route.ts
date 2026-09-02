@@ -35,6 +35,11 @@ export async function POST(req: Request) {
     // Production must verify webhooks — fail closed so misconfig is visible.
     if (process.env.NODE_ENV === "production") {
       console.error("RAZORPAY_WEBHOOK_SECRET is missing — webhook rejected.");
+      const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
+      void notifyOpsAlert(
+        "Webhook secret missing",
+        "RAZORPAY_WEBHOOK_SECRET is not set on the live host. Captured payments will not be applied by webhook."
+      );
       return NextResponse.json(
         { success: false, message: "Webhook secret not configured." },
         { status: 503 }
@@ -122,6 +127,11 @@ export async function POST(req: Request) {
   });
 
   if (!result.ok && result.status >= 500) {
+    const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
+    void notifyOpsAlert(
+      "Razorpay capture failed",
+      `Webhook could not apply ${razorpayPaymentId} on booking ${booking.bookingId}.`
+    );
     return NextResponse.json({ success: false }, { status: 500 });
   }
 

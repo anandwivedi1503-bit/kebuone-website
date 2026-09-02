@@ -65,7 +65,7 @@ const loadWallets = async (showPageLoader = false) => {
   }
 
   try {
-    const res = await fetch("/api/wallet?limit=500", {
+    const res = await fetch("/api/wallet?limit=80", {
       cache: "no-store",
     });
 
@@ -90,7 +90,7 @@ const loadWallets = async (showPageLoader = false) => {
 const loadTransactions = async () => {
   try {
     const res = await fetch(
-      "/api/wallet-transactions?limit=500",
+      "/api/wallet-transactions?limit=80",
       {
         cache: "no-store",
       }

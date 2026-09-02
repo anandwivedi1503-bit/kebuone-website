@@ -3,6 +3,13 @@ import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
 import type { AdminSessionInfo } from "@/lib/adminAuth";
+import {
+  applyHubScope,
+  idInScopeFilter,
+  scopedBookingIds,
+  scopedRiderIds,
+  sessionHubScope,
+} from "@/lib/staffHubScope";
 import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
 import Booking from "@/models/Booking";
@@ -71,8 +78,59 @@ const leanRecent = {
   _id: 1,
 } as const;
 
-export async function getAdminCommandCenter() {
+export async function getAdminCommandCenter(session: AdminSessionInfo) {
   await connectDB();
+
+  const hubCodes = sessionHubScope(session);
+  const bookingFilter = applyHubScope(
+    { ...NOT_DELETED_FILTER },
+    hubCodes,
+    ["currentHub", "startHub"]
+  );
+  const vehicleFilter = applyHubScope(
+    { ...NOT_DELETED_FILTER },
+    hubCodes,
+    ["currentHub"]
+  );
+  const hubFilter = hubCodes
+    ? { ...NOT_DELETED_FILTER, hubCode: { $in: hubCodes } }
+    : NOT_DELETED_FILTER;
+  const batteryFilter = hubCodes
+    ? { ...NOT_DELETED_FILTER, hubId: { $in: hubCodes } }
+    : NOT_DELETED_FILTER;
+  const bookingIds = await scopedBookingIds(session);
+  const riderIds = await scopedRiderIds(session);
+  const ticketFilter = {
+    ...NOT_DELETED_FILTER,
+    ...idInScopeFilter("bookingId", bookingIds),
+  };
+  const refundFilter = {
+    ...NOT_DELETED_FILTER,
+    ...idInScopeFilter("bookingId", bookingIds),
+  };
+  const txFilter = {
+    ...NOT_DELETED_FILTER,
+    ...idInScopeFilter("bookingId", bookingIds),
+  };
+  const walletFilter = {
+    ...NOT_DELETED_FILTER,
+    ...idInScopeFilter("riderId", riderIds),
+  };
+  const riderFilter = {
+    ...NOT_DELETED_FILTER,
+    ...idInScopeFilter("riderId", riderIds),
+  };
+  const vehicleIds = hubCodes
+    ? (
+        await Vehicle.distinct("vehicleId", vehicleFilter)
+      ).map((id) => String(id || "").trim())
+    : null;
+  const iotFilter = vehicleIds
+    ? {
+        ...NOT_DELETED_FILTER,
+        vehicleId: { $in: vehicleIds.length ? vehicleIds : ["__none__"] },
+      }
+    : NOT_DELETED_FILTER;
 
   const [
     riders,
@@ -105,55 +163,55 @@ export async function getAdminCommandCenter() {
     recentSwaps,
     recentPartners,
   ] = await Promise.all([
-    Rider.countDocuments(NOT_DELETED_FILTER).maxTimeMS(2500),
-    Vehicle.countDocuments(NOT_DELETED_FILTER).maxTimeMS(2500),
-    Hub.countDocuments(NOT_DELETED_FILTER).maxTimeMS(2500),
-    Hub.countDocuments({ ...NOT_DELETED_FILTER, status: "Active" }).maxTimeMS(2500),
+    Rider.countDocuments(riderFilter).maxTimeMS(2500),
+    Vehicle.countDocuments(vehicleFilter).maxTimeMS(2500),
+    Hub.countDocuments(hubFilter).maxTimeMS(2500),
+    Hub.countDocuments({ ...hubFilter, status: "Active" }).maxTimeMS(2500),
     Vehicle.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...vehicleFilter,
       vehicleStatus: "Available",
     }).maxTimeMS(2500),
-    Booking.countDocuments({ ...NOT_DELETED_FILTER, rideStatus: "In Ride" }).maxTimeMS(2500),
-    Ticket.countDocuments({ ...NOT_DELETED_FILTER, status: "OPEN" }).maxTimeMS(2500),
+    Booking.countDocuments({ ...bookingFilter, rideStatus: "In Ride" }).maxTimeMS(2500),
+    Ticket.countDocuments({ ...ticketFilter, status: "OPEN" }).maxTimeMS(2500),
     Refund.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...refundFilter,
       refundStatus: { $in: ["PROCESSING", "PENDING"] },
     }).maxTimeMS(2500),
     IoT.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...iotFilter,
       gpsStatus: "ONLINE",
     }).maxTimeMS(2500),
     IoT.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...iotFilter,
       gpsStatus: "OFFLINE",
     }).maxTimeMS(2500),
     IoT.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...iotFilter,
       batteryPercentage: { $lte: 20 },
     }).maxTimeMS(2500),
     IoT.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...iotFilter,
       alertType: { $nin: [null, ""] },
     }).maxTimeMS(2500),
-    Battery.countDocuments({ ...NOT_DELETED_FILTER, status: "READY" }).maxTimeMS(2500),
-    Battery.countDocuments({ ...NOT_DELETED_FILTER, status: "CHARGING" }).maxTimeMS(2500),
+    Battery.countDocuments({ ...batteryFilter, status: "READY" }).maxTimeMS(2500),
+    Battery.countDocuments({ ...batteryFilter, status: "CHARGING" }).maxTimeMS(2500),
     Battery.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...batteryFilter,
       chargePercentage: { $lte: 20 },
     }).maxTimeMS(2500),
-    BatterySwap.countDocuments({ ...NOT_DELETED_FILTER, status: "PENDING" }).maxTimeMS(2500),
-    BatterySwap.countDocuments({ ...NOT_DELETED_FILTER, status: "COMPLETED" }).maxTimeMS(2500),
+    BatterySwap.countDocuments({ ...batteryFilter, status: "PENDING" }).maxTimeMS(2500),
+    BatterySwap.countDocuments({ ...batteryFilter, status: "COMPLETED" }).maxTimeMS(2500),
     Partner.countDocuments({ applicationStatus: "Pending" }).maxTimeMS(2500),
     Partner.countDocuments({ applicationStatus: "Approved" }).maxTimeMS(2500),
-    Wallet.countDocuments(NOT_DELETED_FILTER).maxTimeMS(2500),
+    Wallet.countDocuments(walletFilter).maxTimeMS(2500),
     Wallet.countDocuments({
-      ...NOT_DELETED_FILTER,
+      ...walletFilter,
       $or: [{ status: "Blocked" }, { adminBlocked: true }],
     }).maxTimeMS(2500),
     Wallet.aggregate([
       {
         $match: {
-          ...NOT_DELETED_FILTER,
+          ...walletFilter,
           status: { $ne: "Blocked" },
           adminBlocked: { $ne: true },
         },
@@ -180,34 +238,34 @@ export async function getAdminCommandCenter() {
     Transaction.aggregate([
       {
         $match: {
-          ...NOT_DELETED_FILTER,
+          ...txFilter,
           status: "Success",
           transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
         },
       },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]),
-    Booking.find(NOT_DELETED_FILTER)
+    Booking.find(bookingFilter)
       .select(leanRecent)
       .sort({ createdAt: -1 })
       .limit(6)
       .lean(),
-    Transaction.find(NOT_DELETED_FILTER)
+    Transaction.find(txFilter)
       .select(leanRecent)
       .sort({ createdAt: -1 })
       .limit(6)
       .lean(),
-    Ticket.find(NOT_DELETED_FILTER)
+    Ticket.find(ticketFilter)
       .select(leanRecent)
       .sort({ createdAt: -1 })
       .limit(6)
       .lean(),
-    Refund.find(NOT_DELETED_FILTER)
+    Refund.find(refundFilter)
       .select(leanRecent)
       .sort({ createdAt: -1 })
       .limit(6)
       .lean(),
-    BatterySwap.find(NOT_DELETED_FILTER)
+    BatterySwap.find(batteryFilter)
       .select(leanRecent)
       .sort({ createdAt: -1 })
       .limit(6)

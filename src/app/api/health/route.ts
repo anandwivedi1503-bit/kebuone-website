@@ -6,7 +6,7 @@ import { readJobHeartbeat } from "@/lib/jobHeartbeat";
 
 export async function GET(req: Request) {
   try {
-    if (!rateLimitAllowed(`health:${clientIp(req)}`, 120, 60 * 1000)) {
+    if (!(await rateLimitAllowed(`health:${clientIp(req)}`, 120, 60 * 1000))) {
       return NextResponse.json(
         {
           success: true,

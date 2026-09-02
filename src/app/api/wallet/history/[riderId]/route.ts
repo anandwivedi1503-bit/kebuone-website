@@ -11,6 +11,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { denyIfRiderOutOfHub } from "@/lib/staffHubScope";
 
 export async function GET(
   req: Request,
@@ -41,6 +42,12 @@ export async function GET(
         { status: 400 }
       );
     }
+
+    const riderHubBlock = await denyIfRiderOutOfHub(
+      gate.session,
+      normalizedRiderId
+    );
+    if (riderHubBlock) return riderHubBlock;
 
     const wallet = await Wallet.findOne({
       riderId: normalizedRiderId,

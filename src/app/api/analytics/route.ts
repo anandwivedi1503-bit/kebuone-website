@@ -11,6 +11,13 @@ import { isAdminAuthenticated,
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { publicApiError } from "@/lib/publicError";
 import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
+import {
+  applyHubScope,
+  idInScopeFilter,
+  scopedBookingIds,
+  scopedRiderIds,
+  sessionHubScope,
+} from "@/lib/staffHubScope";
 
 const NOT_DELETED = {
   $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
@@ -22,6 +29,20 @@ export async function GET(req: Request) {
     if (gate.error) return gate.error;
 
     await connectDB();
+
+    const hubs = sessionHubScope(gate.session);
+    const bookingIds = await scopedBookingIds(gate.session);
+    const riderIds = await scopedRiderIds(gate.session);
+    const bookingMatch = applyHubScope({ ...NOT_DELETED }, hubs, [
+      "currentHub",
+      "startHub",
+    ]);
+    const vehicleMatch = applyHubScope({ ...NOT_DELETED }, hubs, ["currentHub"]);
+    const hubMatch = hubs
+      ? { ...NOT_DELETED, hubCode: { $in: hubs } }
+      : NOT_DELETED;
+    const riderMatch = { ...NOT_DELETED, ...idInScopeFilter("riderId", riderIds) };
+    const txMatch = { ...NOT_DELETED, ...idInScopeFilter("bookingId", bookingIds) };
 
     const { searchParams } = new URL(req.url);
     const period = searchParams.get("period") || "all";
@@ -68,12 +89,12 @@ export async function GET(req: Request) {
       hubBookingsAgg,
       vehicleBookingsAgg,
     ] = await Promise.all([
-      Rider.countDocuments(NOT_DELETED),
-      Vehicle.countDocuments(NOT_DELETED),
-      Hub.countDocuments(NOT_DELETED),
-      Booking.countDocuments({ ...NOT_DELETED, ...createdInPeriod }),
+      Rider.countDocuments(riderMatch),
+      Vehicle.countDocuments(vehicleMatch),
+      Hub.countDocuments(hubMatch),
+      Booking.countDocuments({ ...bookingMatch, ...createdInPeriod }),
       Transaction.countDocuments({
-        ...NOT_DELETED,
+        ...txMatch,
         ...createdInPeriod,
         status: "Success",
         transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
@@ -81,7 +102,7 @@ export async function GET(req: Request) {
       Transaction.aggregate([
         {
           $match: {
-            ...NOT_DELETED,
+            ...txMatch,
             ...createdInPeriod,
             status: "Success",
             transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
@@ -90,24 +111,24 @@ export async function GET(req: Request) {
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Booking.countDocuments({
-        ...NOT_DELETED,
+        ...bookingMatch,
         rideStatus: "In Ride",
       }),
-      Booking.countDocuments({ ...NOT_DELETED, ...createdInPeriod, rideStatus: "Completed" }),
-      Booking.countDocuments({ ...NOT_DELETED, ...createdInPeriod, rideStatus: "Cancelled" }),
-      Transaction.countDocuments({ ...NOT_DELETED, ...createdInPeriod }),
-      Vehicle.countDocuments({ ...NOT_DELETED, vehicleStatus: "Available" }),
-      Vehicle.countDocuments({ ...NOT_DELETED, vehicleStatus: "In Ride" }),
-      Vehicle.countDocuments({ ...NOT_DELETED, vehicleStatus: "Maintenance" }),
+      Booking.countDocuments({ ...bookingMatch, ...createdInPeriod, rideStatus: "Completed" }),
+      Booking.countDocuments({ ...bookingMatch, ...createdInPeriod, rideStatus: "Cancelled" }),
+      Transaction.countDocuments({ ...txMatch, ...createdInPeriod }),
+      Vehicle.countDocuments({ ...vehicleMatch, vehicleStatus: "Available" }),
+      Vehicle.countDocuments({ ...vehicleMatch, vehicleStatus: "In Ride" }),
+      Vehicle.countDocuments({ ...vehicleMatch, vehicleStatus: "Maintenance" }),
       Vehicle.countDocuments({
-        ...NOT_DELETED,
+        ...vehicleMatch,
         $or: [{ vehicleStatus: "Low Battery" }, { batteryPercentage: { $lte: 20 } }],
       }),
-      Rider.countDocuments({ ...NOT_DELETED, activeRide: true }),
+      Rider.countDocuments({ ...riderMatch, activeRide: true }),
       Transaction.aggregate([
         {
           $match: {
-            ...NOT_DELETED,
+            ...txMatch,
             status: "Success",
             transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
             createdAt: { $gte: new Date(now.getFullYear(), 0, 1) },
@@ -118,7 +139,7 @@ export async function GET(req: Request) {
       Booking.aggregate([
         {
           $match: {
-            ...NOT_DELETED,
+            ...bookingMatch,
             createdAt: { $gte: new Date(now.getFullYear(), 0, 1) },
           },
         },
@@ -127,7 +148,7 @@ export async function GET(req: Request) {
       Transaction.aggregate([
         {
           $match: {
-            ...NOT_DELETED,
+            ...txMatch,
             ...createdInPeriod,
             status: "Success",
             transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
@@ -136,13 +157,13 @@ export async function GET(req: Request) {
         { $group: { _id: "$paymentMethod", total: { $sum: 1 } } },
       ]),
       Booking.aggregate([
-        { $match: { ...NOT_DELETED, ...createdInPeriod } },
+        { $match: { ...bookingMatch, ...createdInPeriod } },
         { $group: { _id: "$startHub", total: { $sum: 1 } } },
         { $sort: { total: -1 } },
         { $limit: 5 },
       ]),
       Booking.aggregate([
-        { $match: { ...NOT_DELETED, ...createdInPeriod } },
+        { $match: { ...bookingMatch, ...createdInPeriod } },
         { $group: { _id: "$vehicleModel", total: { $sum: 1 } } },
         { $sort: { total: -1 } },
         { $limit: 5 },

@@ -8,6 +8,7 @@ import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { openDueRtoDays } from "@/lib/jobs/releaseUnpaidBookings";
 import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
+import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 
 export const runtime = "nodejs";
 
@@ -19,7 +20,15 @@ export async function GET() {
     await openDueRtoDays(120);
 
     const contracts = await Booking.find({
-      $and: [NOT_DELETED_FILTER, { rentalMode: "Rent To Own" }],
+      $and: [
+        NOT_DELETED_FILTER,
+        { rentalMode: "Rent To Own" },
+        applyHubScope(
+          {},
+          sessionHubScope(gate.session),
+          ["currentHub", "startHub"]
+        ),
+      ],
     })
       .sort({ updatedAt: -1 })
       .limit(300)

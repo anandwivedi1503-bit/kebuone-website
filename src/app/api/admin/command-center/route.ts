@@ -13,13 +13,13 @@ export async function GET(req: Request) {
   const session = await getAdminSession();
   if (!session) return unauthorizedResponse();
 
-  if (!rateLimitAllowed(`admin-cc:${session.username}`, 40, 60 * 1000)) {
+  if (!(await rateLimitAllowed(`admin-cc:${session.username}`, 40, 60 * 1000))) {
     return NextResponse.json(
       { success: false, message: "Please wait a moment." },
       { status: 429 }
     );
   }
-  if (!rateLimitAllowed(`admin-cc-ip:${clientIp(req)}`, 80, 60 * 1000)) {
+  if (!(await rateLimitAllowed(`admin-cc-ip:${clientIp(req)}`, 80, 60 * 1000))) {
     return NextResponse.json(
       { success: false, message: "Please wait a moment." },
       { status: 429 }
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, hits });
     }
 
-    const snapshot = await getAdminCommandCenter();
+    const snapshot = await getAdminCommandCenter(session);
     return NextResponse.json({ success: true, ...snapshot });
   } catch (error) {
     console.error("ADMIN COMMAND CENTER:", error);

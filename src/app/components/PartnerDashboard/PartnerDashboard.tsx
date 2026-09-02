@@ -25,7 +25,7 @@ const loadPartners = async () => {
   try {
     setLoading(true);
 
-    const res = await fetch("/api/partners?limit=500");
+    const res = await fetch("/api/partners?limit=80");
     const data = await res.json();
 
     setPartners(data.data || []);

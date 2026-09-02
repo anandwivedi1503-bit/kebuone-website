@@ -37,7 +37,7 @@ useEffect(() => {
 
 const loadData = async () => {
 
-const ticketRes = await fetch("/api/tickets?limit=500");
+const ticketRes = await fetch("/api/tickets?limit=80");
 const ticketData = await ticketRes.json();
 setTickets(ticketData.data || []);
 
@@ -74,7 +74,7 @@ const data = await res.json();
 
 if (data.success) {
 
-  const ticketRes = await fetch("/api/tickets?limit=500");
+  const ticketRes = await fetch("/api/tickets?limit=80");
 
   const ticketData = await ticketRes.json();
 
@@ -574,7 +574,7 @@ status:e.target.value
 
 });
 
- const ticketRes = await fetch("/api/tickets?limit=500");
+ const ticketRes = await fetch("/api/tickets?limit=80");
 const ticketData = await ticketRes.json();
 
 setTickets(ticketData.data || []);
@@ -650,7 +650,7 @@ await fetch(`/api/tickets/${ticket._id}`,{
 method:"DELETE",
 });
 
-const ticketRes = await fetch("/api/tickets?limit=500");
+const ticketRes = await fetch("/api/tickets?limit=80");
 const ticketData = await ticketRes.json();
 
 setTickets(ticketData.data || []);

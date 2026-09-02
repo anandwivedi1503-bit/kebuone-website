@@ -16,6 +16,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { denyIfRiderOutOfHub } from "@/lib/staffHubScope";
 
 function normalizeRiderId(value: unknown) {
   return String(value || "")
@@ -133,6 +134,12 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    const riderHubBlock = await denyIfRiderOutOfHub(
+      gate.session,
+      normalizedRiderId
+    );
+    if (riderHubBlock) return riderHubBlock;
 
     /*
      * AMOUNT

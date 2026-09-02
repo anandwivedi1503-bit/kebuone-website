@@ -6,6 +6,7 @@ import { API_DASHBOARDS } from "@/lib/adminCan";
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
 import { connectDB } from "@/lib/mongodb";
 import AuditLog from "@/models/AuditLog";
+import { idInScopeFilter, scopedBookingIds, scopedRiderIds } from "@/lib/staffHubScope";
 
 export async function GET(req: Request) {
   try {
@@ -18,6 +19,19 @@ export async function GET(req: Request) {
     const { page, limit, skip, q } = parsed;
     const filter: Record<string, unknown> = {};
     applyOpsListFilters(filter, parsed);
+    const bookingIds = await scopedBookingIds(gate.session);
+    const riderIds = await scopedRiderIds(gate.session);
+    if (bookingIds && riderIds) {
+      filter.$and = [
+        ...((filter.$and as unknown[]) || []),
+        {
+          $or: [
+            { bookingId: { $in: bookingIds.length ? bookingIds : ["__none__"] } },
+            { riderId: { $in: riderIds.length ? riderIds : ["__none__"] } },
+          ],
+        },
+      ];
+    }
 
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");

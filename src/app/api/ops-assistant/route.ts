@@ -13,14 +13,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, message: "Sign in to ops first." }, { status: 401 });
     }
 
-    if (!rateLimitAllowed(`ops-assistant:${session.username}`, 50, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`ops-assistant:${session.username}`, 50, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "Please wait a moment before asking again." },
         { status: 429 }
       );
     }
 
-    if (!rateLimitAllowed(`ops-assistant-ip:${clientIp(req)}`, 80, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`ops-assistant-ip:${clientIp(req)}`, 80, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "Please wait a moment before asking again." },
         { status: 429 }

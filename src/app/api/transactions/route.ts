@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
 import Booking from "@/models/Booking";
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
@@ -60,6 +61,8 @@ export async function GET(req: Request) {
       ],
     };
     applyOpsListFilters(filter, parsed);
+    const bookingIds = await scopedBookingIds(gate.session);
+    Object.assign(filter, idInScopeFilter("bookingId", bookingIds));
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const and = (filter.$and as unknown[]) || [];

@@ -11,6 +11,7 @@ import { connectDB } from "@/lib/mongodb";
 import Wallet from "@/models/Wallet";
 import Rider from "@/models/Rider";
 import { attachLiveBookingsByRider } from "@/lib/opsMoneySummary";
+import { denyIfRiderOutOfHub, idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
 
 import mongoose from "mongoose";
 
@@ -137,6 +138,13 @@ export async function GET(req: Request) {
       }
 
       filter.riderId = riderId;
+      const riderHubBlock = await denyIfRiderOutOfHub(gate.session, riderId);
+      if (riderHubBlock) return riderHubBlock;
+    } else {
+      Object.assign(
+        filter,
+        idInScopeFilter("riderId", await scopedRiderIds(gate.session))
+      );
     }
 
     /*
@@ -261,6 +269,9 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
+
+    const riderHubBlock = await denyIfRiderOutOfHub(gate.session, riderId);
+    if (riderHubBlock) return riderHubBlock;
 
     /*
      * Check whether a wallet already exists.
