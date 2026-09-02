@@ -39,17 +39,19 @@ type SessionInfo = {
 export default function DashboardContainer() {
   const [activeDashboard, setActiveDashboard] = useState("admin");
   const [session, setSession] = useState<SessionInfo | null>(null);
+  const [sessionReady, setSessionReady] = useState(false);
 
   useEffect(() => {
     const load = async () => {
       const res = await fetch("/api/admin/me", { cache: "no-store" });
       const data = await res.json();
       if (data.success) setSession(data.data);
+      setSessionReady(true);
     };
     void load();
   }, []);
 
-  const isSuper = !session || session.role === "super";
+  const isSuper = session?.role === "super";
   const allowed = isSuper ? [...ALL_DASHBOARDS] : session?.dashboards || [];
   const allowedKey = allowed.join(",");
 
@@ -75,6 +77,10 @@ export default function DashboardContainer() {
 
       <main className="min-h-screen pt-14 lg:ml-[272px] lg:pt-0">
         <div className="px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
+          {!sessionReady ? (
+            <p className="rounded-3xl bg-white p-8 text-slate-600">Loading ops access…</p>
+          ) : (
+            <>
           {activeDashboard === "admin" && show("admin") && (
             <AdminDashboard setActiveDashboard={setActiveDashboard} />
           )}
@@ -116,6 +122,8 @@ export default function DashboardContainer() {
               This login has no dashboards assigned. Ask super admin to grant access.
             </p>
           ) : null}
+            </>
+          )}
         </div>
       </main>
       <OpsAssistant onOpenDashboard={setActiveDashboard} />

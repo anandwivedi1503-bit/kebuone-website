@@ -2,20 +2,37 @@ import Booking from "@/models/Booking";
 import Refund from "@/models/Refund";
 import Transaction from "@/models/Transaction";
 import Wallet from "@/models/Wallet";
+import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
+import {
+  applyHubScope,
+  idInScopeFilter,
+  scopedBookingIds,
+  scopedRiderIds,
+  sessionHubScope,
+} from "@/lib/staffHubScope";
 
 function roundMoney(value: number) {
   return Math.round(Number(value || 0) * 100) / 100;
 }
 
-export async function getOpsMoneySummary() {
+export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
   const notDeleted = {
     $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
   };
+  const hubs = sessionHubScope(session);
+  const bookingIds = await scopedBookingIds(session);
+  const riderIds = await scopedRiderIds(session);
+  const bookingMatch = applyHubScope({ ...notDeleted }, hubs, [
+    "currentHub",
+    "startHub",
+  ]);
+  const txScope = idInScopeFilter("bookingId", bookingIds);
+  const walletScope = idInScopeFilter("riderId", riderIds);
 
   const [bookingAgg, txnAgg, cashAgg, walletAgg, refundAgg] = await Promise.all([
     Booking.aggregate([
-      { $match: notDeleted },
+      { $match: bookingMatch },
       {
         $group: {
           _id: null,
@@ -64,6 +81,7 @@ export async function getOpsMoneySummary() {
             $in: [...REVENUE_TRANSACTION_TYPES],
           },
           ...notDeleted,
+          ...txScope,
         },
       },
       {
@@ -81,6 +99,7 @@ export async function getOpsMoneySummary() {
           status: "Success",
           transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
           ...notDeleted,
+          ...txScope,
         },
       },
       {
@@ -104,7 +123,7 @@ export async function getOpsMoneySummary() {
       },
     ]),
     Wallet.aggregate([
-      { $match: notDeleted },
+      { $match: { ...notDeleted, ...walletScope } },
       {
         $group: {
           _id: null,
@@ -117,6 +136,7 @@ export async function getOpsMoneySummary() {
     Refund.aggregate([
       {
         $match: {
+          ...txScope,
           $or: [
             { bookingId: { $exists: true, $nin: [null, ""] } },
             { ticketId: { $exists: true, $nin: [null, ""] } },

@@ -40,6 +40,7 @@ async function isValidSessionToken(token: string | undefined, secret: string) {
     if (!expiresAt || !nonce || !signature || !/^\d+$/.test(expiresAt)) {
       return false;
     }
+    if (!/^[0-9a-f]{64}$/i.test(signature)) return false;
     if (Number(expiresAt) < Date.now()) return false;
     return hmacValid(secret, `${expiresAt}.${nonce}`, signature);
   }
@@ -49,6 +50,7 @@ async function isValidSessionToken(token: string | undefined, secret: string) {
     if (!expiresAt || !nonce || !body || !signature || !/^\d+$/.test(expiresAt)) {
       return false;
     }
+    if (!/^[0-9a-f]{64}$/i.test(signature)) return false;
     if (Number(expiresAt) < Date.now()) return false;
     return hmacValid(secret, `${expiresAt}.${nonce}.${body}`, signature);
   }

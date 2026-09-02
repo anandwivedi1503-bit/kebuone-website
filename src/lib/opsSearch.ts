@@ -12,6 +12,13 @@ import Ticket from "@/models/Ticket";
 import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
+import {
+  applyHubScope,
+  idInScopeFilter,
+  scopedBookingIds,
+  scopedRiderIds,
+  sessionHubScope,
+} from "@/lib/staffHubScope";
 
 export type OpsHit = {
   kind: string;
@@ -113,6 +120,18 @@ export async function universalOpsSearch(
   const hasIdentity = Boolean(q.phone || q.bookingId || q.riderId || q.ticketId || q.vehicleToken);
   const hasText = Boolean(q.fuzzy);
   const searchAll = hasIdentity || hasText;
+  const hubs = sessionHubScope(session);
+  const bookingIds = await scopedBookingIds(session);
+  const riderIds = await scopedRiderIds(session);
+  const bookingBase = () =>
+    applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub", "startHub"]);
+  const vehicleBase = () => applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub"]);
+  const ticketScope = idInScopeFilter("bookingId", bookingIds);
+  const riderScope = idInScopeFilter("riderId", riderIds);
+  const walletScope = idInScopeFilter("riderId", riderIds);
+  const txScope = idInScopeFilter("bookingId", bookingIds);
+  const hubScopeFilter = hubs ? { hubCode: { $in: hubs } } : {};
+  const batteryScope = hubs ? { hubId: { $in: hubs } } : {};
 
   if (q.wantSummary || q.wantCounts || q.wantUnpaid || q.wantInRide || q.wantOpenTickets || q.wantKyc || q.wantAvailable) {
     if (can(session, API_DASHBOARDS.bookingsRead)) {
@@ -120,17 +139,17 @@ export async function universalOpsSearch(
         (async () => {
           const [unpaid, inRide, rtoDue, ready] = await Promise.all([
             Booking.countDocuments({
-              ...NOT_DELETED_FILTER,
+              ...bookingBase(),
               paymentStatus: { $in: ["Pending", "Partial"] },
             }).maxTimeMS(1500),
-            Booking.countDocuments({ ...NOT_DELETED_FILTER, rideStatus: "In Ride" }).maxTimeMS(1500),
+            Booking.countDocuments({ ...bookingBase(), rideStatus: "In Ride" }).maxTimeMS(1500),
             Booking.countDocuments({
-              ...NOT_DELETED_FILTER,
+              ...bookingBase(),
               rentalMode: "Rent To Own",
               paymentStatus: { $in: ["Pending", "Partial"] },
             }).maxTimeMS(1500),
             Booking.countDocuments({
-              ...NOT_DELETED_FILTER,
+              ...bookingBase(),
               rideStatus: "Ready For Pickup",
             }).maxTimeMS(1500),
           ]);
@@ -154,6 +173,7 @@ export async function universalOpsSearch(
         (async () => {
           const open = await Ticket.countDocuments({
             ...NOT_DELETED_FILTER,
+            ...ticketScope,
             status: { $in: ["OPEN", "IN-PROGRESS"] },
           }).maxTimeMS(1500);
           stats.push({ label: "Tickets", value: String(open), dashboard: "support" });
@@ -165,6 +185,7 @@ export async function universalOpsSearch(
         (async () => {
           const pending = await Rider.countDocuments({
             ...NOT_DELETED_FILTER,
+            ...riderScope,
             $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
           }).maxTimeMS(1500);
           stats.push({ label: "KYC", value: String(pending), dashboard: "kyc" });
@@ -175,7 +196,7 @@ export async function universalOpsSearch(
       tasks.push(
         (async () => {
           const available = await Vehicle.countDocuments({
-            ...NOT_DELETED_FILTER,
+            ...vehicleBase(),
             vehicleStatus: "Available",
           }).maxTimeMS(1500);
           stats.push({ label: "Available", value: String(available), dashboard: "vehicles" });
@@ -187,6 +208,7 @@ export async function universalOpsSearch(
         (async () => {
           const pending = await Refund.countDocuments({
             ...NOT_DELETED_FILTER,
+            ...txScope,
             status: "PENDING",
           }).maxTimeMS(1500);
           stats.push({ label: "Refunds", value: String(pending), dashboard: "refunds" });
@@ -220,7 +242,7 @@ export async function universalOpsSearch(
           });
         }
         if (!and.length) return;
-        const rows = await Booking.find({ ...NOT_DELETED_FILTER, $and: and })
+        const rows = await Booking.find({ ...bookingBase(), $and: and })
           .select(
             "bookingId riderId userName userPhone rideStatus paymentStatus pendingAmount pickupCity startHub rentalMode vehicleId"
           )
@@ -255,7 +277,7 @@ export async function universalOpsSearch(
             $or: [{ riderId: q.fuzzy }, { fullName: q.fuzzy }, { phone: q.fuzzy }, { email: q.fuzzy }],
           });
         } else return;
-        const rows = await Rider.find({ $and: and })
+        const rows = await Rider.find({ $and: and, ...riderScope })
           .select("riderId fullName phone approvalStatus status bookingEnabled")
           .sort({ createdAt: -1 })
           .limit(12)
@@ -295,7 +317,7 @@ export async function universalOpsSearch(
           });
         }
         if (!and.length) return;
-        const rows = await Vehicle.find({ ...NOT_DELETED_FILTER, $and: and })
+        const rows = await Vehicle.find({ ...vehicleBase(), $and: and })
           .select(
             "vehicleId registrationNumber vehicleStatus currentHub vehicleModel batteryPercentage"
           )
@@ -337,7 +359,7 @@ export async function universalOpsSearch(
           });
         }
         if (!and.length) return;
-        const rows = await Ticket.find({ ...NOT_DELETED_FILTER, $and: and })
+        const rows = await Ticket.find({ ...NOT_DELETED_FILTER, ...ticketScope, $and: and })
           .select("ticketId bookingId riderId status category riderPhone")
           .sort({ createdAt: -1 })
           .limit(10)
@@ -372,7 +394,7 @@ export async function universalOpsSearch(
           });
         }
         if (!and.length) return;
-        const rows = await Refund.find({ ...NOT_DELETED_FILTER, $and: and })
+        const rows = await Refund.find({ ...NOT_DELETED_FILTER, ...txScope, $and: and })
           .select("refundId bookingId riderId amount status")
           .sort({ createdAt: -1 })
           .limit(10)
@@ -395,9 +417,11 @@ export async function universalOpsSearch(
   if (can(session, API_DASHBOARDS.walletRead) && (q.phone || q.riderId || (q.fuzzy && /\bwallet\b/i.test(q.asked)))) {
     tasks.push(
       (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        if (q.riderId) filter.riderId = q.riderId;
-        else if (q.phone) filter.phone = q.phone;
+        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER, ...walletScope };
+        if (q.riderId) {
+          if (riderIds && !riderIds.includes(q.riderId.toUpperCase())) return;
+          filter.riderId = q.riderId;
+        } else if (q.phone) filter.phone = q.phone;
         else return;
         const rows = await Wallet.find(filter)
           .select("riderId phone balance status")
@@ -421,9 +445,11 @@ export async function universalOpsSearch(
   if (can(session, API_DASHBOARDS.transactions) && (q.bookingId || (q.fuzzy && /\b(txn|transaction|payment)\b/i.test(q.asked)))) {
     tasks.push(
       (async () => {
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
-        if (q.bookingId) filter.bookingId = q.bookingId;
-        else if (q.fuzzy) filter.$or = [{ bookingId: q.fuzzy }, { transactionId: q.fuzzy }, { userName: q.fuzzy }];
+        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER, ...txScope };
+        if (q.bookingId) {
+          if (bookingIds && !bookingIds.includes(q.bookingId.toUpperCase())) return;
+          filter.bookingId = q.bookingId;
+        } else if (q.fuzzy) filter.$or = [{ bookingId: q.fuzzy }, { transactionId: q.fuzzy }, { userName: q.fuzzy }];
         else return;
         const rows = await Transaction.find(filter)
           .select("transactionId bookingId userName amount status paymentMethod")
@@ -484,7 +510,7 @@ export async function universalOpsSearch(
   if (can(session, API_DASHBOARDS.batteries) && /\bbatter(y|ies)\b/i.test(q.asked)) {
     tasks.push(
       (async () => {
-        const rows = await Battery.find(NOT_DELETED_FILTER)
+        const rows = await Battery.find({ ...NOT_DELETED_FILTER, ...batteryScope })
           .select("batteryId status hubName chargePercentage batteryHealth")
           .sort({ updatedAt: -1 })
           .limit(8)
@@ -508,7 +534,7 @@ export async function universalOpsSearch(
     tasks.push(
       (async () => {
         if (!q.fuzzy && !/\b(hub|yard)\b/i.test(q.asked)) return;
-        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
+        const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER, ...hubScopeFilter };
         if (q.fuzzy) filter.$or = [{ hubName: q.fuzzy }, { hubCode: q.fuzzy }, { city: q.fuzzy }];
         const rows = await Hub.find(filter)
           .select("hubName hubCode city status")

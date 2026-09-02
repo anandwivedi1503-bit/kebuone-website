@@ -11,6 +11,7 @@ import {
 import { totpCode, totpMatches } from "../src/lib/totp";
 import { redactOpsText } from "../src/lib/redactOpsPii";
 import { sessionHubScope, staffCanAccessBooking } from "../src/lib/staffHubScope";
+import { providedSecretMatches } from "../src/lib/timingSafe";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -110,6 +111,13 @@ assert.equal(
   ),
   true
 );
+assert.equal(
+  staffCanAccessBooking(
+    { role: "staff", username: "yard", dashboards: ["bookings"], hubs: ["NOIDA-01"] },
+    { currentHub: "" }
+  ),
+  false
+);
 
 const secret = "JBSWY3DPEHPK3PXP";
 assert.equal(totpMatches(secret, totpCode(secret)), true);
@@ -121,5 +129,9 @@ const unpaidFilter = bookingPaymentApplyFilter("x", 0, 100) as {
   $and?: Array<{ $or?: unknown }>;
 };
 assert.ok(unpaidFilter.$and?.[0]?.$or);
+
+assert.equal(providedSecretMatches("cron-secret-value", "cron-secret-value"), true);
+assert.equal(providedSecretMatches("cron-secret-value", "other"), false);
+assert.equal(providedSecretMatches("", ""), false);
 
 console.log("money-rules self-test ok");

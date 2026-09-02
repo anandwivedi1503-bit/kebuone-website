@@ -1,4 +1,9 @@
-import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import {
+  applyHubScope,
+  idInScopeFilter,
+  scopedBookingIds,
+  sessionHubScope,
+} from "@/lib/staffHubScope";
 import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
@@ -18,6 +23,7 @@ export async function getYardQueue(session: AdminSessionInfo) {
       ["currentHub", "startHub"]
     );
 
+  const bookingIds = await scopedBookingIds(session);
   const [
     readyForPickup,
     inRide,
@@ -43,6 +49,7 @@ export async function getYardQueue(session: AdminSessionInfo) {
     ).maxTimeMS(2500),
     Refund.countDocuments({
       ...NOT_DELETED_FILTER,
+      ...idInScopeFilter("bookingId", bookingIds),
       refundStatus: { $in: ["PENDING", "PROCESSING"] },
     }).maxTimeMS(2500),
     Booking.find(scope({ rideStatus: { $in: LIVE_RIDES } }))
