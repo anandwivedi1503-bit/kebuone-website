@@ -24,7 +24,7 @@ import { firebaseAuth } from "@/lib/firebase";
 type Turn = { role: "user" | "assistant"; content: string; href?: string };
 
 const SAFE_HREF =
-  /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers|refund-policy|terms-and-conditions|privacy-policy)(\?[\w=&%-]*)?(#[\w-]*)?$/;
+  /^\/$|^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers|refund-policy|terms-and-conditions|privacy-policy)(\?[\w=&%-]*)?(#[\w-]*)?$/;
 
 const HELP_TOPICS = [
   {

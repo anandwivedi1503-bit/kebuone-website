@@ -144,22 +144,28 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     hi: fleetInvestmentFaqHindi(),
   },
   {
-    keys: ["leadership", "ceo", "chairman", "team", "लीडरशिप", "टीम", "फाउंडर", "founder"],
+    keys: ["leadership", "ceo", "chairman", "team", "लीडरशिप", "टीम", "फाउंडर", "founder", "anjali", "bindu", "sunil"],
     href: "/Leadership",
-    en: "Leadership posters: Chairman Anjali Mishra, Founder & CEO Sunil Pathak, General Manager Bindu Singh. Team posters include SDE Anand Dhar Dwivedi, Admin & Front Desk Aanya Singh, and Graphic Designer Akanksha Maurya.",
-    hi: "EVUDDY लीडरशिप:\n• चेयरमैन — अंजलि मिश्रा\n• फाउंडर व CEO — सुनील पाठक\n• GM — बिंदू सिंह\nटीम में SDE आनंद धर द्विवेदी, Admin & Front Desk आन्या सिंह, Graphic Designer आकांक्षा मौर्य। पोस्टर /Leadership पर देखें।",
+    en: "Leadership posters: Chairman Anjali Mishra, Founder & CEO Sunil Pathak, General Manager Bindu Singh. Team posters include SDE Anand Dhar Dwivedi, Admin & Front Desk Aanya Singh, and Graphic Designer Akanksha Maurya. Values: integrity, innovation, customer first, sustainability. Hashtag #safeRideWithEvuddy.",
+    hi: "EVUDDY लीडरशिप (/Leadership):\n• चेयरमैन — अंजलि मिश्रा\n• फाउंडर व CEO — सुनील पाठक\n• GM — बिंदू सिंह\nटीम पोस्टर: SDE आनंद धर द्विवेदी, Admin & Front Desk आन्या सिंह, Graphic Designer आकांक्षा मौर्य। हैशटैग #safeRideWithEvuddy।",
   },
   {
-    keys: ["career", "careers", "job", "hiring", "join", "करियर", "नौकरी", "जॉब", "vacancy"],
+    keys: ["career", "careers", "job", "hiring", "join", "करियर", "नौकरी", "जॉब", "vacancy", "apply"],
     href: "/careers",
-    en: "Open Careers to apply. Roles span technology, operations, business, support, fleet, marketing, people and finance. You can also email helpdesk@kebuone.in.",
-    hi: "नौकरी/करियर के लिए /careers पर अप्लाई करें — टेक्नोलॉजी, ऑप्स, बिज़नेस, सपोर्ट, फ्लीट, मार्केटिंग आदि। ईमेल भी कर सकते हैं: helpdesk@kebuone.in।",
+    en: "Join on /careers: Technology, Operations, Business, Customer success, Fleet, Marketing, People, Finance. Steps: apply → review → conversation → offer. Form is on the Careers page; or email helpdesk@kebuone.in.",
+    hi: "करियर /careers पर:\nटीमें — टेक्नोलॉजी, ऑप्स, बिज़नेस, कस्टमर सक्सेस, फ्लीट, मार्केटिंग, पीपल, फाइनेंस।\nकदम: अप्लाई → रिव्यू → बातचीत → ऑफर। फॉर्म उसी पेज पर है, या helpdesk@kebuone.in।",
   },
   {
-    keys: ["vision", "mission", "about", "विजन", "मिशन", "अबाउट", "कंपनी", "company", "evuddy क्या", "what is"],
+    keys: ["about us", "about", "अबाउट", "कंपनी", "who we are", "हम कौन", "kebu one"],
+    href: "/about",
+    en: "About EVUDDY (/about): next-gen EV ecosystem — B2C rentals, B2B fleets/hubs, Rent to Own. Mission: affordable, accessible, asset-building. Live ops: KYC, OTP pickup, GPS, Razorpay. Catalog rates on that page match Book EV.",
+    hi: "About Us (/about): EVUDDY भारत का EV मोबिलिटी इकोसिस्टम है — B2C किराया, B2B फ्लीट/हब, Rent to Own। मिशन: सस्ती, सुलभ, एसेट-बिल्डिंग मोबिलिटी। लाइव ऑप्स: KYC, OTP पिकअप, GPS, Razorpay। चाहें तो पेज खोल दूँ।",
+  },
+  {
+    keys: ["vision", "mission", "विजन", "मिशन", "evuddy क्या", "asset-building"],
     href: "/vision",
-    en: "Mission: make electric mobility affordable, accessible, and asset-building. Vision: empower gig workers and businesses with sustainable transport so every ride can lead to ownership. More on /vision and /about.",
-    hi: "EVUDDY स्मार्ट इलेक्ट्रिक स्कूटर किराया + Rent to Own + फ्लीट पार्टनर प्लेटफ़ॉर्म है।\nमिशन: इलेक्ट्रिक मोबिलिटी सस्ती, सुलभ और एसेट-बिल्डिंग।\nविजन: गिग वर्कर्स व बिज़नेस के लिए सस्टेनेबल ट्रांसपोर्ट — हर राइड ओनरशिप तक ले जा सके। और पढ़ें /vision व /about।",
+    en: "Mission: make electric mobility affordable, accessible, and asset-building. Vision: empower gig workers and businesses with sustainable transport so every ride can lead to ownership. Values: Smart, Electric, Dependable, Asset-building. More on /vision.",
+    hi: "विजन पेज (/vision):\nमिशन — इलेक्ट्रिक मोबिलिटी सस्ती, सुलभ, एसेट-बिल्डिंग।\nविजन — गिग वर्कर्स व बिज़नेस के लिए सस्टेनेबल ट्रांसपोर्ट; हर राइड ओनरशिप तक।\nमूल्य: Smart, Electric, Dependable, Asset-building। #safeRideWithEvuddy",
   },
   {
     keys: ["segment", "b2b", "b2c", "fleet", "business", "सेगमेंट", "व्यापार"],
@@ -168,10 +174,62 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     hi: "EVUDDY तीन तरह से काम करती है:\n1) B2C किराया — Book EV\n2) Rent to Own — अपना स्कूटर\n3) B2B/फ्लीट पार्टनर निवेश — /partners\nआप किस बारे में जानना चाहते हैं?",
   },
   {
-    keys: ["privacy", "policy", "terms", "शर्त", "प्राइवेसी", "नियम", "कानून"],
+    keys: ["privacy", "प्राइवेसी", "data", "personal data", "info@evuddy"],
+    href: "/privacy-policy",
+    en: "Privacy (/privacy-policy): we collect name, mobile, email, KYC, booking and payment records to run rentals and Rent to Own. Firebase verifies phone; Razorpay processes pay. We do not sell rider data. Profile correction: info@evuddy.com.",
+    hi: "प्राइवेसी (/privacy-policy): नाम, मोबाइल, ईमेल, KYC, बुकिंग/पेमेंट रिकॉर्ड सेवा चलाने के लिए। फोन Firebase से, पेमेंट Razorpay से। राइडर डेटा नहीं बेचा जाता। प्रोफ़ाइल सुधार: info@evuddy.com।",
+  },
+  {
+    keys: ["terms", "शर्त", "नियम", "कानून", "conditions", "t&c", "agreement"],
     href: "/terms-and-conditions",
-    en: "See /privacy-policy, /terms-and-conditions and /refund-policy for full legal text. High level: GST on rent, deposit rules on rentals, RTO is installment-based with no deposit.",
-    hi: "कानूनी डिटेल इन पेजों पर है:\n• प्राइवेसी — /privacy-policy\n• नियम व शर्तें — /terms-and-conditions\n• रिफंड — /refund-policy\nसंक्षेप: किराये पर GST, जमा किराये पर लागू, Rent to Own में डिपॉजिट नहीं।",
+    en: "Terms (/terms-and-conditions): complete KYC, follow hub pickup, pay rental or RTO dues. Rates + 5% GST on rent; deposit on normal rentals; RTO is ₹280/day + GST for 18 months with no deposit. Misuse, damage or unpaid dues can block booking.",
+    hi: "नियम (/terms-and-conditions): KYC, हब पिकअप नियम, किराया/RTO भुगतान। किराये पर 5% GST; सामान्य किराये पर जमा; Rent to Own में डिपॉजिट नहीं। दुरुपयोग/नुकसान/बाकी बिल से बुकिंग ब्लॉक हो सकती है।",
+  },
+  {
+    keys: [
+      "range",
+      "120",
+      "speed",
+      "45",
+      "charging",
+      "gps",
+      "tracking",
+      "specs",
+      "specification",
+      "रेंज",
+      "स्पीड",
+      "चार्जिंग",
+      "ट्रैकिंग",
+      "फीचर",
+      "iot",
+    ],
+    href: "/",
+    en: "Homepage scooter specs: about 120 km range, 45 km/h, ~4 hour charging, GPS live tracking, zero emissions. IoT on the scooter (GPS, lock, battery). Always pick a live hub on Book EV — I will not guess stock.",
+    hi: "होमपेज पर स्कूटर:\n• रेंज करीब 120 km\n• स्पीड करीब 45 km/h\n• चार्जिंग करीब 4 घंटे\n• GPS लाइव ट्रैकिंग, IoT (लॉक/बैटरी)\nस्टॉक मैं नहीं गढ़ूँगी — Book EV पर शहर/हब चुनें।",
+  },
+  {
+    keys: [
+      "website",
+      "pages",
+      "sitemap",
+      "homepage",
+      "home page",
+      "navbar",
+      "वेबसाइट",
+      "पेज",
+      "होम",
+      "साइट",
+      "कौन से पेज",
+    ],
+    href: "/",
+    en: "Public site: Home, Ride options, Book EV, Rent to Own, Register, Contact, Partners/Invest, About, Vision, Leadership, Careers, Privacy, Terms, Refund. Navbar also has Book EV and Invest. Staff dashboards are separate — I do not operate them.",
+    hi: "पूरी पब्लिक वेबसाइट:\nहोम · राइड विकल्प · Book EV · Rent to Own · रजिस्टर/KYC · संपर्क · पार्टनर/निवेश · About · Vision · Leadership · Careers\nकानून: प्राइवेसी, टर्म्स, रिफंड।\nस्टाफ डैशबोर्ड अलग है — मैं वहाँ काम नहीं करती। कोई पेज खोलने को कहें।",
+  },
+  {
+    keys: ["instagram", "youtube", "linkedin", "social", "hashtag", "saferide", "24x7", "24×7"],
+    href: "/contact",
+    en: "Footer: 24×7 customer support, Instagram @evuddy_bike / @kebuone, LinkedIn Kebu One, YouTube @kebuone. Brand hashtag #safeRideWithEvuddy. Helpdesk +91 8726006512.",
+    hi: "फुटर: 24×7 सपोर्ट। Instagram @evuddy_bike व @kebuone, LinkedIn Kebu One, YouTube @kebuone। हैशटैग #safeRideWithEvuddy। फोन +91 8726006512।",
   },
   {
     keys: ["hours", "timing", "open", "समय", "खुला", "टाइमिंग", "office hours"],
@@ -285,7 +343,15 @@ export function publicAssistantIntent(question: string, language = "hi"): Assist
     };
   }
 
-  if (OPEN_CMD.test(q) && (/\b(vision|mission|about)\b/.test(q) || /विजन|मिशन|अबाउट/.test(q))) {
+  if (OPEN_CMD.test(q) && (/\b(about)\b/.test(q) || /अबाउट|अबाउट अस|हमारे बारे/.test(q))) {
+    return {
+      answer: "About Us पेज खोल रही हूँ।",
+      href: "/about",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(vision|mission)\b/.test(q) || /विजन|मिशन/.test(q))) {
     return {
       answer: "Vision पेज खोल रही हूँ।",
       href: "/vision",
@@ -297,6 +363,41 @@ export function publicAssistantIntent(question: string, language = "hi"): Assist
     return {
       answer: "Leadership पेज खोल रही हूँ।",
       href: "/Leadership",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(privacy)\b/.test(q) || /प्राइवेसी/.test(q))) {
+    return {
+      answer: "प्राइवेसी पॉलिसी खोल रही हूँ।",
+      href: "/privacy-policy",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(terms|conditions)\b/.test(q) || /नियम|शर्त/.test(q))) {
+    return {
+      answer: "नियम व शर्तें खोल रही हूँ।",
+      href: "/terms-and-conditions",
+      navigate: true,
+    };
+  }
+
+  if (OPEN_CMD.test(q) && (/\b(refund policy)\b/.test(q) || /रिफंड पॉलिसी|रिफंड नीति/.test(q))) {
+    return {
+      answer: "रिफंड नीति खोल रही हूँ — रिफंड चैट से नहीं होता।",
+      href: "/refund-policy",
+      navigate: true,
+    };
+  }
+
+  if (
+    OPEN_CMD.test(q) &&
+    (/\b(home|homepage|website)\b/.test(q) || /होम पेज|वेबसाइट खोल/.test(q))
+  ) {
+    return {
+      answer: "होमपेज खोल रही हूँ — पूरी साइट वहीं से घूम सकते हैं।",
+      href: "/",
       navigate: true,
     };
   }
@@ -324,15 +425,15 @@ export function faqAnswer(question: string, language = "hi"): AssistantReply {
 function greetingReply(): AssistantReply {
   return {
     answer:
-      "नमस्ते! मैं Eva हूँ — EVUDDY की ChatGPT-स्टाइल हेल्प। बुकिंग, किराया, KYC, Rent to Own, फ्लीट निवेश पोस्टर, टिकट, लीडरशिप, करियर, विजन — कुछ भी आसान हिंदी में पूछें। सही पेज भी खोल दूँगी। भुगतान/OTP/अनलॉक चैट से नहीं होता। शुरू करें — जैसे “किराया कितना है?” या “निवेश प्लान बताओ।”",
+      "नमस्ते! मैं Eva हूँ — EVUDDY की पूरी वेबसाइट गाइड। होम, बुकिंग, किराया, KYC, Rent to Own, निवेश पोस्टर, संपर्क, About, Vision, Leadership, Careers, प्राइवेसी/टर्म्स/रिफंड — सब आसान हिंदी में। सही पेज खोल भी दूँगी। भुगतान/OTP/अनलॉक/रिफंड चैट से नहीं होता। पूछें — “वेबसाइट पर क्या-क्या है?” या “किराया कितना है?”",
   };
 }
 
 function directoryReply(): AssistantReply {
   return {
     answer:
-      "मैं EVUDDY वेबसाइट की पूरी हेल्प हूँ। पूछ सकते हैं:\n• स्कूटर कैसे बुक करें / KYC\n• किराया व GST\n• Rent to Own (₹280/दिन, 18 महीने)\n• फ्लीट पार्टनर निवेश (60% आपका · पोस्टर)\n• सपोर्ट टिकट व हेल्पडेस्क\n• लीडरशिप, करियर, विजन\nसीधे कहें — “बुकिंग खोलो”, “पार्टनर खोलो”, या अपना सवाल लिखें/बोलें। हेल्पडेस्क: helpdesk@kebuone.in · +91 8726006512।",
-    href: "/ride-options",
+      "मैं पूरी EVUDDY वेबसाइट जानती हूँ। पूछ सकते हैं:\n• स्कूटर बुक / KYC / किराया-GST\n• स्कूटर रेंज-स्पीड-GPS (होम)\n• Rent to Own ₹280/दिन\n• फ्लीट निवेश पोस्टर (60% आपका)\n• About, Vision, Leadership, Careers\n• संपर्क, टिकट, 24×7 हेल्पडेस्क\n• प्राइवेसी, टर्म्स, रिफंड\nकहें “बुकिंग खोलो”, “अबाउट खोलो”, या अपना सवाल लिखें। helpdesk@kebuone.in · +91 8726006512।",
+    href: "/",
   };
 }
 
@@ -342,10 +443,11 @@ async function llmAnswer(history: ChatTurn[], question: string, faqHint?: string
 PERSONA
 - You are Eva, a capable female concierge for EVUDDY — warm, sharp, never robotic.
 - Speak like a helpful colleague in simple everyday Hindi (देवनागरी). Short paragraphs or clear bullets.
-- Cover ANY public website / EVUDDY question using ONLY the knowledge below (and FAQ hint). Do not invent hubs, live stock, secret prices, or policies.
+- Cover ANY public website question using ONLY the knowledge below (and FAQ hint): Home, Ride options, Book EV, Rent to Own, Register, Contact, Partners/Invest, About, Vision, Leadership, Careers, Privacy, Terms, Refund. Do not invent hubs, live stock, secret prices, unnamed staff, or dashboard steps.
 - For Fleet Partner Investment always use official poster numbers (60% investor / 40% company, ₹87 profit/scooter/day, plans ₹1L→₹2,15,316 · ₹5L→₹10,76,580 · ₹10L→₹21,53,160 over 42 months) and mention /partners#investment-poster.
-- You may suggest opening: /ride-options /book-bike /rent-to-own /register /contact /partners#investment-poster /careers /vision /Leadership /about /refund-policy /terms-and-conditions /privacy-policy.
-- Never take payments, enter OTP, unlock scooters, approve KYC/refunds, or change bookings. Refuse those and send to website buttons or helpdesk@kebuone.in / +91 8726006512.
+- You may suggest opening: / /ride-options /book-bike /rent-to-own /register /contact /partners#investment-poster /careers /vision /Leadership /about /refund-policy /terms-and-conditions /privacy-policy.
+- Staff /admin-login and /dashboard are not for riders. Never operate money, KYC approval, unlocks, or refunds.
+- Never take payments, enter OTP, unlock scooters, approve KYC/refunds, take investment money, or change bookings. Refuse those and send to website buttons or helpdesk@kebuone.in / +91 8726006512.
 - If the user only greets or says हाँ/ठीक, welcome them and offer 2–3 concrete things you can help with.
 - Keep answers under ~180 Hindi words. Product names (EVUDDY, Book EV, Rent to Own, Razorpay, OTP, KYC, GST) and ₹ amounts may stay in Latin script.
 - NEVER reply in English paragraphs. Hindi only.

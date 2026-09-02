@@ -31,6 +31,24 @@ const hindiBook = faqAnswer("स्कूटर कैसे बुक करे
 assert.ok((hindiBook.score || 0) >= 2);
 assert.match(hindiBook.answer, /KYC|कदम/);
 
+const about = faqAnswer("About Us बताओ", "hi");
+assert.ok((about.score || 0) >= 1);
+assert.equal(about.href, "/about");
+
+const specs = faqAnswer("scooter range and GPS", "en");
+assert.ok((specs.score || 0) >= 2);
+assert.match(specs.answer, /120/);
+
+const siteMap = faqAnswer("वेबसाइट पर क्या-क्या है?", "hi");
+assert.ok((siteMap.score || 0) >= 1);
+
+const openAbout = publicAssistantIntent("open about");
+assert.equal(openAbout?.href, "/about");
+assert.equal(openAbout?.navigate, true);
+
+const openPrivacy = publicAssistantIntent("open privacy");
+assert.equal(openPrivacy?.href, "/privacy-policy");
+
 assert.equal(detectScriptLanguage("नमस्ते स्कूटर बुक करें"), "hi");
 assert.equal(detectScriptLanguage("तुम्ही कसे आहात"), "mr");
 assert.equal(detectScriptLanguage("hello rates"), "en");
