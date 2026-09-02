@@ -83,6 +83,7 @@ export async function POST(req: Request) {
     passwordSalt,
     dashboards,
     isActive: true,
+    sessionVersion: 0,
   });
 
   return NextResponse.json({

@@ -1,5 +1,3 @@
-import crypto from "crypto";
-
 import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
 import { appendBoundedText } from "@/lib/listQuery";
 import Booking from "@/models/Booking";
@@ -24,10 +22,8 @@ import {
 } from "@/lib/rtoInstallmentCycle";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { normalizeIndianPhone } from "@/lib/requestAuth";
-
-function generateWalletTransactionId() {
-  return `WTX-${crypto.randomUUID().toUpperCase()}`;
-}
+import { nextSeqId } from "@/lib/nextSeqId";
+import { runMongoTransaction } from "@/lib/mongoTransaction";
 
 function razorpayIdVariants(value: string) {
   const id = String(value || "").trim();
@@ -197,107 +193,142 @@ export async function applyCapturedRazorpayPayment(
           paidNow: paidAmount,
         });
 
-    if (!existingTransaction) {
-      try {
-        await Transaction.create({
-          transactionId: razorpayPaymentId,
-          bookingId: booking.bookingId,
-          userId: String(booking.userId || booking.userPhone || "Rider"),
-          userName: booking.userName || "Rider",
-          amount: paidAmount,
-          gstAmount: taxOnPayment.gstAmount,
-          cgstAmount: taxOnPayment.cgstAmount,
-          sgstAmount: taxOnPayment.sgstAmount,
-          cgstRate: CGST_RATE,
-          sgstRate: SGST_RATE,
-          paymentMethod: "Razorpay",
-          razorpayOrderId,
-          razorpayPaymentId,
-          transactionType: "Booking Payment",
-          invoiceNumber,
-          invoiceGenerated: true,
-          status: "Success",
-          remarks:
-            booking.rentalMode === "Rent To Own"
-              ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
-              : "",
-        });
-      } catch (error) {
-        if (!isDuplicateKeyError(error)) throw error;
-      }
-    }
+    // Atomic money ledger + booking balance (OTP-on-partial stays via nextPaymentProgress).
+    let updatedBooking: typeof booking | null = null;
+    try {
+      updatedBooking = await runMongoTransaction(async (mongoSession) => {
+        const sessionOpt = mongoSession ? { session: mongoSession } : {};
+        if (!existingTransaction) {
+          try {
+            const row = {
+              transactionId: razorpayPaymentId,
+              bookingId: booking.bookingId,
+              userId: String(booking.userId || booking.userPhone || "Rider"),
+              userName: booking.userName || "Rider",
+              amount: paidAmount,
+              gstAmount: taxOnPayment.gstAmount,
+              cgstAmount: taxOnPayment.cgstAmount,
+              sgstAmount: taxOnPayment.sgstAmount,
+              cgstRate: CGST_RATE,
+              sgstRate: SGST_RATE,
+              paymentMethod: "Razorpay",
+              razorpayOrderId,
+              razorpayPaymentId,
+              transactionType: "Booking Payment",
+              invoiceNumber,
+              invoiceGenerated: true,
+              status: "Success",
+              remarks:
+                booking.rentalMode === "Rent To Own"
+                  ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
+                  : "",
+            };
+            if (mongoSession) {
+              await Transaction.create([row], { session: mongoSession });
+            } else {
+              await Transaction.create(row);
+            }
+          } catch (error) {
+            if (!isDuplicateKeyError(error)) throw error;
+          }
+        }
 
-    const updatedBooking = await Booking.findOneAndUpdate(
-      bookingPaymentApplyFilter(bookingMongoId, oldReceivedAmount, paidAmount),
-      {
-        $set: {
-          ...progress.bookingPatch,
-          paymentMode: "Razorpay",
-          paymentDate: new Date(),
-          paymentVerifiedAt: new Date(),
-          invoiceNumber,
-          invoiceGenerated: true,
-          razorpayOrderId,
-          razorpayPaymentId,
-          remarks: appendBoundedText(
-            booking.remarks,
-            `Payment verified INR ${paidAmount} ${razorpayPaymentId}`,
-            500
-          ),
-          ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
-        },
-      },
-      { new: true }
-    );
+        const nextBooking = await Booking.findOneAndUpdate(
+          bookingPaymentApplyFilter(bookingMongoId, oldReceivedAmount, paidAmount),
+          {
+            $set: {
+              ...progress.bookingPatch,
+              paymentMode: "Razorpay",
+              paymentDate: new Date(),
+              paymentVerifiedAt: new Date(),
+              invoiceNumber,
+              invoiceGenerated: true,
+              razorpayOrderId,
+              razorpayPaymentId,
+              remarks: appendBoundedText(
+                booking.remarks,
+                `Payment verified INR ${paidAmount} ${razorpayPaymentId}`,
+                500
+              ),
+              ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
+            },
+          },
+          { new: true, ...sessionOpt }
+        );
+
+        if (!nextBooking) {
+          const conflict = new Error("BOOKING_PAYMENT_CONFLICT");
+          (conflict as Error & { code?: string }).code = "BOOKING_PAYMENT_CONFLICT";
+          throw conflict;
+        }
+
+        if (progress.updateVehicle && progress.vehicleStatus) {
+          const updatedVehicle = await Vehicle.findOneAndUpdate(
+            {
+              vehicleId: booking.vehicleId,
+              $or: [
+                { currentBookingId: "" },
+                { currentBookingId: booking.bookingId },
+                { currentBookingId: null },
+              ],
+            },
+            {
+              $set: {
+                vehicleStatus: progress.vehicleStatus,
+                currentBookingId: booking.bookingId,
+                currentRiderId: booking.riderId,
+                assignedRider: booking.riderId,
+                lockStatus: progress.vehicleLockStatus,
+              },
+            },
+            sessionOpt
+          );
+          if (!updatedVehicle) {
+            const conflict = new Error("BOOKING_PAYMENT_CONFLICT");
+            (conflict as Error & { code?: string }).code = "BOOKING_PAYMENT_CONFLICT";
+            throw conflict;
+          }
+        }
+
+        if (progress.updateRiderLock) {
+          await Rider.findOneAndUpdate(
+            { riderId: booking.riderId },
+            {
+              $set: {
+                activeRide: false,
+                currentBookingId: booking.bookingId,
+              },
+            },
+            sessionOpt
+          );
+        }
+
+        return nextBooking as typeof booking;
+      });
+    } catch (error) {
+      if (
+        typeof error === "object" &&
+        error &&
+        "code" in error &&
+        (error as { code?: string }).code === "BOOKING_PAYMENT_CONFLICT"
+      ) {
+        return {
+          ok: false,
+          status: 409,
+          message:
+            "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
+        };
+      }
+      throw error;
+    }
 
     if (!updatedBooking) {
       return {
         ok: false,
         status: 409,
-        message: "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
+        message:
+          "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
       };
-    }
-
-    try {
-      if (progress.updateVehicle && progress.vehicleStatus) {
-        await Vehicle.findOneAndUpdate(
-          {
-            vehicleId: booking.vehicleId,
-            $or: [
-              { currentBookingId: "" },
-              { currentBookingId: booking.bookingId },
-              { currentBookingId: null },
-            ],
-          },
-          {
-            $set: {
-              vehicleStatus: progress.vehicleStatus,
-              currentBookingId: booking.bookingId,
-              currentRiderId: booking.riderId,
-              assignedRider: booking.riderId,
-              lockStatus: progress.vehicleLockStatus,
-            },
-          }
-        );
-      }
-    } catch (error) {
-      console.error("VEHICLE UPDATE AFTER RAZORPAY CAPTURE:", error);
-    }
-
-    try {
-      if (progress.updateRiderLock) {
-        await Rider.findOneAndUpdate(
-          { riderId: booking.riderId },
-          {
-            $set: {
-              activeRide: false,
-              currentBookingId: booking.bookingId,
-            },
-          }
-        );
-      }
-    } catch (error) {
-      console.error("RIDER UPDATE AFTER RAZORPAY CAPTURE:", error);
     }
 
     try {
@@ -343,23 +374,32 @@ export async function applyCapturedRazorpayPayment(
         pendingAmount <= 0 &&
         Number(booking.securityDeposit || 0) > 0
       ) {
-        wallet.securityDepositHold = Math.max(
-          Number(wallet.securityDepositHold || 0),
-          Number(booking.securityDeposit || 0)
+        const holdAmount = Number(booking.securityDeposit || 0);
+        const held = await Wallet.findOneAndUpdate(
+          { _id: wallet._id },
+          [
+            {
+              $set: {
+                securityDepositHold: {
+                  $max: [{ $ifNull: ["$securityDepositHold", 0] }, holdAmount],
+                },
+              },
+            },
+          ],
+          { new: true }
         );
-        await wallet.save();
         await WalletTransaction.create({
-          transactionId: generateWalletTransactionId(),
+          transactionId: await nextSeqId("WTX", "walletTxnSequence", 10),
           riderId: booking.riderId,
           userId: rider._id,
           userName: booking.userName,
-          amount: Number(booking.securityDeposit || 0),
+          amount: holdAmount,
           transactionType: "Security Deposit Hold",
           paymentMethod: "Razorpay",
           bookingId: booking.bookingId,
           razorpayOrderId,
           razorpayPaymentId,
-          balanceAfter: Number(wallet.balance || 0),
+          balanceAfter: Number(held?.balance || wallet.balance || 0),
           remarks: "Security deposit held for bike booking.",
           status: "Success",
         });

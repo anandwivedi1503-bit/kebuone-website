@@ -13,6 +13,7 @@ export type AdminSessionInfo = {
   role: AdminRole;
   username: string;
   dashboards: string[];
+  sessionVersion?: number;
 };
 
 function getSessionSecret() {
@@ -119,9 +120,43 @@ export function readAdminSessionFromToken(
 
 export async function getAdminSession(): Promise<AdminSessionInfo | null> {
   const cookieStore = await cookies();
-  return readAdminSessionFromToken(
+  const parsed = readAdminSessionFromToken(
     cookieStore.get(SESSION_COOKIE_NAME)?.value
   );
+  if (!parsed) return null;
+  if (parsed.role !== "staff") return parsed;
+
+  try {
+    const { connectDB } = await import("@/lib/mongodb");
+    const AdminStaff = (await import("@/models/AdminStaff")).default;
+    await connectDB();
+    const staff = (await AdminStaff.findOne({
+      username: parsed.username,
+      isActive: true,
+    })
+      .select("username dashboards isActive sessionVersion")
+      .lean()) as {
+      username?: string;
+      dashboards?: string[];
+      sessionVersion?: number;
+    } | null;
+    if (!staff) return null;
+    const tokenVersion = Number(parsed.sessionVersion || 0);
+    const dbVersion = Number(
+      (staff as { sessionVersion?: number }).sessionVersion || 0
+    );
+    if (tokenVersion !== dbVersion) return null;
+    return {
+      role: "staff",
+      username: String(staff.username),
+      dashboards: Array.isArray(staff.dashboards)
+        ? staff.dashboards.map(String)
+        : [],
+      sessionVersion: dbVersion,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function isAdminAuthenticated() {

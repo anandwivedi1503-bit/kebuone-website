@@ -32,6 +32,14 @@ export async function POST(req: Request) {
   }
 
   if (!loaded.config.webhookSecret) {
+    // Production must verify webhooks — fail closed so misconfig is visible.
+    if (process.env.NODE_ENV === "production") {
+      console.error("RAZORPAY_WEBHOOK_SECRET is missing — webhook rejected.");
+      return NextResponse.json(
+        { success: false, message: "Webhook secret not configured." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ success: true, ignored: true });
   }
 

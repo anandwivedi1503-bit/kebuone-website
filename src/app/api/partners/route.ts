@@ -1,10 +1,10 @@
-import { isAdminAuthenticated,
-  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { requireAdminDashboards } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Partner from "@/models/Partner";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
+import { parseListQuery } from "@/lib/listQuery";
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -144,18 +144,29 @@ if (existingPartner) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.partners);
     if (gate.error) return gate.error;
 
     await connectDB();
+    const query = parseListQuery(req);
 
-    const partners = await Partner.find().sort({ createdAt: -1 });
+    const [partners, total] = await Promise.all([
+      Partner.find()
+        .sort({ createdAt: -1 })
+        .skip(query.skip)
+        .limit(query.limit)
+        .lean(),
+      Partner.countDocuments(),
+    ]);
 
     return NextResponse.json({
       success: true,
       data: partners,
+      page: query.page,
+      limit: query.limit,
+      total,
     });
   } catch {
     return NextResponse.json(

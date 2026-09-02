@@ -58,7 +58,16 @@ export async function PATCH(
     update.passwordSalt = hashed.passwordSalt;
   }
 
-  const staff = await AdminStaff.findByIdAndUpdate(id, update, { new: true })
+  const revokeSession =
+    typeof body.isActive === "boolean" ||
+    Array.isArray(body.dashboards) ||
+    (typeof body.password === "string" && body.password.length > 0);
+
+  const staff = await AdminStaff.findByIdAndUpdate(
+    id,
+    revokeSession ? { $set: update, $inc: { sessionVersion: 1 } } : { $set: update },
+    { new: true }
+  )
     .select("-passwordHash -passwordSalt")
     .lean();
 

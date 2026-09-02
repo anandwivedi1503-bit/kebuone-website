@@ -33,6 +33,10 @@ const AdminStaffSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    sessionVersion: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true }
 );

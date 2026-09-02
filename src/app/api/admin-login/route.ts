@@ -85,6 +85,7 @@ export async function POST(req: Request) {
               role: "staff",
               username: staff.username,
               dashboards: staff.dashboards || [],
+              sessionVersion: Number(staff.sessionVersion || 0),
             }),
             getAdminSessionCookieOptions()
           );

@@ -46,6 +46,7 @@ export function nextPaymentProgress(
   };
 
   let pickupOTP: string | undefined;
+  // Business rule: any receivedAmount > 0 issues Pickup OTP (partial pay is allowed).
   if (!completed && !inRide && !booking.pickupOTPVerified && receivedAmount > 0) {
     const existing = String(booking.pickupOTP || "").trim();
     const otp = existing || generateSixDigitOtp();
