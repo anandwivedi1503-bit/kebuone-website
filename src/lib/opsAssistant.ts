@@ -1,6 +1,7 @@
 import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { DASHBOARD_LABELS } from "@/lib/adminRoles";
 import { llmChat, llmConfigured } from "@/lib/llmChat";
+import { redactOpsHitsForLlm } from "@/lib/redactOpsPii";
 import {
   parseOpsQuery,
   universalOpsSearch,
@@ -272,7 +273,7 @@ async function synthesizeOpsAnswer(options: {
             autoNavigate: action.autoNavigate,
           }
         : null,
-      hits: hits.slice(0, 12).map((hit) => ({
+      hits: redactOpsHitsForLlm(hits.slice(0, 12)).map((hit) => ({
         kind: hit.kind,
         id: hit.id,
         title: hit.title,

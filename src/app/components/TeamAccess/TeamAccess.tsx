@@ -13,6 +13,8 @@ type StaffRow = {
   displayName?: string;
   dashboards: string[];
   hubs?: string[];
+  staffRole?: string;
+  totpEnabled?: boolean;
   isActive: boolean;
 };
 
@@ -23,6 +25,9 @@ export default function TeamAccess() {
   const [displayName, setDisplayName] = useState("");
   const [dashboards, setDashboards] = useState<string[]>(["bookings"]);
   const [hubs, setHubs] = useState("");
+  const [namedSuper, setNamedSuper] = useState(false);
+  const [totpUrl, setTotpUrl] = useState("");
+  const [totpCode, setTotpCode] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -49,7 +54,14 @@ export default function TeamAccess() {
     const res = await fetch("/api/admin/staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, displayName, dashboards, hubs }),
+      body: JSON.stringify({
+        username,
+        password,
+        displayName,
+        dashboards,
+        hubs,
+        staffRole: namedSuper ? "super" : "staff",
+      }),
     });
     const data = await res.json();
     if (!data.success) {
@@ -118,6 +130,14 @@ export default function TeamAccess() {
             placeholder="Hub codes (optional, comma-separated). Leave empty for all yards."
             className="h-12 w-full rounded-2xl border border-slate-200 px-4"
           />
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={namedSuper}
+              onChange={(e) => setNamedSuper(e.target.checked)}
+            />
+            Named super (full ops, no hub limit). Shared env password stays as emergency bootstrap.
+          </label>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {STAFF_DASHBOARDS.map((id) => (
               <label key={id} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
@@ -136,6 +156,63 @@ export default function TeamAccess() {
             Add staff login
           </button>
         </form>
+      </DashboardCard>
+
+      <DashboardCard>
+        <h3 className="text-lg font-bold">Authenticator 2FA for this login</h3>
+        <p className="mt-1 text-sm text-slate-500">
+          Does not apply to the shared env password. Create a named super first, log in as that user, then enroll.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            type="button"
+            className="h-11 rounded-full bg-[#0A1134] px-5 font-bold text-white"
+            onClick={async () => {
+              const res = await fetch("/api/admin/totp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "start" }),
+              });
+              const data = await res.json();
+              if (!data.success) {
+                setError(data.message || "Could not start 2FA.");
+                return;
+              }
+              setTotpUrl(data.otpauthUrl || "");
+              setMessage("Scan the otpauth URL in Google Authenticator, then confirm with a code.");
+            }}
+          >
+            Start 2FA
+          </button>
+          {totpUrl ? <p className="break-all text-xs text-slate-600">{totpUrl}</p> : null}
+          <input
+            value={totpCode}
+            onChange={(e) => setTotpCode(e.target.value)}
+            placeholder="6-digit code"
+            className="h-11 rounded-2xl border border-slate-200 px-4"
+          />
+          <button
+            type="button"
+            className="h-11 rounded-full bg-[#18B368] px-5 font-bold text-white"
+            onClick={async () => {
+              const res = await fetch("/api/admin/totp", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "confirm", code: totpCode }),
+              });
+              const data = await res.json();
+              if (!data.success) {
+                setError(data.message || "Could not confirm 2FA.");
+                return;
+              }
+              setMessage("2FA is on for this named login.");
+              setTotpUrl("");
+              setTotpCode("");
+            }}
+          >
+            Confirm 2FA
+          </button>
+        </div>
       </DashboardCard>
 
       <div className="mt-6 overflow-x-auto rounded-[24px] bg-white shadow-sm">
@@ -170,6 +247,8 @@ export default function TeamAccess() {
                   </td>
                   <td className="px-4 py-3">
                     {(row.hubs || []).length ? (row.hubs || []).join(", ") : "All yards"}
+                    {row.staffRole === "super" ? " · named super" : ""}
+                    {row.totpEnabled ? " · 2FA on" : ""}
                   </td>
                   <td className="px-4 py-3">{row.isActive ? "Active" : "Off"}</td>
                   <td className="px-4 py-3">

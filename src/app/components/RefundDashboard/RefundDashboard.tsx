@@ -27,7 +27,7 @@ const fetchRefunds = async () => {
 
   try {
 
-    const res = await fetch("/api/refunds?limit=500");
+    const res = await fetch("/api/refunds?limit=80");
 
     const data = await res.json();
 

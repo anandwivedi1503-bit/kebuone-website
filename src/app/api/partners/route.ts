@@ -43,7 +43,7 @@ function clean(value: unknown, max = 160) {
 
 export async function POST(req: Request) {
   try {
-    if (!rateLimitAllowed(`partners:${clientIp(req)}`, 8, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`partners:${clientIp(req)}`, 8, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, errors: ["Too many requests. Please try again later."] },
         { status: 429 }

@@ -8,6 +8,8 @@ import {
   rtoCycleAfterInstallment,
   rtoDailyPayable,
 } from "../src/lib/rtoInstallmentCycle";
+import { totpCode, totpMatches } from "../src/lib/totp";
+import { redactOpsText } from "../src/lib/redactOpsPii";
 import { sessionHubScope, staffCanAccessBooking } from "../src/lib/staffHubScope";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
@@ -101,5 +103,16 @@ assert.equal(
   ),
   false
 );
+
+const secret = "JBSWY3DPEHPK3PXP";
+assert.equal(totpMatches(secret, totpCode(secret)), true);
+assert.equal(totpMatches(secret, "000000"), false);
+assert.match(redactOpsText("Call 9876543210 or a@b.com"), /\*\*\*\*\*\*/);
+assert.doesNotMatch(redactOpsText("Call 9876543210"), /9876543210/);
+
+const unpaidFilter = bookingPaymentApplyFilter("x", 0, 100) as {
+  $and?: Array<{ $or?: unknown }>;
+};
+assert.ok(unpaidFilter.$and?.[0]?.$or);
 
 console.log("money-rules self-test ok");

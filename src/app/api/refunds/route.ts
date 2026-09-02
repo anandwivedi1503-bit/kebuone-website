@@ -6,6 +6,7 @@ import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
 import Booking from "@/models/Booking";
 import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { attachBookingSnapshotsToRefunds } from "@/lib/opsMoneySummary";
 import { writeAudit } from "@/lib/writeAudit";
 
@@ -202,6 +203,8 @@ export async function GET(req: Request) {
       ],
     };
     applyOpsListFilters(filter, parsed);
+    const bookingIds = await scopedBookingIds(gate.session);
+    Object.assign(filter, idInScopeFilter("bookingId", bookingIds));
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const rx = new RegExp(escaped, "i");
@@ -214,16 +217,17 @@ export async function GET(req: Request) {
       delete filter.$or;
     }
 
-    const refunds = await Refund.find(filter).sort({ createdAt: -1 }).limit(2000).lean();
-    const linked = (
+    const [refunds, total] = await Promise.all([
+      Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Refund.countDocuments(filter),
+    ]);
+    const data = (
       await attachBookingSnapshotsToRefunds(refunds as Array<Record<string, unknown>>)
     ).filter(
       (row) =>
         Boolean(row.bookingSnapshot) ||
         Boolean(String((row as { ticketId?: unknown }).ticketId || "").trim())
     );
-    const total = linked.length;
-    const data = linked.slice(skip, skip + limit);
 
     return NextResponse.json(listResponse(data, total, page, limit));
   } catch (error) {

@@ -11,6 +11,7 @@ import { connectDB } from "@/lib/mongodb";
 import Wallet from "@/models/Wallet";
 import Rider from "@/models/Rider";
 import { attachLiveBookingsByRider } from "@/lib/opsMoneySummary";
+import { idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
 
 import mongoose from "mongoose";
 
@@ -138,6 +139,8 @@ export async function GET(req: Request) {
 
       filter.riderId = riderId;
     }
+
+    Object.assign(filter, idInScopeFilter("riderId", await scopedRiderIds(gate.session)));
 
     /*
      * Fetch wallets and total count in parallel.

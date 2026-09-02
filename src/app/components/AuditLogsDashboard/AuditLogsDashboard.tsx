@@ -26,7 +26,7 @@ export default function AuditLogsDashboard() {
   useEffect(() => {
     const load = async () => {
       try {
-        const auditRes = await fetch("/api/audit-logs?limit=500", { cache: "no-store" });
+        const auditRes = await fetch("/api/audit-logs?limit=80", { cache: "no-store" });
         const auditData = await auditRes.json();
         setAuditLogs(Array.isArray(auditData.data) ? auditData.data : []);
       } finally {

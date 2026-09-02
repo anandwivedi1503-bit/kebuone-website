@@ -47,7 +47,13 @@ export async function PATCH(
     }
     update.dashboards = dashboards;
   }
-  if (body.hubs !== undefined) {
+  if (body.staffRole === "super" || body.staffRole === "staff") {
+    update.staffRole = body.staffRole;
+    if (body.staffRole === "super") {
+      update.hubs = [];
+    }
+  }
+  if (body.hubs !== undefined && update.staffRole !== "super") {
     update.hubs = normalizeHubCodes(body.hubs);
   }
   if (typeof body.password === "string" && body.password.length > 0) {
@@ -66,6 +72,8 @@ export async function PATCH(
     typeof body.isActive === "boolean" ||
     Array.isArray(body.dashboards) ||
     body.hubs !== undefined ||
+    body.staffRole === "super" ||
+    body.staffRole === "staff" ||
     (typeof body.password === "string" && body.password.length > 0);
 
   const staff = await AdminStaff.findByIdAndUpdate(
@@ -73,7 +81,7 @@ export async function PATCH(
     revokeSession ? { $set: update, $inc: { sessionVersion: 1 } } : { $set: update },
     { new: true }
   )
-    .select("-passwordHash -passwordSalt")
+    .select("-passwordHash -passwordSalt -totpSecret")
     .lean();
 
   if (!staff) {

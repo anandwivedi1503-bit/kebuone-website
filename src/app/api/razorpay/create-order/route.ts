@@ -44,7 +44,7 @@ function getRazorpayErrorMessage(error: unknown) {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 60, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 60, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "Too many payment attempts. Please wait." },
         { status: 429 }
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
 
     if (
       !isAdminRequest &&
-      !rateLimitAllowed(`razorpay-order-rider:${rider.riderId}`, 30, 10 * 60 * 1000)
+      !(await rateLimitAllowed(`razorpay-order-rider:${rider.riderId}`, 30, 10 * 60 * 1000))
     ) {
       return NextResponse.json(
         {

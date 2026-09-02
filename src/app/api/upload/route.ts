@@ -82,7 +82,7 @@ function detectFileType(
 
 export async function POST(req: Request) {
   try {
-    if (!rateLimitAllowed(`upload:${clientIp(req)}`, 40, 10 * 60 * 1000)) {
+    if (!(await rateLimitAllowed(`upload:${clientIp(req)}`, 40, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, error: "Too many uploads. Please try again later." },
         { status: 429 }

@@ -20,6 +20,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
 
 import {
   ensureRiderWallet,
@@ -1723,17 +1724,18 @@ export async function GET(req: Request) {
       return unauthorizedResponse();
     }
 
-    /* =====================================================
-       FETCH RIDERS
-    ===================================================== */
-
-    const riders =
-  await Rider.find({
+    const session = await getAdminSession();
+    const scopedRiders = await scopedRiderIds(session);
+    const riderFilter: Record<string, unknown> = {
     $or: [
       { isDeleted: false },
       { isDeleted: { $exists: false } },
     ],
-  })
+    };
+    Object.assign(riderFilter, idInScopeFilter("riderId", scopedRiders));
+
+    const riders =
+  await Rider.find(riderFilter)
         .select(
           [
             "riderId",

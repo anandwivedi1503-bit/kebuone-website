@@ -1,4 +1,6 @@
 import type { AdminSessionInfo } from "@/lib/adminAuth";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import Booking from "@/models/Booking";
 
 export function normalizeHubCodes(value: unknown): string[] {
   const raw = Array.isArray(value)
@@ -58,4 +60,29 @@ export function hubForbiddenResponse() {
     },
     { status: 403 }
   );
+}
+
+export async function scopedBookingIds(session: AdminSessionInfo | null) {
+  const hubs = sessionHubScope(session);
+  if (!hubs) return null;
+  const ids = await Booking.distinct(
+    "bookingId",
+    applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub", "startHub"])
+  );
+  return ids.map((id) => String(id || "").trim()).filter(Boolean);
+}
+
+export async function scopedRiderIds(session: AdminSessionInfo | null) {
+  const hubs = sessionHubScope(session);
+  if (!hubs) return null;
+  const ids = await Booking.distinct(
+    "riderId",
+    applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub", "startHub"])
+  );
+  return ids.map((id) => String(id || "").trim()).filter(Boolean);
+}
+
+export function idInScopeFilter(field: string, ids: string[] | null) {
+  if (!ids) return {};
+  return { [field]: { $in: ids.length ? ids : ["__none__"] } };
 }

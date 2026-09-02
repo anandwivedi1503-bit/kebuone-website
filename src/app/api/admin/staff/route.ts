@@ -21,7 +21,7 @@ export async function GET() {
 
   await connectDB();
   const staff = await AdminStaff.find()
-    .select("-passwordHash -passwordSalt")
+    .select("-passwordHash -passwordSalt -totpSecret")
     .sort({ createdAt: -1 })
     .lean();
 
@@ -47,6 +47,7 @@ export async function POST(req: Request) {
     ? body.dashboards.filter((id: string) => STAFF_DASHBOARDS.includes(id))
     : [];
   const hubs = normalizeHubCodes(body.hubs);
+  const staffRole = body.staffRole === "super" ? "super" : "staff";
 
   if (!/^[a-z0-9._-]{3,40}$/.test(username)) {
     return NextResponse.json(
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
     );
   }
 
-  if (dashboards.length === 0) {
+  if (staffRole !== "super" && dashboards.length === 0) {
     return NextResponse.json(
       { success: false, message: "Select at least one dashboard." },
       { status: 400 }
@@ -83,8 +84,9 @@ export async function POST(req: Request) {
     displayName: displayName || username,
     passwordHash,
     passwordSalt,
-    dashboards,
-    hubs,
+    dashboards: staffRole === "super" ? [] : dashboards,
+    hubs: staffRole === "super" ? [] : hubs,
+    staffRole,
     isActive: true,
     sessionVersion: 0,
   });
@@ -97,6 +99,8 @@ export async function POST(req: Request) {
       displayName: created.displayName,
       dashboards: created.dashboards,
       hubs: created.hubs,
+      staffRole: created.staffRole,
+      totpEnabled: created.totpEnabled,
       isActive: created.isActive,
     },
   });

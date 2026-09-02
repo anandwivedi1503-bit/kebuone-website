@@ -10,13 +10,13 @@ export async function GET(req: Request) {
   const session = await getAdminSession();
   if (!session) return unauthorizedResponse();
 
-  if (!rateLimitAllowed(`yard-queue:${session.username}`, 40, 60 * 1000)) {
+  if (!(await rateLimitAllowed(`yard-queue:${session.username}`, 40, 60 * 1000))) {
     return NextResponse.json(
       { success: false, message: "Please wait a moment." },
       { status: 429 }
     );
   }
-  if (!rateLimitAllowed(`yard-queue-ip:${clientIp(req)}`, 80, 60 * 1000)) {
+  if (!(await rateLimitAllowed(`yard-queue-ip:${clientIp(req)}`, 80, 60 * 1000))) {
     return NextResponse.json(
       { success: false, message: "Please wait a moment." },
       { status: 429 }

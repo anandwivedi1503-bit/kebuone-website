@@ -37,9 +37,18 @@ const AdminStaffSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    hubs: {
-      type: [String],
-      default: [],
+    staffRole: {
+      type: String,
+      enum: ["staff", "super"],
+      default: "staff",
+    },
+    totpSecret: {
+      type: String,
+      default: "",
+    },
+    totpEnabled: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }

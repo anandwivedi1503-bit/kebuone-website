@@ -1,13 +1,21 @@
 import crypto from "crypto";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
+  ALL_DASHBOARDS,
+} from "@/lib/adminRoles";
+import {
   createAdminSessionToken,
+  createMfaPendingToken,
   getAdminSessionCookieOptions,
   hashStaffPassword,
+  MFA_COOKIE_NAME,
+  readMfaPendingUsername,
   SESSION_COOKIE_NAME,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
+import { totpMatches } from "@/lib/totp";
 import AdminStaff from "@/models/AdminStaff";
 
 function safeCompare(left: string, right: string) {
@@ -22,10 +30,27 @@ function safeCompare(left: string, right: string) {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function sessionForStaff(staff: {
+  username: string;
+  dashboards?: string[];
+  sessionVersion?: number;
+  hubs?: string[];
+  staffRole?: string;
+}) {
+  const namedSuper = staff.staffRole === "super";
+  return createAdminSessionToken({
+    role: namedSuper ? "super" : "staff",
+    username: staff.username,
+    dashboards: namedSuper ? [...ALL_DASHBOARDS] : staff.dashboards || [],
+    sessionVersion: Number(staff.sessionVersion || 0),
+    hubs: namedSuper ? [] : Array.isArray(staff.hubs) ? staff.hubs : [],
+  });
+}
+
 export async function POST(req: Request) {
   const ip = clientIp(req);
 
-  if (!rateLimitAllowed(`admin-login:${ip}`, 8, 10 * 60 * 1000)) {
+  if (!(await rateLimitAllowed(`admin-login:${ip}`, 8, 10 * 60 * 1000))) {
     return NextResponse.json(
       { success: false, message: "Too many login attempts. Try again later." },
       { status: 429 }
@@ -39,6 +64,7 @@ export async function POST(req: Request) {
     "Unknown";
   const userAgent = req.headers.get("user-agent") || "Unknown";
   const password = String(body.password || "");
+  const totp = String(body.totp || "").replace(/\s+/g, "");
   const username = String(body.username || "")
     .trim()
     .toLowerCase();
@@ -51,10 +77,42 @@ export async function POST(req: Request) {
     );
   }
 
+  const cookieStore = await cookies();
+  const pendingUser = readMfaPendingUsername(
+    cookieStore.get(MFA_COOKIE_NAME)?.value
+  );
+
+  if (totp && pendingUser) {
+    try {
+      await connectDB();
+      const staff = await AdminStaff.findOne({ username: pendingUser, isActive: true });
+      if (staff?.totpEnabled && totpMatches(String(staff.totpSecret || ""), totp)) {
+        const response = NextResponse.json({
+          success: true,
+          role: staff.staffRole === "super" ? "super" : "staff",
+        });
+        response.cookies.set(MFA_COOKIE_NAME, "", { ...getAdminSessionCookieOptions(), maxAge: 0 });
+        response.cookies.set(
+          SESSION_COOKIE_NAME,
+          sessionForStaff(staff),
+          getAdminSessionCookieOptions()
+        );
+        return response;
+      }
+    } catch (error) {
+      console.warn("[ADMIN MFA ERROR]", error);
+    }
+    return NextResponse.json(
+      { success: false, message: "Invalid authenticator code." },
+      { status: 401 }
+    );
+  }
+
   if (safeCompare(password, adminPassword)) {
     const response = NextResponse.json({
       success: true,
       role: "super",
+      bootstrap: true,
     });
     response.cookies.set(
       SESSION_COOKIE_NAME,
@@ -75,19 +133,25 @@ export async function POST(req: Request) {
       if (staff) {
         const { passwordHash } = hashStaffPassword(password, staff.passwordSalt);
         if (safeCompare(passwordHash, staff.passwordHash)) {
+          if (staff.totpEnabled) {
+            const response = NextResponse.json({
+              success: true,
+              needsTotp: true,
+            });
+            response.cookies.set(
+              MFA_COOKIE_NAME,
+              createMfaPendingToken(staff.username),
+              { ...getAdminSessionCookieOptions(), maxAge: 300 }
+            );
+            return response;
+          }
           const response = NextResponse.json({
             success: true,
-            role: "staff",
+            role: staff.staffRole === "super" ? "super" : "staff",
           });
           response.cookies.set(
             SESSION_COOKIE_NAME,
-            createAdminSessionToken({
-              role: "staff",
-              username: staff.username,
-              dashboards: staff.dashboards || [],
-              sessionVersion: Number(staff.sessionVersion || 0),
-              hubs: Array.isArray(staff.hubs) ? staff.hubs : [],
-            }),
+            sessionForStaff(staff),
             getAdminSessionCookieOptions()
           );
           return response;
