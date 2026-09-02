@@ -6,7 +6,7 @@ import {
   faqAnswer,
   publicAssistantIntent,
 } from "../src/lib/assistantReply";
-import { wantsOwnAccountHelp } from "../src/lib/riderAssistantHelp";
+import { wantsOwnAccountHelp } from "../src/lib/riderAssistantIntent";
 
 assert.equal(publicAssistantIntent("How do I book a scooter?"), null);
 assert.equal(publicAssistantIntent("स्कूटर कैसे बुक करें?"), null);
@@ -42,18 +42,26 @@ assert.match(ceo.answer, /सुनील पाठक|Sunil Pathak/i);
 assert.equal(wantsOwnAccountHelp("मेरी बुकिंग कैसी है?"), true);
 assert.equal(wantsOwnAccountHelp("किराया कितना है?"), false);
 
-const signedInStatus = await answerEvuddyQuestion([], "मेरी बुकिंग", "hi", {
-  answer: "SIGNED_IN_STATUS_ONLY",
-  href: "/book-bike",
-});
-assert.equal(signedInStatus.answer, "SIGNED_IN_STATUS_ONLY");
+const unsignedOwnFaq = faqAnswer("मेरी बुकिंग", "hi");
+assert.ok((unsignedOwnFaq.score || 0) >= 1);
+assert.notEqual(unsignedOwnFaq.answer, "SIGNED_IN_STATUS_ONLY");
 
-const publicOwn = await answerEvuddyQuestion([], "मेरी बुकिंग", "hi", null);
-assert.notEqual(publicOwn.answer, "SIGNED_IN_STATUS_ONLY");
-assert.ok(publicOwn.answer.length > 10);
+async function runAsyncCases() {
+  const signedInStatus = await answerEvuddyQuestion([], "मेरी बुकिंग", "hi", {
+    answer: "SIGNED_IN_STATUS_ONLY",
+    href: "/book-bike",
+  });
+  assert.equal(signedInStatus.answer, "SIGNED_IN_STATUS_ONLY");
+}
 
-const stillBlocked = publicAssistantIntent("pay now for me");
-assert.ok(stillBlocked?.answer);
-assert.equal(stillBlocked?.navigate, undefined);
-
-console.log("assistant self-test ok");
+void runAsyncCases()
+  .then(() => {
+    const stillBlocked = publicAssistantIntent("pay now for me");
+    assert.ok(stillBlocked?.answer);
+    assert.equal(stillBlocked?.navigate, undefined);
+    console.log("assistant self-test ok");
+  })
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

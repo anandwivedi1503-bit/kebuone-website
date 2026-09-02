@@ -3,10 +3,8 @@ import { NextResponse } from "next/server";
 import { answerEvuddyQuestion, assistantConfigured, type ChatTurn } from "@/lib/assistantReply";
 import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
-import {
-  riderAssistantHelp,
-  wantsOwnAccountHelp,
-} from "@/lib/riderAssistantHelp";
+import { riderAssistantHelp } from "@/lib/riderAssistantHelp";
+import { wantsOwnAccountHelp } from "@/lib/riderAssistantIntent";
 
 export async function POST(req: Request) {
   try {

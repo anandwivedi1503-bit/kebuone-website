@@ -5,7 +5,7 @@ import {
   fleetInvestmentFaqHindi,
 } from "@/lib/fleetInvestment";
 import { llmChat, llmConfigured } from "@/lib/llmChat";
-import { wantsOwnAccountHelp } from "@/lib/riderAssistantHelp";
+import { wantsOwnAccountHelp } from "@/lib/riderAssistantIntent";
 
 export type ChatTurn = { role: "user" | "assistant"; content: string };
 
