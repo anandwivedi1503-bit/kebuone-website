@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { requireAdminDashboards } from "@/lib/adminAuth";
+import { requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import { getOpsMoneySummary } from "@/lib/opsMoneySummary";
@@ -8,7 +8,8 @@ import { getOpsMoneySummary } from "@/lib/opsMoneySummary";
 export async function GET() {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.moneySummary);
-    if (gate.error || !gate.session) return gate.error;
+    if (gate.error) return gate.error;
+    if (!gate.session) return unauthorizedResponse();
 
     await connectDB();
     const data = await getOpsMoneySummary(gate.session);
