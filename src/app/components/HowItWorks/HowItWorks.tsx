@@ -46,23 +46,19 @@ export default function HowItWorks() {
     <section id="how-it-works" className="relative overflow-hidden bg-white py-16 sm:py-24">
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            HOW IT WORKS
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]">
+            How it works
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            Four steps.{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              Phone-first.
-            </span>
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
+            Four steps. <span className="text-[#18B368]">Phone-first.</span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
             Same flow millions of Indian riders expect — KYC, hub pickup, OTP, live GPS.
           </p>
         </div>
 
-        <div className="relative mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="pointer-events-none absolute left-[12%] right-[12%] top-10 hidden h-px bg-gradient-to-r from-[#18B368]/0 via-[#18B368]/40 to-[#18B368]/0 xl:block" />
+        <div className="relative mt-12 grid gap-8 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="pointer-events-none absolute left-[8%] right-[8%] top-7 hidden h-px bg-[#18B368]/25 xl:block" />
           {steps.map((step) => {
             const Icon = step.icon;
             return (
@@ -71,15 +67,13 @@ export default function HowItWorks() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="relative overflow-hidden rounded-[24px] border border-slate-100 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-7"
+                className="relative px-1"
               >
-                <span className="absolute right-4 top-3 text-5xl font-black text-[#18B368]/10">
-                  {step.n}
-                </span>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#18B368] text-white">
-                  <Icon size={22} />
+                <p className="text-5xl font-black leading-none text-[#18B368]/20">{step.n}</p>
+                <div className="mt-3 flex h-10 w-10 items-center justify-center rounded-full bg-[#18B368] text-white">
+                  <Icon size={18} />
                 </div>
-                <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{step.title}</h3>
+                <h3 className="mt-4 text-xl font-bold text-[#0F172A]">{step.title}</h3>
                 <p className="mt-1 text-xs font-bold uppercase tracking-[0.12em] text-[#18B368]">
                   {step.hi}
                 </p>

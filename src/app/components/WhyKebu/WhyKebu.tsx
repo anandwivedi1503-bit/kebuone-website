@@ -33,15 +33,12 @@ export default function WhyChoose() {
       <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/10 blur-[110px]" />
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            WHY CHOOSE EVUDDY
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]">
+            Why EVUDDY
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            Built for the future of{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              smart mobility
-            </span>
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
+            Built for Indian streets,{" "}
+            <span className="text-[#18B368]">not imported playbooks.</span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
             Technology, sustainability and a customer-first ride experience for modern Indian cities.
@@ -70,17 +67,16 @@ export default function WhyChoose() {
             </span>
           </motion.div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="divide-y divide-[#18B368]/12 overflow-hidden rounded-[28px] border border-[#18B368]/15 bg-white">
             {features.map((item) => {
               const Icon = item.icon;
               return (
-                <div
-                  key={item.title}
-                  className="rounded-[24px] border border-white bg-white/80 p-5 shadow-sm backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(24,179,104,0.12)] sm:p-6"
-                >
-                  <Icon className="text-[#18B368]" size={28} />
-                  <h4 className="mt-4 text-lg font-bold text-[#0F172A]">{item.title}</h4>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">{item.text}</p>
+                <div key={item.title} className="flex gap-4 px-5 py-5 sm:px-7 sm:py-6">
+                  <Icon className="mt-0.5 shrink-0 text-[#18B368]" size={22} />
+                  <div>
+                    <h4 className="text-lg font-bold text-[#0F172A]">{item.title}</h4>
+                    <p className="mt-1 text-sm leading-6 text-slate-500">{item.text}</p>
+                  </div>
                 </div>
               );
             })}

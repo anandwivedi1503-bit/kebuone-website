@@ -29,23 +29,20 @@ export default function TrustSection() {
     <section className="relative overflow-hidden bg-white py-16 sm:py-24">
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            WHO RIDES EVUDDY
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]">
+            Who rides EVUDDY
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
             One scooter.{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              Three Indian journeys.
-            </span>
+            <span className="text-[#18B368]">Three Indian journeys.</span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
             Built for riders, gig work and people who want the scooter to become theirs.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {cards.map((card) => {
+        <div className="mt-12 grid gap-8 lg:grid-cols-3 lg:gap-10">
+          {cards.map((card, i) => {
             const Icon = card.icon;
             return (
               <motion.div
@@ -53,12 +50,10 @@ export default function TrustSection() {
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="rounded-[24px] border border-slate-100 bg-[#F7FBF8] p-6 shadow-[0_12px_40px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-8"
+                className={`px-1 ${i > 0 ? "lg:border-l lg:border-[#18B368]/15 lg:pl-10" : ""}`}
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#18B368] text-white">
-                  <Icon size={22} />
-                </div>
-                <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{card.title}</h3>
+                <Icon className="text-[#18B368]" size={22} />
+                <h3 className="mt-4 text-xl font-bold text-[#0F172A]">{card.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-slate-500">{card.text}</p>
                 <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">
                   {card.label}

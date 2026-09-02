@@ -39,7 +39,7 @@ export default function InvestHomeInvite() {
           </div>
           <Link
             href={INVEST}
-            className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#EC2A8C] px-7 font-bold text-white shadow-[0_12px_28px_rgba(236,42,140,0.28)] transition hover:bg-[#d01878] sm:w-auto"
+            className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 font-bold text-white shadow-[0_12px_28px_rgba(24,179,104,0.32)] transition hover:bg-[#16a05c] sm:w-auto"
           >
             Open Invest
             <ArrowRight size={18} />

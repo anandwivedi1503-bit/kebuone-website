@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 
@@ -52,15 +52,12 @@ export default function HomePlans() {
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-              <Sparkles size={14} className="text-[#18B368]" />
-              INDIA-READY PRICING
+            <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]">
+              India-ready pricing
             </p>
-            <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl">
+            <h2 className="mt-3 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl">
               Clear fares.{" "}
-              <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-                No hidden extras.
-              </span>
+              <span className="text-[#18B368]">No hidden extras.</span>
             </h2>
             <p className="mt-3 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-lg">
               Same catalog as Book EV. GST 5% on rent only. Normal rentals add a refundable
@@ -89,7 +86,7 @@ export default function HomePlans() {
             >
               {plan.featured ? (
                 <span className="absolute right-5 top-5 rounded-full bg-[#18B368] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white">
-                  Popular
+                  Most booked
                 </span>
               ) : null}
               <p
@@ -130,10 +127,10 @@ export default function HomePlans() {
 
         <Link
           href="/ride-options"
-          className="mt-4 flex flex-col items-start justify-between gap-4 rounded-[28px] border border-[#EC2A8C]/20 bg-gradient-to-r from-[#0B1B16] to-[#1a1020] p-6 text-white sm:flex-row sm:items-center sm:p-8"
+          className="mt-4 flex flex-col items-start justify-between gap-4 rounded-[28px] border border-[#18B368]/25 bg-[#0B1B16] p-6 text-white sm:flex-row sm:items-center sm:p-8"
         >
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#FF8FBF]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6EE7A8]">
               Rent to Own
             </p>
             <p className="mt-2 text-2xl font-black sm:text-3xl">
@@ -146,7 +143,7 @@ export default function HomePlans() {
               No security deposit. Daily receipt. Ownership after a successful term.
             </p>
           </div>
-          <span className="inline-flex h-12 items-center gap-2 rounded-full bg-[#EC2A8C] px-6 text-sm font-bold">
+          <span className="inline-flex h-12 items-center gap-2 rounded-full bg-[#18B368] px-6 text-sm font-bold text-white">
             Start Rent to Own
             <ArrowRight size={16} />
           </span>

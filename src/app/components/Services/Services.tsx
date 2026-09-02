@@ -23,22 +23,19 @@ export default function Services() {
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700 shadow-sm"
+            className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]"
           >
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            EVUDDY ELECTRIC SCOOTERS
+            EVUDDY electric scooter
           </motion.span>
 
           <motion.h2
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl"
+            className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl"
           >
             Built for{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              everyday mobility
-            </span>
+            <span className="text-[#18B368]">everyday mobility</span>
           </motion.h2>
 
           <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-slate-500 sm:text-lg">
@@ -65,17 +62,14 @@ export default function Services() {
           />
         </motion.div>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-5 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 divide-y divide-[#18B368]/10 overflow-hidden rounded-[24px] border border-[#18B368]/15 sm:mt-12 lg:grid-cols-4 lg:divide-x lg:divide-y-0">
           {specs.map((spec) => {
             const Icon = spec.icon;
             return (
-              <div
-                key={spec.label}
-                className="rounded-[22px] border border-slate-100/80 bg-white/70 p-4 text-center shadow-[0_12px_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 hover:shadow-[0_20px_50px_rgba(24,179,104,0.12)] sm:rounded-[28px] sm:p-7"
-              >
-                <Icon size={28} className={`mx-auto mb-3 ${spec.color}`} />
-                <p className={`text-3xl font-black sm:text-5xl ${spec.color}`}>{spec.value}</p>
-                <p className="mt-1 text-sm font-semibold text-slate-700 sm:text-base">{spec.label}</p>
+              <div key={spec.label} className="bg-[#F7FBFA] px-5 py-7 text-center">
+                <Icon size={22} className={`mx-auto mb-3 ${spec.color}`} />
+                <p className={`text-3xl font-black tracking-tight sm:text-4xl ${spec.color}`}>{spec.value}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-600">{spec.label}</p>
               </div>
             );
           })}
