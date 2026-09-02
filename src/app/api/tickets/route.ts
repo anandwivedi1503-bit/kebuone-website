@@ -197,13 +197,13 @@ export async function POST(req: Request) {
         priority,
         status: "OPEN",
         assignedTo,
-        ticketSource: isAdminRequest ? "Admin Panel" : "Website",
+        ticketSource: "Website",
         refundRequired: false,
         adminRemarks: "",
       });
 
       void writeAudit({
-        actor: isAdminRequest ? "Admin" : "Website",
+        actor: "Website",
         action: "TICKET_CREATED",
         entity: "Ticket",
         entityId: ticketId,
@@ -217,6 +217,11 @@ export async function POST(req: Request) {
         },
         { status: 201 }
       );
+    }
+
+    if (isAdminRequest) {
+      const gate = await requireAdminDashboards(...API_DASHBOARDS.tickets);
+      if (gate.error) return gate.error;
     }
 
     const firebaseUser = isAdminRequest

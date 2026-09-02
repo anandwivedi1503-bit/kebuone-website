@@ -2,7 +2,8 @@ import { parseOpsQuery, universalOpsSearch, type OpsHit } from "@/lib/opsSearch"
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
-import type { AdminSessionInfo } from "@/lib/adminAuth";
+import { sessionHasAnyDashboard, type AdminSessionInfo } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import {
   applyHubScope,
   idInScopeFilter,
@@ -311,6 +312,79 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     batterySwaps: recentSwaps as Array<Record<string, unknown>>,
     partners: recentPartners as Array<Record<string, unknown>>,
   };
+
+  return filterCommandCenterForSession(session, { counts, recent });
+}
+
+function emptyIf(allowed: boolean, rows: Array<Record<string, unknown>>) {
+  return allowed ? rows : [];
+}
+
+function filterCommandCenterForSession(
+  session: AdminSessionInfo,
+  snapshot: { counts: CommandCenterCounts; recent: CommandCenterRecent }
+) {
+  const { counts, recent } = snapshot;
+  const canBookings = sessionHasAnyDashboard(session, ...API_DASHBOARDS.bookingsRead);
+  const canTickets = sessionHasAnyDashboard(session, ...API_DASHBOARDS.tickets);
+  const canRefunds = sessionHasAnyDashboard(session, ...API_DASHBOARDS.refunds);
+  const canRiders = sessionHasAnyDashboard(session, ...API_DASHBOARDS.ridersRead);
+  const canVehicles = sessionHasAnyDashboard(session, ...API_DASHBOARDS.vehiclesRead);
+  const canHubs = sessionHasAnyDashboard(session, ...API_DASHBOARDS.hubsRead);
+  const canIot = sessionHasAnyDashboard(session, ...API_DASHBOARDS.iot);
+  const canBatteries = sessionHasAnyDashboard(session, ...API_DASHBOARDS.batteries);
+  const canSwaps = sessionHasAnyDashboard(session, ...API_DASHBOARDS.swaps);
+  const canPartners = sessionHasAnyDashboard(session, ...API_DASHBOARDS.partners);
+  const canWallet = sessionHasAnyDashboard(session, ...API_DASHBOARDS.walletRead);
+  const canTx = sessionHasAnyDashboard(session, ...API_DASHBOARDS.transactions);
+
+  if (!canRiders) counts.riders = 0;
+  if (!canVehicles) {
+    counts.vehicles = 0;
+    counts.availableVehicles = 0;
+    counts.onlineVehicles = 0;
+    counts.offlineVehicles = 0;
+    counts.lowBatteryVehicles = 0;
+  }
+  if (!canHubs) {
+    counts.hubs = 0;
+    counts.activeHubs = 0;
+  }
+  if (!canBookings) {
+    counts.activeRides = 0;
+    recent.bookings = [];
+  }
+  if (!canTickets) {
+    counts.openTickets = 0;
+    recent.tickets = [];
+  }
+  if (!canRefunds) {
+    counts.processingRefunds = 0;
+    recent.refunds = [];
+  }
+  if (!canIot) counts.geofenceAlerts = 0;
+  if (!canBatteries) {
+    counts.readyBatteries = 0;
+    counts.chargingBatteries = 0;
+    counts.lowChargeBatteries = 0;
+  }
+  if (!canSwaps) {
+    counts.pendingSwaps = 0;
+    counts.completedSwaps = 0;
+    recent.batterySwaps = [];
+  }
+  if (!canPartners) {
+    counts.pendingPartners = 0;
+    counts.approvedPartners = 0;
+    recent.partners = [];
+  }
+  if (!canWallet) {
+    counts.wallets = 0;
+    counts.blockedWallets = 0;
+    counts.totalWalletBalance = 0;
+  }
+  if (!canTx && !canWallet) counts.totalRevenue = 0;
+  recent.transactions = emptyIf(canTx, recent.transactions);
 
   return { counts, recent };
 }

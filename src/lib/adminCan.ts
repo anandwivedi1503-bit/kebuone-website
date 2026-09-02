@@ -35,4 +35,17 @@ export const API_DASHBOARDS = {
   partners: ["partner"],
   analytics: ["analytics", "admin"],
   audit: ["audit"],
+  moneySummary: [
+    "wallet",
+    "revenue",
+    "transactions",
+    "admin",
+    "bookings",
+    "fleet",
+    "hub",
+    "renttoown",
+    "refunds",
+    "analytics",
+  ],
+  yardQueue: ["bookings", "fleet", "hub"],
 } as const;

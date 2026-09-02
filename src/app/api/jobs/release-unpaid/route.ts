@@ -1,17 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { isAdminAuthenticated, unauthorizedResponse } from "@/lib/adminAuth";
+import { requireAdminDashboards } from "@/lib/adminAuth";
+import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import { releaseUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { recordJobHeartbeat } from "@/lib/jobHeartbeat";
+import { providedSecretMatches } from "@/lib/timingSafe";
 
 export async function POST(req: Request) {
-  const cronSecret = process.env.CRON_SECRET || "";
-  const provided = req.headers.get("x-cron-secret") || "";
-  const admin = await isAdminAuthenticated().catch(() => false);
-
-  if (!admin && (!cronSecret || provided !== cronSecret)) {
-    return unauthorizedResponse();
+  const cronOk = providedSecretMatches(
+    process.env.CRON_SECRET || "",
+    req.headers.get("x-cron-secret") || ""
+  );
+  if (!cronOk) {
+    const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
+    if (gate.error) return gate.error;
   }
 
   await connectDB();

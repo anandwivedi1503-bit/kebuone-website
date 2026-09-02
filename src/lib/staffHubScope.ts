@@ -48,7 +48,7 @@ export function staffCanAccessBooking(
   const hubs = sessionHubScope(session);
   if (!hubs) return true;
   const codes = bookingHubs(booking);
-  if (codes.length === 0) return true;
+  if (codes.length === 0) return false;
   return codes.some((code) => hubs.includes(code));
 }
 

@@ -8,6 +8,13 @@ import Refund from "@/models/Refund";
 import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
+import {
+  applyHubScope,
+  idInScopeFilter,
+  scopedBookingIds,
+  scopedRiderIds,
+  sessionHubScope,
+} from "@/lib/staffHubScope";
 
 function can(session: AdminSessionInfo, keys: readonly string[]) {
   return sessionHasAnyDashboard(session, ...keys);
@@ -18,21 +25,32 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
   await connectDB();
   const stats: OpsStat[] = [];
   const tasks: Array<Promise<void>> = [];
+  const hubs = sessionHubScope(session);
+  const bookingIds = await scopedBookingIds(session);
+  const riderIds = await scopedRiderIds(session);
+  const bookingBase = applyHubScope({ ...NOT_DELETED_FILTER }, hubs, [
+    "currentHub",
+    "startHub",
+  ]);
+  const vehicleBase = applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub"]);
+  const ticketScope = idInScopeFilter("bookingId", bookingIds);
+  const riderScope = idInScopeFilter("riderId", riderIds);
+  const refundScope = idInScopeFilter("bookingId", bookingIds);
 
   if (can(session, API_DASHBOARDS.bookingsRead)) {
     tasks.push(
       (async () => {
         const [unpaid, inRide, rtoDue] = await Promise.all([
           Booking.countDocuments({
-            ...NOT_DELETED_FILTER,
+            ...bookingBase,
             paymentStatus: { $in: ["Pending", "Partial"] },
           }).maxTimeMS(1800),
           Booking.countDocuments({
-            ...NOT_DELETED_FILTER,
+            ...bookingBase,
             rideStatus: "In Ride",
           }).maxTimeMS(1800),
           Booking.countDocuments({
-            ...NOT_DELETED_FILTER,
+            ...bookingBase,
             rentalMode: "Rent To Own",
             paymentStatus: { $in: ["Pending", "Partial"] },
           }).maxTimeMS(1800),
@@ -50,6 +68,7 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
       (async () => {
         const open = await Ticket.countDocuments({
           ...NOT_DELETED_FILTER,
+          ...ticketScope,
           status: { $in: ["OPEN", "IN-PROGRESS"] },
         }).maxTimeMS(1800);
         stats.push({ label: "Tickets", value: String(open), dashboard: "support" });
@@ -61,6 +80,7 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
       (async () => {
         const pending = await Rider.countDocuments({
           ...NOT_DELETED_FILTER,
+          ...riderScope,
           $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
         }).maxTimeMS(1800);
         stats.push({ label: "KYC", value: String(pending), dashboard: "kyc" });
@@ -71,7 +91,7 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
     tasks.push(
       (async () => {
         const available = await Vehicle.countDocuments({
-          ...NOT_DELETED_FILTER,
+          ...vehicleBase,
           vehicleStatus: "Available",
         }).maxTimeMS(1800);
         stats.push({ label: "Available", value: String(available), dashboard: "vehicles" });
@@ -83,6 +103,7 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
       (async () => {
         const pending = await Refund.countDocuments({
           ...NOT_DELETED_FILTER,
+          ...refundScope,
           status: "PENDING",
         }).maxTimeMS(1800);
         stats.push({ label: "Refunds", value: String(pending), dashboard: "refunds" });

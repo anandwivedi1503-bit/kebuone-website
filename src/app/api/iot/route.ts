@@ -1,11 +1,12 @@
-import { isAdminAuthenticated,
-  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { requireAdminDashboards } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import iot from "@/models/IoT";
 import Vehicle from "@/models/Vehicle";
 import Booking from "@/models/Booking";
+import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { providedSecretMatches } from "@/lib/timingSafe";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
@@ -28,10 +29,10 @@ function numberInRange(value: unknown, min: number, max: number) {
 }
 
 function isDeviceAuthenticated(req: Request) {
-  const secret = process.env.IOT_DEVICE_SECRET;
-  const receivedSecret = req.headers.get("x-iot-secret");
-
-  return Boolean(secret && receivedSecret && secret === receivedSecret);
+  return providedSecretMatches(
+    process.env.IOT_DEVICE_SECRET || "",
+    req.headers.get("x-iot-secret") || ""
+  );
 }
 
 export async function GET() {
@@ -41,9 +42,14 @@ export async function GET() {
 
     await connectDB();
 
-    const vehicles = await Vehicle.find({
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    })
+    const vehicleFilter = applyHubScope(
+      {
+        $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+      },
+      sessionHubScope(gate.session),
+      ["currentHub"]
+    );
+    const vehicles = await Vehicle.find(vehicleFilter)
       .select(
         "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt currentHub currentBatteryId currentBookingId"
       )
