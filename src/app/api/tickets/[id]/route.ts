@@ -11,6 +11,7 @@ import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
 import { appendBoundedText } from "@/lib/listQuery";
 import { nextSeqId } from "@/lib/nextSeqId";
 import { writeAudit } from "@/lib/writeAudit";
+import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 
 const allowedStatuses = [
   "OPEN",
@@ -81,6 +82,27 @@ session.startTransaction();
 
     const { id } = await params;
     const body = await req.json();
+
+    const earlyTicket = (await Ticket.findById(id)
+      .select("bookingId")
+      .lean()) as { bookingId?: string } | null;
+    if (!earlyTicket) {
+      await session.abortTransaction();
+      session.endSession();
+      return NextResponse.json(
+        { success: false, errors: ["Ticket not found."] },
+        { status: 404 }
+      );
+    }
+    const hubBlock = await denyIfBookingOutOfHub(
+      gate.session,
+      String(earlyTicket.bookingId || "")
+    );
+    if (hubBlock) {
+      await session.abortTransaction();
+      session.endSession();
+      return hubBlock;
+    }
 
     const updateData: Record<string, unknown> = {};
     const errors: string[] = [];

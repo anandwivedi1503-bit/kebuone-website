@@ -26,18 +26,23 @@ export async function GET() {
   const captured: Array<{ id: string; amount: number; status: string }> = [];
 
   try {
-    const page = (await razorpay.payments.all({
-      from,
-      count: 100,
-    })) as { items?: Array<{ id?: string; amount?: number; status?: string }> };
-    for (const item of page.items || []) {
-      if (item.status === "captured" && item.id) {
-        captured.push({
-          id: String(item.id),
-          amount: Number(item.amount || 0) / 100,
-          status: String(item.status),
-        });
+    for (let skip = 0; skip < 500; skip += 100) {
+      const page = (await razorpay.payments.all({
+        from,
+        count: 100,
+        skip,
+      })) as { items?: Array<{ id?: string; amount?: number; status?: string }> };
+      const items = page.items || [];
+      for (const item of items) {
+        if (item.status === "captured" && item.id) {
+          captured.push({
+            id: String(item.id),
+            amount: Number(item.amount || 0) / 100,
+            status: String(item.status),
+          });
+        }
       }
+      if (items.length < 100) break;
     }
   } catch (error) {
     console.error("RAZORPAY RECON FETCH:", error);
@@ -65,6 +70,7 @@ export async function GET() {
   return NextResponse.json({
     success: true,
     windowHours: 24,
+    scannedUpTo: 500,
     razorpayCaptured: captured.length,
     missingInMongo: missingInMongo.slice(0, 50),
     missingCount: missingInMongo.length,

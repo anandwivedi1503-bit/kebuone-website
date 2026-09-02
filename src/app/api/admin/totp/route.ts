@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getAdminSession, unauthorizedResponse } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
+import { writeAudit } from "@/lib/writeAudit";
 import { generateTotpSecret, totpMatches, totpOtpauthUrl } from "@/lib/totp";
 import AdminStaff from "@/models/AdminStaff";
 
@@ -45,6 +46,13 @@ export async function POST(req: Request) {
     }
     staff.totpEnabled = true;
     await staff.save();
+    await writeAudit({
+      actor: session.username,
+      action: "TOTP_ENABLED",
+      entity: "AdminStaff",
+      entityId: staff.username,
+      detail: "Named login enrolled authenticator 2FA",
+    });
     return NextResponse.json({ success: true, totpEnabled: true });
   }
 

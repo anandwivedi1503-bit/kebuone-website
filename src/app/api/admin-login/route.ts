@@ -16,6 +16,7 @@ import {
 import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { totpMatches } from "@/lib/totp";
+import { writeAudit } from "@/lib/writeAudit";
 import AdminStaff from "@/models/AdminStaff";
 
 function safeCompare(left: string, right: string) {
@@ -97,6 +98,13 @@ export async function POST(req: Request) {
           sessionForStaff(staff),
           getAdminSessionCookieOptions()
         );
+        void writeAudit({
+          actor: staff.username,
+          action: "ADMIN_LOGIN",
+          entity: "AdminStaff",
+          entityId: staff.username,
+          detail: "Named login with 2FA",
+        });
         return response;
       }
     } catch (error) {
@@ -123,6 +131,13 @@ export async function POST(req: Request) {
       }),
       getAdminSessionCookieOptions()
     );
+    void writeAudit({
+      actor: "superadmin",
+      action: "ADMIN_LOGIN",
+      entity: "AdminStaff",
+      entityId: "superadmin",
+      detail: "Shared env password bootstrap",
+    });
     return response;
   }
 
@@ -154,6 +169,13 @@ export async function POST(req: Request) {
             sessionForStaff(staff),
             getAdminSessionCookieOptions()
           );
+          void writeAudit({
+            actor: staff.username,
+            action: "ADMIN_LOGIN",
+            entity: "AdminStaff",
+            entityId: staff.username,
+            detail: "Named login",
+          });
           return response;
         }
       }

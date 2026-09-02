@@ -10,6 +10,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { denyIfRiderOutOfHub, idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
 
 export async function GET(req: Request) {
   try {
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
 
     const limit = Number.isFinite(rawLimit)
       ? Math.min(
-          500,
+          80,
           Math.max(1, Math.floor(rawLimit))
         )
       : 25;
@@ -67,6 +68,13 @@ export async function GET(req: Request) {
 
     if (riderId) {
       filter.riderId = riderId;
+      const riderHubBlock = await denyIfRiderOutOfHub(gate.session, riderId);
+      if (riderHubBlock) return riderHubBlock;
+    } else {
+      Object.assign(
+        filter,
+        idInScopeFilter("riderId", await scopedRiderIds(gate.session))
+      );
     }
 
     if (type) {

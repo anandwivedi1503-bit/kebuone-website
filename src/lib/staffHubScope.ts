@@ -62,6 +62,59 @@ export function hubForbiddenResponse() {
   );
 }
 
+export async function riderInSessionScope(
+  session: AdminSessionInfo | null,
+  riderId?: string
+) {
+  const hubs = sessionHubScope(session);
+  if (!hubs) return true;
+  const id = String(riderId || "").trim().toUpperCase();
+  if (!id) return false;
+  const atAssignedHub = await Booking.exists(
+    applyHubScope(
+      { ...NOT_DELETED_FILTER, riderId: id },
+      hubs,
+      ["currentHub", "startHub"]
+    )
+  );
+  if (atAssignedHub) return true;
+  const bookedElsewhere = await Booking.exists({
+    ...NOT_DELETED_FILTER,
+    riderId: id,
+  });
+  return !bookedElsewhere;
+}
+
+export async function denyIfRiderOutOfHub(
+  session: AdminSessionInfo | null,
+  riderId?: string
+) {
+  if (await riderInSessionScope(session, riderId)) return null;
+  return Response.json(
+    {
+      success: false,
+      message: "This rider is not at your assigned hub.",
+    },
+    { status: 403 }
+  );
+}
+
+export async function denyIfBookingOutOfHub(
+  session: AdminSessionInfo | null,
+  bookingId?: string
+) {
+  const hubs = sessionHubScope(session);
+  if (!hubs) return null;
+  const id = String(bookingId || "").trim();
+  if (!id) return null;
+  const booking = (await Booking.findOne({ bookingId: id })
+    .select("currentHub startHub")
+    .lean()) as { currentHub?: unknown; startHub?: unknown } | null;
+  if (!booking) return null;
+  if (staffCanAccessBooking(session, booking)) return null;
+  return hubForbiddenResponse();
+}
+
 export async function scopedBookingIds(session: AdminSessionInfo | null) {
   const hubs = sessionHubScope(session);
   if (!hubs) return null;

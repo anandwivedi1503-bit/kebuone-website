@@ -33,7 +33,7 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, hits });
     }
 
-    const snapshot = await getAdminCommandCenter();
+    const snapshot = await getAdminCommandCenter(session);
     return NextResponse.json({ success: true, ...snapshot });
   } catch (error) {
     console.error("ADMIN COMMAND CENTER:", error);

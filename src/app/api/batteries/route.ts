@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
 import Vehicle from "@/models/Vehicle";
+import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 
 export async function GET() {
   try {
@@ -15,10 +16,34 @@ export async function GET() {
     const notDeleted = {
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
     };
+    const hubs = sessionHubScope(gate.session);
+    const vehicleQuery = applyHubScope({ ...notDeleted }, hubs, ["currentHub"]);
+    const scopedVehicleIds = hubs
+      ? (await Vehicle.distinct("vehicleId", vehicleQuery)).map((id) =>
+          String(id || "").trim()
+        )
+      : null;
+    const batteryQuery = scopedVehicleIds
+      ? {
+          $and: [
+            notDeleted,
+            {
+              $or: [
+                { hubId: { $in: hubs || [] } },
+                {
+                  vehicleId: {
+                    $in: scopedVehicleIds.length ? scopedVehicleIds : ["__none__"],
+                  },
+                },
+              ],
+            },
+          ],
+        }
+      : notDeleted;
 
     const [batteries, vehicles] = await Promise.all([
-      Battery.find(notDeleted).sort({ createdAt: -1 }).lean(),
-      Vehicle.find(notDeleted)
+      Battery.find(batteryQuery).sort({ createdAt: -1 }).lean(),
+      Vehicle.find(vehicleQuery)
         .select("vehicleId batteryPercentage vehicleStatus currentHub currentBatteryId")
         .lean(),
     ]);

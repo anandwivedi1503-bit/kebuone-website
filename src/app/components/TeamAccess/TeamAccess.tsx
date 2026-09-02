@@ -179,7 +179,11 @@ export default function TeamAccess() {
                 return;
               }
               setTotpUrl(data.otpauthUrl || "");
-              setMessage("Scan the otpauth URL in Google Authenticator, then confirm with a code.");
+              setMessage(
+                data.secret
+                  ? `Manual key: ${data.secret}. Scan otpauth in Google Authenticator, then confirm.`
+                  : "Scan the otpauth URL in Google Authenticator, then confirm with a code."
+              );
             }}
           >
             Start 2FA

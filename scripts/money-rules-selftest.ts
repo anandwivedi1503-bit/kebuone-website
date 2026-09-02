@@ -103,6 +103,13 @@ assert.equal(
   ),
   false
 );
+assert.equal(
+  staffCanAccessBooking(
+    { role: "super", username: "anand", dashboards: [] },
+    { currentHub: "DEL-02" }
+  ),
+  true
+);
 
 const secret = "JBSWY3DPEHPK3PXP";
 assert.equal(totpMatches(secret, totpCode(secret)), true);
