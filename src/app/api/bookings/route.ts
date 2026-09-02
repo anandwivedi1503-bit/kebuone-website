@@ -24,6 +24,7 @@ import {
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
 import { applyOpsListFilters, listResponse, parseListQuery, redactBookingOtps } from "@/lib/listQuery";
+import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
@@ -109,6 +110,7 @@ export async function GET(req: Request) {
       hub: ["currentHub", "startHub"],
       city: "pickupCity",
     });
+    applyHubScope(filter, sessionHubScope(gate.session), ["currentHub", "startHub"]);
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const and = (filter.$and as unknown[]) || [];

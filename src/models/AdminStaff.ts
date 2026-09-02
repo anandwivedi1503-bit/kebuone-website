@@ -37,6 +37,10 @@ const AdminStaffSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    hubs: {
+      type: [String],
+      default: [],
+    },
   },
   { timestamps: true }
 );

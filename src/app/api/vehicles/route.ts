@@ -20,6 +20,7 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 
 const registrationTypes = [
   "RTO",
@@ -563,24 +564,23 @@ export async function GET() {
     await connectDB();
     void maybeSweepUnpaidBookings();
 
+    const session = await getAdminSession();
     const isAdmin = sessionHasAnyDashboard(
-      await getAdminSession(),
+      session,
       ...API_DASHBOARDS.vehiclesRead
     );
 
     if (isAdmin) {
-      const vehicles =
-        await Vehicle.find({
-          $or: [
-            { isDeleted: false },
-            { isDeleted: { $exists: false } },
-          ],
+      const filter: Record<string, unknown> = {
+        $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+      };
+      applyHubScope(filter, sessionHubScope(session), ["currentHub"]);
+      const vehicles = await Vehicle.find(filter)
+        .sort({
+          updatedAt: -1,
         })
-          .sort({
-            updatedAt: -1,
-          })
-          .limit(500)
-          .lean();
+        .limit(500)
+        .lean();
 
       return NextResponse.json({
         success: true,

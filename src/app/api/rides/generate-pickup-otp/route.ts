@@ -6,6 +6,10 @@ import { connectDB } from "@/lib/mongodb";
 
 import { generateSixDigitOtp, isOtpExpired, pickupOtpExpiry } from "@/lib/otp";
 import Booking from "@/models/Booking";
+import {
+  hubForbiddenResponse,
+  staffCanAccessBooking,
+} from "@/lib/staffHubScope";
 
 export async function POST(req: Request) {
   try {
@@ -46,6 +50,10 @@ export async function POST(req: Request) {
         },
         { status: 404 }
       );
+    }
+
+    if (!staffCanAccessBooking(gate.session, booking)) {
+      return hubForbiddenResponse();
     }
 
     if (Number(booking.receivedAmount || 0) < 1) {

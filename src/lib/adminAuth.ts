@@ -14,6 +14,7 @@ export type AdminSessionInfo = {
   username: string;
   dashboards: string[];
   sessionVersion?: number;
+  hubs?: string[];
 };
 
 function getSessionSecret() {
@@ -134,11 +135,12 @@ export async function getAdminSession(): Promise<AdminSessionInfo | null> {
       username: parsed.username,
       isActive: true,
     })
-      .select("username dashboards isActive sessionVersion")
+      .select("username dashboards isActive sessionVersion hubs")
       .lean()) as {
       username?: string;
       dashboards?: string[];
       sessionVersion?: number;
+      hubs?: string[];
     } | null;
     if (!staff) return null;
     const tokenVersion = Number(parsed.sessionVersion || 0);
@@ -153,6 +155,7 @@ export async function getAdminSession(): Promise<AdminSessionInfo | null> {
         ? staff.dashboards.map(String)
         : [],
       sessionVersion: dbVersion,
+      hubs: Array.isArray(staff.hubs) ? staff.hubs.map(String) : [],
     };
   } catch {
     return null;

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 
+import { recordJobHeartbeat } from "@/lib/jobHeartbeat";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
@@ -143,6 +144,7 @@ export async function maybeSweepUnpaidBookings() {
       releaseUnpaidBookings(100),
       openDueRtoDays(80),
     ]);
+    await recordJobHeartbeat("unpaidSweep", { unpaid, rto });
     return { unpaid, rto };
   } catch (error) {
     console.error("UNPAID BOOKING SWEEP ERROR:", error);

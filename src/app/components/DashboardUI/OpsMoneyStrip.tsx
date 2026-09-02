@@ -35,6 +35,12 @@ export type OpsMoneySummary = {
     refunded: number;
     refundedCount: number;
   };
+  health?: {
+    bookingReceived: number;
+    ledgerReceived: number;
+    drift: number;
+    driftOk: boolean;
+  };
 };
 
 const rupee = (value: number) =>
@@ -87,6 +93,9 @@ export default function OpsMoneyStrip() {
           </p>
           <p className="mt-1 text-sm text-slate-500">
             Same Mongo totals on every money dashboard. Wallet credit is returned deposits and admin top-ups, not Razorpay UPI.
+            {summary.health && !summary.health.driftOk
+              ? ` Ledger drift ₹${summary.health.drift.toLocaleString("en-IN")} — check Razorpay vs booking received.`
+              : ""}
           </p>
         </div>
         <p className="text-[11px] font-medium text-slate-400">

@@ -14,6 +14,7 @@ import { getBookingPayableAmount, money } from "@/lib/gst";
 import { bookingRentalCollected } from "@/lib/opsRevenue";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 import CashCollectForm from "../YardRideDesk/CashCollectForm";
 
 export default function BookingDashboard(){
@@ -52,7 +53,13 @@ const fetchBookings=async()=>{
 
 try{
 
-const res=await fetch("/api/bookings?limit=500", { cache: "no-store" });
+const params = new URLSearchParams({ limit: "80" });
+if (statusFilter !== "ALL") params.set("rideStatus", statusFilter);
+if (paymentFilter !== "ALL") params.set("paymentStatus", paymentFilter);
+if (modeFilter !== "ALL") params.set("rentalMode", modeFilter);
+if (search.trim()) params.set("q", search.trim());
+
+const res=await fetch(`/api/bookings?${params.toString()}`, { cache: "no-store" });
 
 const data=await res.json();
 
@@ -84,11 +91,11 @@ const interval = setInterval(() => {
 
 fetchBookings();
 
-}, 12000);
+}, 20000);
 
 return ()=>clearInterval(interval);
 
-},[]);
+},[search, statusFilter, paymentFilter, modeFilter]);
 
 const cancelBooking = async (id: string) => {
 
@@ -459,6 +466,7 @@ subtitle="Same live booking ledger as Wallet, Refunds, Transactions and Hub. Raz
 />
 
 <OpsMoneyStrip />
+<YardQueueStrip />
 
 
 {loadError ? (

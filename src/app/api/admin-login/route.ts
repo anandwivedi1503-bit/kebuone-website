@@ -86,6 +86,7 @@ export async function POST(req: Request) {
               username: staff.username,
               dashboards: staff.dashboards || [],
               sessionVersion: Number(staff.sessionVersion || 0),
+              hubs: Array.isArray(staff.hubs) ? staff.hubs : [],
             }),
             getAdminSessionCookieOptions()
           );

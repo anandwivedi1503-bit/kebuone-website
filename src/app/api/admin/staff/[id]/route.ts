@@ -8,6 +8,7 @@ import {
 } from "@/lib/adminAuth";
 import { STAFF_DASHBOARDS } from "@/lib/adminRoles";
 import { connectDB } from "@/lib/mongodb";
+import { normalizeHubCodes } from "@/lib/staffHubScope";
 import AdminStaff from "@/models/AdminStaff";
 
 export async function PATCH(
@@ -46,6 +47,9 @@ export async function PATCH(
     }
     update.dashboards = dashboards;
   }
+  if (body.hubs !== undefined) {
+    update.hubs = normalizeHubCodes(body.hubs);
+  }
   if (typeof body.password === "string" && body.password.length > 0) {
     if (body.password.length < 8) {
       return NextResponse.json(
@@ -61,6 +65,7 @@ export async function PATCH(
   const revokeSession =
     typeof body.isActive === "boolean" ||
     Array.isArray(body.dashboards) ||
+    body.hubs !== undefined ||
     (typeof body.password === "string" && body.password.length > 0);
 
   const staff = await AdminStaff.findByIdAndUpdate(

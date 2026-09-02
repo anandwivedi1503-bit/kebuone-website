@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "npx tsx scripts/money-rules-selftest.ts && npx tsx scripts/assistant-selftest.ts"
   },
   "dependencies": {
     "cloudinary": "^2.10.0",

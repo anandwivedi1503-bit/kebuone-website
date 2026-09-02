@@ -12,6 +12,7 @@ type StaffRow = {
   username: string;
   displayName?: string;
   dashboards: string[];
+  hubs?: string[];
   isActive: boolean;
 };
 
@@ -21,6 +22,7 @@ export default function TeamAccess() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [dashboards, setDashboards] = useState<string[]>(["bookings"]);
+  const [hubs, setHubs] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -47,7 +49,7 @@ export default function TeamAccess() {
     const res = await fetch("/api/admin/staff", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, displayName, dashboards }),
+      body: JSON.stringify({ username, password, displayName, dashboards, hubs }),
     });
     const data = await res.json();
     if (!data.success) {
@@ -58,6 +60,7 @@ export default function TeamAccess() {
     setPassword("");
     setDisplayName("");
     setDashboards(["bookings"]);
+    setHubs("");
     setMessage("Staff login created. They can add and update on assigned dashboards, but cannot delete.");
     await load();
   };
@@ -109,6 +112,12 @@ export default function TeamAccess() {
               className="h-12 rounded-2xl border border-slate-200 px-4"
             />
           </div>
+          <input
+            value={hubs}
+            onChange={(e) => setHubs(e.target.value)}
+            placeholder="Hub codes (optional, comma-separated). Leave empty for all yards."
+            className="h-12 w-full rounded-2xl border border-slate-200 px-4"
+          />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
             {STAFF_DASHBOARDS.map((id) => (
               <label key={id} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-sm">
@@ -135,6 +144,7 @@ export default function TeamAccess() {
             <tr className="border-b text-left text-slate-500">
               <th className="px-4 py-3">User</th>
               <th className="px-4 py-3">Dashboards</th>
+              <th className="px-4 py-3">Hubs</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Actions</th>
             </tr>
@@ -142,7 +152,7 @@ export default function TeamAccess() {
           <tbody>
             {staff.length === 0 ? (
               <tr>
-                <td className="px-4 py-8 text-slate-500" colSpan={4}>
+                <td className="px-4 py-8 text-slate-500" colSpan={5}>
                   No staff logins yet. Super admin password still opens everything.
                 </td>
               </tr>
@@ -157,6 +167,9 @@ export default function TeamAccess() {
                     {(row.dashboards || [])
                       .map((id) => DASHBOARD_LABELS[id] || id)
                       .join(", ")}
+                  </td>
+                  <td className="px-4 py-3">
+                    {(row.hubs || []).length ? (row.hubs || []).join(", ") : "All yards"}
                   </td>
                   <td className="px-4 py-3">{row.isActive ? "Active" : "Off"}</td>
                   <td className="px-4 py-3">

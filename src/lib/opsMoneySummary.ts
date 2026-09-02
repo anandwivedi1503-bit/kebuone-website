@@ -164,7 +164,7 @@ export async function getOpsMoneySummary() {
   );
   const refunded = refundAgg.find((row) => String(row._id) === "REFUNDED");
 
-  return {
+  const summary = {
     asOf: new Date().toISOString(),
     bookings: {
       count: Number(booking.count ?? 0),
@@ -197,7 +197,27 @@ export async function getOpsMoneySummary() {
       refunded: roundMoney(Number(refunded?.total ?? 0)),
       refundedCount: Number(refunded?.count ?? 0),
     },
+    health: {
+      bookingReceived: roundMoney(Number(booking.received ?? 0)),
+      ledgerReceived: roundMoney(
+        methodTotal("Razorpay") +
+          methodTotal("Razorpay Payment Link") +
+          methodTotal("UPI") +
+          methodTotal("Card") +
+          methodTotal("Cash") +
+          methodTotal("Wallet")
+      ),
+      drift: 0,
+      driftOk: true,
+    },
   };
+
+  summary.health.drift = roundMoney(
+    Math.abs(summary.health.bookingReceived - summary.health.ledgerReceived)
+  );
+  const basis = Math.max(summary.health.bookingReceived, summary.health.ledgerReceived, 1);
+  summary.health.driftOk = summary.health.drift < 1 || summary.health.drift / basis < 0.02;
+  return summary;
 }
 
 export type OpsMoneySummary = Awaited<ReturnType<typeof getOpsMoneySummary>>;
