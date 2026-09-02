@@ -1,8 +1,11 @@
 import Booking from "@/models/Booking";
+import Battery from "@/models/Battery";
+import BatterySwap from "@/models/BatterySwap";
 import Refund from "@/models/Refund";
 import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
+import Wallet from "@/models/Wallet";
 
 let started = false;
 
@@ -222,10 +225,42 @@ export async function ensureScaleIndexes() {
   );
   await createIndexSafe(
     () =>
-      Refund.collection.createIndex(
-        { status: 1, createdAt: -1 },
-        { background: true, name: "ops_refund_status_created" }
+      Vehicle.collection.createIndex(
+        { currentHub: 1, vehicleStatus: 1, updatedAt: -1 },
+        { background: true, name: "ops_vehicle_hub_status" }
       ),
-    "ops refund status"
+    "ops vehicle hub status"
+  );
+  await createIndexSafe(
+    () =>
+      Battery.collection.createIndex(
+        { hubId: 1, status: 1 },
+        { background: true, name: "ops_battery_hub_status" }
+      ),
+    "ops battery hub"
+  );
+  await createIndexSafe(
+    () =>
+      Battery.collection.createIndex(
+        { vehicleId: 1 },
+        { background: true, name: "ops_battery_vehicle" }
+      ),
+    "ops battery vehicle"
+  );
+  await createIndexSafe(
+    () =>
+      BatterySwap.collection.createIndex(
+        { hubId: 1, createdAt: -1 },
+        { background: true, name: "ops_swap_hub_created" }
+      ),
+    "ops swap hub"
+  );
+  await createIndexSafe(
+    () =>
+      Wallet.collection.createIndex(
+        { status: 1, updatedAt: -1 },
+        { background: true, name: "ops_wallet_status" }
+      ),
+    "ops wallet status"
   );
 }

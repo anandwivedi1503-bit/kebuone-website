@@ -19,11 +19,12 @@ import AssistantFab from "@/app/components/Assistant/AssistantFab";
 import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
 import AssistantShell, { TypingDots } from "@/app/components/Assistant/AssistantShell";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
+import { firebaseAuth } from "@/lib/firebase";
 
 type Turn = { role: "user" | "assistant"; content: string; href?: string };
 
 const SAFE_HREF =
-  /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers)(\?[\w=&%-]*)?(#[\w-]*)?$/;
+  /^\/(ride-options|book-bike|rent-to-own|register|contact|partners|about|vision|Leadership|careers|refund-policy|terms-and-conditions|privacy-policy)(\?[\w=&%-]*)?(#[\w-]*)?$/;
 
 const HELP_TOPICS = [
   {
@@ -141,13 +142,23 @@ export default function EvuddyAssistant() {
     setTurns(nextTurns);
     setLoading(true);
     try {
+      let firebaseIdToken = "";
+      try {
+        firebaseIdToken = (await firebaseAuth?.currentUser?.getIdToken()) || "";
+      } catch {
+        firebaseIdToken = "";
+      }
       const res = await fetch("/api/assistant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(firebaseIdToken ? { Authorization: `Bearer ${firebaseIdToken}` } : {}),
+        },
         body: JSON.stringify({
           question: asked,
           language: "hi",
           history: nextTurns.slice(-8),
+          ...(firebaseIdToken ? { firebaseIdToken } : {}),
         }),
       });
       const data = await res.json();

@@ -1,10 +1,15 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
-import { isAdminAuthenticated,
-  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
+import {
+  applyHubScope,
+  hubForbiddenResponse,
+  sessionHubScope,
+  staffCanAccessBooking,
+} from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
@@ -23,9 +28,15 @@ export async function GET() {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.swaps);
     if (gate.error) return gate.error;
+    if (!gate.session) return unauthorizedResponse();
     await connectDB();
 
-    const swaps = await BatterySwap.find().sort({ createdAt: -1 }).limit(300).lean();
+    const filter = applyHubScope(
+      {},
+      sessionHubScope(gate.session),
+      ["hubId"]
+    );
+    const swaps = await BatterySwap.find(filter).sort({ createdAt: -1 }).limit(300).lean();
 
     return NextResponse.json({
       success: true,
@@ -45,6 +56,7 @@ export async function POST(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.swaps);
     if (gate.error) return gate.error;
+    if (!gate.session) return unauthorizedResponse();
     await connectDB();
 
     const body = await req.json();
@@ -79,6 +91,14 @@ export async function POST(req: Request) {
         { success: false, message: "Vehicle not found." },
         { status: 404 }
       );
+    }
+    if (
+      !staffCanAccessBooking(gate.session, {
+        currentHub: vehicle.currentHub,
+        startHub: vehicle.currentHub,
+      })
+    ) {
+      return hubForbiddenResponse();
     }
 
     if (!batteryOutId) {
