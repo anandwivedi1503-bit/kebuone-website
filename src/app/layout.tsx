@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import EvuddyAssistant from "./components/EvuddyAssistant/EvuddyAssistant";
 
@@ -17,6 +17,13 @@ const notoDeva = Noto_Sans_Devanagari({
   variable: "--font-noto-deva",
   subsets: ["devanagari"],
   weight: ["400", "600", "700"],
+});
+
+const instrument = Instrument_Serif({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -41,9 +48,9 @@ export default function RootLayout({
     <html
   lang="en"
   data-scroll-behavior="smooth"
-  className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} h-full antialiased`}
+  className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} ${instrument.variable} h-full antialiased`}
 >
-      <body className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} min-h-full flex flex-col font-sans`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} ${instrument.variable} min-h-full flex flex-col font-sans`}>
         {children}
         <EvuddyAssistant />
       </body>
