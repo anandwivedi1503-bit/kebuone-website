@@ -1325,7 +1325,7 @@ shadow-[0_40px_120px_rgba(0,0,0,0.18)]
 >
 
     <img
-      src="/trans.png"
+      src="/new-vehicle.jpeg"
       alt="EVUDDY Bike"
       className="object-contain lg:object-cover lg:object-[48%_center] lg:scale-[1.02]"
       style={{

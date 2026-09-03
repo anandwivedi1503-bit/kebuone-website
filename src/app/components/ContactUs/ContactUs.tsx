@@ -138,7 +138,7 @@ export default function ContactUs() {
 
         <figure className="relative aspect-[1600/589] w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
           <img
-            src="/poster.png"
+            src="/new-vehicle.jpeg"
             alt="EVUDDY electric scooters"
             style={{
               position: "absolute",

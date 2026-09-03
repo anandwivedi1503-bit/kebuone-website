@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   getChosenPlan,
   getRiderProfile,
+  hasRiderPlanReady,
   logoutRider,
   openRiderAccountMenu,
   riderResumeHref,
@@ -90,7 +91,7 @@ export default function RiderAccountMenu({
     };
   }, [open]);
 
-  if (!phone && !riderId && !plan) return null;
+  if (!hasRiderPlanReady()) return null;
 
   const displayName = name || riderId || "Your account";
   const initials = initialsFrom(name, riderId, phone);

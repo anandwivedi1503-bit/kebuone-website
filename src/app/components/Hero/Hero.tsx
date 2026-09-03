@@ -146,8 +146,8 @@ export default function Hero() {
           </Link>
         </div>
 
-        <div className="relative mx-auto mt-5 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-[#071510] px-3 py-3 shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:mt-8 sm:rounded-[28px] sm:px-6 sm:py-5">
-          <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="relative mx-auto mt-5 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-[#071510] shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:mt-8 sm:rounded-[32px]">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
             <p className="inline-flex min-w-0 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/55 sm:text-[11px] sm:tracking-[0.16em]">
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#18B368]/80" />
@@ -160,98 +160,127 @@ export default function Hero() {
             </p>
           </div>
 
-          <div className="relative h-[150px] overflow-hidden rounded-[16px] bg-[#0B1C16] sm:h-[220px] lg:h-[250px]">
-            <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(110,231,168,0.22)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.22)_1px,transparent_1px)] [background-size:32px_32px]" />
-            <svg
-              viewBox="0 0 960 300"
-              className="absolute inset-0 h-full w-full"
-              fill="none"
-              preserveAspectRatio="xMidYMid meet"
-            >
-              <defs>
-                <linearGradient id="evuddy-gps-line" x1="80" y1="170" x2="880" y2="155" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#18B368" />
-                  <stop offset="0.5" stopColor="#F5C400" />
-                  <stop offset="1" stopColor="#EC2A8C" />
-                </linearGradient>
-                <filter id="evuddy-gps-glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="4" result="blur" />
-                  <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                  </feMerge>
-                </filter>
-              </defs>
-              <path
-                d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
-                stroke="#16352c"
-                strokeWidth="18"
-                strokeLinecap="round"
+          <div className="grid lg:grid-cols-[0.42fr_0.58fr]">
+            <div className="relative hidden min-h-[280px] overflow-hidden lg:block">
+              <img
+                src="/new-vehicle.jpeg"
+                alt="GPS-enabled EVUDDY scooter"
+                className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
               />
-              <path
-                id="evuddy-route"
-                className="evuddy-draw"
-                d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
-                stroke="url(#evuddy-gps-line)"
-                strokeWidth="6"
-                strokeLinecap="round"
-                filter="url(#evuddy-gps-glow)"
-              />
-              <path
-                className="evuddy-dash"
-                d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#071510]" />
+              <span className="absolute bottom-5 left-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-[#0F172A]">
+                GPS on scooter
+              </span>
+            </div>
 
-              <a href={googleMapsUrl(startLat, startLng, `EVUDDY ${startLabel}`)} target="_blank" rel="noreferrer">
-                <circle cx="80" cy="170" r="16" fill="#18B368" opacity="0.25" />
-                <circle cx="80" cy="170" r="8" fill="#18B368" />
-                <text x="80" y="198" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">
-                  HUB
-                </text>
-              </a>
-              <a href={googleMapsUrl(endLat, endLng, `EVUDDY ${endLabel}`)} target="_blank" rel="noreferrer">
-                <circle cx="880" cy="155" r="16" fill="#EC2A8C" opacity="0.25" />
-                <circle cx="880" cy="155" r="8" fill="#EC2A8C" />
-                <text x="880" y="183" textAnchor="middle" fill="#F9A8D4" fontSize="11" fontWeight="700">
-                  YARD
-                </text>
-              </a>
+            <div className="relative h-[188px] overflow-hidden bg-[#0B1C16] sm:h-[248px] lg:h-[300px]">
+              <img
+                src="/new-vehicle.jpeg"
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover object-[50%_60%] opacity-35 lg:opacity-20"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#071510]/75 via-[#071510]/50 to-[#071510]/70" />
+              <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(110,231,168,0.22)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.22)_1px,transparent_1px)] [background-size:32px_32px]" />
+              <svg
+                viewBox="0 0 960 300"
+                className="absolute inset-0 h-full w-full"
+                fill="none"
+                preserveAspectRatio="xMidYMid meet"
+              >
+                <defs>
+                  <linearGradient id="evuddy-gps-line" x1="80" y1="170" x2="880" y2="155" gradientUnits="userSpaceOnUse">
+                    <stop stopColor="#18B368" />
+                    <stop offset="0.5" stopColor="#F5C400" />
+                    <stop offset="1" stopColor="#EC2A8C" />
+                  </linearGradient>
+                  <filter id="evuddy-gps-glow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="4" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <path
+                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                  stroke="#16352c"
+                  strokeWidth="18"
+                  strokeLinecap="round"
+                />
+                <path
+                  id="evuddy-route"
+                  className="evuddy-draw"
+                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                  stroke="url(#evuddy-gps-line)"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  filter="url(#evuddy-gps-glow)"
+                />
+                <path
+                  className="evuddy-dash"
+                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
 
-              <g>
-                <animateMotion dur="8s" repeatCount="indefinite" rotate="0">
-                  <mpath href="#evuddy-route" />
-                </animateMotion>
-                <circle className="evuddy-gps-ring hidden sm:inline" r="28" fill="none" stroke="#F5C400" strokeWidth="2" />
-                <circle r="16" fill="#18B368" opacity="0.2" />
-                <circle r="5" fill="#F5C400" />
-              </g>
-            </svg>
+                <a href={googleMapsUrl(startLat, startLng, `EVUDDY ${startLabel}`)} target="_blank" rel="noreferrer">
+                  <circle cx="80" cy="170" r="16" fill="#18B368" opacity="0.25" />
+                  <circle cx="80" cy="170" r="8" fill="#18B368" />
+                  <text x="80" y="198" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">
+                    HUB
+                  </text>
+                </a>
+                <a href={googleMapsUrl(endLat, endLng, `EVUDDY ${endLabel}`)} target="_blank" rel="noreferrer">
+                  <circle cx="880" cy="155" r="16" fill="#EC2A8C" opacity="0.25" />
+                  <circle cx="880" cy="155" r="8" fill="#EC2A8C" />
+                  <text x="880" y="183" textAnchor="middle" fill="#F9A8D4" fontSize="11" fontWeight="700">
+                    YARD
+                  </text>
+                </a>
+
+                <g>
+                  <animateMotion dur="8s" repeatCount="indefinite" rotate="0">
+                    <mpath href="#evuddy-route" />
+                  </animateMotion>
+                  <image
+                    href="/new-vehicle.jpeg"
+                    x="-36"
+                    y="-20"
+                    width="72"
+                    height="40"
+                    preserveAspectRatio="xMidYMid slice"
+                    clipPath="inset(0% round 10px)"
+                  />
+                  <circle className="evuddy-gps-ring hidden sm:inline" r="26" fill="none" stroke="#F5C400" strokeWidth="2" />
+                </g>
+              </svg>
+            </div>
           </div>
         </div>
 
-        <div className="relative mt-5 sm:mt-8">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 sm:tracking-[0.28em]">
+        <div className="relative mt-8 sm:mt-10">
+          <p className="text-center text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
             Delivery partners
           </p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
-            {PARTNERS.map((item) => (
-              <span
-                key={item.name}
-                className="flex min-h-[72px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-white bg-white/90 px-3 py-3 shadow-[0_8px_24px_rgba(15,23,42,0.05)]"
-              >
-                <span className="flex h-8 w-full items-center justify-center overflow-hidden">
-                  <img
-                    src={item.src}
-                    alt=""
-                    className="max-h-8 max-w-[104px] object-contain"
-                  />
+          <div className="mt-5 overflow-hidden rounded-[28px] border border-slate-100 bg-white px-2 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.05)] sm:px-4 sm:py-5">
+            <div className="grid grid-cols-2 gap-px bg-slate-100 sm:grid-cols-3 lg:grid-cols-6">
+              {PARTNERS.map((item) => (
+                <span
+                  key={item.name}
+                  className="flex min-h-[92px] flex-col items-center justify-center gap-2 bg-white px-3 py-4 transition hover:bg-[#F7FBFA]"
+                >
+                  <span className="flex h-9 w-full items-center justify-center overflow-hidden">
+                    <img
+                      src={item.src}
+                      alt={item.name}
+                      className="max-h-8 max-w-[110px] object-contain grayscale transition hover:grayscale-0"
+                    />
+                  </span>
+                  <span className="text-[11px] font-bold tracking-wide text-slate-500">{item.name}</span>
                 </span>
-                <span className="text-[11px] font-bold text-[#0F172A]">{item.name}</span>
-              </span>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </div>

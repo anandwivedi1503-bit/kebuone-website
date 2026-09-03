@@ -114,11 +114,17 @@ export function setRideOptionsView(view: RideOptionsView) {
 }
 
 export function riderResumeHref() {
+  if (!hasRiderPlanReady()) return "/ride-options";
   const plan = getChosenPlan();
   if (plan === "rto") return "/rent-to-own";
   if (plan === "rental") return "/book-bike?flow=rental";
-  if (hasRiderPlanReady()) return "/ride-options";
   return "/ride-options";
+}
+
+export function isRiderLoggedIn() {
+  if (!hasRiderPlanReady()) return false;
+  const profile = getRiderProfile();
+  return Boolean(profile.phone || profile.riderId || getChosenPlan());
 }
 
 export function getRiderProfile() {
@@ -126,9 +132,9 @@ export function getRiderProfile() {
     return { riderId: "", phone: "", name: "" };
   }
   return {
-    riderId: window.localStorage.getItem("kebu_rider_id") || "",
-    phone: window.localStorage.getItem("kebu_rider_phone") || "",
-    name: window.localStorage.getItem("kebu_rider_name") || "",
+    riderId: window.localStorage.getItem("kebu_rider_id") || window.sessionStorage.getItem("kebu_rider_id") || "",
+    phone: window.localStorage.getItem("kebu_rider_phone") || window.sessionStorage.getItem("kebu_rider_phone") || "",
+    name: window.localStorage.getItem("kebu_rider_name") || window.sessionStorage.getItem("kebu_rider_name") || "",
   };
 }
 
@@ -138,9 +144,18 @@ export function rememberRiderProfile(profile: {
   name?: string;
 }) {
   if (typeof window === "undefined") return;
-  if (profile.riderId) window.localStorage.setItem("kebu_rider_id", profile.riderId);
-  if (profile.phone) window.localStorage.setItem("kebu_rider_phone", profile.phone);
-  if (profile.name) window.localStorage.setItem("kebu_rider_name", profile.name);
+  if (profile.riderId) {
+    window.localStorage.setItem("kebu_rider_id", profile.riderId);
+    window.sessionStorage.setItem("kebu_rider_id", profile.riderId);
+  }
+  if (profile.phone) {
+    window.localStorage.setItem("kebu_rider_phone", profile.phone);
+    window.sessionStorage.setItem("kebu_rider_phone", profile.phone);
+  }
+  if (profile.name) {
+    window.localStorage.setItem("kebu_rider_name", profile.name);
+    window.sessionStorage.setItem("kebu_rider_name", profile.name);
+  }
   emitRiderSession();
 }
 
@@ -211,6 +226,9 @@ export async function logoutRider() {
   window.localStorage.removeItem("kebu_rider_id");
   window.localStorage.removeItem("kebu_rider_phone");
   window.localStorage.removeItem("kebu_rider_name");
+  window.sessionStorage.removeItem("kebu_rider_id");
+  window.sessionStorage.removeItem("kebu_rider_phone");
+  window.sessionStorage.removeItem("kebu_rider_name");
   emitRiderSession();
 
   try {
