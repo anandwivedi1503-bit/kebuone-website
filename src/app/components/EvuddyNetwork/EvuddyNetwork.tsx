@@ -326,7 +326,7 @@ export default function EvuddyNetwork() {
                   />
                   <g>
                     <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={networkPath} />
-                    <g transform="scale(0.55)">
+                    <g transform="scale(0.85)">
                       <GpsScooterMark />
                     </g>
                   </g>

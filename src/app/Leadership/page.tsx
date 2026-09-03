@@ -5,7 +5,7 @@ import Footer from "../components/Footer/Footer";
 import Leadership from "../components/Leadership/Leadership";
 
 export const metadata: Metadata = {
-  title: "Leadership | EVUDDY by Kebu One",
+  title: "Leadership | EVUDDY",
   description:
     "Meet EVUDDY leadership: Chairman Anjali Mishra, Founder and CEO Sunil Pathak, General Manager Bindu Singh, and Software Development Engineer Anand Dhar Dwivedi.",
 };

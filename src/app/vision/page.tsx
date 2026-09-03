@@ -5,7 +5,7 @@ import VisionMission from "../components/VisionMission/VisionMission";
 import Footer from "../components/Footer/Footer";
 
 export const metadata: Metadata = {
-  title: "Vision | EVUDDY by Kebu One",
+  title: "Vision | EVUDDY",
   description:
     "EVUDDY's mission is affordable, accessible, asset-building electric mobility. Our vision is a future where every ride can lead to ownership.",
 };

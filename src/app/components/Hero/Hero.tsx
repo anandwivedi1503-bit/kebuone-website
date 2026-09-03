@@ -167,10 +167,12 @@ export default function Hero() {
                   </text>
                 </a>
                 <g>
-                  <animateMotion dur="12s" repeatCount="indefinite" rotate="auto">
+                  <animateMotion dur="12s" repeatCount="indefinite" rotate="0">
                     <mpath href="#evuddy-route" />
                   </animateMotion>
-                  <GpsScooterMark />
+                  <g transform="scale(1.35)">
+                    <GpsScooterMark />
+                  </g>
                 </g>
               </svg>
             </div>

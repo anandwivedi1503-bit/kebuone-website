@@ -5,7 +5,7 @@ import AboutUs from "../components/AboutUs/AboutUs";
 import Footer from "../components/Footer/Footer";
 
 export const metadata: Metadata = {
-  title: "About Us | EVUDDY by Kebu One",
+  title: "About Us | EVUDDY",
   description:
     "EVUDDY is building India's next-generation EV mobility ecosystem through B2B, B2C and Rent-to-Own solutions.",
 };
