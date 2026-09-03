@@ -199,65 +199,53 @@ export default function EvuddyNetwork() {
       id="network"
       ref={stageRef}
       onMouseMove={onStageMove}
-      className="relative overflow-hidden bg-[#F7FBFA] text-[#0F172A]"
+      className="relative overflow-hidden bg-[#06140F] text-white"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-300"
         style={{
-          background: `radial-gradient(520px circle at ${spot.x}% ${spot.y}%, rgba(24,179,104,0.16), transparent 42%), radial-gradient(420px circle at 80% 10%, rgba(236,42,140,0.08), transparent 36%)`,
+          background: `radial-gradient(520px circle at ${spot.x}% ${spot.y}%, rgba(24,179,104,0.18), transparent 42%)`,
         }}
       />
-      <div className="pointer-events-none absolute inset-0 evuddy-net-grid opacity-[0.35]" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#18B368] to-transparent" />
+      <div className="pointer-events-none absolute inset-0 evuddy-net-grid opacity-[0.22]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[#18B368]/40" />
 
-      <div className="relative mx-auto max-w-[1240px] px-4 pb-8 pt-16 sm:px-6 sm:pt-24 lg:px-8">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#15803d] shadow-sm">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#18B368]" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18B368]" />
-            </span>
-            Live EVUDDY network
-          </p>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] sm:text-5xl lg:text-[3.4rem]">
+      <div className="relative mx-auto max-w-[1280px] px-5 pb-10 pt-24 sm:px-8 sm:pt-32">
+        <div className="max-w-3xl">
+          <p className="ev-kicker">Live EVUDDY network</p>
+          <h2 className="ev-display mt-4 text-4xl sm:text-6xl">
             Hubs across India.
-            <span className="mt-1 block text-[#18B368]">
-              Pickup at the yard.
-            </span>
+            <span className="italic text-[#18B368]"> Pickup at the yard.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-base">
+          <p className="mt-5 max-w-xl text-[15px] leading-7 text-white/60">
             Cities and hubs load from EVUDDY operations — not a marketing list. Choose a live city,
             open Maps to the yard, pay, show OTP, ride.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-3">
+        <div className="mt-14 grid gap-8 border-t border-white/10 pt-10 sm:grid-cols-3">
           {[
             { label: "Cities live", value: marks.length, suffix: "" },
             { label: "Pickup hubs", value: liveHubTotal, suffix: "" },
             { label: "GPS to yard", value: 1, suffix: " Maps" },
           ].map((item) => (
-            <div
-              key={item.label}
-              className="rounded-2xl border border-white bg-white/80 px-5 py-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl"
-            >
-              <p className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
+            <div key={item.label}>
+              <p className="ev-display text-5xl text-white">
                 {item.suffix === " Maps" ? (
-                  "Google"
+                  <>Google<span className="italic text-[#18B368]"> Maps</span></>
                 ) : (
                   <CountUp value={item.value} />
                 )}
-                {item.suffix === " Maps" ? <span className="text-[#18B368]"> Maps</span> : null}
               </p>
-              <p className="mt-1 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">{item.label}</p>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/40">{item.label}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-stretch">
+        <div className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:items-stretch">
           <div className="flex flex-col">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Select a city</p>
-            <div className="mt-3 grid max-h-[320px] gap-2 overflow-y-auto pr-1 sm:max-h-none sm:grid-cols-2 lg:grid-cols-1">
+            <p className="ev-kicker">Select a city</p>
+            <div className="mt-4 max-h-[320px] overflow-y-auto border-t border-white/10 sm:max-h-none">
               {marks.map((city) => {
                 const on = selected.name === city.name;
                 return (
@@ -265,17 +253,15 @@ export default function EvuddyNetwork() {
                     key={city.name}
                     type="button"
                     onClick={() => setActive(city)}
-                    className={`group flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition duration-300 ${
-                      on
-                        ? "border-[#18B368] bg-[#18B368] text-white shadow-[0_12px_32px_rgba(24,179,104,0.28)]"
-                        : "border-slate-100 bg-white text-[#0F172A] hover:border-[#18B368]/40 hover:shadow-sm"
+                    className={`flex w-full items-center justify-between border-b border-white/10 py-3.5 text-left transition ${
+                      on ? "text-[#18B368]" : "text-white/75 hover:text-white"
                     }`}
                   >
                     <span className="flex min-w-0 items-center gap-3">
-                      <MapPin size={16} className={on ? "text-white" : "text-[#18B368]"} />
-                      <span className="truncate font-semibold">{city.name}</span>
+                      <MapPin size={15} className="text-[#18B368]" />
+                      <span className="truncate font-medium">{city.name}</span>
                     </span>
-                    <span className={`shrink-0 text-xs ${on ? "text-white/80" : "text-slate-400"}`}>
+                    <span className="shrink-0 text-xs text-white/40">
                       {city.hubCount > 0 ? `${city.hubCount} hub${city.hubCount === 1 ? "" : "s"}` : "Hub"}
                     </span>
                   </button>
@@ -283,15 +269,15 @@ export default function EvuddyNetwork() {
               })}
             </div>
 
-            <div className="mt-4 overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_18px_40px_rgba(15,23,42,0.06)]">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#18B368]">Selected hub</p>
-              <p className="mt-2 text-2xl font-black tracking-tight">{selected.name}</p>
-              <p className="mt-1 text-sm text-slate-500">{selected.hubs}</p>
+            <div className="mt-8 border-t border-white/10 pt-6">
+              <p className="ev-kicker">Selected hub</p>
+              <p className="ev-display mt-3 text-4xl">{selected.name}</p>
+              <p className="mt-2 text-sm text-white/55">{selected.hubs}</p>
               <a
                 href={googleMapsUrl(selected.lat, selected.lng, `EVUDDY ${selected.name}`)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] text-sm font-semibold text-white shadow-[0_12px_40px_rgba(24,179,104,0.45)] transition hover:bg-[#16a05c]"
+                className="ev-cta mt-6 w-full"
               >
                 <Navigation size={15} />
                 Open in Google Maps
@@ -300,7 +286,7 @@ export default function EvuddyNetwork() {
           </div>
 
           <div
-            className="relative isolate overflow-hidden rounded-[32px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.08)]"
+            className="relative isolate overflow-hidden border border-white/10 bg-[#0A1C16]"
             onMouseMove={onMapMove}
             onMouseLeave={() => setTilt({ x: 0, y: 0 })}
             style={{
@@ -319,8 +305,8 @@ export default function EvuddyNetwork() {
             >
               <defs>
                 <linearGradient id="evuddy-land-light" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#ECFDF5" />
-                  <stop offset="100%" stopColor="#BBF7D0" />
+                  <stop offset="0%" stopColor="#123D28" />
+                  <stop offset="100%" stopColor="#0A2418" />
                 </linearGradient>
                 <filter id="evuddy-glow" x="-20%" y="-20%" width="140%" height="140%">
                   <feGaussianBlur stdDeviation="4" result="blur" />
@@ -373,7 +359,7 @@ export default function EvuddyNetwork() {
                       cx={city.x}
                       cy={city.y}
                       r={on ? 7 : 4.5}
-                      fill={on ? "#0F172A" : "#18B368"}
+                      fill={on ? "#ffffff" : "#18B368"}
                       filter="url(#evuddy-glow)"
                     />
                     {on ? (
@@ -383,9 +369,9 @@ export default function EvuddyNetwork() {
                 );
               })}
             </svg>
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 text-xs font-medium text-slate-500 shadow-sm backdrop-blur-md sm:left-6 sm:right-6">
-              <span className="flex items-center gap-2 font-semibold text-[#0F172A]">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-[#18B368]" />
+            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between border-t border-white/10 bg-[#06140F]/80 px-4 py-3 text-xs text-white/60 backdrop-blur-md sm:left-6 sm:right-6">
+              <span className="flex items-center gap-2 font-medium text-white">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#18B368]" />
                 {selected.name}
               </span>
               <span className="hidden text-[#18B368] sm:inline">{selected.hubs}</span>
@@ -393,61 +379,56 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <div className="relative mt-8 overflow-hidden rounded-full border border-slate-100 bg-white py-2.5 shadow-sm">
-          <div className="evuddy-net-ticker flex w-max gap-8 whitespace-nowrap px-6 text-sm font-semibold tracking-[0.14em] text-slate-400">
+        <div className="relative mt-10 overflow-hidden border-y border-white/10 py-3">
+          <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-6 text-sm tracking-[0.2em] text-white/40">
             {ticker.map((name, i) => (
               <span key={`${name}-${i}`} className="inline-flex items-center gap-2">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#18B368]" />
+                <span className="h-1 w-1 rounded-full bg-[#18B368]" />
                 {name}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-3">
+        <div className="mt-12 grid gap-8 border-t border-white/10 pt-10 sm:grid-cols-3">
           {PROOFS.map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.04)] transition hover:-translate-y-1 hover:border-[#18B368]/40 hover:shadow-[0_18px_40px_rgba(24,179,104,0.12)]"
-            >
-              <item.icon size={20} className="text-[#18B368]" />
-              <p className="mt-3 text-sm font-semibold">{item.title}</p>
-              <p className="mt-1.5 text-sm leading-6 text-slate-500">{item.text}</p>
+            <div key={item.title}>
+              <item.icon size={18} className="text-[#18B368]" />
+              <p className="mt-4 text-sm font-semibold text-white">{item.title}</p>
+              <p className="mt-2 text-sm leading-6 text-white/55">{item.text}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-12">
-          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-            How a hub ride works
-          </p>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 border-t border-white/10 pt-10">
+          <p className="ev-kicker">How a hub ride works</p>
+          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step) => (
-              <div key={step.n} className="rounded-2xl border border-slate-100 bg-white px-4 py-5 shadow-sm">
-                <p className="text-[11px] font-semibold tracking-[0.16em] text-[#18B368]">{step.n}</p>
-                <p className="mt-2 text-sm font-semibold">{step.title}</p>
-                <p className="mt-1.5 text-sm leading-6 text-slate-500">{step.text}</p>
+              <div key={step.n}>
+                <p className="ev-display text-4xl text-[#18B368]/40">{step.n}</p>
+                <p className="mt-3 text-sm font-semibold text-white">{step.title}</p>
+                <p className="mt-2 text-sm leading-6 text-white/55">{step.text}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="relative border-t border-slate-100 bg-gradient-to-b from-white to-[#F7FBFA]">
+      <div className="relative border-t border-white/10 bg-[#081811]">
         <div className="mx-auto max-w-[1240px] px-4 pt-10 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#18B368]">City operations</p>
-              <h3 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-3xl">
+              <p className="ev-kicker">City operations</p>
+              <h3 className="ev-display mt-3 text-3xl sm:text-4xl">
                 Pickup, charge, hub — in motion.
               </h3>
             </div>
-            <p className="max-w-sm text-sm leading-6 text-slate-500">
+            <p className="max-w-sm text-sm leading-6 text-white/50">
               Scooters stay on the north lane. Cars stay south. Yards never sit on the road.
             </p>
           </div>
           <div
-            className="mt-5 inline-flex rounded-full border border-slate-200/80 bg-slate-50/80 p-1 shadow-inner"
+            className="mt-6 inline-flex gap-6 border-b border-white/10"
             role="tablist"
             aria-label="City operation zones"
           >
@@ -464,10 +445,10 @@ export default function EvuddyNetwork() {
                 role="tab"
                 aria-selected={cityZone === chip.id}
                 onClick={() => setCityZone(chip.id)}
-                className={`rounded-full px-4 py-2 text-[12px] font-semibold tracking-[-0.01em] transition ${
+                className={`pb-3 text-[12px] font-semibold tracking-[0.16em] uppercase transition ${
                   cityZone === chip.id
-                    ? "bg-[#18B368] text-white shadow-[0_8px_20px_rgba(24,179,104,0.28)]"
-                    : "text-slate-500 hover:text-[#0F172A]"
+                    ? "border-b-2 border-[#18B368] text-[#18B368]"
+                    : "text-white/45 hover:text-white"
                 }`}
               >
                 {chip.label}
@@ -500,20 +481,10 @@ export default function EvuddyNetwork() {
                 text: "The yard OTP only appears after first payment. No pay, no scooter.",
               },
             ].map((item) => (
-              <div
-                key={item.title}
-                className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-5 shadow-[0_16px_40px_rgba(15,23,42,0.05)] transition hover:-translate-y-0.5 hover:border-[#18B368]/30 hover:shadow-[0_20px_48px_rgba(24,179,104,0.12)]"
-              >
-                <div className="flex items-start gap-4">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#18B368]/10 text-[#18B368] ring-1 ring-[#18B368]/15">
-                    <item.icon size={18} strokeWidth={2.2} />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">{item.kicker}</p>
-                    <p className="mt-1 text-base font-semibold tracking-tight text-[#0F172A]">{item.title}</p>
-                    <p className="mt-1.5 text-sm leading-6 text-slate-500">{item.text}</p>
-                  </div>
-                </div>
+              <div key={item.title} className="border-t border-white/10 py-6">
+                <p className="ev-kicker">{item.kicker}</p>
+                <p className="ev-display mt-2 text-2xl text-white">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-white/55">{item.text}</p>
               </div>
             ))}
           </div>
