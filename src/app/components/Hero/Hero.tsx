@@ -55,7 +55,7 @@ export default function Hero() {
         .evuddy-draw { stroke-dasharray: 900; animation: evuddy-draw 3.2s ease forwards; }
         .evuddy-dash { stroke-dasharray: 6 10; animation: evuddy-dash 1.4s linear infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-draw, .evuddy-dash { animation: none !important; }
+          .evuddy-draw, .evuddy-dash, .ev-ken { animation: none !important; }
         }
       `}</style>
 
@@ -93,7 +93,7 @@ export default function Hero() {
           <img
             src="/new-vehicle.jpeg"
             alt="EVUDDY electric scooter"
-            className="aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
             Live in city

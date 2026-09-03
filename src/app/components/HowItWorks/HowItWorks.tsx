@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowRight, KeyRound, MapPinned, Smartphone, Wallet } from "lucide-react";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 
