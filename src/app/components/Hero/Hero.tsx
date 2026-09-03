@@ -68,7 +68,7 @@ export default function Hero() {
         }
       `}</style>
 
-      <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 pb-10 pt-32 sm:px-8 sm:pt-36 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 lg:px-12 lg:pb-16 lg:pt-40">
+      <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 pb-10 pt-28 sm:px-8 sm:pt-40 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 lg:px-12 lg:pb-16 lg:pt-44">
         <div className="max-w-xl">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
             India&apos;s smart EV rental
@@ -102,7 +102,7 @@ export default function Hero() {
           <img
             src="/new-vehicle.jpeg"
             alt="EVUDDY electric scooter"
-            className="aspect-[4/5] w-full object-cover object-[48%_58%] sm:aspect-[5/4] lg:aspect-[4/3]"
+            className="aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
             Live in city
@@ -111,7 +111,7 @@ export default function Hero() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        <div className="grid overflow-hidden border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
+        <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
           <div className="relative hidden min-h-[240px] lg:block">
             <img
               src="/new-vehicle.jpeg"
@@ -127,14 +127,14 @@ export default function Hero() {
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#5F6B63]">
                 Live GPS tracking
               </p>
-              <p className="truncate text-right text-[11px] tracking-[0.08em] text-[#1F6B4A]">
+              <p className="max-w-[60%] text-right text-[11px] leading-4 tracking-[0.08em] text-[#1F6B4A]">
                 {cityLine} · In ride
               </p>
             </div>
-            <div className="relative h-[160px] sm:h-[200px]">
-              <svg viewBox="0 0 960 300" className="h-full w-full" fill="none" preserveAspectRatio="xMidYMid meet">
+            <div className="relative h-[200px] sm:h-[240px]">
+              <svg viewBox="0 0 960 240" className="h-full w-full overflow-visible" fill="none" preserveAspectRatio="xMidYMid meet">
                 <path
-                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
                   stroke="#E4DDD2"
                   strokeWidth="10"
                   strokeLinecap="round"
@@ -142,28 +142,28 @@ export default function Hero() {
                 <path
                   id="evuddy-route"
                   className="evuddy-draw"
-                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
                   stroke="#1F6B4A"
                   strokeWidth="2"
                   strokeLinecap="round"
                 />
                 <path
                   className="evuddy-dash"
-                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
+                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
                   stroke="#1C1917"
                   strokeWidth="1"
                   strokeLinecap="round"
                   opacity="0.35"
                 />
                 <a href={googleMapsUrl(startLat, startLng, `EVUDDY ${startLabel}`)} target="_blank" rel="noreferrer">
-                  <circle cx="80" cy="170" r="5" fill="#1F6B4A" />
-                  <text x="80" y="198" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
+                  <circle cx="80" cy="150" r="5" fill="#1F6B4A" />
+                  <text x="80" y="178" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     HUB
                   </text>
                 </a>
                 <a href={googleMapsUrl(endLat, endLng, `EVUDDY ${endLabel}`)} target="_blank" rel="noreferrer">
-                  <circle cx="880" cy="155" r="5" fill="#1C1917" />
-                  <text x="880" y="183" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
+                  <circle cx="880" cy="135" r="5" fill="#1C1917" />
+                  <text x="880" y="163" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     YARD
                   </text>
                 </a>

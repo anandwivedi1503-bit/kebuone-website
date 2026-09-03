@@ -81,7 +81,7 @@ export default function HowItWorks() {
           })}
         </div>
 
-        <div className="mt-16 grid overflow-hidden sm:grid-cols-[0.4fr_0.6fr]">
+        <div className="mt-16 grid sm:grid-cols-[0.4fr_0.6fr]">
           <img
             src="/new-vehicle.jpeg"
             alt="EVUDDY scooter"

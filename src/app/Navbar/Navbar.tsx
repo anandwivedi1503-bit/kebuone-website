@@ -167,13 +167,15 @@ mx-auto
 flex
 items-center
 justify-between
-h-[64px]
-sm:h-[74px]
-lg:h-[90px]
+min-h-[64px]
+sm:min-h-[74px]
+lg:min-h-[82px]
+gap-3
 px-3
 sm:px-5
 lg:px-6
 xl:px-8
+py-2
 "
 >
 {/* ================= Logo ================= */}
@@ -185,10 +187,9 @@ flex
 items-center
 justify-start
 shrink-0
-w-[128px]
-sm:w-[175px]
-xl:w-[190px]
-group
+max-w-[150px]
+sm:max-w-[190px]
+xl:max-w-[210px]
 "
 >
 
@@ -199,12 +200,14 @@ width={320}
 height={95}
 priority
 className="
-h-[40px]
-sm:h-[52px]
-lg:h-[58px]
-xl:h-[60px]
+h-[36px]
+sm:h-[46px]
+lg:h-[50px]
+xl:h-[52px]
 w-auto
+max-w-full
 object-contain
+object-left
 "
 />
 
@@ -213,7 +216,7 @@ object-contain
 
 {/* ================= Desktop Menu ================= */}
 
-<div className="hidden lg:flex flex-1 items-center justify-center gap-8 xl:gap-10">
+<div className="hidden lg:flex min-w-0 flex-1 items-center justify-center gap-4 xl:gap-8">
 
 {navLinks.map((item)=>(
 
@@ -228,7 +231,8 @@ items-center
 justify-center
 h-12
 px-1
-text-[15px]
+text-[13px]
+xl:text-[15px]
 font-medium
 tracking-[0.04em]
 whitespace-nowrap
@@ -269,7 +273,7 @@ group-hover:w-full
 
 {/* ================= Right Buttons ================= */}
 
-<div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-3 xl:ml-5">
+<div className="hidden lg:flex shrink-0 items-center gap-1 xl:gap-3 ml-2 xl:ml-5">
 
 {!riderLoggedIn && (
 <>
@@ -281,7 +285,8 @@ flex
 items-center
 gap-2
 h-11
-px-4
+whitespace-nowrap
+px-3
 xl:px-5
 font-medium
 text-[#1F6B4A]
@@ -308,7 +313,8 @@ flex
 items-center
 gap-2
 h-11
-px-4
+whitespace-nowrap
+px-3
 xl:px-5
 font-medium
 text-[#EC2A8C]
@@ -336,7 +342,8 @@ flex
 items-center
 gap-2
 h-11
-px-5
+whitespace-nowrap
+px-4
 xl:px-6
 bg-[#1F6B4A]
 font-medium
