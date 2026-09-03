@@ -3,35 +3,46 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-
-const steps = [
-  {
-    n: "01",
-    title: "Register once",
-    hi: "फोन OTP + KYC",
-    text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
-  },
-  {
-    n: "02",
-    title: "Pick hub & plan",
-    hi: "शहर · हब · स्कूटर",
-    text: "Choose city, hub and hourly, daily, weekly, monthly — or Rent to Own.",
-  },
-  {
-    n: "03",
-    title: "Pay on Book EV",
-    hi: "Razorpay / वॉलेट",
-    text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
-  },
-  {
-    n: "04",
-    title: "Ride with OTP",
-    hi: "यार्ड पर दिखाएँ",
-    text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
-  },
-];
+import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 
 export default function HowItWorks() {
+  const { catalog } = useHomeCatalog();
+  const cityLine =
+    catalog.cities.length > 0
+      ? catalog.cities.map((city) => city.cityName).join(" · ")
+      : "शहर · हब · स्कूटर";
+  const hubLine =
+    catalog.hubCount > 0
+      ? `${catalog.hubCount} live hub${catalog.hubCount === 1 ? "" : "s"}`
+      : "Pick a live hub on Book EV";
+
+  const steps = [
+    {
+      n: "01",
+      title: "Register once",
+      hi: "फोन OTP + KYC",
+      text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
+    },
+    {
+      n: "02",
+      title: "Pick hub & plan",
+      hi: cityLine,
+      text: `${hubLine}. Choose city, hub and hourly, daily, weekly, monthly — or Rent to Own.`,
+    },
+    {
+      n: "03",
+      title: "Pay on Book EV",
+      hi: "Razorpay / वॉलेट",
+      text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
+    },
+    {
+      n: "04",
+      title: "Ride with OTP",
+      hi: "यार्ड पर दिखाएँ",
+      text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
+    },
+  ];
+
   return (
     <section id="how-it-works" className="bg-white py-24 sm:py-32">
       <div className="mx-auto max-w-[1280px] px-5 sm:px-8">
@@ -41,12 +52,15 @@ export default function HowItWorks() {
             Four steps. <span className="italic text-[#18B368]">Phone-first.</span>
           </h2>
           <p className="mt-5 text-[15px] leading-7 text-slate-500">
-            Same flow millions of Indian riders expect — KYC, hub pickup, OTP, live GPS.
+            Same flow — KYC, hub pickup, OTP, live GPS
+            {catalog.cities.length
+              ? ` — in ${catalog.cities.map((city) => city.cityName).join(", ")}.`
+              : "."}
           </p>
         </div>
 
         <div className="relative mt-16 grid gap-10 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="pointer-events-none absolute left-0 right-0 top-7 hidden h-px bg-[#0F172A]/10 xl:block" />
+          <div className="pointer-events-none absolute left-0 right-0 top-7 hidden h-px bg-[#18B368]/25 xl:block" />
           {steps.map((step) => (
             <motion.div
               key={step.n}
@@ -56,7 +70,7 @@ export default function HowItWorks() {
             >
               <p className="ev-display text-6xl text-[#18B368]/25">{step.n}</p>
               <h3 className="mt-4 text-xl font-semibold text-[#0F172A]">{step.title}</h3>
-              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#18B368]">
+              <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#18B368]">
                 {step.hi}
               </p>
               <p className="mt-3 text-sm leading-6 text-slate-500">{step.text}</p>

@@ -54,8 +54,8 @@ export default function ServiceCard({
         </div>
       </div>
 
-      <div className="relative flex min-h-[280px] items-end justify-center overflow-hidden bg-[#06140F] px-6 py-10 sm:min-h-[420px]">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(24,179,104,0.28),transparent_55%)]" />
+      <div className="relative flex min-h-[280px] items-end justify-center overflow-hidden bg-[#F7FBFA] px-6 py-10 sm:min-h-[420px]">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_70%,rgba(24,179,104,0.18),transparent_55%)]" />
         {image ? (
           <motion.div
             animate={{ y: [0, -10, 0] }}

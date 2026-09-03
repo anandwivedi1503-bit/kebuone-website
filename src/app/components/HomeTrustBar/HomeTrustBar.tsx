@@ -12,20 +12,22 @@ export default function HomeTrustBar() {
   return (
     <section
       aria-label="Why riders trust EVUDDY"
-      className="border-y border-white/10 bg-[#06140F]"
+      className="relative z-10 border-y border-[#18B368]/15 bg-[#F7FBFA]"
     >
-      <div className="mx-auto flex max-w-[1440px] snap-x overflow-x-auto px-5 py-5 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-8 lg:px-12">
+      <div className="mx-auto flex max-w-[1480px] snap-x items-stretch gap-0 overflow-x-auto px-2 py-4 sm:grid sm:grid-cols-5 sm:overflow-visible sm:px-6 lg:px-10">
         {items.map((item, i) => {
           const Icon = item.icon;
           return (
             <div
               key={item.label}
-              className={`flex min-w-[210px] snap-start items-center gap-3 py-2 sm:min-w-0 ${
-                i > 0 ? "sm:border-l sm:border-white/10 sm:pl-6" : ""
+              className={`flex min-w-[200px] snap-start items-center gap-3 px-5 py-2 sm:min-w-0 ${
+                i > 0 ? "sm:border-l sm:border-[#18B368]/15" : ""
               }`}
             >
-              <Icon size={16} className="shrink-0 text-[#18B368]" />
-              <p className="text-[13px] font-medium tracking-wide text-white/80">{item.label}</p>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#18B368] text-white">
+                <Icon size={16} />
+              </span>
+              <p className="text-sm font-semibold leading-5 text-[#0F172A]">{item.label}</p>
             </div>
           );
         })}
