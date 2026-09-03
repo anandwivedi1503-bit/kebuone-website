@@ -130,40 +130,70 @@ export default function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(24,179,104,0.14),transparent_32%),radial-gradient(circle_at_88%_8%,rgba(236,42,140,0.08),transparent_28%)]" />
 
       <div className="relative mx-auto max-w-[1440px] px-4 pb-10 pt-24 sm:px-6 sm:pb-14 sm:pt-32 lg:px-10 lg:pb-16 lg:pt-36">
-        <div className="flex flex-col items-center px-1 text-center">
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white/80 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-slate-600 shadow-sm sm:text-[11px]"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-[#18B368]" />
-            INDIA&apos;S SMART EV RENTAL
-          </motion.p>
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-6">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white/80 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-slate-600 shadow-sm sm:text-[11px]"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[#18B368]" />
+              INDIA&apos;S SMART EV RENTAL
+            </motion.p>
 
-          <h1 className="mt-4 max-w-[18ch] text-[clamp(2.1rem,8vw,4.75rem)] font-black leading-[0.92] tracking-[-0.06em] text-[#0F172A]">
-            Ride the city.
-            <span className="mt-1 block italic evuddy-ink">Own the journey.</span>
-          </h1>
+            <h1 className="mt-4 max-w-[16ch] text-[clamp(2.35rem,7.2vw,4.85rem)] font-black leading-[0.9] tracking-[-0.06em] text-[#0F172A]">
+              Ride the city.
+              <span className="mt-1 block italic evuddy-ink">Own the journey.</span>
+            </h1>
 
-          <p className="mt-4 max-w-lg text-sm leading-6 text-slate-500 sm:text-base">
-            Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
-            <span className="mt-1 block font-medium text-slate-600">
-              मिनटों में बुक करें. शहर घूमें. राइड अपना बनाएँ.
-            </span>
-          </p>
-
-          <div className="mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
-            <Link href="/ride-options" className="w-full sm:w-auto">
-              <span className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] sm:h-14 sm:px-10 sm:text-base">
-                Book an EV
-                <ArrowRight className="h-5 w-5" />
+            <p className="mt-4 max-w-lg text-sm leading-6 text-slate-500 sm:text-base">
+              Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
+              <span className="mt-1 block font-medium text-slate-600">
+                मिनटों में बुक करें. शहर घूमें. राइड अपना बनाएँ.
               </span>
-            </Link>
-            <Link href="/ride-options" className="w-full sm:w-auto">
-              <span className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-[#0F172A] sm:h-14 sm:px-8 sm:text-base">
-                Rent to Own ₹280/day
-              </span>
-            </Link>
+            </p>
+
+            <div className="mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row lg:justify-start">
+              <Link href="/ride-options" className="w-full sm:w-auto">
+                <span className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] sm:h-14 sm:px-10 sm:text-base">
+                  Book an EV
+                  <ArrowRight className="h-5 w-5" />
+                </span>
+              </Link>
+              <Link href="/ride-options" className="w-full sm:w-auto">
+                <span className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-[#0F172A] sm:h-14 sm:px-8 sm:text-base">
+                  Rent to Own ₹280/day
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="relative mx-auto w-full max-w-[560px] lg:max-w-none">
+            <div className="pointer-events-none absolute inset-[8%] rounded-full bg-[#18B368]/25 blur-[80px]" />
+            <div className="relative overflow-hidden rounded-[32px] border border-white bg-[radial-gradient(circle_at_50%_30%,#E8F8EE,transparent_58%),linear-gradient(180deg,#F7FBFA,#EEF7F2)] px-4 pb-2 pt-8 shadow-[0_30px_80px_rgba(15,23,42,0.10)] sm:rounded-[40px] sm:px-6">
+              <p className="absolute left-5 top-5 z-10 inline-flex items-center gap-2 rounded-full bg-[#18B368] px-3 py-1 text-[10px] font-bold text-white sm:left-6 sm:top-6">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/80" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
+                </span>
+                EVUDDY scooter
+              </p>
+              {bikeSrc ? (
+                <motion.img
+                  src={bikeSrc}
+                  alt="EVUDDY electric scooter"
+                  className="relative z-10 mx-auto h-auto w-[92%] max-w-[520px] object-contain drop-shadow-[0_28px_40px_rgba(11,27,22,0.28)]"
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+                />
+              ) : (
+                <img
+                  src="/evuddy-scooter-cutout.png"
+                  alt="EVUDDY electric scooter"
+                  className="relative z-10 mx-auto h-auto w-[92%] max-w-[520px] object-contain"
+                />
+              )}
+            </div>
           </div>
         </div>
 

@@ -32,15 +32,12 @@ export default function PartnerSection() {
     <section id="partner" className="relative overflow-hidden bg-[#F6FAF8] py-16 sm:py-24">
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            PARTNER WITH EVUDDY
+          <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]">
+            Partner with EVUDDY
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
+          <h2 className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
             Fleet, hub, franchise.{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              One EV network.
-            </span>
+            <span className="text-[#18B368]">One EV network.</span>
           </h2>
           <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
             Join as a franchise, fleet or hub partner in a technology-led electric mobility network.
