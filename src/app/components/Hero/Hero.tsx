@@ -6,15 +6,6 @@ import { ArrowRight } from "lucide-react";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 
-const PARTNERS = [
-  { name: "Flipkart", src: "/partners/flipkart.png" },
-  { name: "Swiggy", src: "/partners/swiggy.png" },
-  { name: "Zomato", src: "/partners/zomato.png" },
-  { name: "Blinkit", src: "/partners/blinkit.svg" },
-  { name: "Zepto", src: "/partners/zepto.svg" },
-  { name: "Instamart", src: "/partners/instamart.jpg" },
-];
-
 type LiveHub = {
   hubName?: string;
   city?: string;
@@ -175,20 +166,6 @@ export default function Hero() {
                 </g>
               </svg>
             </div>
-          </div>
-        </div>
-
-        <div className="mt-14 pb-4">
-          <p className="text-center text-[11px] font-medium uppercase tracking-[0.28em] text-[#8A847A]">
-            Delivery partners
-          </p>
-          <div className="mt-8 grid grid-cols-2 items-center gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
-            {PARTNERS.map((item) => (
-              <span key={item.name} className="flex flex-col items-center gap-2">
-                <img src={item.src} alt={item.name} className="max-h-7 max-w-[96px] object-contain opacity-70 grayscale" />
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[#8A847A]">{item.name}</span>
-              </span>
-            ))}
           </div>
         </div>
       </div>

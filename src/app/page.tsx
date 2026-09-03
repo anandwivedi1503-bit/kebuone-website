@@ -1,6 +1,7 @@
 import Navbar from "./Navbar/Navbar";
 import AnchorScroll from "./components/AnchorScroll/AnchorScroll";
 import Hero from "./components/Hero/Hero";
+import HomePartners from "./components/HomePartners/HomePartners";
 import HomeTrustBar from "./components/HomeTrustBar/HomeTrustBar";
 import EvuddyNetwork from "./components/EvuddyNetwork/EvuddyNetwork";
 import Services from "./components/Services/Services";
@@ -18,6 +19,7 @@ export default function Home() {
       <AnchorScroll />
       <Navbar />
       <Hero />
+      <HomePartners />
       <HomeTrustBar />
       <EvuddyNetwork />
       <HomePlans />

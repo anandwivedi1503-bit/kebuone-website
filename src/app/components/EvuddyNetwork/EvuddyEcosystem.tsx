@@ -386,7 +386,7 @@ export default function EvuddyEcosystem({ zone = "hub" }: { zone?: CityZone }) {
 
   return (
     <div
-      className="relative h-[360px] w-full max-w-full overflow-hidden bg-[#F7FBFA] sm:h-[520px] lg:h-[594px]"
+      className="relative h-[360px] w-full max-w-full overflow-hidden bg-[#F7F4EE] sm:h-[520px] lg:h-[594px]"
       onMouseMove={onMove}
     >
       <motion.div
@@ -402,9 +402,9 @@ export default function EvuddyEcosystem({ zone = "hub" }: { zone?: CityZone }) {
       >
         <defs>
           <linearGradient id={`${uid}-sky`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#F8FBFD" />
-            <stop offset="55%" stopColor="#EEF4F8" />
-            <stop offset="100%" stopColor="#E4ECE8" />
+            <stop offset="0%" stopColor="#F7F4EE" />
+            <stop offset="55%" stopColor="#EFE8DC" />
+            <stop offset="100%" stopColor="#E4EDE6" />
           </linearGradient>
           <filter id={`${uid}-soft`} x="-12%" y="-12%" width="124%" height="124%">
             <feDropShadow dx="0" dy="8" stdDeviation="7" floodColor="#0F172A" floodOpacity="0.07" />
@@ -722,42 +722,30 @@ export default function EvuddyEcosystem({ zone = "hub" }: { zone?: CityZone }) {
       />
 
       {zone === "pickup" ? (
-        <div className="pointer-events-none absolute left-4 top-4 z-[3] hidden max-w-[17rem] overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl sm:block">
-          <div className="h-1 w-full bg-gradient-to-r from-[#18B368] to-[#86EFAC]" />
-          <div className="p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#18B368]">Pickup yard</p>
-            <p className="mt-1.5 text-sm font-semibold leading-5 text-[#0F172A]">OTP at the gate.</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Scooters leave only after first payment.</p>
-          </div>
+        <div className="pointer-events-none absolute left-4 top-4 z-[3] hidden max-w-[17rem] border border-[#E4DDD2] bg-[#FBF9F5]/95 p-4 sm:block">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#5F6B63]">Pickup yard</p>
+          <p className="mt-1.5 text-sm font-medium leading-5 text-[#1C1917]">OTP at the gate.</p>
+          <p className="mt-1 text-xs leading-5 text-[#5C635E]">Scooters leave only after first payment.</p>
         </div>
       ) : null}
       {zone === "charge" ? (
-        <div className="pointer-events-none absolute right-4 top-[34%] z-[3] hidden max-w-[16rem] overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl lg:block">
-          <div className="h-1 w-full bg-gradient-to-r from-sky-400 to-sky-200" />
-          <div className="p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-600">EV charge</p>
-            <p className="mt-1.5 text-sm font-semibold leading-5 text-[#0F172A]">Packs stay at the hub.</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Swaps never dump a live ride.</p>
-          </div>
+        <div className="pointer-events-none absolute right-4 top-[34%] z-[3] hidden max-w-[16rem] border border-[#E4DDD2] bg-[#FBF9F5]/95 p-4 lg:block">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#5F6B63]">EV charge</p>
+          <p className="mt-1.5 text-sm font-medium leading-5 text-[#1C1917]">Packs stay at the hub.</p>
+          <p className="mt-1 text-xs leading-5 text-[#5C635E]">Swaps never dump a live ride.</p>
         </div>
       ) : null}
       {zone === "hub" ? (
-        <div className="pointer-events-none absolute left-4 top-4 z-[3] hidden max-w-[17rem] overflow-hidden rounded-2xl border border-white/80 bg-white/80 shadow-[0_18px_50px_rgba(15,23,42,0.12)] backdrop-blur-2xl sm:block">
-          <div className="h-1 w-full bg-gradient-to-r from-[#18B368] to-[#EC2A8C]" />
-          <div className="p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#18B368]">EVUDDY hub</p>
-            <p className="mt-1.5 text-sm font-semibold leading-5 text-[#0F172A]">One live yard — not the street.</p>
-            <p className="mt-1 text-xs leading-5 text-slate-500">Swap, park, and dispatch from the same gate.</p>
-          </div>
+        <div className="pointer-events-none absolute left-4 top-4 z-[3] hidden max-w-[17rem] border border-[#E4DDD2] bg-[#FBF9F5]/95 p-4 sm:block">
+          <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-[#5F6B63]">EVUDDY hub</p>
+          <p className="mt-1.5 text-sm font-medium leading-5 text-[#1C1917]">One live yard — not the street.</p>
+          <p className="mt-1 text-xs leading-5 text-[#5C635E]">Swap, park, and dispatch from the same gate.</p>
         </div>
       ) : null}
 
-      <div className="pointer-events-none absolute right-4 top-4 z-[3] hidden items-center gap-2 rounded-full border border-white/80 bg-white/75 px-3 py-1.5 shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:flex">
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#18B368] opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18B368]" />
-        </span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Live traffic</span>
+      <div className="pointer-events-none absolute right-4 top-4 z-[3] hidden items-center gap-2 border border-[#E4DDD2] bg-[#FBF9F5]/95 px-3 py-1.5 sm:flex">
+        <span className="h-1.5 w-1.5 rounded-full bg-[#1F6B4A]" />
+        <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">Live traffic</span>
       </div>
       <style>{`
         @keyframes ev-city-pin-ring {

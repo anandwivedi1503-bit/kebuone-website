@@ -26,41 +26,35 @@ const cards = [
 
 export default function TrustSection() {
   return (
-    <section className="relative overflow-hidden bg-white py-16 sm:py-24">
-      <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            WHO RIDES EVUDDY
+    <section className="relative bg-[#F7F4EE] py-20 sm:py-28">
+      <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="max-w-2xl">
+          <span className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+            Who rides EVUDDY
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            One scooter.{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              Three Indian journeys.
-            </span>
+          <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
+            One scooter. <span className="italic text-[#1F6B4A]">Three Indian journeys.</span>
           </h2>
-          <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
+          <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
             Built for riders, gig work and people who want the scooter to become theirs.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-3">
+        <div className="mt-14 grid gap-10 lg:grid-cols-3">
           {cards.map((card) => {
             const Icon = card.icon;
             return (
               <motion.div
                 key={card.title}
-                initial={{ opacity: 0, y: 18 }}
+                initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="rounded-[24px] border border-slate-100 bg-[#F7FBF8] p-6 shadow-[0_12px_40px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 sm:p-8"
+                className="border-t border-[#E4DDD2] pt-6"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#18B368] text-white">
-                  <Icon size={22} />
-                </div>
-                <h3 className="mt-5 text-xl font-bold text-[#0F172A]">{card.title}</h3>
-                <p className="mt-3 text-sm leading-7 text-slate-500">{card.text}</p>
-                <p className="mt-6 text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">
+                <Icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
+                <h3 className="font-display mt-5 text-2xl font-medium text-[#1C1917]">{card.title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[#5C635E]">{card.text}</p>
+                <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.16em] text-[#1F6B4A]">
                   {card.label}
                 </p>
               </motion.div>
@@ -68,14 +62,14 @@ export default function TrustSection() {
           })}
         </div>
 
-        <blockquote className="mt-10 rounded-[28px] bg-[#0B1B16] px-5 py-10 text-center text-white sm:px-12 sm:py-14">
-          <p className="text-2xl font-black leading-tight tracking-[-0.03em] sm:text-4xl">
+        <blockquote className="mt-16 border-t border-[#E4DDD2] pt-12 text-center">
+          <p className="font-display mx-auto max-w-3xl text-2xl font-medium leading-snug text-[#1C1917] sm:text-4xl">
             &ldquo;The future of mobility isn&apos;t just electric. It&apos;s intelligent, sustainable, and built around people.&rdquo;
           </p>
-          <p className="mx-auto mt-5 max-w-2xl text-sm text-white/70 sm:text-base">
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-7 text-[#5C635E]">
             EVUDDY connects KYC, hub OTP, Razorpay and Rent to Own into one India-first ride.
           </p>
-          <p className="mt-6 text-sm font-bold tracking-[0.18em] text-[#6EE7A8]">— TEAM EVUDDY</p>
+          <p className="mt-6 text-[11px] font-medium tracking-[0.22em] text-[#1F6B4A]">— TEAM EVUDDY</p>
         </blockquote>
       </div>
     </section>

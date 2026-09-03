@@ -9,13 +9,10 @@ const INVEST = FLEET_INVESTMENT.pageHref;
 
 export default function InvestHomeInvite() {
   return (
-    <section className="bg-white py-6 sm:py-8">
-      <div className="mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="flex flex-col items-stretch justify-between gap-5 rounded-[28px] border border-white/10 bg-[#0B1B16] px-5 py-6 text-white sm:flex-row sm:items-center sm:px-8 sm:py-8">
-          <Link
-            href={`${INVEST}`}
-            className="relative mx-auto w-full max-w-[140px] shrink-0 overflow-hidden rounded-2xl border border-white bg-white shadow-md sm:mx-0 sm:max-w-[160px]"
-          >
+    <section className="bg-[#F7F4EE] py-10 sm:py-14">
+      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="grid items-center gap-8 border-y border-[#E4DDD2] py-10 sm:grid-cols-[140px_1fr_auto] sm:py-12">
+          <Link href={`${INVEST}`} className="relative mx-auto w-full max-w-[140px] sm:mx-0">
             <img
               src={FLEET_INVESTMENT.posterSrc}
               alt="EVUDDY Fleet Partner Investment poster"
@@ -24,25 +21,25 @@ export default function InvestHomeInvite() {
               className="h-auto w-full object-cover"
             />
           </Link>
-          <div className="min-w-0 flex-1 text-center sm:text-left">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#6EE7A8]">
+          <div className="min-w-0 text-center sm:text-left">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
               Fleet Partner Investment
             </p>
-            <h3 className="mt-1 text-xl font-black tracking-tight text-white sm:text-2xl">
+            <h3 className="font-display mt-2 text-2xl font-medium tracking-tight text-[#1C1917] sm:text-3xl">
               From ₹1 lakh. You earn {FLEET_INVESTMENT.investorSharePercent}%.{" "}
               {FLEET_INVESTMENT.tenureMonths} months.
             </h3>
-            <p className="mt-1 max-w-xl text-sm leading-6 text-white/65">
+            <p className="mt-2 max-w-xl text-sm leading-7 text-[#5C635E]">
               Official poster: ₹1L returns {FLEET_INVESTMENT_STARTER.totalLabel} · ₹5L / ₹10L plans · then
               apply on Invest.
             </p>
           </div>
           <Link
             href={INVEST}
-            className="inline-flex min-h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-[#EC2A8C] px-7 font-bold text-white shadow-[0_12px_28px_rgba(236,42,140,0.28)] transition hover:bg-[#d01878] sm:w-auto"
+            className="inline-flex min-h-12 w-full items-center justify-center gap-2 bg-[#1F6B4A] px-7 text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c] sm:w-auto"
           >
             Open Invest
-            <ArrowRight size={18} />
+            <ArrowRight size={16} />
           </Link>
         </div>
       </div>
