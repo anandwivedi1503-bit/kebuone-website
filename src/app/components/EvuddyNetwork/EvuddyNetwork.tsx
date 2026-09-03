@@ -230,7 +230,7 @@ export default function EvuddyNetwork() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-3">
+        <div className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
           {[
             { label: "Cities live", value: marks.length, suffix: "" },
             { label: "Pickup hubs", value: liveHubTotal, suffix: "" },
@@ -298,7 +298,10 @@ export default function EvuddyNetwork() {
 
           <div
             className="relative isolate overflow-hidden rounded-[32px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.08)]"
-            onMouseMove={onMapMove}
+            onMouseMove={(event) => {
+              if (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024) return;
+              onMapMove(event);
+            }}
             onMouseLeave={() => setTilt({ x: 0, y: 0 })}
             style={{
               transform: reduceMotion ? undefined : `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
@@ -310,7 +313,7 @@ export default function EvuddyNetwork() {
             <div className="evuddy-net-scan pointer-events-none absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-[#18B368]/10 to-transparent" />
             <svg
               viewBox={INDIA_VIEWBOX}
-              className="relative mx-auto h-auto w-full max-w-[560px] px-3 py-8 sm:py-10"
+              className="relative mx-auto h-auto w-full max-w-[560px] px-2 pb-16 pt-6 sm:px-3 sm:py-10 sm:pb-16"
               role="img"
               aria-label="Glowing map of India with EVUDDY hub cities"
             >
@@ -387,11 +390,13 @@ export default function EvuddyNetwork() {
                       filter="url(#evuddy-glow)"
                     />
                     <text
-                      x={city.x + 10}
-                      y={city.y - 10}
+                      x={city.x + 8}
+                      y={city.y + (on ? -12 : 16)}
                       fill="#0F172A"
                       fontSize="11"
                       fontWeight="700"
+                      className="hidden sm:inline"
+                      pointerEvents="none"
                     >
                       {city.name}
                     </text>
@@ -402,7 +407,7 @@ export default function EvuddyNetwork() {
                 );
               })}
             </svg>
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 text-xs font-medium text-slate-500 shadow-sm backdrop-blur-md sm:left-6 sm:right-6">
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-white/95 px-3 py-2.5 text-xs font-medium text-slate-500 shadow-sm backdrop-blur-md sm:bottom-4 sm:left-6 sm:right-6 sm:px-4 sm:py-3">
               <span className="flex items-center gap-2 font-semibold text-[#0F172A]">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-[#18B368]" />
                 {selected.name}
@@ -412,7 +417,7 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <div className="relative mt-8 overflow-hidden rounded-full border border-slate-100 bg-white py-2.5 shadow-sm">
+        <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white py-2.5 shadow-sm sm:mt-8 sm:rounded-full">
           <div className="evuddy-net-ticker flex w-max gap-8 whitespace-nowrap px-6 text-sm font-semibold tracking-[0.14em] text-slate-400">
             {ticker.map((name, i) => (
               <span key={`${name}-${i}`} className="inline-flex items-center gap-2">

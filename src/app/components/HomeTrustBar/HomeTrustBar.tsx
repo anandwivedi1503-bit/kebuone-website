@@ -14,13 +14,13 @@ export default function HomeTrustBar() {
       aria-label="Why riders trust EVUDDY"
       className="relative z-10 border-y border-slate-100 bg-white"
     >
-      <div className="mx-auto flex max-w-[1480px] snap-x gap-3 overflow-x-auto px-4 py-4 sm:grid sm:grid-cols-5 sm:gap-4 sm:overflow-visible sm:px-6 lg:px-10">
+      <div className="mx-auto grid max-w-[1480px] grid-cols-1 gap-2 px-4 py-4 min-[480px]:grid-cols-2 sm:px-6 lg:grid-cols-5 lg:gap-4 lg:px-10">
         {items.map((item) => {
           const Icon = item.icon;
           return (
             <div
               key={item.label}
-              className="flex min-w-[220px] snap-start items-center gap-3 rounded-2xl border border-slate-100 bg-[#F7FBF8] px-4 py-3 sm:min-w-0"
+              className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-[#F7FBF8] px-4 py-3"
             >
               <span
                 className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white ${item.tone}`}
