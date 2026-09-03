@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { BRAND } from "@/lib/brandMedia";
 
 export default function HomeMoment() {
   return (
     <section className="relative overflow-hidden bg-[#1C1917]">
       <img
-        src="/brand/scenic-highway.png"
+        src={BRAND.highway}
         alt="EVUDDY yellow scooter on a scenic Indian highway"
-        className="absolute inset-0 h-full w-full object-cover opacity-90 ev-ken"
+        className="absolute inset-0 h-full w-full object-contain object-center opacity-95"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-[#1C1917]/82 via-[#1C1917]/40 to-transparent" />
       <div className="relative mx-auto flex min-h-[420px] max-w-[1440px] items-end px-5 py-16 sm:min-h-[520px] sm:px-8 lg:px-12 lg:py-20">

@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brandMedia";
 import {
   BrandCard,
   BrandCardGrid,
@@ -72,8 +73,7 @@ export default function Careers() {
       />
 
       <BrandFilm
-        src="/kebu-final.mp4"
-        secondSrc="/hero-finalback.mp4"
+        src={BRAND.film}
         eyebrow="Life at EVUDDY"
         title="The work is on the street, in hubs, and in the product."
       />
@@ -82,7 +82,7 @@ export default function Careers() {
         eyebrow="The work"
         title="You will see riders use what you ship."
         text="Booking, KYC, pickup OTP, payments and fleet status are live. Join if you want product, operations and cities in the same week — not a distant roadmap."
-        image="/biker-rent.jpeg"
+        image={BRAND.city}
         alt="Rider on an EVUDDY electric scooter"
       />
 
@@ -90,7 +90,7 @@ export default function Careers() {
         eyebrow="The scooter"
         title="Build the machine people actually ride."
         text="Hubs, availability and Rent to Own all sit on the same EV. If you join, you work on that ride — not a side category."
-        image="/new-vehicle.jpeg"
+        image={BRAND.rider}
         alt="EVUDDY electric scooter"
         reverse
       />
@@ -99,9 +99,9 @@ export default function Careers() {
         title="Same brand. The scooter at the centre."
         text="Engineering, hubs, support, growth and finance share one mission: smart, electric, dependable rides."
         photos={[
-          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooters in the city" },
-          { src: "/new-vehicle.jpeg", alt: "Electric scooter rental" },
-          { src: "/biker-rent.jpeg", alt: "Rider on an EVUDDY scooter" },
+          { src: BRAND.highway, alt: "EVUDDY scooters in the city" },
+          { src: BRAND.parked, alt: "Electric scooter rental" },
+          { src: BRAND.dusk, alt: "EVUDDY scooter at dusk" },
         ]}
       />
 
@@ -115,7 +115,7 @@ export default function Careers() {
         eyebrow="Product in motion"
         title="From garage energy to a city fleet."
         text="If you like moving between design, code, hubs and rider conversations, this is the pace. We hire for ownership, not job titles that sit still."
-        image="/kebu-final.mp4"
+        image={BRAND.film}
         alt="EVUDDY scooter ride"
         video
       />

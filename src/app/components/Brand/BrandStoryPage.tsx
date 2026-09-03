@@ -11,22 +11,20 @@ export type BrandMediaFit = "poster" | "product" | "photo" | "wide" | "video" | 
 const SCOOTER_ASPECT: Record<string, string> = {
   "/evuddy-scooter.png": "aspect-[1080/1350]",
   "/poster.png": "aspect-[1600/589]",
-  "/bike-rent.jpeg": "aspect-[1405/1120]",
-  "/biker-rent.jpeg": "aspect-square",
 };
 
 const frameClass: Record<BrandMediaFit, string> = {
   poster:
-    "relative mx-auto w-full max-w-[440px] overflow-hidden rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[2/3] sm:rounded-[28px]",
+    "relative mx-auto w-full max-w-[440px] overflow-visible rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]",
   product:
-    "relative w-full overflow-hidden rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)] sm:rounded-[28px]",
+    "relative w-full overflow-visible rounded-[24px] bg-white shadow-[0_18px_40px_rgba(8,17,47,0.10)] sm:rounded-[28px]",
   photo:
-    "relative w-full overflow-hidden rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]",
-  wide: "relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] aspect-[1600/589] sm:rounded-[28px]",
+    "relative w-full overflow-visible rounded-[24px] bg-[#E7EEE9] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]",
+  wide: "relative w-full overflow-visible rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]",
   video:
-    "relative w-full overflow-hidden rounded-[24px] bg-[#08112F] aspect-[1920/700] sm:rounded-[28px]",
+    "relative w-full overflow-hidden rounded-[24px] bg-[#08112F] aspect-video sm:rounded-[28px]",
   portrait:
-    "relative mx-auto w-full max-w-[380px] overflow-hidden rounded-[24px] bg-[#08112F] aspect-[9/16] shadow-[0_24px_60px_rgba(0,0,0,0.35)] sm:rounded-[28px]",
+    "relative mx-auto w-full max-w-[380px] overflow-hidden rounded-[24px] bg-[#08112F] aspect-video shadow-[0_24px_60px_rgba(0,0,0,0.35)] sm:rounded-[28px]",
 };
 
 const fillContain: CSSProperties = {
@@ -65,11 +63,7 @@ function MediaFrame({
     <figure
       className={`${frameClass[fit]} ${native} ${flush ? "rounded-none sm:rounded-none" : ""} ${className}`.trim()}
     >
-      {padded ? (
-        <div className="absolute inset-3 sm:inset-5">{children}</div>
-      ) : (
-        children
-      )}
+      {padded ? <div className="p-3 sm:p-5">{children}</div> : children}
     </figure>
   );
 }
@@ -83,7 +77,15 @@ function MediaImage({
   alt: string;
   cover?: boolean;
 }) {
-  return <img src={src} alt={alt} style={cover ? fillCover : fillContain} />;
+  if (cover) return <img src={src} alt={alt} style={fillCover} />;
+  return (
+    <img
+      src={src}
+      alt={alt}
+      className="h-auto w-full object-contain object-center"
+      style={{ maxWidth: "100%", height: "auto", display: "block" }}
+    />
+  );
 }
 
 function MediaVideo({ src }: { src: string }) {
@@ -94,17 +96,18 @@ function MediaVideo({ src }: { src: string }) {
       muted
       loop
       playsInline
-      style={fillCover}
+      className="h-full w-full object-contain object-center"
+      style={{ maxWidth: "none", maxHeight: "none" }}
     />
   );
 }
 
 function fitForSrc(src: string, video?: boolean): BrandMediaFit {
-  if (src.includes("kebu-final") || src.includes("hero-finalback")) return "portrait";
   if (video || src.endsWith(".mp4")) return "video";
   if (src.includes("evuddy-scooter")) return "product";
   if (src.includes("/poster.png")) return "wide";
-  if (src.includes("vision-poster") || src.includes("careers-poster")) return "poster";
+  if (src.includes("vision-poster") || src.includes("careers-poster") || src.includes("about-poster") || src.includes("-pic.png"))
+    return "poster";
   return "photo";
 }
 
@@ -171,7 +174,7 @@ export function BrandHero({
           </div>
         </div>
 
-        <MediaFrame fit="poster" padded>
+        <MediaFrame fit="poster">
           <MediaImage src={posterSrc} alt={posterAlt} />
         </MediaFrame>
       </div>

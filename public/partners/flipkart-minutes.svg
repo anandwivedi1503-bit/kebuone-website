@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 96" fill="none" role="img" aria-label="Flipkart Minutes">
+  <rect width="240" height="96" rx="12" fill="#FFE11B"/>
+  <text x="120" y="34" text-anchor="middle" fill="#2874F0" font-family="Arial, Helvetica, sans-serif" font-size="13" font-weight="700" letter-spacing="2.4">FLIPKART</text>
+  <text x="120" y="68" text-anchor="middle" fill="#111827" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">Minutes</text>
+  <circle cx="214" cy="22" r="8" fill="#2874F0"/>
+  <path d="M214 17.5v5l3.2 2" stroke="#FFE11B" stroke-width="1.6" stroke-linecap="round"/>
+</svg>

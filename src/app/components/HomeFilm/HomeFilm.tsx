@@ -1,13 +1,18 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { BRAND } from "@/lib/brandMedia";
 
 export default function HomeFilm() {
   return (
     <section className="relative overflow-hidden bg-[#1C1917]">
-      <img
-        src="/brand/indian-city-road.png"
-        alt="EVUDDY yellow scooter on an Indian city road"
-        className="absolute inset-0 h-full w-full object-cover opacity-80 ev-ken"
+      <video
+        src={BRAND.film}
+        autoPlay
+        muted
+        loop
+        playsInline
+        poster={BRAND.highway}
+        className="absolute inset-0 h-full w-full object-contain object-center"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1C1917] via-[#1C1917]/55 to-transparent" />
       <div className="relative mx-auto flex min-h-[380px] max-w-[1440px] flex-col justify-end px-5 py-16 sm:min-h-[480px] sm:px-8 lg:px-12">
