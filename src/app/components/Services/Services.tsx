@@ -3,46 +3,46 @@
 import { motion } from "framer-motion";
 import { BatteryCharging, Gauge, MapPinned, Zap } from "lucide-react";
 import ServiceCard from "../ServiceCard/ServiceCard";
+import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 
 const specs = [
   { value: "120", label: "KM range", icon: BatteryCharging, color: "text-[#18B368]" },
-  { value: "45", label: "km/h speed", icon: Gauge, color: "text-[#EC2A8C]" },
+  { value: "45", label: "km/h speed", icon: Gauge, color: "text-[#18B368]" },
   { value: "4h", label: "Charging", icon: Zap, color: "text-[#18B368]" },
-  { value: "GPS", label: "Live tracking", icon: MapPinned, color: "text-[#EC2A8C]" },
+  { value: "GPS", label: "Live tracking", icon: MapPinned, color: "text-[#18B368]" },
 ];
 
 export default function Services() {
+  const { catalog } = useHomeCatalog();
+  const { product } = catalog;
+  const model = product.vehicleModel || "EVUDDY Electric Scooter";
+  const type = product.vehicleType || "Electric Scooter";
+
   return (
     <section id="services" className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-28">
-      <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/10 blur-[110px]" />
-      <div className="pointer-events-none absolute -left-20 bottom-0 h-64 w-64 rounded-full bg-[#EC2A8C]/8 blur-[100px]" />
-
       <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-3xl text-center">
           <motion.span
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700 shadow-sm"
+            className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]"
           >
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            EVUDDY ELECTRIC SCOOTERS
+            {type}
           </motion.span>
 
           <motion.h2
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl"
+            className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl"
           >
-            Built for{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              everyday mobility
-            </span>
+            Built for <span className="text-[#18B368]">everyday mobility</span>
           </motion.h2>
 
           <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-slate-500 sm:text-lg">
-            A smart electric scooter for Indian city commuting — long range, hub charging and GPS on every ride.
+            Live fleet model: {model}. Battery {product.batteryType.toLowerCase()}. GPS on the scooter.
+            Range about 120 km, about 45 km/h, about 4 hour charging.
           </p>
         </div>
 
@@ -53,29 +53,23 @@ export default function Services() {
           className="mt-10 sm:mt-14"
         >
           <ServiceCard
-            icon="⚡"
-            badge="Electric Scooter"
-            stat="01"
-            tags={["120 KM Range", "Fast Charging", "GPS Enabled", "Zero Emissions"]}
-            title="EVUDDY Electric Scooter"
-            color="from-[#18B368] to-[#16C45B]"
+            badge={type}
+            tags={["120 KM Range", product.batteryType, product.gpsLive ? "GPS live" : "GPS Enabled", "Zero Emissions"]}
+            title={model}
             description="Designed for effortless daily commuting with smart technology, long battery life, and a premium riding experience."
             image="/trans.png"
             link="/ride-options"
           />
         </motion.div>
 
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-12 sm:gap-5 lg:grid-cols-4">
+        <div className="mt-10 grid grid-cols-2 gap-y-8 border-t border-[#0F172A]/10 pt-10 sm:mt-12 lg:grid-cols-4">
           {specs.map((spec) => {
             const Icon = spec.icon;
             return (
-              <div
-                key={spec.label}
-                className="rounded-[22px] border border-slate-100/80 bg-white/70 p-4 text-center shadow-[0_12px_40px_rgba(15,23,42,0.04)] backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:border-[#18B368]/30 hover:shadow-[0_20px_50px_rgba(24,179,104,0.12)] sm:rounded-[28px] sm:p-7"
-              >
-                <Icon size={28} className={`mx-auto mb-3 ${spec.color}`} />
+              <div key={spec.label} className="px-2 text-center sm:px-6">
+                <Icon size={22} className={`mx-auto mb-3 ${spec.color}`} />
                 <p className={`text-3xl font-black sm:text-5xl ${spec.color}`}>{spec.value}</p>
-                <p className="mt-1 text-sm font-semibold text-slate-700 sm:text-base">{spec.label}</p>
+                <p className="mt-1 text-sm font-semibold text-slate-700">{spec.label}</p>
               </div>
             );
           })}

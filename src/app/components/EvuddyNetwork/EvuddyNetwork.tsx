@@ -50,6 +50,24 @@ const CITY_COORDS: Record<string, { x: number; y: number; lat: number; lng: numb
   Chandigarh: { x: 147.58, y: 157.43, lat: 30.7333, lng: 76.7794 },
 };
 
+function projectIndia(lat: number, lng: number) {
+  const x = ((lng - 68.1) / (97.4 - 68.1)) * 430 + 25;
+  const y = ((37.1 - lat) / (37.1 - 8)) * 480 + 40;
+  return {
+    x: Math.min(460, Math.max(20, x)),
+    y: Math.min(530, Math.max(70, y)),
+  };
+}
+
+function cityPoint(name: string, lat?: number, lng?: number) {
+  const hit = Object.keys(CITY_COORDS).find((key) => key.toLowerCase() === name.toLowerCase());
+  if (hit) return CITY_COORDS[hit];
+  if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    return { ...projectIndia(lat as number, lng as number), lat: lat as number, lng: lng as number };
+  }
+  return { x: 210.3, y: 215.78, lat: 26.8467, lng: 80.9462 };
+}
+
 const FALLBACK_CITIES: CityMark[] = [
   { name: "Delhi", x: 154.05, y: 189.31, hubs: "Capital hub", hubCount: 1, lat: 28.6139, lng: 77.209 },
   { name: "Mathura", x: 160.97, y: 206.16, hubs: "Pickup yard", hubCount: 1, lat: 27.4924, lng: 77.6737 },
@@ -117,31 +135,37 @@ export default function EvuddyNetwork() {
   }, []);
 
   const marks = useMemo(() => {
-    const fromApi = liveCities
-      .map((name) => {
-        const hit = Object.keys(CITY_COORDS).find((key) => key.toLowerCase() === name.toLowerCase());
-        if (!hit) return null;
-        const point = CITY_COORDS[hit];
-        const cityHubs = liveHubs.filter((hub) => String(hub.city || "").toLowerCase() === name.toLowerCase());
-        const first = cityHubs[0];
-        return {
-          name,
-          x: point.x,
-          y: point.y,
-          lat: first?.latitude || point.lat,
-          lng: first?.longitude || point.lng,
-          hubCount: cityHubs.length,
-          hubs: first?.hubName
-            ? first.hubName
-            : cityHubs.length
-              ? `${cityHubs.length} live hub${cityHubs.length === 1 ? "" : "s"}`
-              : "EVUDDY hub",
-        };
-      })
-      .filter((item): item is CityMark => Boolean(item));
+    const fromApi = liveCities.map((name) => {
+      const cityHubs = liveHubs.filter(
+        (hub) => String(hub.city || "").toLowerCase() === name.toLowerCase()
+      );
+      const first = cityHubs[0];
+      const lat = Number(first?.latitude);
+      const lng = Number(first?.longitude);
+      const point = cityPoint(name, lat, lng);
+      return {
+        name,
+        x: point.x,
+        y: point.y,
+        lat: Number.isFinite(lat) ? lat : point.lat,
+        lng: Number.isFinite(lng) ? lng : point.lng,
+        hubCount: cityHubs.length,
+        hubs: first?.hubName
+          ? first.hubName
+          : cityHubs.length
+            ? `${cityHubs.length} live hub${cityHubs.length === 1 ? "" : "s"}`
+            : "EVUDDY hub",
+      } satisfies CityMark;
+    });
 
     return fromApi.length > 0 ? fromApi : FALLBACK_CITIES;
   }, [liveCities, liveHubs]);
+
+  useEffect(() => {
+    if (marks.length && !marks.some((city) => city.name === active.name)) {
+      setActive(marks[0]);
+    }
+  }, [marks, active.name]);
 
   const selected = marks.find((city) => city.name === active.name) ?? marks[0] ?? FALLBACK_CITIES[0];
 
@@ -232,7 +256,7 @@ export default function EvuddyNetwork() {
         <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:items-stretch">
           <div className="flex flex-col">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Select a city</p>
-            <div className="mt-3 grid max-h-[320px] gap-2 overflow-y-auto pr-1 sm:max-h-none sm:grid-cols-2 lg:grid-cols-1">
+            <div className="mt-3 max-h-[320px] overflow-y-auto border-t border-[#18B368]/15 sm:max-h-none">
               {marks.map((city) => {
                 const on = selected.name === city.name;
                 return (
@@ -240,17 +264,15 @@ export default function EvuddyNetwork() {
                     key={city.name}
                     type="button"
                     onClick={() => setActive(city)}
-                    className={`group flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left transition duration-300 ${
-                      on
-                        ? "border-[#18B368] bg-[#18B368] text-white shadow-[0_12px_32px_rgba(24,179,104,0.28)]"
-                        : "border-slate-100 bg-white text-[#0F172A] hover:border-[#18B368]/40 hover:shadow-sm"
+                    className={`flex w-full items-center justify-between border-b border-[#18B368]/10 py-3.5 text-left transition ${
+                      on ? "text-[#18B368]" : "text-[#0F172A] hover:text-[#18B368]"
                     }`}
                   >
                     <span className="flex min-w-0 items-center gap-3">
-                      <MapPin size={16} className={on ? "text-white" : "text-[#18B368]"} />
+                      <MapPin size={16} className="text-[#18B368]" />
                       <span className="truncate font-semibold">{city.name}</span>
                     </span>
-                    <span className={`shrink-0 text-xs ${on ? "text-white/80" : "text-slate-400"}`}>
+                    <span className="shrink-0 text-xs text-slate-400">
                       {city.hubCount > 0 ? `${city.hubCount} hub${city.hubCount === 1 ? "" : "s"}` : "Hub"}
                     </span>
                   </button>
