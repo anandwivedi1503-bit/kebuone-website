@@ -5,11 +5,11 @@ export default function HomeMoment() {
   return (
     <section className="relative overflow-hidden bg-[#1C1917]">
       <img
-        src="/new-vehicle.jpeg"
-        alt="EVUDDY electric scooter on the road"
-        className="absolute inset-0 h-full w-full object-cover object-[50%_62%] opacity-70 ev-ken"
+        src="/brand/charge-dusk.png"
+        alt="EVUDDY scooters charging at dusk"
+        className="absolute inset-0 h-full w-full object-cover opacity-80 ev-ken"
       />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#1C1917]/80 via-[#1C1917]/35 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#1C1917]/82 via-[#1C1917]/40 to-transparent" />
       <div className="relative mx-auto flex min-h-[420px] max-w-[1440px] items-end px-5 py-16 sm:min-h-[520px] sm:px-8 lg:px-12 lg:py-20">
         <div className="max-w-lg text-white">
           <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-white/70">

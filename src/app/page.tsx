@@ -6,6 +6,8 @@ import HomePartners from "./components/HomePartners/HomePartners";
 import HomeTrustBar from "./components/HomeTrustBar/HomeTrustBar";
 import EvuddyNetwork from "./components/EvuddyNetwork/EvuddyNetwork";
 import HomeMoment from "./components/HomeMoment/HomeMoment";
+import HomeFilm from "./components/HomeFilm/HomeFilm";
+import HomeClips from "./components/HomeClips/HomeClips";
 import Services from "./components/Services/Services";
 import HomePlans from "./components/HomePlans/HomePlans";
 import HomeStill from "./components/HomeStill/HomeStill";
@@ -27,9 +29,11 @@ export default function Home() {
       <HomeTrustBar />
       <EvuddyNetwork />
       <HomeMoment />
+      <HomeFilm />
       <HomePlans />
       <Services />
       <HomeStill />
+      <HomeClips />
       <WhyKebu />
       <InvestHomeInvite />
       <HowItWorks />

@@ -16,6 +16,12 @@ type LiveHub = {
 export default function Hero() {
   const { catalog } = useHomeCatalog();
   const [hubs, setHubs] = useState<LiveHub[]>([]);
+  const [motionOk, setMotionOk] = useState(false);
+
+  useEffect(() => {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setMotionOk(!reduce);
+  }, []);
 
   useEffect(() => {
     fetch("/api/hubs")
@@ -52,10 +58,15 @@ export default function Hero() {
         @keyframes evuddy-dash {
           to { stroke-dashoffset: -48; }
         }
+        @keyframes evuddy-pulse {
+          0%, 100% { opacity: 0.45; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.35); }
+        }
         .evuddy-draw { stroke-dasharray: 900; animation: evuddy-draw 3.2s ease forwards; }
         .evuddy-dash { stroke-dasharray: 6 10; animation: evuddy-dash 1.4s linear infinite; }
+        .evuddy-pulse { animation: evuddy-pulse 2.4s ease-in-out infinite; transform-origin: center; }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-draw, .evuddy-dash, .ev-ken { animation: none !important; }
+          .evuddy-draw, .evuddy-dash, .evuddy-pulse, .ev-ken { animation: none !important; }
         }
       `}</style>
 
@@ -89,11 +100,29 @@ export default function Hero() {
           </div>
         </div>
 
-        <Link href="/ride-options" className="relative block overflow-hidden">
+        <Link href="/ride-options" className="relative block overflow-hidden bg-[#1C1917]">
+          {motionOk ? (
+            <video
+              className="aspect-[4/5] w-full object-cover sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+              autoPlay
+              muted
+              loop
+              playsInline
+              poster="/brand/dawn-ride.png"
+            >
+              <source src="/bike-final.mp4" type="video/mp4" />
+            </video>
+          ) : (
+            <img
+              src="/brand/dawn-ride.png"
+              alt="EVUDDY electric scooter at dawn"
+              className="aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+            />
+          )}
           <img
             src="/new-vehicle.jpeg"
             alt="EVUDDY electric scooter"
-            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+            className="absolute bottom-4 right-4 h-28 w-24 object-cover object-[50%_58%] ring-1 ring-white/40 sm:h-36 sm:w-28"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
             Live in city
@@ -105,7 +134,7 @@ export default function Hero() {
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
           <div className="relative hidden min-h-[240px] lg:block">
             <img
-              src="/new-vehicle.jpeg"
+              src="/brand/gps-detail.png"
               alt="GPS-enabled EVUDDY scooter"
               className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
             />
@@ -148,6 +177,7 @@ export default function Hero() {
                 />
                 <a href={googleMapsUrl(startLat, startLng, `EVUDDY ${startLabel}`)} target="_blank" rel="noreferrer">
                   <circle cx="80" cy="150" r="5" fill="#1F6B4A" />
+                  <circle className="evuddy-pulse" cx="80" cy="150" r="12" fill="none" stroke="#1F6B4A" strokeWidth="1" />
                   <text x="80" y="178" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     HUB
                   </text>
