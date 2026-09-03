@@ -27,10 +27,10 @@ export default function RiderForm() {
                 muted
                 loop
                 playsInline
-                className="w-full h-[650px] object-cover"
-              >
-                <source src="/hero-video six.mp4" type="video/mp4" />
-              </video>
+                poster="/brand/scenic-highway.png"
+                className="h-[650px] w-full bg-[#1C1917] object-contain"
+                src="/brand/evuddy-ride.mp4"
+              />
 
             </div>
 
@@ -63,7 +63,7 @@ export default function RiderForm() {
             </h2>
 
             <p className="text-gray-600 text-lg mb-10">
-              Complete your rider registration and get access to Kebu One's smart urban mobility ecosystem.
+              Complete your rider registration and get access to EVUDDY's smart urban mobility ecosystem.
             </p>
 
             <form

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Cpu, KeyRound, MapPin, Navigation, Radio, ShieldCheck, Warehouse, Zap } from "lucide-react";
+import { GpsScooterMark } from "../Hero/GpsScooter";
 import EvuddyEcosystem, { type CityZone } from "./EvuddyEcosystem";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
@@ -323,12 +324,12 @@ export default function EvuddyNetwork() {
                     opacity="0.55"
                     className="evuddy-net-dash"
                   />
-                  <circle r="3.5" fill="#1F6B4A">
-                    <animateMotion dur="8s" repeatCount="indefinite" path={networkPath} />
-                  </circle>
-                  <circle r="2.5" fill="#C45B2D">
-                    <animateMotion dur="12s" begin="2s" repeatCount="indefinite" path={networkPath} />
-                  </circle>
+                  <g>
+                    <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={networkPath} />
+                    <g transform="scale(0.85)">
+                      <GpsScooterMark />
+                    </g>
+                  </g>
                 </>
               ) : null}
               {liveHubs

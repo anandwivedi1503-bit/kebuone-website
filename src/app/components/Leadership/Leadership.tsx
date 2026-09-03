@@ -48,13 +48,13 @@ export default function Leadership() {
 
   return (
     <div className="bg-[#F4FBF7] text-[#08112F]">
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden bg-[#08112F]">
         <Image
           src="/new-vehicle.jpeg"
           alt="EVUDDY electric scooters on city roads"
           fill
           priority
-          className="object-cover object-center"
+          className="object-contain object-center"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,31,0.72)_0%,rgba(7,17,31,0.5)_45%,rgba(7,17,31,0.9)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(24,179,104,0.28),transparent_34%)]" />
@@ -67,7 +67,7 @@ export default function Leadership() {
             </p>
             <h1 className="mt-6 max-w-3xl text-4xl font-black leading-[0.95] tracking-[-0.06em] text-white sm:text-6xl lg:text-7xl">
               Meet the people
-              <span className="block bg-gradient-to-r from-[#6EE7A8] via-white to-[#FF8FBF] bg-clip-text text-transparent">
+              <span className="block bg-gradient-to-r from-[#6EE7A8] via-white to-[#D8F3E4] bg-clip-text text-transparent">
                 behind EVUDDY.
               </span>
             </h1>
@@ -80,7 +80,7 @@ export default function Leadership() {
       </section>
 
       <section id="leaders" className="relative px-4 py-16 sm:px-6 sm:py-24 lg:px-10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(24,179,104,0.12),transparent_32%),radial-gradient(circle_at_100%_8%,rgba(236,42,140,0.08),transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(24,179,104,0.12),transparent_32%),radial-gradient(circle_at_100%_8%,rgba(24,179,104,0.08),transparent_28%)]" />
 
         <div className="relative mx-auto max-w-6xl">
           <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#18B368]">

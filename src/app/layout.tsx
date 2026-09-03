@@ -26,7 +26,7 @@ const notoDeva = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
-  title: "EVUDDY by Kebu One | Electric Scooter Rentals",
+  title: "EVUDDY | Electric Scooter Rentals",
   description:
     "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own, with live tracking across Indian cities.",
 };

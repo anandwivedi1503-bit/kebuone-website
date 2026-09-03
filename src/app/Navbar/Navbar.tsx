@@ -194,7 +194,7 @@ xl:max-w-[210px]
 >
 
 <Image
-src="/Evuddy-logo-dark-E.png"
+src="/Evuddy-logo-dark-E.png?v=20260903"
 alt="EVUDDY"
 width={320}
 height={95}
@@ -258,7 +258,7 @@ rounded-full
 bg-gradient-to-r
 from-[#18B368]
 via-[#45D98C]
-to-[#EC2A8C]
+to-[#1F6B4A]
 transition-all
 duration-300
 group-hover:w-full
@@ -317,10 +317,10 @@ whitespace-nowrap
 px-3
 xl:px-5
 font-medium
-text-[#EC2A8C]
+text-[#1F6B4A]
 transition-colors
 duration-300
-hover:text-[#d01878]
+hover:text-[#18573c]
 "
 
 >
@@ -444,7 +444,7 @@ className="fixed top-0 left-0 h-screen w-[88%] max-w-[360px] bg-white shadow-2xl
 lg:px-6 py-6 border-b">
 
 <Image
-src="/Evuddy-logo-dark-E.png"
+src="/Evuddy-logo-dark-E.png?v=20260903"
 alt="EVUDDY"
 width={180}
 height={55}
@@ -567,12 +567,12 @@ className="
 w-full
 h-14
 rounded-full
-bg-[#EC2A8C]
+bg-[#1F6B4A]
 text-white
 font-semibold
 transition-all
 duration-300
-hover:bg-[#d01878]
+hover:bg-[#18573c]
 flex
 items-center
 justify-center

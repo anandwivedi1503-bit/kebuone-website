@@ -18,7 +18,7 @@ export default function InvestHomeInvite() {
               alt="EVUDDY Fleet Partner Investment poster"
               width={320}
               height={480}
-              className="h-auto w-full object-cover"
+              className="h-auto w-full object-contain"
             />
           </Link>
           <div className="min-w-0 text-center sm:text-left">

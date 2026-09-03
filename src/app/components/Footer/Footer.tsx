@@ -53,7 +53,7 @@ export default function Footer() {
 
         <div className="absolute -top-48 -left-40 h-[500px] w-[500px] rounded-full bg-[#18B368]/15 blur-[140px]" />
 
-        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-pink-500/10 blur-[140px]" />
+        <div className="absolute bottom-0 right-0 h-[450px] w-[450px] rounded-full bg-[#18B368]/10 blur-[140px]" />
 
       </div>
 
@@ -189,7 +189,7 @@ export default function Footer() {
       className="inline-flex items-center"
     >
       <Image
-        src="/Evuddy-logo-dark-E.png"
+        src="/Evuddy-logo-dark-E.png?v=20260903"
         alt="EVUDDY"
         width={170}
         height={60}

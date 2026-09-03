@@ -1,5 +1,7 @@
 "use client";
 
+import { BRAND } from "@/lib/brandMedia";
+import { GpsScooterMark } from "./GpsScooter";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -52,15 +54,10 @@ export default function Hero() {
         @keyframes evuddy-dash {
           to { stroke-dashoffset: -48; }
         }
-        @keyframes evuddy-pulse {
-          0%, 100% { opacity: 0.45; transform: scale(1); }
-          50% { opacity: 1; transform: scale(1.35); }
-        }
         .evuddy-draw { stroke-dasharray: 900; animation: evuddy-draw 3.2s ease forwards; }
         .evuddy-dash { stroke-dasharray: 6 10; animation: evuddy-dash 1.4s linear infinite; }
-        .evuddy-pulse { animation: evuddy-pulse 2.4s ease-in-out infinite; transform-origin: center; }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-draw, .evuddy-dash, .evuddy-pulse, .ev-ken { animation: none !important; }
+          .evuddy-draw, .evuddy-dash, .ev-ken { animation: none !important; }
         }
       `}</style>
 
@@ -94,13 +91,13 @@ export default function Hero() {
           </div>
         </div>
 
-        <Link href="/ride-options" className="relative block overflow-hidden bg-[#F7F4EE]">
+        <Link href="/ride-options" className="relative block bg-[#EDE8DE]">
           <img
-            src="/new-vehicle.jpeg"
-            alt="EVUDDY yellow electric scooter on the road"
-            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_55%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+            src={BRAND.rider}
+            alt="EVUDDY yellow electric scooter on a scenic Indian road"
+            className="aspect-[16/10] w-full object-contain object-center sm:aspect-[5/3] lg:min-h-[420px]"
           />
-          <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
+          <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-[#1C1917]/80">
             Live in city
           </span>
         </Link>
@@ -108,13 +105,13 @@ export default function Hero() {
 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
-          <div className="relative hidden min-h-[240px] overflow-hidden lg:block">
+          <div className="relative hidden min-h-[280px] bg-[#EDE8DE] lg:block">
             <img
-              src="/brand/indian-city-road.png"
+              src={BRAND.city}
               alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
-              className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
+              className="absolute inset-0 h-full w-full object-contain object-center"
             />
-            <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
+            <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#1C1917]/80">
               GPS on scooter
             </p>
           </div>
@@ -127,48 +124,55 @@ export default function Hero() {
                 {cityLine} · In ride
               </p>
             </div>
-            <div className="relative h-[200px] sm:h-[240px]">
-              <svg viewBox="0 0 960 240" className="h-full w-full overflow-visible" fill="none" preserveAspectRatio="xMidYMid meet">
+            <div className="relative h-[220px] overflow-hidden bg-[#F4F0E6] sm:h-[260px]">
+              <svg viewBox="0 0 960 260" className="h-full w-full" fill="none" aria-label="Scooter moving from hub to yard">
+                <defs>
+                  <pattern id="gps-grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E4DDD2" strokeWidth="1" />
+                  </pattern>
+                </defs>
+                <rect width="960" height="260" fill="url(#gps-grid)" />
                 <path
-                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
+                  d="M80 168 C 220 78, 340 228, 500 138 S 760 218, 880 152"
                   stroke="#E4DDD2"
-                  strokeWidth="10"
+                  strokeWidth="14"
                   strokeLinecap="round"
                 />
                 <path
                   id="evuddy-route"
                   className="evuddy-draw"
-                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
+                  d="M80 168 C 220 78, 340 228, 500 138 S 760 218, 880 152"
                   stroke="#1F6B4A"
-                  strokeWidth="2"
+                  strokeWidth="2.4"
                   strokeLinecap="round"
                 />
                 <path
                   className="evuddy-dash"
-                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
+                  d="M80 168 C 220 78, 340 228, 500 138 S 760 218, 880 152"
                   stroke="#1C1917"
                   strokeWidth="1"
                   strokeLinecap="round"
-                  opacity="0.35"
+                  opacity="0.28"
                 />
                 <a href={googleMapsUrl(startLat, startLng, `EVUDDY ${startLabel}`)} target="_blank" rel="noreferrer">
-                  <circle cx="80" cy="150" r="5" fill="#1F6B4A" />
-                  <circle className="evuddy-pulse" cx="80" cy="150" r="12" fill="none" stroke="#1F6B4A" strokeWidth="1" />
-                  <text x="80" y="178" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
+                  <circle cx="80" cy="168" r="6" fill="#1F6B4A" />
+                  <text x="80" y="198" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     HUB
                   </text>
                 </a>
                 <a href={googleMapsUrl(endLat, endLng, `EVUDDY ${endLabel}`)} target="_blank" rel="noreferrer">
-                  <circle cx="880" cy="135" r="5" fill="#1C1917" />
-                  <text x="880" y="163" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
+                  <circle cx="880" cy="152" r="6" fill="#1C1917" />
+                  <text x="880" y="182" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     YARD
                   </text>
                 </a>
                 <g>
-                  <animateMotion dur="10s" repeatCount="indefinite" rotate="0">
+                  <animateMotion dur="12s" repeatCount="indefinite" rotate="0">
                     <mpath href="#evuddy-route" />
                   </animateMotion>
-                  <circle r="4" fill="#1F6B4A" />
+                  <g transform="scale(1.35)">
+                    <GpsScooterMark />
+                  </g>
                 </g>
               </svg>
             </div>

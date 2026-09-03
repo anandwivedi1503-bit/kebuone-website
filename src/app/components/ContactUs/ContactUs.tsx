@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { BRAND } from "@/lib/brandMedia";
 
 const initialForm = {
   fullName: "",
@@ -104,7 +105,7 @@ export default function ContactUs() {
       <section className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:px-10">
         <div className="min-w-0">
           <Image
-            src="/Evuddy-logo-dark-E.png"
+            src="/Evuddy-logo-dark-E.png?v=20260903"
             alt="EVUDDY"
             width={260}
             height={78}
@@ -136,18 +137,11 @@ export default function ContactUs() {
           </div>
         </div>
 
-        <figure className="relative aspect-[1600/589] w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
+        <figure className="relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
           <img
-            src="/new-vehicle.jpeg"
+            src={BRAND.rider}
             alt="EVUDDY electric scooters"
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              maxWidth: "none",
-              objectFit: "contain",
-            }}
+            className="h-auto w-full object-contain object-center"
           />
         </figure>
       </section>
@@ -259,20 +253,15 @@ export default function ContactUs() {
           </form>
 
           <div className="space-y-5">
-            <figure className="relative mx-auto aspect-[9/16] w-full max-w-[380px] overflow-hidden rounded-[24px] bg-[#08112F] shadow-[0_24px_60px_rgba(8,17,47,0.18)]">
+            <figure className="relative w-full overflow-hidden rounded-[24px] bg-[#08112F] shadow-[0_24px_60px_rgba(8,17,47,0.18)]">
               <video
-                src="/kebu-final.mp4"
+                src={BRAND.film}
                 autoPlay
                 muted
                 loop
                 playsInline
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
+                poster={BRAND.highway}
+                className="aspect-video h-auto w-full object-contain object-center"
               />
             </figure>
             <article className="rounded-[22px] border border-slate-100 bg-white p-6">

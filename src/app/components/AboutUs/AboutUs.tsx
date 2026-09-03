@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brandMedia";
 import { Building2, MapPinned, ShieldCheck, Zap } from "lucide-react";
 
 import {
@@ -65,8 +66,7 @@ export default function AboutUs() {
       />
 
       <BrandFilm
-        src="/kebu-final.mp4"
-        secondSrc="/hero-finalback.mp4"
+        src={BRAND.film}
         eyebrow="The company"
         title="Smart electric mobility you can book, ride and own."
       />
@@ -75,7 +75,7 @@ export default function AboutUs() {
         eyebrow="Riders"
         title="A scooter when you need it. An asset if you want it."
         text="Hourly to monthly plans for daily riders. GST is 5% on rental only. Normal bookings include a refundable deposit. Rent to Own has no deposit."
-        image="/new-vehicle.jpeg"
+        image={BRAND.rider}
         alt="EVUDDY rental scooter"
       />
 
@@ -83,9 +83,9 @@ export default function AboutUs() {
         title="One ecosystem. The scooter at the centre."
         text="B2C rentals, hubs, fleets and Rent to Own sit on the same live platform."
         photos={[
-          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooters on the road" },
-          { src: "/new-vehicle.jpeg", alt: "EVUDDY rental scooter" },
-          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooter" },
+          { src: BRAND.highway, alt: "EVUDDY scooters on the open road" },
+          { src: BRAND.city, alt: "EVUDDY rental scooter in the city" },
+          { src: BRAND.parked, alt: "EVUDDY scooter ready for pickup" },
         ]}
       />
 

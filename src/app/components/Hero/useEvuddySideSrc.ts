@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 const CANDIDATES = [
   "/new-vehicle.jpeg",
-  "/new-bike.jpeg",
   "/evuddy-side.png",
   "/evuddy-scooter-cutout.png",
   "/evuddy-scooter.png",
