@@ -84,7 +84,7 @@ export default function HowItWorks() {
 
         <div className="mt-16 grid sm:grid-cols-[0.4fr_0.6fr]">
           <img
-            src="/new-vehicle.jpeg"
+            src="/brand/scenic-highway.png"
             alt="EVUDDY scooter"
             className="h-56 w-full object-cover sm:h-full"
           />
