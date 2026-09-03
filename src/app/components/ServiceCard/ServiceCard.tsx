@@ -88,9 +88,9 @@ export default function ServiceCard({
               <Image
                 src={image}
                 alt={title}
-                width={720}
-                height={720}
-                className="w-[210px] object-contain drop-shadow-[0_40px_70px_rgba(15,23,42,0.28)] sm:w-[320px] lg:w-[420px]"
+                width={960}
+                height={600}
+                className="w-[260px] rounded-[22px] object-cover shadow-[0_24px_50px_rgba(15,23,42,0.22)] sm:w-[380px] sm:rounded-[28px] lg:w-[480px]"
               />
             </motion.div>
           ) : null}

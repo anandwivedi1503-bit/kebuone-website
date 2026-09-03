@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 const CANDIDATES = [
+  "/new-vehicle.jpeg",
   "/new-bike.jpeg",
   "/evuddy-side.png",
   "/evuddy-scooter-cutout.png",
@@ -102,7 +103,9 @@ export function useEvuddySideSrc() {
       const image = new Image();
       image.onload = () => {
         if (cancelled) return;
-        setSrc(CANDIDATES[index]);
+        const file = CANDIDATES[index];
+        setSrc(file);
+        if (file.includes("new-vehicle")) return;
         try {
           const stripped = stripStudioBackground(image);
           if (stripped) setSrc(stripped);
