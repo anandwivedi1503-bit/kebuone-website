@@ -1,7 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
+import { Cormorant_Garamond, Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import EvuddyAssistant from "./components/EvuddyAssistant/EvuddyAssistant";
+
+const display = Cormorant_Garamond({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,9 +47,9 @@ export default function RootLayout({
     <html
   lang="en"
   data-scroll-behavior="smooth"
-  className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} h-full antialiased`}
+  className={`${display.variable} ${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} h-full antialiased`}
 >
-      <body className={`${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} min-h-full flex flex-col font-sans`}>
+      <body className={`${display.variable} ${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} min-h-full flex flex-col font-sans`}>
         {children}
         <EvuddyAssistant />
       </body>

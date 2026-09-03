@@ -19,14 +19,14 @@ export default function Services() {
   const type = product.vehicleType || "Electric Scooter";
 
   return (
-    <section id="services" className="relative overflow-hidden bg-white py-16 sm:py-24 lg:py-28">
-      <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
+    <section id="services" className="relative bg-[#F7F4EE] py-20 sm:py-28">
+      <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="max-w-2xl">
           <motion.span
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#18B368]"
+            className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]"
           >
             {type}
           </motion.span>
@@ -35,12 +35,12 @@ export default function Services() {
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-4 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl"
+            className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl"
           >
-            Built for <span className="text-[#18B368]">everyday mobility</span>
+            Built for <span className="italic text-[#1F6B4A]">everyday mobility</span>
           </motion.h2>
 
-          <p className="mx-auto mt-4 max-w-2xl text-[15px] leading-7 text-slate-500 sm:text-lg">
+          <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
             Live fleet model: {model}. Battery {product.batteryType.toLowerCase()}. GPS on the scooter.
             Range about 120 km, about 45 km/h, about 4 hour charging.
           </p>
@@ -62,14 +62,14 @@ export default function Services() {
           />
         </motion.div>
 
-        <div className="mt-10 grid grid-cols-2 gap-y-8 border-t border-[#0F172A]/10 pt-10 sm:mt-12 lg:grid-cols-4">
+        <div className="mt-12 grid grid-cols-2 gap-y-8 border-t border-[#E4DDD2] pt-10 lg:grid-cols-4">
           {specs.map((spec) => {
             const Icon = spec.icon;
             return (
-              <div key={spec.label} className="px-2 text-center sm:px-6">
-                <Icon size={22} className={`mx-auto mb-3 ${spec.color}`} />
-                <p className={`text-3xl font-black sm:text-5xl ${spec.color}`}>{spec.value}</p>
-                <p className="mt-1 text-sm font-semibold text-slate-700">{spec.label}</p>
+              <div key={spec.label} className="px-2 sm:px-6">
+                <Icon size={18} strokeWidth={1.5} className="mb-3 text-[#1F6B4A]" />
+                <p className="font-display text-3xl font-medium text-[#1C1917] sm:text-4xl">{spec.value}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-[#8A847A]">{spec.label}</p>
               </div>
             );
           })}

@@ -1,8 +1,9 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f4ee;
+  --foreground: #1c1917;
+  --font-display: var(--font-display);
 }
 
 @theme inline {
@@ -19,9 +20,13 @@
   }
 }
 
+.font-display {
+  font-family: var(--font-display), "Times New Roman", serif;
+}
+
 body {
   background: var(--background);
-  color: #0f172a;
+  color: #1c1917;
   font-family: var(--font-geist-sans), var(--font-noto-deva), ui-sans-serif, system-ui, sans-serif;
   overflow-x: hidden;
 }

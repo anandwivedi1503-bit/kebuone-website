@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowRight, HeartHandshake, Leaf, MapPinned, ShieldCheck } from "lucide-react";
 
 const features = [
@@ -29,78 +28,63 @@ const features = [
 
 export default function WhyChoose() {
   return (
-    <section id="why-choose" className="relative overflow-hidden bg-[#F6FAF8] py-16 sm:py-24">
-      <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/10 blur-[110px]" />
-      <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            WHY CHOOSE EVUDDY
+    <section id="why-choose" className="relative bg-[#FBF9F5] py-20 sm:py-28">
+      <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="max-w-2xl">
+          <span className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+            Why choose EVUDDY
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
-            Built for the future of{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              smart mobility
-            </span>
+          <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
+            Built for the future of <span className="italic text-[#1F6B4A]">smart mobility</span>
           </h2>
-          <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
+          <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
             Technology, sustainability and a customer-first ride experience for modern Indian cities.
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 lg:grid-cols-2 lg:gap-6">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-10"
-          >
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#18B368] to-[#12A857] text-white">
-              <Leaf size={28} />
-            </div>
-            <h3 className="mt-6 text-3xl font-black leading-tight text-[#0F172A] sm:text-4xl">
+        <div className="mt-14 grid gap-12 lg:grid-cols-2">
+          <div>
+            <Leaf size={22} strokeWidth={1.5} className="text-[#1F6B4A]" />
+            <h3 className="font-display mt-5 text-3xl font-medium leading-tight text-[#1C1917]">
               Built like India&apos;s next EV network.
             </h3>
-            <p className="mt-4 max-w-xl text-[15px] leading-7 text-slate-500 sm:text-lg">
+            <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
               Hubs, KYC, Razorpay, OTP pickup and Rent to Own on one platform — for daily riders,
               gig work and people who want to own the scooter.
             </p>
-            <span className="mt-6 inline-flex rounded-full bg-[#18B368]/10 px-4 py-2 text-sm font-semibold text-[#18B368]">
+            <span className="mt-6 inline-block text-[12px] uppercase tracking-[0.16em] text-[#1F6B4A]">
               #safeRideWithEvuddy
             </span>
-          </motion.div>
+          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-8 sm:grid-cols-2">
             {features.map((item) => {
               const Icon = item.icon;
               return (
-                <div
-                  key={item.title}
-                  className="rounded-[24px] border border-white bg-white/80 p-5 shadow-sm backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(24,179,104,0.12)] sm:p-6"
-                >
-                  <Icon className="text-[#18B368]" size={28} />
-                  <h4 className="mt-4 text-lg font-bold text-[#0F172A]">{item.title}</h4>
-                  <p className="mt-2 text-sm leading-6 text-slate-500">{item.text}</p>
+                <div key={item.title} className="border-t border-[#E4DDD2] pt-5">
+                  <Icon className="text-[#1F6B4A]" size={18} strokeWidth={1.5} />
+                  <h4 className="mt-4 text-base font-medium text-[#1C1917]">{item.title}</h4>
+                  <p className="mt-2 text-sm leading-7 text-[#5C635E]">{item.text}</p>
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="mt-8 rounded-[28px] border border-white bg-white px-5 py-8 text-center shadow-sm sm:px-10 sm:py-12">
-          <h3 className="text-2xl font-black text-[#0F172A] sm:text-4xl">Ready to ride smarter?</h3>
-          <p className="mx-auto mt-3 max-w-xl text-slate-500">
+        <div className="mt-16 border-t border-[#E4DDD2] pt-10 text-center">
+          <h3 className="font-display text-3xl font-medium text-[#1C1917]">Ready to ride smarter?</h3>
+          <p className="mx-auto mt-3 max-w-xl text-[#5C635E]">
             Register once, then book an EVUDDY scooter from your nearest hub.
           </p>
-          <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
             <Link href="/ride-options" className="w-full sm:w-auto">
-              <span className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 py-4 font-bold text-white sm:w-auto">
+              <span className="inline-flex w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white sm:w-auto">
                 Book an EV
-                <ArrowRight size={18} />
+                <ArrowRight size={16} />
               </span>
             </Link>
             <Link href="/ride-options" className="w-full sm:w-auto">
-              <span className="inline-flex w-full items-center justify-center rounded-full border border-slate-200 px-8 py-4 font-bold text-[#0F172A] sm:w-auto">
+              <span className="inline-flex w-full items-center justify-center border border-[#1C1917]/15 px-8 py-3.5 text-[13px] font-medium text-[#1C1917] sm:w-auto">
                 I already have an account
               </span>
             </Link>
