@@ -1,7 +1,7 @@
 "use client";
 
 const PARTNERS = [
-  { name: "Flipkart", src: "/partners/flipkart.png" },
+  { name: "Flipkart Minutes", src: "/partners/flipkart.png" },
   { name: "Swiggy", src: "/partners/swiggy.png" },
   { name: "Zomato", src: "/partners/zomato.png" },
   { name: "Blinkit", src: "/partners/blinkit.svg" },
@@ -35,10 +35,10 @@ export default function HomePartners() {
           {loop.map((item, index) => (
             <span
               key={`${item.name}-${index}`}
-              className="flex h-24 w-[140px] shrink-0 flex-col items-center justify-center gap-3 sm:w-[180px]"
+              className="flex h-28 w-[168px] shrink-0 flex-col items-center justify-center gap-3 sm:w-[200px]"
             >
-              <img src={item.src} alt={item.name} className="h-10 w-auto max-w-[120px] object-contain" />
-              <span className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#5F6B63]">
+              <img src={item.src} alt={item.name} className="h-11 w-auto max-w-[132px] object-contain" />
+              <span className="px-1 text-center text-[11px] font-medium uppercase tracking-[0.12em] text-[#5F6B63]">
                 {item.name}
               </span>
             </span>

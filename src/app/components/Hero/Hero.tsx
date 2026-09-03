@@ -98,7 +98,7 @@ export default function Hero() {
           <img
             src="/new-vehicle.jpeg"
             alt="EVUDDY yellow electric scooter on the road"
-            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_55%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+            className="ev-ken aspect-[4/5] w-full object-contain object-center bg-[#F7F4EE] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3] lg:object-cover lg:object-[52%_58%]"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
             Live in city
@@ -107,14 +107,14 @@ export default function Hero() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
-          <div className="relative hidden min-h-[240px] overflow-hidden lg:block">
+        <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.44fr_0.56fr]">
+          <div className="relative min-h-[220px] overflow-hidden bg-[#F7F4EE] sm:min-h-[260px] lg:min-h-[280px]">
             <img
-              src="/brand/indian-city-road.png"
-              alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
-              className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
+              src="/new-vehicle.jpeg"
+              alt="EVUDDY yellow scooter with live GPS"
+              className="absolute inset-0 h-full w-full object-contain object-center p-3 sm:p-4"
             />
-            <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
+            <p className="absolute bottom-4 left-4 rounded-sm bg-[#1C1917]/55 px-2 py-1 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
               GPS on scooter
             </p>
           </div>
@@ -165,10 +165,17 @@ export default function Hero() {
                   </text>
                 </a>
                 <g>
-                  <animateMotion dur="10s" repeatCount="indefinite" rotate="0">
+                  <animateMotion dur="10s" repeatCount="indefinite" rotate="auto">
                     <mpath href="#evuddy-route" />
                   </animateMotion>
-                  <circle r="4" fill="#1F6B4A" />
+                  <g transform="translate(-20,-14)">
+                    <ellipse cx="8" cy="20" rx="5.2" ry="5.2" fill="#1C1917" />
+                    <ellipse cx="30" cy="20" rx="5.2" ry="5.2" fill="#1C1917" />
+                    <path d="M12 18 L16 8 H26 L34 18 Z" fill="#F5C400" />
+                    <rect x="16" y="10" width="12" height="7" rx="1.2" fill="#2BB3B0" />
+                    <circle cx="8" cy="20" r="2.1" fill="#F7F4EE" />
+                    <circle cx="30" cy="20" r="2.1" fill="#F7F4EE" />
+                  </g>
                 </g>
               </svg>
             </div>
