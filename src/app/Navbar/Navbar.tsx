@@ -194,7 +194,7 @@ xl:max-w-[210px]
 >
 
 <Image
-src="/Evuddy-logo-dark-E.png?v=20260903"
+src="/Evuddy-logo-dark-E.png"
 alt="EVUDDY"
 width={320}
 height={95}
@@ -444,7 +444,7 @@ className="fixed top-0 left-0 h-screen w-[88%] max-w-[360px] bg-white shadow-2xl
 lg:px-6 py-6 border-b">
 
 <Image
-src="/Evuddy-logo-dark-E.png?v=20260903"
+src="/Evuddy-logo-dark-E.png"
 alt="EVUDDY"
 width={180}
 height={55}

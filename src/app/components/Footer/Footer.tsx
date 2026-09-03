@@ -189,7 +189,7 @@ export default function Footer() {
       className="inline-flex items-center"
     >
       <Image
-        src="/Evuddy-logo-dark-E.png?v=20260903"
+        src="/Evuddy-logo-dark-E.png"
         alt="EVUDDY"
         width={170}
         height={60}
