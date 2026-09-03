@@ -84,9 +84,9 @@ export default function HowItWorks() {
 
         <div className="mt-16 grid sm:grid-cols-[0.4fr_0.6fr]">
           <img
-            src="/brand/scenic-highway.png"
-            alt="EVUDDY scooter"
-            className="h-56 w-full object-cover sm:h-full"
+            src="/new-vehicle.jpeg"
+            alt="EVUDDY yellow scooter"
+            className="h-56 w-full bg-[#F7F4EE] object-contain object-center sm:h-full"
           />
           <div className="flex flex-col justify-center gap-6 bg-[#FBF9F5] px-6 py-10 sm:px-12">
             <div>
