@@ -17,12 +17,12 @@ export default function HomePartners() {
         {PARTNERS.map((item) => (
           <span
             key={item.name}
-            className="flex min-h-[118px] flex-col items-center justify-center gap-3 bg-white px-4 py-5"
+            className="flex min-h-[118px] flex-col items-center justify-center gap-3 overflow-visible bg-white px-5 py-5"
           >
             <img
               src={item.src}
               alt={item.name}
-              className="h-12 w-auto max-w-[150px] object-contain object-center"
+              className="h-11 w-full max-w-[160px] object-contain object-center"
             />
             <span className="text-center text-[11px] font-medium uppercase tracking-[0.14em] text-[#5F6B63]">
               {item.name}

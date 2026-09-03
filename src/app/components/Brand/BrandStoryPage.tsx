@@ -143,7 +143,7 @@ export function BrandHero({
       <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:px-10">
         <div className="min-w-0">
           <Image
-            src="/Evuddy-logo-dark-E.png"
+            src="/Evuddy-logo-dark-E.png?v=20260903"
             alt="EVUDDY"
             width={260}
             height={78}
