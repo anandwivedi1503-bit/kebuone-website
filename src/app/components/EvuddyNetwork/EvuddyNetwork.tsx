@@ -199,7 +199,7 @@ export default function EvuddyNetwork() {
       id="network"
       ref={stageRef}
       onMouseMove={onStageMove}
-      className="relative overflow-hidden bg-[#F3FBFF] text-[#0F172A]"
+      className="relative scroll-mt-28 overflow-x-hidden bg-[#F7F4EE] text-[#1C1917] sm:scroll-mt-40"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-300"
@@ -272,7 +272,7 @@ export default function EvuddyNetwork() {
                   >
                     <span className="flex min-w-0 items-center gap-3">
                       <MapPin size={16} className="text-[#18B368]" />
-                      <span className="truncate font-semibold">{city.name}</span>
+                      <span className="break-words font-semibold">{city.name}</span>
                     </span>
                     <span className="shrink-0 text-xs text-slate-400">
                       {city.hubCount > 0 ? `${city.hubCount} hub${city.hubCount === 1 ? "" : "s"}` : "Hub"}
@@ -299,7 +299,7 @@ export default function EvuddyNetwork() {
           </div>
 
           <div
-            className="relative isolate overflow-hidden rounded-[32px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.08)]"
+            className="relative isolate overflow-visible rounded-[32px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.08)]"
             onMouseMove={(event) => {
               if (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024) return;
               onMapMove(event);

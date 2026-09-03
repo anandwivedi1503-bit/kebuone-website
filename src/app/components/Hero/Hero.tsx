@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
@@ -53,234 +52,143 @@ export default function Hero() {
       : "Live hub";
 
   return (
-    <section id="home" className="relative overflow-x-hidden bg-[#FFF8EE]">
+    <section id="home" className="relative overflow-x-hidden scroll-mt-28 bg-[#F7F4EE] sm:scroll-mt-40">
       <style>{`
         @keyframes evuddy-draw {
           0% { stroke-dashoffset: 900; }
           100% { stroke-dashoffset: 0; }
         }
         @keyframes evuddy-dash {
-          to { stroke-dashoffset: -120; }
-        }
-        @keyframes evuddy-ink {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 100% 50%; }
+          to { stroke-dashoffset: -48; }
         }
         .evuddy-draw { stroke-dasharray: 900; animation: evuddy-draw 3.2s ease forwards; }
-        .evuddy-dash { stroke-dasharray: 10 14; animation: evuddy-dash 1s linear infinite; }
-        .evuddy-ink {
-          background-image: linear-gradient(90deg, #18B368, #12B5A8, #EC2A8C);
-          background-size: 200% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation: evuddy-ink 5s linear infinite;
-        }
-        @keyframes evuddy-gps-ring {
-          0% { transform: scale(0.55); opacity: 0.65; }
-          100% { transform: scale(1.55); opacity: 0; }
-        }
-        .evuddy-gps-ring { animation: evuddy-gps-ring 1.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+        .evuddy-dash { stroke-dasharray: 6 10; animation: evuddy-dash 1.4s linear infinite; }
         @media (prefers-reduced-motion: reduce) {
-          .evuddy-draw, .evuddy-dash, .evuddy-ink, .evuddy-gps-ring { animation: none !important; }
+          .evuddy-draw, .evuddy-dash { animation: none !important; }
         }
       `}</style>
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_0%,rgba(245,196,0,0.28),transparent_34%),radial-gradient(circle_at_92%_8%,rgba(236,42,140,0.16),transparent_32%),radial-gradient(circle_at_70%_90%,rgba(18,181,168,0.16),transparent_36%)]" />
-
-      <div className="relative mx-auto max-w-[1440px] px-4 pb-8 pt-24 sm:px-6 sm:pb-12 sm:pt-28 lg:px-10 lg:pb-16 lg:pt-32">
-        <div className="grid items-center gap-6 sm:gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
-          <div className="text-center lg:text-left">
-            <motion.p
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="inline-flex items-center gap-2 rounded-full border border-[#F5C400]/50 bg-white/90 px-3 py-1.5 text-[10px] font-bold tracking-[0.18em] text-[#7A5A00] shadow-sm sm:text-[11px]"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#F5C400]" />
-              INDIA&apos;S SMART EV RENTAL
-            </motion.p>
-
-            <h1 className="mx-auto mt-4 max-w-[14ch] text-[clamp(2rem,8vw,4.4rem)] font-black leading-[0.94] tracking-[-0.06em] text-[#0F172A] lg:mx-0">
-              Ride the city.
-              <span className="mt-1 block italic evuddy-ink">Own the journey.</span>
-            </h1>
-
-            <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-slate-600 sm:text-base lg:mx-0">
-              Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
-              <span className="mt-1 block font-semibold text-[#0F766E]">
-                मिनटों में बुक करें. शहर घूमें. राइड अपना बनाएँ.
-              </span>
-            </p>
-
-            <div className="mx-auto mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center lg:mx-0 lg:justify-start">
-              <Link href="/ride-options" className="w-full sm:w-auto">
-                <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] transition hover:bg-[#16a05c] active:scale-[0.98] sm:min-h-14 sm:w-auto sm:px-10 sm:text-base">
-                  Book an EV
-                  <ArrowRight className="h-5 w-5" />
-                </span>
-              </Link>
-              <Link href="/ride-options" className="w-full sm:w-auto">
-                <span className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-[#0F172A] transition hover:border-[#18B368]/40 active:scale-[0.98] sm:min-h-14 sm:w-auto sm:px-8 sm:text-base">
-                  Rent to Own ₹280/day
-                </span>
-              </Link>
-            </div>
-          </div>
-
-          <Link
-            href="/ride-options"
-            className="relative order-first block overflow-hidden rounded-[22px] border-[5px] border-white bg-white shadow-[0_24px_50px_rgba(15,23,42,0.14)] sm:rounded-[28px] lg:order-none"
-          >
-            <span className="absolute right-3 top-3 z-10 inline-flex items-center gap-2 rounded-full bg-[#EC2A8C] px-2.5 py-1 text-[10px] font-bold text-white sm:right-5 sm:top-5 sm:px-3 sm:text-[11px]">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white/80" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-              </span>
-              Live in city
+      <div className="mx-auto grid max-w-[1440px] items-center gap-10 px-5 pb-10 pt-28 sm:px-8 sm:pt-40 lg:grid-cols-[0.92fr_1.08fr] lg:gap-16 lg:px-12 lg:pb-16 lg:pt-44">
+        <div className="max-w-xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
+            India&apos;s smart EV rental
+          </p>
+          <h1 className="font-display mt-5 text-[clamp(2.6rem,7vw,4.6rem)] font-medium leading-[1.02] tracking-[-0.03em] text-[#1C1917]">
+            Ride the city.
+            <span className="mt-1 block italic text-[#1F6B4A]">Own the journey.</span>
+          </h1>
+          <p className="mt-6 max-w-md text-[15px] leading-7 text-[#5C635E] sm:text-base sm:leading-8">
+            Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
+            <span className="mt-2 block text-[#1F6B4A]">
+              मिनटों में बुक करें. शहर घूमें. राइड अपना बनाएँ.
             </span>
-            <img
-              src="/new-vehicle.jpeg"
-              alt="EVUDDY electric scooter"
-              className="aspect-[4/3] w-full object-cover object-[50%_58%] sm:aspect-[16/10]"
-            />
-          </Link>
+          </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link href="/ride-options">
+              <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c] sm:w-auto">
+                Book an EV
+                <ArrowRight className="h-4 w-4" />
+              </span>
+            </Link>
+            <Link href="/ride-options">
+              <span className="inline-flex min-h-12 w-full items-center justify-center border border-[#1C1917]/15 bg-transparent px-8 text-[13px] font-medium tracking-[0.06em] text-[#1C1917] transition hover:border-[#1F6B4A] sm:w-auto">
+                Rent to Own ₹280/day
+              </span>
+            </Link>
+          </div>
         </div>
 
-        <div className="relative mx-auto mt-5 w-full max-w-[1280px] overflow-hidden rounded-[22px] border border-white bg-[#071510] shadow-[0_16px_40px_rgba(15,23,42,0.10)] sm:mt-8 sm:rounded-[32px]">
-          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-            <p className="inline-flex min-w-0 items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-white/55 sm:text-[11px] sm:tracking-[0.16em]">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#18B368]/80" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#18B368]" />
-              </span>
-              Live GPS tracking
-            </p>
-            <p className="max-w-[55%] truncate text-right text-[10px] font-bold text-[#6EE7A8] sm:max-w-none sm:text-[11px]">
-              {cityLine} · In ride
+        <Link href="/ride-options" className="relative block overflow-hidden">
+          <img
+            src="/new-vehicle.jpeg"
+            alt="EVUDDY electric scooter"
+            className="aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+          />
+          <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
+            Live in city
+          </span>
+        </Link>
+      </div>
+
+      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
+          <div className="relative hidden min-h-[240px] lg:block">
+            <img
+              src="/new-vehicle.jpeg"
+              alt="GPS-enabled EVUDDY scooter"
+              className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
+            />
+            <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
+              GPS on scooter
             </p>
           </div>
-
-          <div className="grid lg:grid-cols-[0.42fr_0.58fr]">
-            <div className="relative hidden min-h-[280px] overflow-hidden lg:block">
-              <img
-                src="/new-vehicle.jpeg"
-                alt="GPS-enabled EVUDDY scooter"
-                className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-[#071510]" />
-              <span className="absolute bottom-5 left-5 inline-flex items-center gap-2 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-[#0F172A]">
-                GPS on scooter
-              </span>
+          <div className="bg-[#FBF9F5] px-5 py-5 sm:px-8 sm:py-6">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#5F6B63]">
+                Live GPS tracking
+              </p>
+              <p className="max-w-[60%] text-right text-[11px] leading-4 tracking-[0.08em] text-[#1F6B4A]">
+                {cityLine} · In ride
+              </p>
             </div>
-
-            <div className="relative h-[188px] overflow-hidden bg-[#0B1C16] sm:h-[248px] lg:h-[300px]">
-              <img
-                src="/new-vehicle.jpeg"
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover object-[50%_60%] opacity-35 lg:opacity-20"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#071510]/75 via-[#071510]/50 to-[#071510]/70" />
-              <div className="pointer-events-none absolute inset-0 opacity-25 [background-image:linear-gradient(rgba(110,231,168,0.22)_1px,transparent_1px),linear-gradient(90deg,rgba(110,231,168,0.22)_1px,transparent_1px)] [background-size:32px_32px]" />
-              <svg
-                viewBox="0 0 960 300"
-                className="absolute inset-0 h-full w-full"
-                fill="none"
-                preserveAspectRatio="xMidYMid meet"
-              >
-                <defs>
-                  <linearGradient id="evuddy-gps-line" x1="80" y1="170" x2="880" y2="155" gradientUnits="userSpaceOnUse">
-                    <stop stopColor="#18B368" />
-                    <stop offset="0.5" stopColor="#F5C400" />
-                    <stop offset="1" stopColor="#EC2A8C" />
-                  </linearGradient>
-                  <filter id="evuddy-gps-glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="4" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
+            <div className="relative h-[200px] sm:h-[240px]">
+              <svg viewBox="0 0 960 240" className="h-full w-full overflow-visible" fill="none" preserveAspectRatio="xMidYMid meet">
                 <path
-                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
-                  stroke="#16352c"
-                  strokeWidth="18"
+                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
+                  stroke="#E4DDD2"
+                  strokeWidth="10"
                   strokeLinecap="round"
                 />
                 <path
                   id="evuddy-route"
                   className="evuddy-draw"
-                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
-                  stroke="url(#evuddy-gps-line)"
-                  strokeWidth="6"
-                  strokeLinecap="round"
-                  filter="url(#evuddy-gps-glow)"
-                />
-                <path
-                  className="evuddy-dash"
-                  d="M80 170 C 220 90, 340 230, 500 140 S 760 220, 880 155"
-                  stroke="white"
+                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
+                  stroke="#1F6B4A"
                   strokeWidth="2"
                   strokeLinecap="round"
                 />
-
+                <path
+                  className="evuddy-dash"
+                  d="M80 150 C 220 70, 340 210, 500 120 S 760 200, 880 135"
+                  stroke="#1C1917"
+                  strokeWidth="1"
+                  strokeLinecap="round"
+                  opacity="0.35"
+                />
                 <a href={googleMapsUrl(startLat, startLng, `EVUDDY ${startLabel}`)} target="_blank" rel="noreferrer">
-                  <circle cx="80" cy="170" r="16" fill="#18B368" opacity="0.25" />
-                  <circle cx="80" cy="170" r="8" fill="#18B368" />
-                  <text x="80" y="198" textAnchor="middle" fill="#6EE7A8" fontSize="11" fontWeight="700">
+                  <circle cx="80" cy="150" r="5" fill="#1F6B4A" />
+                  <text x="80" y="178" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     HUB
                   </text>
                 </a>
                 <a href={googleMapsUrl(endLat, endLng, `EVUDDY ${endLabel}`)} target="_blank" rel="noreferrer">
-                  <circle cx="880" cy="155" r="16" fill="#EC2A8C" opacity="0.25" />
-                  <circle cx="880" cy="155" r="8" fill="#EC2A8C" />
-                  <text x="880" y="183" textAnchor="middle" fill="#F9A8D4" fontSize="11" fontWeight="700">
+                  <circle cx="880" cy="135" r="5" fill="#1C1917" />
+                  <text x="880" y="163" textAnchor="middle" fill="#5F6B63" fontSize="11" letterSpacing="1.5">
                     YARD
                   </text>
                 </a>
-
                 <g>
-                  <animateMotion dur="8s" repeatCount="indefinite" rotate="0">
+                  <animateMotion dur="10s" repeatCount="indefinite" rotate="0">
                     <mpath href="#evuddy-route" />
                   </animateMotion>
-                  <image
-                    href="/new-vehicle.jpeg"
-                    x="-36"
-                    y="-20"
-                    width="72"
-                    height="40"
-                    preserveAspectRatio="xMidYMid slice"
-                    clipPath="inset(0% round 10px)"
-                  />
-                  <circle className="evuddy-gps-ring hidden sm:inline" r="26" fill="none" stroke="#F5C400" strokeWidth="2" />
+                  <circle r="4" fill="#1F6B4A" />
                 </g>
               </svg>
             </div>
           </div>
         </div>
 
-        <div className="relative mt-8 sm:mt-10">
-          <p className="text-center text-[11px] font-bold uppercase tracking-[0.22em] text-slate-400">
+        <div className="mt-14 pb-4">
+          <p className="text-center text-[11px] font-medium uppercase tracking-[0.28em] text-[#8A847A]">
             Delivery partners
           </p>
-          <div className="mt-5 overflow-hidden rounded-[28px] border border-slate-100 bg-white px-2 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.05)] sm:px-4 sm:py-5">
-            <div className="grid grid-cols-2 gap-px bg-slate-100 sm:grid-cols-3 lg:grid-cols-6">
-              {PARTNERS.map((item) => (
-                <span
-                  key={item.name}
-                  className="flex min-h-[92px] flex-col items-center justify-center gap-2 bg-white px-3 py-4 transition hover:bg-[#F7FBFA]"
-                >
-                  <span className="flex h-9 w-full items-center justify-center overflow-hidden">
-                    <img
-                      src={item.src}
-                      alt={item.name}
-                      className="max-h-8 max-w-[110px] object-contain grayscale transition hover:grayscale-0"
-                    />
-                  </span>
-                  <span className="text-[11px] font-bold tracking-wide text-slate-500">{item.name}</span>
-                </span>
-              ))}
-            </div>
+          <div className="mt-8 grid grid-cols-2 items-center gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
+            {PARTNERS.map((item) => (
+              <span key={item.name} className="flex flex-col items-center gap-2">
+                <img src={item.src} alt={item.name} className="max-h-7 max-w-[96px] object-contain opacity-70 grayscale" />
+                <span className="text-[10px] uppercase tracking-[0.16em] text-[#8A847A]">{item.name}</span>
+              </span>
+            ))}
           </div>
         </div>
       </div>

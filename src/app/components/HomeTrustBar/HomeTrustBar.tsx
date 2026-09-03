@@ -1,33 +1,28 @@
 import { BadgeCheck, Clock, KeyRound, Shield, Smartphone } from "lucide-react";
 
 const items = [
-  { icon: Shield, label: "GST invoice on rent", tone: "bg-[#18B368]" },
-  { icon: BadgeCheck, label: "KYC-verified riders", tone: "bg-[#EC2A8C]" },
-  { icon: KeyRound, label: "Hub OTP pickup", tone: "bg-[#F5C400] text-[#111]" },
-  { icon: Smartphone, label: "Razorpay UPI & cards", tone: "bg-[#12B5A8]" },
-  { icon: Clock, label: "24×7 helpdesk", tone: "bg-[#2874F0]" },
+  { icon: Shield, label: "GST invoice on rent" },
+  { icon: BadgeCheck, label: "KYC-verified riders" },
+  { icon: KeyRound, label: "Hub OTP pickup" },
+  { icon: Smartphone, label: "Razorpay UPI & cards" },
+  { icon: Clock, label: "24×7 helpdesk" },
 ];
 
 export default function HomeTrustBar() {
   return (
     <section
       aria-label="Why riders trust EVUDDY"
-      className="relative z-10 border-y border-slate-100 bg-white"
+      className="border-y border-[#E4DDD2] bg-[#FBF9F5]"
     >
-      <div className="mx-auto grid max-w-[1480px] grid-cols-1 gap-2 px-4 py-4 min-[480px]:grid-cols-2 sm:px-6 lg:grid-cols-5 lg:gap-4 lg:px-10">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 py-10 min-[480px]:grid-cols-2 sm:px-8 lg:grid-cols-5 lg:gap-6 lg:px-12">
         {items.map((item) => {
           const Icon = item.icon;
           return (
-            <div
-              key={item.label}
-              className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-[#F7FBF8] px-4 py-3"
-            >
-              <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white ${item.tone}`}
-              >
-                <Icon size={18} />
-              </span>
-              <p className="text-sm font-bold leading-5 text-[#0F172A]">{item.label}</p>
+            <div key={item.label} className="flex items-start gap-3">
+              <Icon size={18} strokeWidth={1.5} className="mt-0.5 shrink-0 text-[#1F6B4A]" />
+              <p className="text-[12px] font-medium uppercase tracking-[0.14em] text-[#3F463F]">
+                {item.label}
+              </p>
             </div>
           );
         })}

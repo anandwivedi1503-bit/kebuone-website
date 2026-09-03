@@ -142,40 +142,22 @@ export default function Navbar() {
 <nav
 className={`
 fixed
-top-3
-lg:top-4
-left-1/2
--translate-x-1/2
+inset-x-0
+top-0
 z-[999]
 overflow-visible
-w-[calc(100%-16px)]
-sm:w-[calc(100%-24px)]
-max-w-[1700px]
-transition-all
-duration-500
+transition-colors
+duration-300
 ${
 isScrolled
-? "bg-white/80 backdrop-blur-2xl border border-white/60 shadow-[0_18px_60px_rgba(2,12,27,0.10)]rounded-xl lg:rounded-2xl"
-: "bg-white/55 backdrop-blur-2xl border border-white/40 rounded-xl lg:rounded-2xl"}
+? "border-b border-[#E4DDD2] bg-[#F7F4EE]/95 backdrop-blur-md"
+: "border-b border-transparent bg-[#F7F4EE]"}
 `}
 >
 
-{/* Premium Bottom Highlight */}
-
-<div
-className="
-absolute
-bottom-0
-left-1/2
--translate-x-1/2
-h-px
-w-[92%]
-bg-gradient-to-r
-from-transparent
-via-[#18B368]/20
-to-[#EC2A8C]/20
-"
-/>
+<div className="hidden bg-[#1C3A2E] py-2 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-white/90 sm:block">
+  GST invoice on rent · KYC-verified riders · Hub OTP pickup
+</div>
 
 <div
 className="
@@ -185,13 +167,15 @@ mx-auto
 flex
 items-center
 justify-between
-h-[64px]
-sm:h-[74px]
-lg:h-[90px]
+min-h-[64px]
+sm:min-h-[74px]
+lg:min-h-[82px]
+gap-3
 px-3
 sm:px-5
 lg:px-6
 xl:px-8
+py-2
 "
 >
 {/* ================= Logo ================= */}
@@ -203,10 +187,9 @@ flex
 items-center
 justify-start
 shrink-0
-w-[128px]
-sm:w-[175px]
-xl:w-[190px]
-group
+max-w-[150px]
+sm:max-w-[190px]
+xl:max-w-[210px]
 "
 >
 
@@ -217,15 +200,14 @@ width={320}
 height={95}
 priority
 className="
-h-[40px]
-sm:h-[52px]
-lg:h-[58px]
-xl:h-[60px]
+h-[36px]
+sm:h-[46px]
+lg:h-[50px]
+xl:h-[52px]
 w-auto
+max-w-full
 object-contain
-transition-all
-duration-500
-group-hover:scale-[1.04]
+object-left
 "
 />
 
@@ -234,7 +216,7 @@ group-hover:scale-[1.04]
 
 {/* ================= Desktop Menu ================= */}
 
-<div className="hidden lg:flex flex-1 items-center justify-center gap-8 xl:gap-10">
+<div className="hidden lg:flex min-w-0 flex-1 items-center justify-center gap-4 xl:gap-8">
 
 {navLinks.map((item)=>(
 
@@ -249,15 +231,15 @@ items-center
 justify-center
 h-12
 px-1
-text-[17px]
-font-semibold
-tracking-[-0.01em]
+text-[13px]
+xl:text-[15px]
+font-medium
+tracking-[0.04em]
 whitespace-nowrap
-text-[#0F172A]
-transition-all
+text-[#1C1917]
+transition-colors
 duration-300
-hover:text-[#18B368]
-hover:-translate-y-[1px]
+hover:text-[#1F6B4A]
 "
 >
 
@@ -291,7 +273,7 @@ group-hover:w-full
 
 {/* ================= Right Buttons ================= */}
 
-<div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-3 xl:ml-5">
+<div className="hidden lg:flex shrink-0 items-center gap-1 xl:gap-3 ml-2 xl:ml-5">
 
 {!riderLoggedIn && (
 <>
@@ -302,25 +284,15 @@ className="
 flex
 items-center
 gap-2
-rounded-full
-border
-border-[#18B368]/20
-bg-white/80
-backdrop-blur-xl
-px-4
+h-11
+whitespace-nowrap
+px-3
 xl:px-5
-h-12
-xl:h-13
-font-bold
-text-[#18B368]
-shadow-[0_12px_35px_rgba(15,23,42,0.08)]
-transition-all
+font-medium
+text-[#1F6B4A]
+transition-colors
 duration-300
-hover:-translate-y-1
-hover:border-[#18B368]
-hover:bg-[#18B368]
-hover:text-white
-hover:shadow-[0_18px_45px_rgba(24,179,104,0.25)]
+hover:text-[#18573c]
 "
 >
 
@@ -340,20 +312,15 @@ className="
 flex
 items-center
 gap-2
-rounded-full
-bg-[#EC2A8C]
-px-4
+h-11
+whitespace-nowrap
+px-3
 xl:px-5
-h-12
-xl:h-13
-font-bold
-text-white
-shadow-[0_14px_40px_rgba(236,42,140,0.35)]
-transition-all
+font-medium
+text-[#EC2A8C]
+transition-colors
 duration-300
-hover:-translate-y-1
-hover:bg-[#d01878]
-hover:shadow-[0_22px_55px_rgba(236,42,140,0.45)]
+hover:text-[#d01878]
 "
 
 >
@@ -374,23 +341,17 @@ group
 flex
 items-center
 gap-2
-rounded-full
-bg-gradient-to-r
-from-[#18B368]
-via-[#16C45B]
-to-[#13A657]
+h-11
+whitespace-nowrap
 px-4
-xl:px-5
-h-12
-xl:h-13
-font-bold
+xl:px-6
+bg-[#1F6B4A]
+font-medium
+tracking-[0.06em]
 text-white
-shadow-[0_14px_40px_rgba(24,179,104,0.35)]
-transition-all
+transition-colors
 duration-300
-hover:-translate-y-1
-hover:shadow-[0_22px_55px_rgba(24,179,104,0.45)]
-active:scale-[0.98]
+hover:bg-[#18573c]
 "
 >
 

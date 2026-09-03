@@ -29,20 +29,17 @@ const benefits = [
 
 export default function PartnerSection() {
   return (
-    <section id="partner" className="relative overflow-hidden bg-[#F6FAF8] py-16 sm:py-24">
-      <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/20 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-slate-700">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            PARTNER WITH EVUDDY
+    <section id="partner" className="relative scroll-mt-28 bg-[#F7F4EE] py-20 sm:scroll-mt-40 sm:py-28">
+      <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="max-w-2xl">
+          <span className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+            Partner with EVUDDY
           </span>
-          <h2 className="mt-5 text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-6xl">
+          <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
             Fleet, hub, franchise.{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              One EV network.
-            </span>
+            <span className="italic text-[#1F6B4A]">One EV network.</span>
           </h2>
-          <p className="mt-4 text-[15px] leading-7 text-slate-500 sm:text-lg">
+          <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
             Join as a franchise, fleet or hub partner in a technology-led electric mobility network.
           </p>
         </div>
@@ -51,17 +48,17 @@ export default function PartnerSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-10 rounded-[28px] border border-white bg-white p-5 shadow-[0_24px_60px_rgba(15,23,42,0.06)] sm:p-10"
+          className="mt-12"
         >
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
             <div>
-              <span className="inline-flex rounded-full bg-[#18B368]/10 px-3 py-1.5 text-xs font-bold text-[#18B368]">
-                WHY PARTNER WITH US
+              <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
+                Why partner with us
               </span>
-              <h3 className="mt-4 text-3xl font-black leading-tight text-[#0F172A] sm:text-4xl">
+              <h3 className="font-display mt-4 text-3xl font-medium leading-tight text-[#1C1917]">
                 Build your business with EVUDDY.
               </h3>
-              <p className="mt-4 max-w-xl text-slate-500">
+              <p className="mt-4 max-w-xl text-[#5C635E]">
                 Fleet owners, operators and entrepreneurs get the technology and support to scale with confidence.
               </p>
             </div>
@@ -69,25 +66,25 @@ export default function PartnerSection() {
               {benefits.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.title} className="rounded-2xl bg-[#F7FBF8] p-4 transition duration-300 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_12px_30px_rgba(24,179,104,0.1)]">
-                    <Icon className="text-[#18B368]" size={26} />
-                    <h4 className="mt-3 font-bold text-[#0F172A]">{item.title}</h4>
-                    <p className="mt-1 text-sm leading-6 text-slate-500">{item.text}</p>
+                  <div key={item.title} className="border-t border-[#E4DDD2] pt-4">
+                    <Icon className="text-[#1F6B4A]" size={18} strokeWidth={1.5} />
+                    <h4 className="mt-3 font-medium text-[#1C1917]">{item.title}</h4>
+                    <p className="mt-1 text-sm leading-6 text-[#5C635E]">{item.text}</p>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col items-start justify-between gap-4 rounded-2xl bg-[#18B368]/8 p-5 sm:flex-row sm:items-center">
+          <div className="mt-10 flex flex-col items-start justify-between gap-4 border-t border-[#E4DDD2] pt-8 sm:flex-row sm:items-center">
             <div>
-              <h4 className="text-xl font-bold text-[#0F172A]">Ready to grow with EVUDDY?</h4>
-              <p className="mt-1 text-sm text-slate-500">Join the partner network for the next wave of urban EV mobility.</p>
+              <h4 className="font-display text-2xl font-medium text-[#1C1917]">Ready to grow with EVUDDY?</h4>
+              <p className="mt-1 text-sm text-[#5C635E]">Join the partner network for the next wave of urban EV mobility.</p>
             </div>
             <Link href="/partners#partner-form" className="w-full sm:w-auto">
-              <span className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 py-4 font-bold text-white sm:w-auto">
+              <span className="inline-flex w-full items-center justify-center gap-2 bg-[#1F6B4A] px-7 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white sm:w-auto">
                 Become a Partner
-                <ArrowRight size={18} />
+                <ArrowRight size={16} />
               </span>
             </Link>
           </div>
