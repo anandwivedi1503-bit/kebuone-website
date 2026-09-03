@@ -28,7 +28,7 @@ const features = [
 
 export default function WhyChoose() {
   return (
-    <section id="why-choose" className="relative bg-[#FBF9F5] py-20 sm:py-28">
+    <section id="why-choose" className="relative scroll-mt-28 bg-[#FBF9F5] py-20 sm:scroll-mt-40 sm:py-28">
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="max-w-2xl">
           <span className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">

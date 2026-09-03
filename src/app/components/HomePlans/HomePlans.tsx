@@ -23,7 +23,7 @@ export default function HomePlans() {
   ];
 
   return (
-    <section id="plans" className="relative bg-[#FBF9F5] py-20 sm:py-28">
+    <section id="plans" className="relative scroll-mt-28 bg-[#FBF9F5] py-20 sm:scroll-mt-40 sm:py-28">
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
           <div className="max-w-2xl">

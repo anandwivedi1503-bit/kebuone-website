@@ -199,7 +199,7 @@ export default function EvuddyNetwork() {
       id="network"
       ref={stageRef}
       onMouseMove={onStageMove}
-      className="relative overflow-hidden bg-[#F7F4EE] text-[#1C1917]"
+      className="relative scroll-mt-28 overflow-x-hidden bg-[#F7F4EE] text-[#1C1917] sm:scroll-mt-40"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-300"

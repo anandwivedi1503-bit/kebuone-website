@@ -52,7 +52,7 @@ export default function Hero() {
       : "Live hub";
 
   return (
-    <section id="home" className="relative overflow-x-hidden bg-[#F7F4EE]">
+    <section id="home" className="relative overflow-x-hidden scroll-mt-28 bg-[#F7F4EE] sm:scroll-mt-40">
       <style>{`
         @keyframes evuddy-draw {
           0% { stroke-dashoffset: 900; }

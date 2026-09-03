@@ -19,7 +19,7 @@ export default function Services() {
   const type = product.vehicleType || "Electric Scooter";
 
   return (
-    <section id="services" className="relative bg-[#F7F4EE] py-20 sm:py-28">
+    <section id="services" className="relative scroll-mt-28 bg-[#F7F4EE] py-20 sm:scroll-mt-40 sm:py-28">
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="max-w-2xl">
           <motion.span
