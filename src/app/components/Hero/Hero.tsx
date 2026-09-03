@@ -112,15 +112,15 @@ export default function Hero() {
               </span>
             </p>
 
-            <div className="mx-auto mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row lg:mx-0 lg:justify-start">
-              <Link href="/ride-options" className="w-full sm:flex-1 lg:flex-none">
-                <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] transition hover:bg-[#16a05c] active:scale-[0.98] sm:min-h-14 sm:px-10 sm:text-base">
+            <div className="mx-auto mt-6 flex w-full max-w-md flex-col gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:justify-center lg:mx-0 lg:justify-start">
+              <Link href="/ride-options" className="w-full sm:w-auto">
+                <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-7 text-sm font-bold text-white shadow-[0_18px_40px_rgba(24,179,104,0.28)] transition hover:bg-[#16a05c] active:scale-[0.98] sm:min-h-14 sm:w-auto sm:px-10 sm:text-base">
                   Book an EV
                   <ArrowRight className="h-5 w-5" />
                 </span>
               </Link>
-              <Link href="/ride-options" className="w-full sm:flex-1 lg:flex-none">
-                <span className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-[#0F172A] transition hover:border-[#18B368]/40 active:scale-[0.98] sm:min-h-14 sm:px-8 sm:text-base">
+              <Link href="/ride-options" className="w-full sm:w-auto">
+                <span className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-7 text-sm font-bold text-[#0F172A] transition hover:border-[#18B368]/40 active:scale-[0.98] sm:min-h-14 sm:w-auto sm:px-8 sm:text-base">
                   Rent to Own ₹280/day
                 </span>
               </Link>

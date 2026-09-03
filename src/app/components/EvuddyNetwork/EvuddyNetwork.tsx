@@ -230,7 +230,7 @@ export default function EvuddyNetwork() {
           </p>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
           {[
             { label: "Cities live", value: marks.length, suffix: "" },
             { label: "Pickup hubs", value: liveHubTotal, suffix: "" },
@@ -238,7 +238,9 @@ export default function EvuddyNetwork() {
           ].map((item) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-white bg-white/80 px-5 py-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl"
+              className={`rounded-2xl border border-white bg-white/80 px-5 py-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl ${
+                item.suffix === " Maps" ? "col-span-2 sm:col-span-1" : ""
+              }`}
             >
               <p className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
                 {item.suffix === " Maps" ? (
