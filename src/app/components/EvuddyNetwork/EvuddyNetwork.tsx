@@ -199,7 +199,7 @@ export default function EvuddyNetwork() {
       id="network"
       ref={stageRef}
       onMouseMove={onStageMove}
-      className="relative overflow-hidden bg-[#F7FBFA] text-[#0F172A]"
+      className="relative overflow-hidden bg-[#F3FBFF] text-[#0F172A]"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-300"
@@ -356,6 +356,19 @@ export default function EvuddyNetwork() {
                   </circle>
                 </>
               ) : null}
+              {liveHubs
+                .filter((hub) => Number.isFinite(Number(hub.latitude)) && Number.isFinite(Number(hub.longitude)))
+                .map((hub, index) => {
+                  const pin = projectIndia(Number(hub.latitude), Number(hub.longitude));
+                  const colors = ["#18B368", "#EC2A8C", "#F5C400"];
+                  const fill = colors[index % colors.length];
+                  return (
+                    <g key={`hub-${hub.hubName || index}`}>
+                      <circle cx={pin.x} cy={pin.y} r="9" fill={fill} opacity="0.22" />
+                      <circle cx={pin.x} cy={pin.y} r="3.5" fill={fill} />
+                    </g>
+                  );
+                })}
               {marks.map((city) => {
                 const on = selected.name === city.name;
                 return (
@@ -370,11 +383,20 @@ export default function EvuddyNetwork() {
                       cx={city.x}
                       cy={city.y}
                       r={on ? 7 : 4.5}
-                      fill={on ? "#0F172A" : "#18B368"}
+                      fill={on ? "#EC2A8C" : "#18B368"}
                       filter="url(#evuddy-glow)"
                     />
+                    <text
+                      x={city.x + 10}
+                      y={city.y - 10}
+                      fill="#0F172A"
+                      fontSize="11"
+                      fontWeight="700"
+                    >
+                      {city.name}
+                    </text>
                     {on ? (
-                      <circle cx={city.x} cy={city.y} r="11" fill="none" stroke="#18B368" strokeWidth="1.6" className="evuddy-net-ring" />
+                      <circle cx={city.x} cy={city.y} r="11" fill="none" stroke="#EC2A8C" strokeWidth="1.6" className="evuddy-net-ring" />
                     ) : null}
                   </g>
                 );
