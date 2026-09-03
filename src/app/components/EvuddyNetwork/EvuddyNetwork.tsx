@@ -199,7 +199,7 @@ export default function EvuddyNetwork() {
       id="network"
       ref={stageRef}
       onMouseMove={onStageMove}
-      className="relative overflow-hidden bg-[#F7FBFA] text-[#0F172A]"
+      className="relative overflow-hidden bg-[#F3FBFF] text-[#0F172A]"
     >
       <div
         className="pointer-events-none absolute inset-0 opacity-90 transition-opacity duration-300"
@@ -230,7 +230,7 @@ export default function EvuddyNetwork() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-3">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4">
           {[
             { label: "Cities live", value: marks.length, suffix: "" },
             { label: "Pickup hubs", value: liveHubTotal, suffix: "" },
@@ -238,7 +238,9 @@ export default function EvuddyNetwork() {
           ].map((item) => (
             <div
               key={item.label}
-              className="rounded-2xl border border-white bg-white/80 px-5 py-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl"
+              className={`rounded-2xl border border-white bg-white/80 px-5 py-5 text-center shadow-[0_18px_40px_rgba(15,23,42,0.06)] backdrop-blur-xl ${
+                item.suffix === " Maps" ? "col-span-2 sm:col-span-1" : ""
+              }`}
             >
               <p className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
                 {item.suffix === " Maps" ? (
@@ -298,7 +300,10 @@ export default function EvuddyNetwork() {
 
           <div
             className="relative isolate overflow-hidden rounded-[32px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.08)]"
-            onMouseMove={onMapMove}
+            onMouseMove={(event) => {
+              if (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024) return;
+              onMapMove(event);
+            }}
             onMouseLeave={() => setTilt({ x: 0, y: 0 })}
             style={{
               transform: reduceMotion ? undefined : `perspective(1200px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
@@ -310,7 +315,7 @@ export default function EvuddyNetwork() {
             <div className="evuddy-net-scan pointer-events-none absolute inset-x-0 h-24 bg-gradient-to-b from-transparent via-[#18B368]/10 to-transparent" />
             <svg
               viewBox={INDIA_VIEWBOX}
-              className="relative mx-auto h-auto w-full max-w-[560px] px-3 py-8 sm:py-10"
+              className="relative mx-auto h-auto w-full max-w-[560px] px-2 pb-16 pt-6 sm:px-3 sm:py-10 sm:pb-16"
               role="img"
               aria-label="Glowing map of India with EVUDDY hub cities"
             >
@@ -356,6 +361,19 @@ export default function EvuddyNetwork() {
                   </circle>
                 </>
               ) : null}
+              {liveHubs
+                .filter((hub) => Number.isFinite(Number(hub.latitude)) && Number.isFinite(Number(hub.longitude)))
+                .map((hub, index) => {
+                  const pin = projectIndia(Number(hub.latitude), Number(hub.longitude));
+                  const colors = ["#18B368", "#EC2A8C", "#F5C400"];
+                  const fill = colors[index % colors.length];
+                  return (
+                    <g key={`hub-${hub.hubName || index}`}>
+                      <circle cx={pin.x} cy={pin.y} r="9" fill={fill} opacity="0.22" />
+                      <circle cx={pin.x} cy={pin.y} r="3.5" fill={fill} />
+                    </g>
+                  );
+                })}
               {marks.map((city) => {
                 const on = selected.name === city.name;
                 return (
@@ -370,17 +388,28 @@ export default function EvuddyNetwork() {
                       cx={city.x}
                       cy={city.y}
                       r={on ? 7 : 4.5}
-                      fill={on ? "#0F172A" : "#18B368"}
+                      fill={on ? "#EC2A8C" : "#18B368"}
                       filter="url(#evuddy-glow)"
                     />
+                    <text
+                      x={city.x + 8}
+                      y={city.y + (on ? -12 : 16)}
+                      fill="#0F172A"
+                      fontSize="11"
+                      fontWeight="700"
+                      className="hidden sm:inline"
+                      pointerEvents="none"
+                    >
+                      {city.name}
+                    </text>
                     {on ? (
-                      <circle cx={city.x} cy={city.y} r="11" fill="none" stroke="#18B368" strokeWidth="1.6" className="evuddy-net-ring" />
+                      <circle cx={city.x} cy={city.y} r="11" fill="none" stroke="#EC2A8C" strokeWidth="1.6" className="evuddy-net-ring" />
                     ) : null}
                   </g>
                 );
               })}
             </svg>
-            <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between rounded-2xl border border-slate-100 bg-white/90 px-4 py-3 text-xs font-medium text-slate-500 shadow-sm backdrop-blur-md sm:left-6 sm:right-6">
+            <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 rounded-2xl border border-slate-100 bg-white/95 px-3 py-2.5 text-xs font-medium text-slate-500 shadow-sm backdrop-blur-md sm:bottom-4 sm:left-6 sm:right-6 sm:px-4 sm:py-3">
               <span className="flex items-center gap-2 font-semibold text-[#0F172A]">
                 <span className="h-2 w-2 animate-pulse rounded-full bg-[#18B368]" />
                 {selected.name}
@@ -390,7 +419,7 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <div className="relative mt-8 overflow-hidden rounded-full border border-slate-100 bg-white py-2.5 shadow-sm">
+        <div className="relative mt-6 overflow-hidden rounded-2xl border border-slate-100 bg-white py-2.5 shadow-sm sm:mt-8 sm:rounded-full">
           <div className="evuddy-net-ticker flex w-max gap-8 whitespace-nowrap px-6 text-sm font-semibold tracking-[0.14em] text-slate-400">
             {ticker.map((name, i) => (
               <span key={`${name}-${i}`} className="inline-flex items-center gap-2">
