@@ -5,8 +5,8 @@ export default function HomeMoment() {
   return (
     <section className="relative overflow-hidden bg-[#1C1917]">
       <img
-        src="/brand/yellow-house-ride.png"
-        alt="EVUDDY yellow scooter at a white house"
+        src="/brand/scenic-highway.png"
+        alt="EVUDDY yellow scooter on a scenic Indian highway"
         className="absolute inset-0 h-full w-full object-cover opacity-90 ev-ken"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-[#1C1917]/82 via-[#1C1917]/40 to-transparent" />

@@ -5,14 +5,9 @@ export default function HomeFilm() {
   return (
     <section className="relative overflow-hidden bg-[#1C1917]">
       <img
-        src="/brand/white-house-dusk.png"
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover opacity-70 ev-ken"
-      />
-      <img
-        src="/new-vehicle.jpeg"
-        alt="EVUDDY yellow electric scooter"
-        className="absolute right-0 top-1/2 hidden h-[78%] w-auto -translate-y-1/2 object-contain drop-shadow-2xl sm:block sm:max-w-[42%]"
+        src="/brand/indian-city-road.png"
+        alt="EVUDDY yellow scooter on an Indian city road"
+        className="absolute inset-0 h-full w-full object-cover opacity-80 ev-ken"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1C1917] via-[#1C1917]/55 to-transparent" />
       <div className="relative mx-auto flex min-h-[380px] max-w-[1440px] flex-col justify-end px-5 py-16 sm:min-h-[480px] sm:px-8 lg:px-12">

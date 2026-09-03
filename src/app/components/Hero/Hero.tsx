@@ -96,14 +96,9 @@ export default function Hero() {
 
         <Link href="/ride-options" className="relative block overflow-hidden bg-[#F7F4EE]">
           <img
-            src="/brand/yellow-house-ride.png"
-            alt="EVUDDY yellow electric scooter"
-            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_55%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
-          />
-          <img
             src="/new-vehicle.jpeg"
-            alt="Original EVUDDY yellow scooter"
-            className="absolute bottom-4 right-4 h-28 w-24 object-cover object-[50%_58%] ring-1 ring-white/50 sm:h-40 sm:w-32"
+            alt="EVUDDY yellow electric scooter on the road"
+            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_55%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
             Live in city
@@ -115,8 +110,8 @@ export default function Hero() {
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
           <div className="relative hidden min-h-[240px] overflow-hidden lg:block">
             <img
-              src="/new-vehicle.jpeg"
-              alt="GPS-enabled EVUDDY yellow scooter"
+              src="/brand/indian-city-road.png"
+              alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
               className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">

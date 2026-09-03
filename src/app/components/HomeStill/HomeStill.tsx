@@ -1,8 +1,8 @@
 const stills = [
-  { src: "/brand/white-house-yard.png", alt: "EVUDDY pickup courtyard", kicker: "Hub", title: "Pickup at the yard" },
-  { src: "/brand/yellow-house-parked.png", alt: "EVUDDY yellow scooter at a white house", kicker: "Fleet", title: "Ready to ride" },
-  { src: "/brand/white-house-dusk.png", alt: "White houses at dusk", kicker: "Live in city", title: "After hours" },
-  { src: "/new-vehicle.jpeg", alt: "Original EVUDDY yellow scooter", kicker: "Range", title: "120 KM" },
+  { src: "/new-vehicle.jpeg", alt: "EVUDDY yellow scooter on a scenic road", kicker: "Range", title: "120 KM" },
+  { src: "/brand/indian-city-road.png", alt: "EVUDDY yellow scooter on an Indian city road", kicker: "Live in city", title: "City ride" },
+  { src: "/brand/scenic-highway.png", alt: "EVUDDY yellow scooter on a highway", kicker: "Open road", title: "Scenic" },
+  { src: "/brand/roadside-parked.png", alt: "EVUDDY yellow scooter parked roadside", kicker: "Hub", title: "Pickup ready" },
 ];
 
 export default function HomeStill() {
