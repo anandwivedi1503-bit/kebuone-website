@@ -16,12 +16,6 @@ type LiveHub = {
 export default function Hero() {
   const { catalog } = useHomeCatalog();
   const [hubs, setHubs] = useState<LiveHub[]>([]);
-  const [motionOk, setMotionOk] = useState(false);
-
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setMotionOk(!reduce);
-  }, []);
 
   useEffect(() => {
     fetch("/api/hubs")
@@ -100,29 +94,16 @@ export default function Hero() {
           </div>
         </div>
 
-        <Link href="/ride-options" className="relative block overflow-hidden bg-[#1C1917]">
-          {motionOk ? (
-            <video
-              className="aspect-[4/5] w-full object-cover sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
-              autoPlay
-              muted
-              loop
-              playsInline
-              poster="/brand/dawn-ride.png"
-            >
-              <source src="/bike-final.mp4" type="video/mp4" />
-            </video>
-          ) : (
-            <img
-              src="/brand/dawn-ride.png"
-              alt="EVUDDY electric scooter at dawn"
-              className="aspect-[4/5] w-full object-cover object-[50%_58%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
-            />
-          )}
+        <Link href="/ride-options" className="relative block overflow-hidden bg-[#F7F4EE]">
+          <img
+            src="/brand/yellow-house-ride.png"
+            alt="EVUDDY yellow electric scooter"
+            className="ev-ken aspect-[4/5] w-full object-cover object-[50%_55%] sm:aspect-[5/4] lg:min-h-[420px] lg:aspect-[4/3]"
+          />
           <img
             src="/new-vehicle.jpeg"
-            alt="EVUDDY electric scooter"
-            className="absolute bottom-4 right-4 h-28 w-24 object-cover object-[50%_58%] ring-1 ring-white/40 sm:h-36 sm:w-28"
+            alt="Original EVUDDY yellow scooter"
+            className="absolute bottom-4 right-4 h-28 w-24 object-cover object-[50%_58%] ring-1 ring-white/50 sm:h-40 sm:w-32"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-white">
             Live in city
@@ -132,10 +113,10 @@ export default function Hero() {
 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
-          <div className="relative hidden min-h-[240px] lg:block">
+          <div className="relative hidden min-h-[240px] overflow-hidden lg:block">
             <img
-              src="/brand/gps-detail.png"
-              alt="GPS-enabled EVUDDY scooter"
+              src="/new-vehicle.jpeg"
+              alt="GPS-enabled EVUDDY yellow scooter"
               className="absolute inset-0 h-full w-full object-cover object-[48%_58%]"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">

@@ -1,39 +1,20 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 export default function HomeFilm() {
-  const [motionOk, setMotionOk] = useState(false);
-
-  useEffect(() => {
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setMotionOk(!reduce);
-  }, []);
-
   return (
     <section className="relative overflow-hidden bg-[#1C1917]">
-      {motionOk ? (
-        <video
-          className="absolute inset-0 h-full w-full object-cover opacity-55"
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster="/brand/hub-yard.png"
-        >
-          <source src="/kebu-final.mp4" type="video/mp4" />
-        </video>
-      ) : (
-        <img
-          src="/brand/hub-yard.png"
-          alt=""
-          className="absolute inset-0 h-full w-full object-cover opacity-55"
-        />
-      )}
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1C1917] via-[#1C1917]/35 to-transparent" />
-      <div className="ev-film-sheen pointer-events-none absolute inset-0" />
+      <img
+        src="/brand/white-house-dusk.png"
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover opacity-70 ev-ken"
+      />
+      <img
+        src="/new-vehicle.jpeg"
+        alt="EVUDDY yellow electric scooter"
+        className="absolute right-0 top-1/2 hidden h-[78%] w-auto -translate-y-1/2 object-contain drop-shadow-2xl sm:block sm:max-w-[42%]"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1C1917] via-[#1C1917]/55 to-transparent" />
       <div className="relative mx-auto flex min-h-[380px] max-w-[1440px] flex-col justify-end px-5 py-16 sm:min-h-[480px] sm:px-8 lg:px-12">
         <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-white/65">
           Smart electric mobility
@@ -49,20 +30,6 @@ export default function HomeFilm() {
           </span>
         </Link>
       </div>
-      <style>{`
-        @keyframes ev-film-sheen {
-          0% { background-position: 0% 50%; }
-          100% { background-position: 100% 50%; }
-        }
-        .ev-film-sheen {
-          background-image: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
-          background-size: 220% 100%;
-          animation: ev-film-sheen 9s ease-in-out infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .ev-film-sheen { animation: none !important; }
-        }
-      `}</style>
     </section>
   );
 }
