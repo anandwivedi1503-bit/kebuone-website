@@ -13,7 +13,7 @@ export function useHomeCatalog() {
       .then((res) => res.json())
       .then((json) => {
         if (cancelled) return;
-        if (json?.success && json.data) setCatalog(json.data as HomeCatalog);
+        if (json?.data) setCatalog(json.data as HomeCatalog);
         setLoaded(true);
       })
       .catch(() => {

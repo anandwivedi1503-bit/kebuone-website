@@ -140,9 +140,9 @@ export async function GET() {
     return NextResponse.json({ success: true, data: catalog });
   } catch (error) {
     console.error("HOME CATALOG GET ERROR:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to fetch catalog.", data: HOME_CATALOG_FALLBACK },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: true,
+      data: HOME_CATALOG_FALLBACK,
+    });
   }
 }
