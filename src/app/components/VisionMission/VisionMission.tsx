@@ -70,7 +70,7 @@ export default function VisionMission() {
         eyebrow="Mission"
         title="Affordable. Accessible. Asset-building."
         text="Riders should not choose between a clean commute and a scooter they can never own. Flexible rentals get you moving. Rent to Own turns the same habit into an asset."
-        image="/evuddy-scooter.png"
+        image="/new-vehicle.jpeg"
         alt="EVUDDY electric scooter"
       />
 
@@ -78,7 +78,7 @@ export default function VisionMission() {
         eyebrow="Cities"
         title="Quiet streets. Live operations."
         text="Hubs, OTP pickup, GPS and support keep electric scooters working in real Indian cities for daily riders."
-        image="/poster.png"
+        image="/new-vehicle.jpeg"
         alt="EVUDDY fleet on city roads"
         reverse
       />
@@ -87,8 +87,8 @@ export default function VisionMission() {
         title="The scooter is the story."
         text="The vision is not a slogan. It is the ride people take tomorrow morning."
         photos={[
-          { src: "/poster.png", alt: "EVUDDY scooters on city roads" },
-          { src: "/bike-rent.jpeg", alt: "EVUDDY rental scooter" },
+          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooters on city roads" },
+          { src: "/new-vehicle.jpeg", alt: "EVUDDY rental scooter" },
           { src: "/biker-rent.jpeg", alt: "Rider on an EVUDDY scooter" },
         ]}
       />
@@ -103,7 +103,7 @@ export default function VisionMission() {
         eyebrow="The ride"
         title="One scooter. One standard."
         text="Partners and fleets share the same platform as riders: one booking engine, one hub network, one standard of #safeRideWithEvuddy."
-        image="/bike-rent.jpeg"
+        image="/new-vehicle.jpeg"
         alt="EVUDDY electric scooter"
       />
 

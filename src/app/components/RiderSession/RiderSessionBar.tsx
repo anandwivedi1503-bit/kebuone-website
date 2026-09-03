@@ -7,6 +7,7 @@ import {
   getChosenPlan,
   getRiderProfile,
   hasRiderBookingLock,
+  hasRiderPlanReady,
   openRiderAccountMenu,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
@@ -23,6 +24,7 @@ export default function RiderSessionBar() {
   const [name, setName] = useState("");
   const [plan, setPlan] = useState("");
   const [locked, setLocked] = useState(false);
+  const [planReady, setPlanReady] = useState(false);
 
   useEffect(() => {
     const refresh = () => {
@@ -32,6 +34,7 @@ export default function RiderSessionBar() {
       setName(profile.name);
       setPlan(getChosenPlan());
       setLocked(hasRiderBookingLock());
+      setPlanReady(hasRiderPlanReady());
     };
     refresh();
     window.addEventListener(RIDER_SESSION_EVENT, refresh);
@@ -42,7 +45,7 @@ export default function RiderSessionBar() {
     };
   }, []);
 
-  if (!phone && !riderId && !plan) return null;
+  if (!planReady) return null;
 
   return (
     <button

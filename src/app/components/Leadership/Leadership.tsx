@@ -50,7 +50,7 @@ export default function Leadership() {
     <div className="bg-[#F4FBF7] text-[#08112F]">
       <section className="relative overflow-hidden">
         <Image
-          src="/poster.png"
+          src="/new-vehicle.jpeg"
           alt="EVUDDY electric scooters on city roads"
           fill
           priority

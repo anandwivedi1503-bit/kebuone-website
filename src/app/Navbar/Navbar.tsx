@@ -16,9 +16,7 @@ import { onAuthStateChanged } from "firebase/auth";
 
 import { firebaseAuth } from "@/lib/firebase";
 import {
-  getChosenPlan,
-  getRiderProfile,
-  hasRiderPlanReady,
+  isRiderLoggedIn,
   logoutRider,
   riderResumeHref,
   RIDER_SESSION_EVENT,
@@ -69,7 +67,6 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
 
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
-  const [chosenPlan, setChosenPlanUi] = useState("");
   const [resumeHref, setResumeHref] = useState("/ride-options");
 
   useEffect(() => {
@@ -112,18 +109,13 @@ export default function Navbar() {
 
   useEffect(() => {
     const refreshSession = () => {
-      const profile = getRiderProfile();
-      setChosenPlanUi(getChosenPlan());
       setResumeHref(riderResumeHref());
-      setRiderLoggedIn(hasRiderPlanReady() || Boolean(profile.phone));
+      setRiderLoggedIn(isRiderLoggedIn());
     };
 
     const unsubscribe = firebaseAuth
-      ? onAuthStateChanged(firebaseAuth, (user) => {
+      ? onAuthStateChanged(firebaseAuth, () => {
           refreshSession();
-          if (user?.phoneNumber) {
-            setRiderLoggedIn(true);
-          }
         })
       : () => {};
 
@@ -301,7 +293,7 @@ group-hover:w-full
 
 <div className="hidden lg:flex items-center gap-2 xl:gap-3 shrink-0 ml-3 xl:ml-5">
 
-{!(riderLoggedIn || chosenPlan) && (
+{!riderLoggedIn && (
 <>
 <Link href="/partners">
 
@@ -415,14 +407,14 @@ className="transition-transform duration-300 group-hover:translate-x-1"
 </>
 )}
 
-{(riderLoggedIn || chosenPlan) && <RiderAccountMenu />}
+{riderLoggedIn && <RiderAccountMenu />}
 
 </div>
 
 {/* ================= Mobile Button ================= */}
 
 <div className="flex items-center gap-2 lg:hidden">
-{(riderLoggedIn || chosenPlan) && <RiderAccountMenu compact />}
+{riderLoggedIn && <RiderAccountMenu compact />}
 <button
 onClick={() => setMenuOpen(!menuOpen)}
 className="
@@ -546,7 +538,7 @@ className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold 
 <div className="px-4
 lg:px-6 pb-10 space-y-4">
 
-{(riderLoggedIn || chosenPlan) ? (
+{riderLoggedIn ? (
 <>
   <Link
     href={resumeHref}

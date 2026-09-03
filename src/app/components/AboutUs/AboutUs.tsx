@@ -75,7 +75,7 @@ export default function AboutUs() {
         eyebrow="Riders"
         title="A scooter when you need it. An asset if you want it."
         text="Hourly to monthly plans for daily riders. GST is 5% on rental only. Normal bookings include a refundable deposit. Rent to Own has no deposit."
-        image="/bike-rent.jpeg"
+        image="/new-vehicle.jpeg"
         alt="EVUDDY rental scooter"
       />
 
@@ -83,9 +83,9 @@ export default function AboutUs() {
         title="One ecosystem. The scooter at the centre."
         text="B2C rentals, hubs, fleets and Rent to Own sit on the same live platform."
         photos={[
-          { src: "/poster.png", alt: "EVUDDY scooters on the road" },
-          { src: "/bike-rent.jpeg", alt: "EVUDDY rental scooter" },
-          { src: "/evuddy-scooter.png", alt: "EVUDDY scooter" },
+          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooters on the road" },
+          { src: "/new-vehicle.jpeg", alt: "EVUDDY rental scooter" },
+          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooter" },
         ]}
       />
 

@@ -90,7 +90,7 @@ export default function Careers() {
         eyebrow="The scooter"
         title="Build the machine people actually ride."
         text="Hubs, availability and Rent to Own all sit on the same EV. If you join, you work on that ride — not a side category."
-        image="/evuddy-scooter.png"
+        image="/new-vehicle.jpeg"
         alt="EVUDDY electric scooter"
         reverse
       />
@@ -99,8 +99,8 @@ export default function Careers() {
         title="Same brand. The scooter at the centre."
         text="Engineering, hubs, support, growth and finance share one mission: smart, electric, dependable rides."
         photos={[
-          { src: "/poster.png", alt: "EVUDDY scooters in the city" },
-          { src: "/bike-rent.jpeg", alt: "Electric scooter rental" },
+          { src: "/new-vehicle.jpeg", alt: "EVUDDY scooters in the city" },
+          { src: "/new-vehicle.jpeg", alt: "Electric scooter rental" },
           { src: "/biker-rent.jpeg", alt: "Rider on an EVUDDY scooter" },
         ]}
       />
