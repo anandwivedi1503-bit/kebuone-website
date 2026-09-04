@@ -94,7 +94,7 @@ export default function Hero() {
           <img
             src={BRAND.rider}
             alt="EVUDDY yellow electric scooter on a scenic Indian road"
-            className="aspect-[16/10] h-full w-full object-cover object-center sm:aspect-[5/3] lg:min-h-[420px]"
+            className="aspect-[16/10] h-full w-full object-contain object-center sm:aspect-[5/3] lg:min-h-[420px]"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-[#1C1917]/80">
             Live in city
@@ -108,7 +108,7 @@ export default function Hero() {
             <img
               src={BRAND.city}
               alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-contain object-center"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#1C1917]/80">
               GPS on scooter

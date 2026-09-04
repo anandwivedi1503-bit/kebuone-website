@@ -56,7 +56,7 @@ export default function TrustSection() {
                 className="overflow-hidden"
               >
                 <div className="aspect-[16/10] overflow-hidden bg-[#EDE8DE]">
-                  <img src={card.image} alt="" className="h-full w-full object-cover" />
+                  <img src={card.image} alt="" className="h-full w-full object-contain object-center" />
                 </div>
                 <Icon size={18} strokeWidth={1.5} className="mt-6 text-[#1F6B4A]" />
                 <h3 className="font-display mt-5 text-2xl font-medium text-[#1C1917]">{card.title}</h3>

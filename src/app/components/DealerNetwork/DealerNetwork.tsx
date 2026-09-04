@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowDown, ArrowRight, Network, Store } from "lucide-react";
 
+import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
 import { dealerProgram } from "@/lib/dealerProgram";
 
 type Props = {
@@ -41,6 +42,13 @@ export default function DealerNetwork({ showApply = true }: Props) {
 
         <div id="dealer-roles" className="mt-12 grid scroll-mt-36 gap-px bg-[#E4DDD2] sm:scroll-mt-44 lg:grid-cols-2">
           <article className="bg-[#FBF9F5] p-8 sm:p-10">
+            <div className={`mb-8 overflow-hidden ${SCOOTER_FRAME}`}>
+              <img
+                src={BRAND.parked}
+                alt="EVUDDY yellow scooter at a dealer pickup point"
+                className={`aspect-[16/10] ${SCOOTER_IMG}`}
+              />
+            </div>
             <Store size={20} strokeWidth={1.5} className="text-[#1F6B4A]" />
             <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.2em] text-[#5F6B63]">
               Dealer · retail
@@ -80,6 +88,13 @@ export default function DealerNetwork({ showApply = true }: Props) {
           </article>
 
           <article className="bg-[#FBF9F5] p-8 sm:p-10">
+            <div className={`mb-8 overflow-hidden ${SCOOTER_FRAME}`}>
+              <img
+                src={BRAND.highway}
+                alt="EVUDDY yellow scooter on the road — distributor fleet supply"
+                className={`aspect-[16/10] ${SCOOTER_IMG}`}
+              />
+            </div>
             <Network size={20} strokeWidth={1.5} className="text-[#1F6B4A]" />
             <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.2em] text-[#5F6B63]">
               Distributor · wholesale

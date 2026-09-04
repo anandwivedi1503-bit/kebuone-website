@@ -44,11 +44,11 @@ export default function WhyChoose() {
         </div>
 
         <div className="mt-14 grid items-stretch gap-0 lg:grid-cols-2">
-          <div className="relative min-h-[320px] overflow-hidden lg:min-h-[480px]">
+          <div className="relative min-h-[320px] overflow-hidden bg-[#EDE8DE] lg:min-h-[480px]">
             <img
-              src={BRAND.dusk}
-              alt="EVUDDY yellow scooter at dusk"
-              className="absolute inset-0 h-full w-full object-cover"
+              src={BRAND.city}
+              alt="EVUDDY yellow scooter on an Indian city road"
+              className="absolute inset-0 h-full w-full object-contain object-center"
             />
           </div>
           <div className="bg-[#F7F4EE] px-6 py-10 sm:px-10">

@@ -23,7 +23,7 @@ export default function HowItWorks() {
       hi: "फोन OTP + KYC",
       text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
       icon: Smartphone,
-      image: BRAND.wall,
+      image: BRAND.rider,
     },
     {
       n: "02",
@@ -47,7 +47,7 @@ export default function HowItWorks() {
       hi: "यार्ड पर दिखाएँ",
       text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
       icon: KeyRound,
-      image: BRAND.yard,
+      image: BRAND.highway,
     },
   ];
 
@@ -75,7 +75,7 @@ export default function HowItWorks() {
             return (
               <div key={step.n} className="overflow-hidden border-t border-[#E4DDD2] pt-6">
                 <div className="mb-5 aspect-[16/10] overflow-hidden bg-[#EDE8DE]">
-                  <img src={step.image} alt="" className="h-full w-full object-cover" />
+                  <img src={step.image} alt="" className="h-full w-full object-contain object-center" />
                 </div>
                 <p className="text-[11px] tracking-[0.2em] text-[#8A847A]">{step.n}</p>
                 <Icon size={18} strokeWidth={1.5} className="mt-5 text-[#1F6B4A]" />
@@ -93,7 +93,7 @@ export default function HowItWorks() {
           <img
             src="/brand/scenic-highway.png"
             alt="EVUDDY scooter"
-            className="h-56 w-full bg-[#EDE8DE] object-cover object-center sm:h-full"
+            className="h-56 w-full bg-[#EDE8DE] object-contain object-center sm:h-full"
           />
           <div className="flex flex-col justify-center gap-6 bg-[#FBF9F5] px-6 py-10 sm:px-12">
             <div>
