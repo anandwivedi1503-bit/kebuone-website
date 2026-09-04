@@ -3,6 +3,7 @@
  import { useEffect, useState } from "react";
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
+import { clearRiderClientSession } from "@/lib/riderPlanGate";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import {
   AlertTriangle,
@@ -906,6 +907,9 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                       </button>
                       <a
   href="/api/admin-logout"
+  onClick={() => {
+    clearRiderClientSession();
+  }}
   className="block w-full px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
 >
   Logout

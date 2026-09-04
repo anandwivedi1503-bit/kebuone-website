@@ -122,9 +122,12 @@ export function riderResumeHref() {
 }
 
 export function isRiderLoggedIn() {
+  if (typeof window === "undefined") return false;
   if (!hasRiderPlanReady()) return false;
   const profile = getRiderProfile();
-  return Boolean(profile.phone || profile.riderId || getChosenPlan());
+  if (!profile.phone && !profile.riderId) return false;
+  if (firebaseAuth && !firebaseAuth.currentUser) return false;
+  return true;
 }
 
 export function getRiderProfile() {
@@ -214,7 +217,7 @@ export function syncPlanFromActiveBooking(rentalMode?: string) {
   markRiderPlanReady();
 }
 
-export async function logoutRider() {
+export function clearRiderClientSession() {
   if (typeof window === "undefined") return;
 
   removeKey(PLAN_READY_KEY);
@@ -230,6 +233,12 @@ export async function logoutRider() {
   window.sessionStorage.removeItem("kebu_rider_phone");
   window.sessionStorage.removeItem("kebu_rider_name");
   emitRiderSession();
+}
+
+export async function logoutRider() {
+  if (typeof window === "undefined") return;
+
+  clearRiderClientSession();
 
   try {
     if (firebaseAuth) await signOut(firebaseAuth);

@@ -20,6 +20,7 @@ import {
 } from "react-icons/fa";
 
 import { riderResumeHref } from "@/lib/riderPlanGate";
+import { BRAND } from "@/lib/brandMedia";
 
 function RideEntryLink({
   className,
@@ -43,7 +44,7 @@ export default function Footer() {
   return (
     <footer
       id="footer"
-      className="relative overflow-hidden bg-[#07111F] text-white"
+      className="relative overflow-x-hidden bg-[#07111F] text-white"
     >
       {/* =======================================
           Background Effects
@@ -85,6 +86,8 @@ export default function Footer() {
 
           <div
             className="
+            relative
+            overflow-hidden
             rounded-[28px]
             sm:rounded-[40px]
             border
@@ -96,8 +99,16 @@ export default function Footer() {
             md:p-16
             "
           >
+            <Image
+              src={BRAND.highway}
+              alt=""
+              fill
+              className="object-cover object-center"
+              sizes="(min-width: 1024px) 80vw, 100vw"
+            />
+            <div className="absolute inset-0 bg-[#07111F]/72" />
 
-            <div className="mx-auto max-w-4xl text-center">
+            <div className="relative z-10 mx-auto max-w-4xl text-center">
 
               <span
                 className="

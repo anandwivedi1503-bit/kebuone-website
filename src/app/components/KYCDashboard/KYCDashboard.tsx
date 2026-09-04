@@ -81,6 +81,10 @@ type RidersApiResponse = {
   message?: string;
 };
 
+function riderApiId(rider: { _id?: string; riderId?: string }) {
+  return String(rider._id || rider.riderId || "").trim();
+}
+
 /* =========================================================
    NORMALIZE RIDER
 ========================================================= */
@@ -282,6 +286,8 @@ export default function KYCDashboard() {
 
                 cache: "no-store",
 
+                credentials: "include",
+
                 headers: {
                   Accept:
                     "application/json",
@@ -445,9 +451,7 @@ export default function KYCDashboard() {
         return;
       }
 
-      const id =
-        rider.riderId ||
-        rider._id;
+      const id = riderApiId(rider);
 
       if (!id) {
         alert(
@@ -475,6 +479,8 @@ export default function KYCDashboard() {
             {
               method:
                 "PATCH",
+
+              credentials: "include",
 
               headers: {
                 "Content-Type":
@@ -564,9 +570,7 @@ export default function KYCDashboard() {
         return;
       }
 
-      const id =
-        rider.riderId ||
-        rider._id;
+      const id = riderApiId(rider);
 
       if (!id) {
         alert(
@@ -607,6 +611,8 @@ export default function KYCDashboard() {
             {
               method:
                 "PATCH",
+
+              credentials: "include",
 
               headers: {
                 "Content-Type":
@@ -896,9 +902,7 @@ export default function KYCDashboard() {
                 (
                   rider
                 ) => {
-                  const id =
-                    rider.riderId ||
-                    rider._id;
+                  const id = riderApiId(rider);
 
                   const isProcessing =
                     processingId ===
