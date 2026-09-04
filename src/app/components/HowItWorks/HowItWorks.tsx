@@ -86,7 +86,7 @@ export default function HowItWorks() {
           <img
             src="/brand/scenic-highway.png"
             alt="EVUDDY scooter"
-            className="h-56 w-full bg-[#EDE8DE] object-contain object-center sm:h-full"
+            className="h-56 w-full bg-[#EDE8DE] object-cover object-center sm:h-full"
           />
           <div className="flex flex-col justify-center gap-6 bg-[#FBF9F5] px-6 py-10 sm:px-12">
             <div>

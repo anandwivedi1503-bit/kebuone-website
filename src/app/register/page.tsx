@@ -6,7 +6,7 @@ export default function RegisterPage() {
   return (
     <main>
       <Navbar />
-      <div className="pt-28">
+      <div className="pt-32 sm:pt-40">
         <RiderFormV2 />
       </div>
       <Footer />

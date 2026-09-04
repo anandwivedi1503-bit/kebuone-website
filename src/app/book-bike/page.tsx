@@ -49,7 +49,7 @@ export default function BookBikePage() {
       <div className="print:hidden">
         <Navbar />
       </div>
-      <div className="pt-28 print:pt-0">
+      <div className="pt-32 print:pt-0 sm:pt-40">
         <div className="print:hidden px-4 sm:px-6 lg:px-10">
           <RiderSessionBar />
         </div>

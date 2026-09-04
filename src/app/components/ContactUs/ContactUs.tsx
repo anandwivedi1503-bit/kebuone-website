@@ -29,7 +29,7 @@ const directory = [
   },
   {
     title: "Business Partnerships",
-    text: "Fleet operators, hubs and partners who want EVUDDY scooters on the road.",
+    text: "Fleet operators, dealers, distributors and hubs who want EVUDDY scooters on the road.",
     value: "helpdesk@kebuone.in",
     href: "mailto:helpdesk@kebuone.in",
   },
@@ -129,19 +129,19 @@ export default function ContactUs() {
               Book an EV <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
-              href="/partners#partner-form"
+              href="/partners#dealer-network"
               className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-[#18B368] sm:h-14 sm:w-auto sm:px-8 sm:text-base"
             >
-              Become a Partner
+              Become a dealer
             </Link>
           </div>
         </div>
 
-        <figure className="relative w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
+        <figure className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
           <img
             src={BRAND.rider}
             alt="EVUDDY electric scooters"
-            className="h-auto w-full object-contain object-center"
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
         </figure>
       </section>

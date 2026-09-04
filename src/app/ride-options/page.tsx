@@ -342,7 +342,7 @@ export default function RideOptionsPage() {
       {view === "boot" && <section className="min-h-[40vh]" />}
 
       {view === "otp" && (
-        <section className="bg-[#F6FAF8] px-4 pb-20 pt-28 sm:px-6 lg:px-10">
+        <section className="bg-[#F6FAF8] px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-10">
           <div className="mx-auto max-w-lg rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">
               Verify to continue
@@ -454,7 +454,7 @@ export default function RideOptionsPage() {
       )}
 
       {view === "plans" && (
-        <section className="bg-[#F6FAF8] px-4 pb-20 pt-28 sm:px-6 lg:px-10">
+        <section className="bg-[#F6FAF8] px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-10">
           <RiderSessionBar />
           <div className="mx-auto max-w-5xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">

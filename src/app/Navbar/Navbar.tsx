@@ -277,6 +277,33 @@ group-hover:w-full
 
 <div className="hidden lg:flex shrink-0 items-center gap-1 xl:gap-3 ml-2 xl:ml-5">
 
+<Link href="/partners#dealer-network">
+
+<button
+className="
+flex
+items-center
+gap-2
+h-11
+whitespace-nowrap
+px-3
+xl:px-5
+font-medium
+text-[#1F6B4A]
+transition-colors
+duration-300
+hover:text-[#18573c]
+"
+>
+
+<Building2 size={18} />
+
+Dealers
+
+</button>
+
+</Link>
+
 {!riderLoggedIn && (
 <>
 <Link href="/partners">
@@ -522,6 +549,40 @@ lg:px-6 pb-10 space-y-4">
 </>
 ) : (
 <>
+<Link
+href="/partners#dealer-network"
+onClick={()=>setMenuOpen(false)}
+>
+
+<button
+className="
+w-full
+h-14
+rounded-full
+border
+border-[#18B368]/20
+bg-white
+text-[#18B368]
+font-semibold
+transition-all
+duration-300
+hover:bg-[#18B368]
+hover:text-white
+flex
+items-center
+justify-center
+gap-2
+"
+>
+
+<Building2 size={20}/>
+
+Become a dealer
+
+</button>
+
+</Link>
+
 <Link
 href="/partners"
 onClick={()=>setMenuOpen(false)}

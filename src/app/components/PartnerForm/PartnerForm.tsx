@@ -104,7 +104,7 @@ consentAccepted: false,
   return (
     <section
       id="partner-form"
-      className="scroll-mt-36 py-16 md:py-32 bg-gradient-to-b from-[#FFF7FA] via-white to-[#FFF7FA]"
+      className="scroll-mt-36 py-16 md:py-32 bg-[#F7F4EE]"
     >
       <div className="max-w-6xl mx-auto px-4 md:px-6">
 
@@ -134,7 +134,7 @@ consentAccepted: false,
 
     <br />
 
-    <span className="bg-gradient-to-r from-[#16A34A] via-[#22C55E] to-[#EC2A8C] bg-clip-text text-transparent">
+    <span className="bg-gradient-to-r from-[#1F6B4A] via-[#18B368] to-[#6EE7A8] bg-clip-text text-transparent">
       With EVUDDY
     </span>
 
@@ -217,7 +217,7 @@ h-1
 bg-gradient-to-r
 from-[#18B368]
 via-[#22C55E]
-to-[#EC2A8C]
+to-[#1F6B4A]
 "
 />
 
@@ -475,7 +475,9 @@ focus:ring-[#22C55E]/10
 hover:border-[#22C55E]/40
 "
 >
-              <option>Select Partnership Type *</option>
+              <option value="">Select Partnership Type *</option>
+              <option>EVUDDY Dealer</option>
+              <option>EVUDDY Distributor</option>
               <option>Fleet Partner Investment</option>
               <option>College Mobility Partner</option>
               <option>Bike Rental Franchise Partner</option>
@@ -514,7 +516,9 @@ focus:ring-[#22C55E]/10
 hover:border-[#22C55E]/40
 "
 >
-              <option>Investment Capacity *</option>
+              <option value="">Investment Capacity *</option>
+              <option>₹5 Lakhs · Dealer (retail)</option>
+              <option>₹10 Lakhs · Distributor</option>
               <option>₹1 Lakh · 3 scooters</option>
               <option>₹5 Lakh · 15 scooters</option>
               <option>₹10 Lakh · 30 scooters</option>

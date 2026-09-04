@@ -70,14 +70,14 @@ export default function ServiceCard({
         </div>
       </div>
 
-      <div className="relative">
+      <div className="relative overflow-hidden bg-[#EDE8DE]">
         {image ? (
           <Image
             src={image}
             alt={title}
             width={960}
             height={720}
-            className="h-auto w-full object-contain"
+            className="aspect-[5/4] h-auto w-full object-cover object-center"
           />
         ) : null}
         <div className="mt-4 flex justify-between text-[11px] uppercase tracking-[0.18em] text-[#8A847A]">

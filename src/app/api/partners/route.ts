@@ -19,6 +19,8 @@ const partnerTypes = [
   "Hub Operations Partner",
   "Delivery Operations Partner",
   "Smart Parking Partner",
+  "EVUDDY Dealer",
+  "EVUDDY Distributor",
 ];
 
 const investmentCapacities = [
@@ -30,6 +32,8 @@ const investmentCapacities = [
   "₹10 – ₹25 Lakhs",
   "₹25 – ₹50 Lakhs",
   "₹50 Lakhs+",
+  "₹5 Lakhs · Dealer (retail)",
+  "₹10 Lakhs · Distributor",
 ];
 
 const propertyOptions = ["Yes", "No"];

@@ -32,7 +32,7 @@ const pillars = [
   {
     icon: Building2,
     title: "Partners and fleets",
-    text: "Hubs, B2B fleets and delivery partners share one live operations platform.",
+    text: "Dealers from ₹5 lakh, distributors from ₹10 lakh, hubs and B2B fleets share one live operations platform.",
   },
   {
     icon: MapPinned,
@@ -52,7 +52,7 @@ export default function AboutUs() {
         primaryLabel="Book an EV"
         secondaryHref="/Leadership"
         secondaryLabel="Meet leadership"
-        posterSrc="/about/about-poster.png?v=20260820b"
+        posterSrc="/about/about-poster.png"
         posterAlt="EVUDDY About Us — mission and vision"
       />
 

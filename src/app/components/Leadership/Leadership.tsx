@@ -54,7 +54,7 @@ export default function Leadership() {
           alt="EVUDDY electric scooters on city roads"
           fill
           priority
-          className="object-contain object-center"
+          className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,31,0.72)_0%,rgba(7,17,31,0.5)_45%,rgba(7,17,31,0.9)_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(24,179,104,0.28),transparent_34%)]" />
@@ -72,8 +72,9 @@ export default function Leadership() {
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/75 sm:text-lg">
-              Sunil Pathak, Bindu Singh and Anjali Mishra lead EVUDDY with the
-              wider team behind every safe electric ride.
+              Sunil Pathak, Bindu Singh and Anjali Mishra lead EVUDDY, with
+              Operations Incharge Anoop Pathak and the wider team behind every
+              safe electric ride.
             </p>
           </motion.div>
         </div>
@@ -132,9 +133,10 @@ export default function Leadership() {
             The people across every function
           </h2>
           <p className="mt-4 max-w-2xl text-lg text-slate-600">
-            Official team posters: Anand Dhar Dwivedi (SDE), Aanya Singh (Admin
-            &amp; Front Desk), and Akanksha Maurya (Graphic Designer), followed by
-            the wider functions.
+            Official team posters: Anoop Pathak (Operations Incharge, Shubhrax
+            Mobility Ltd), Anand Dhar Dwivedi (SDE), Aanya Singh (Admin &amp; Front
+            Desk), and Akanksha Maurya (Graphic Designer), followed by the wider
+            functions.
           </p>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
