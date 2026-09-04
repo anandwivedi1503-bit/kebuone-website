@@ -62,20 +62,20 @@ export default function DealerNetwork({ showApply = true }: Props) {
             </ul>
             {showApply ? (
               <Link
-                href="/partners#dealer-form"
+                href="/partners/dealer"
                 className="mt-8 inline-flex items-center gap-2 bg-[#1F6B4A] px-6 py-3 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c]"
               >
                 Apply as dealer
                 <ArrowRight size={16} />
               </Link>
             ) : (
-              <a
-                href="#dealer-form"
+              <Link
+                href="/partners/dealer"
                 className="mt-8 inline-flex items-center gap-2 bg-[#1F6B4A] px-6 py-3 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c]"
               >
                 Open dealer form
                 <ArrowRight size={16} />
-              </a>
+              </Link>
             )}
           </article>
 
@@ -103,20 +103,20 @@ export default function DealerNetwork({ showApply = true }: Props) {
             </ul>
             {showApply ? (
               <Link
-                href="/partners#distributor-form"
+                href="/partners/distributor"
                 className="mt-8 inline-flex items-center gap-2 border border-[#1C1917]/15 px-6 py-3 text-[13px] font-medium tracking-[0.08em] text-[#1C1917] hover:border-[#1F6B4A]"
               >
                 Apply as distributor
                 <ArrowRight size={16} />
               </Link>
             ) : (
-              <a
-                href="#distributor-form"
+              <Link
+                href="/partners/distributor"
                 className="mt-8 inline-flex items-center gap-2 border border-[#1C1917]/15 px-6 py-3 text-[13px] font-medium tracking-[0.08em] text-[#1C1917] hover:border-[#1F6B4A]"
               >
                 Open distributor form
                 <ArrowRight size={16} />
-              </a>
+              </Link>
             )}
           </article>
         </div>

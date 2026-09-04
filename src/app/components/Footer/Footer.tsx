@@ -364,6 +364,13 @@ export default function Footer() {
       </Link>
 
       <Link
+        href="/partners/distributor"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Become a distributor
+      </Link>
+
+      <Link
         href="/partners"
         className="block text-gray-400 transition hover:text-white"
       >

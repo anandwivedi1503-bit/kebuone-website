@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { ArrowRight, KeyRound, MapPinned, Smartphone, Wallet } from "lucide-react";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
+import { BRAND } from "@/lib/brandMedia";
 
 export default function HowItWorks() {
   const { catalog } = useHomeCatalog();
@@ -23,6 +23,7 @@ export default function HowItWorks() {
       hi: "फोन OTP + KYC",
       text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
       icon: Smartphone,
+      image: BRAND.wall,
     },
     {
       n: "02",
@@ -30,6 +31,7 @@ export default function HowItWorks() {
       hi: cityLine,
       text: `${hubLine}. Choose city, hub and hourly, daily, weekly, monthly — or Rent to Own.`,
       icon: MapPinned,
+      image: BRAND.city,
     },
     {
       n: "03",
@@ -37,6 +39,7 @@ export default function HowItWorks() {
       hi: "Razorpay / वॉलेट",
       text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
       icon: Wallet,
+      image: BRAND.parked,
     },
     {
       n: "04",
@@ -44,6 +47,7 @@ export default function HowItWorks() {
       hi: "यार्ड पर दिखाएँ",
       text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
       icon: KeyRound,
+      image: BRAND.yard,
     },
   ];
 
@@ -69,7 +73,10 @@ export default function HowItWorks() {
           {steps.map((step) => {
             const Icon = step.icon;
             return (
-              <div key={step.n} className="border-t border-[#E4DDD2] pt-6">
+              <div key={step.n} className="overflow-hidden border-t border-[#E4DDD2] pt-6">
+                <div className="mb-5 aspect-[16/10] overflow-hidden bg-[#EDE8DE]">
+                  <img src={step.image} alt="" className="h-full w-full object-cover" />
+                </div>
                 <p className="text-[11px] tracking-[0.2em] text-[#8A847A]">{step.n}</p>
                 <Icon size={18} strokeWidth={1.5} className="mt-5 text-[#1F6B4A]" />
                 <h3 className="font-display mt-4 text-2xl font-medium text-[#1C1917]">{step.title}</h3>

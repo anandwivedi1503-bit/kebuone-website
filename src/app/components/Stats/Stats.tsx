@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Briefcase, Smartphone, Users, Wallet } from "lucide-react";
+import { BRAND } from "@/lib/brandMedia";
 
 const benefits = [
   {
@@ -50,6 +51,14 @@ export default function PartnerSection() {
           viewport={{ once: true }}
           className="mt-12"
         >
+          <div className="mt-12 overflow-hidden">
+            <img
+              src={BRAND.houseParked}
+              alt="EVUDDY scooter parked at an Indian home"
+              className="aspect-[21/8] w-full object-cover"
+            />
+          </div>
+
           <div className="grid gap-8 lg:grid-cols-[1.1fr_1fr]">
             <div>
               <span className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
