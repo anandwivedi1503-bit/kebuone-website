@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Bike, Briefcase, KeyRound } from "lucide-react";
+import { BRAND } from "@/lib/brandMedia";
 
 const cards = [
   {
@@ -9,18 +10,21 @@ const cards = [
     title: "Daily commute",
     text: "Hourly to monthly scooters from a live hub. GST-correct fare. Refundable deposit on normal rentals.",
     label: "B2C riders",
+    image: BRAND.city,
   },
   {
     icon: Briefcase,
     title: "Gig & delivery",
     text: "Quiet electric range for city work. Pickup OTP at the yard. GPS on the scooter while you ride.",
     label: "Work on EVUDDY",
+    image: BRAND.highway,
   },
   {
     icon: KeyRound,
     title: "Ride to own",
     text: "₹280 + GST a day for 18 months. No security deposit. Daily receipt. Ownership after a successful term.",
     label: "Rent to Own",
+    image: BRAND.houseParked,
   },
 ];
 
@@ -49,9 +53,12 @@ export default function TrustSection() {
                 initial={{ opacity: 0, y: 12 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="border-t border-[#E4DDD2] pt-6"
+                className="overflow-hidden"
               >
-                <Icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
+                <div className="aspect-[16/10] overflow-hidden bg-[#EDE8DE]">
+                  <img src={card.image} alt="" className="h-full w-full object-cover" />
+                </div>
+                <Icon size={18} strokeWidth={1.5} className="mt-6 text-[#1F6B4A]" />
                 <h3 className="font-display mt-5 text-2xl font-medium text-[#1C1917]">{card.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-[#5C635E]">{card.text}</p>
                 <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.16em] text-[#1F6B4A]">

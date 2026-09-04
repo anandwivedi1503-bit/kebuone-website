@@ -5,6 +5,8 @@ const stills = [
   { src: BRAND.city, alt: "EVUDDY yellow scooter on an Indian city road", kicker: "Live in city", title: "City ride" },
   { src: BRAND.highway, alt: "EVUDDY yellow scooter on a highway", kicker: "Open road", title: "Scenic" },
   { src: BRAND.parked, alt: "EVUDDY yellow scooter parked roadside", kicker: "Hub", title: "Pickup ready" },
+  { src: BRAND.dusk, alt: "EVUDDY scooter at dusk", kicker: "Evening", title: "Dusk ride" },
+  { src: BRAND.yard, alt: "EVUDDY scooter at the yard", kicker: "Yard", title: "Return" },
 ];
 
 export default function HomeStill() {
@@ -14,7 +16,7 @@ export default function HomeStill() {
         <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
           Electric scooter
         </p>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stills.map((item) => (
             <figure key={item.title} className="group bg-[#EDE8DE]">
               <div className="flex aspect-[4/5] items-center justify-center overflow-hidden">

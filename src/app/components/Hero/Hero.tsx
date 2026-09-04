@@ -1,7 +1,6 @@
 "use client";
 
 import { BRAND } from "@/lib/brandMedia";
-import { GpsScooterMark } from "./GpsScooter";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -167,12 +166,17 @@ export default function Hero() {
                   </text>
                 </a>
                 <g>
-                  <animateMotion dur="12s" repeatCount="indefinite" rotate="0">
+                  <animateMotion dur="12s" repeatCount="indefinite" rotate="auto">
                     <mpath href="#evuddy-route" />
                   </animateMotion>
-                  <g transform="scale(1.35)">
-                    <GpsScooterMark />
-                  </g>
+                  <image
+                    href="/evuddy-scooter-cutout.png"
+                    x="-42"
+                    y="-28"
+                    width="84"
+                    height="56"
+                    preserveAspectRatio="xMidYMid meet"
+                  />
                 </g>
               </svg>
             </div>

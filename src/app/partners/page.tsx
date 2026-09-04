@@ -2,7 +2,6 @@ import Navbar from "../Navbar/Navbar";
 import AnchorScroll from "../components/AnchorScroll/AnchorScroll";
 import FleetPartnerInvestment from "../components/FleetPartnerInvestment/FleetPartnerInvestment";
 import DealerNetwork from "../components/DealerNetwork/DealerNetwork";
-import DealerDistributorForms from "../components/DealerDistributorForms/DealerDistributorForms";
 import PartnerForm from "../components/PartnerForm/PartnerForm";
 import Footer from "../components/Footer/Footer";
 
@@ -12,8 +11,7 @@ export default function PartnersPage() {
       <AnchorScroll />
       <Navbar />
       <div className="pt-32 sm:pt-40">
-        <DealerNetwork showApply={false} />
-        <DealerDistributorForms />
+        <DealerNetwork />
         <FleetPartnerInvestment posterPriority />
         <PartnerForm />
       </div>

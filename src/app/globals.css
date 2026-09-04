@@ -55,8 +55,22 @@ body::after {
   animation: ev-ken 22s ease-in-out infinite alternate;
 }
 
+@keyframes partner-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.partner-marquee {
+  animation: partner-marquee 28s linear infinite;
+}
+
+.partner-marquee:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .ev-ken {
+  .ev-ken,
+  .partner-marquee {
     animation: none !important;
   }
 }

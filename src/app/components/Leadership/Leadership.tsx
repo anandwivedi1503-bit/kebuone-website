@@ -54,12 +54,12 @@ export default function Leadership() {
           alt="EVUDDY electric scooters on city roads"
           fill
           priority
-          className="object-cover object-center"
+          className="z-0 object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,17,31,0.72)_0%,rgba(7,17,31,0.5)_45%,rgba(7,17,31,0.9)_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(24,179,104,0.28),transparent_34%)]" />
+        <div className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(7,17,31,0.78)_0%,rgba(7,17,31,0.45)_48%,rgba(7,17,31,0.88)_100%)]" />
+        <div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_82%_18%,rgba(24,179,104,0.28),transparent_34%)]" />
 
-        <div className="relative mx-auto flex min-h-[68vh] max-w-6xl flex-col justify-end px-4 pb-16 pt-36 sm:px-6 sm:pb-20 lg:px-10">
+        <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-center px-4 pb-16 pt-40 sm:px-6 sm:pb-20 sm:pt-48 lg:px-10 lg:pt-52">
           <motion.div initial="hidden" animate="show" variants={fade} transition={{ duration: 0.7 }}>
             <p className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-[11px] font-bold tracking-[0.22em] text-white backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-[#6EE7A8]" />

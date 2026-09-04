@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, HeartHandshake, Leaf, MapPinned, ShieldCheck } from "lucide-react";
+import { BRAND } from "@/lib/brandMedia";
 
 const features = [
   {
@@ -42,8 +43,15 @@ export default function WhyChoose() {
           </p>
         </div>
 
-        <div className="mt-14 grid gap-12 lg:grid-cols-2">
-          <div>
+        <div className="mt-14 grid items-stretch gap-0 lg:grid-cols-2">
+          <div className="relative min-h-[320px] overflow-hidden lg:min-h-[480px]">
+            <img
+              src={BRAND.dusk}
+              alt="EVUDDY yellow scooter at dusk"
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          </div>
+          <div className="bg-[#F7F4EE] px-6 py-10 sm:px-10">
             <Leaf size={22} strokeWidth={1.5} className="text-[#1F6B4A]" />
             <h3 className="font-display mt-5 text-3xl font-medium leading-tight text-[#1C1917]">
               Built like India&apos;s next EV network.
@@ -55,9 +63,7 @@ export default function WhyChoose() {
             <span className="mt-6 inline-block text-[12px] uppercase tracking-[0.16em] text-[#1F6B4A]">
               #safeRideWithEvuddy
             </span>
-          </div>
-
-          <div className="grid gap-8 sm:grid-cols-2">
+            <div className="mt-10 grid gap-8 sm:grid-cols-2">
             {features.map((item) => {
               const Icon = item.icon;
               return (
@@ -68,6 +74,7 @@ export default function WhyChoose() {
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
 
