@@ -1,5 +1,6 @@
 "use client";
 
+import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -11,6 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 
+import { firebaseAuth } from "@/lib/firebase";
 import {
   getChosenPlan,
   getRiderProfile,
@@ -47,6 +49,7 @@ export default function RiderAccountMenu({
   onNavigate,
 }: RiderAccountMenuProps) {
   const [open, setOpen] = useState(false);
+  const [planReady, setPlanReady] = useState(false);
   const [phone, setPhone] = useState("");
   const [riderId, setRiderId] = useState("");
   const [name, setName] = useState("");
@@ -57,18 +60,28 @@ export default function RiderAccountMenu({
   useEffect(() => {
     const refresh = () => {
       const profile = getRiderProfile();
+      const signedIn = Boolean(!firebaseAuth || firebaseAuth.currentUser);
       setPhone(profile.phone);
       setRiderId(profile.riderId);
       setName(profile.name);
       setPlan(getChosenPlan());
       setResumeHref(riderResumeHref());
+      setPlanReady(
+        signedIn &&
+          hasRiderPlanReady() &&
+          Boolean(profile.phone || profile.riderId)
+      );
     };
     refresh();
+    const unsubscribe = firebaseAuth
+      ? onAuthStateChanged(firebaseAuth, () => refresh())
+      : () => {};
     window.addEventListener(RIDER_SESSION_EVENT, refresh);
     window.addEventListener("storage", refresh);
     const openMenu = () => setOpen(true);
     window.addEventListener(RIDER_ACCOUNT_OPEN_EVENT, openMenu);
     return () => {
+      unsubscribe();
       window.removeEventListener(RIDER_SESSION_EVENT, refresh);
       window.removeEventListener("storage", refresh);
       window.removeEventListener(RIDER_ACCOUNT_OPEN_EVENT, openMenu);
@@ -91,9 +104,9 @@ export default function RiderAccountMenu({
     };
   }, [open]);
 
-  if (!hasRiderPlanReady()) return null;
+  if (!planReady) return null;
 
-  const displayName = name || riderId || "Your account";
+  const displayName = name || riderId || (phone ? `+91 ${phone}` : "Rider");
   const initials = initialsFrom(name, riderId, phone);
 
   return (
@@ -115,7 +128,7 @@ export default function RiderAccountMenu({
             <span className="block text-[11px] font-bold uppercase tracking-[0.12em] text-[#18B368]">
               Account
             </span>
-            <span className="block truncate text-sm font-black">{displayName}</span>
+          <span className="block truncate text-sm font-black">{displayName}</span>
           </span>
         )}
         <ChevronDown

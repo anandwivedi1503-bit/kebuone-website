@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
+  onAuthStateChanged,
   type ConfirmationResult,
 } from "firebase/auth";
 import { ArrowRight, Bike, KeyRound } from "lucide-react";
@@ -16,7 +17,6 @@ import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import {
   getChosenPlan,
-  getRideOptionsView,
   hasRiderPlanReady,
   logoutRider,
   markRiderPlanReady,
@@ -63,6 +63,28 @@ const firebaseOtpError = (error: unknown) => {
 
 type View = "boot" | "otp" | "pending" | "plans" | "register";
 
+type RiderApprovalFields = {
+  riderId?: string;
+  bookingEnabled?: boolean;
+  approvalStatus?: string;
+  kycStatus?: string;
+  status?: string;
+  fullName?: string;
+  phone?: string;
+};
+
+function isRiderApproved(rider?: RiderApprovalFields | null) {
+  if (!rider) return false;
+  const status = String(rider.status || "");
+  const approval = String(rider.approvalStatus || "");
+  if (status === "Blocked" || status === "Suspended") return false;
+  if (approval === "Rejected") return false;
+  return (
+    Boolean(rider.bookingEnabled) ||
+    (approval === "Approved" && status === "Active")
+  );
+}
+
 export default function RideOptionsPage() {
   const [view, setView] = useState<View>("boot");
   const [phone, setPhone] = useState("");
@@ -82,25 +104,60 @@ export default function RideOptionsPage() {
   );
 
   useEffect(() => {
-    if (hasRiderPlanReady() && getChosenPlan()) {
-      window.location.replace(riderResumeHref());
+    let cancelled = false;
+    let booted = false;
+
+    const resolveSession = async () => {
+      if (cancelled || booted) return;
+      booted = true;
+
+      if (hasRiderPlanReady() && getChosenPlan()) {
+        window.location.replace(riderResumeHref());
+        return;
+      }
+
+      if (hasRiderPlanReady()) {
+        setView("plans");
+        setRideOptionsView("plans");
+        return;
+      }
+
+      const user = auth?.currentUser;
+      const storedPhone =
+        user?.phoneNumber?.replace(/\D/g, "").slice(-10) ||
+        localStorage.getItem("kebu_rider_phone") ||
+        "";
+
+      if (user && storedPhone) {
+        try {
+          const token = await user.getIdToken();
+          const response = await fetch(`/api/riders?phone=${storedPhone}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (!cancelled) applyRiderResult(data);
+          return;
+        } catch {
+          // Fall through to OTP.
+        }
+      }
+
+      setView("otp");
+    };
+
+    if (!auth) {
+      setView("otp");
       return;
     }
 
-    if (hasRiderPlanReady()) {
-      setView("plans");
-      setRideOptionsView("plans");
-      return;
-    }
+    const unsubscribe = onAuthStateChanged(auth, () => {
+      void resolveSession();
+    });
 
-    const storedView = getRideOptionsView();
-    if (storedView === "pending" || storedView === "register") {
-      setRiderId(localStorage.getItem("kebu_rider_id") || "");
-      setView(storedView);
-      return;
-    }
-
-    setView("otp");
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -124,15 +181,11 @@ export default function RideOptionsPage() {
         const token = await auth.currentUser?.getIdToken();
         if (!token) return;
 
-        const response = await fetch(`/api/riders/${riderId}`, {
+        const response = await fetch(`/api/riders/${encodeURIComponent(riderId)}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const data = await response.json();
-        if (
-          data.success &&
-          data.data.bookingEnabled &&
-          data.data.approvalStatus === "Approved"
-        ) {
+        if (data.success && isRiderApproved(data.data)) {
           markRiderPlanReady();
           if (getChosenPlan()) {
             window.location.replace(riderResumeHref());
@@ -161,14 +214,7 @@ export default function RideOptionsPage() {
 
   const applyRiderResult = (data: {
     success?: boolean;
-    data?: {
-      riderId?: string;
-      bookingEnabled?: boolean;
-      approvalStatus?: string;
-      status?: string;
-      fullName?: string;
-      phone?: string;
-    };
+    data?: RiderApprovalFields;
   }) => {
     if (!data.success || !data.data) {
       setView("register");
@@ -184,12 +230,7 @@ export default function RideOptionsPage() {
       setRiderId(data.data.riderId);
     }
 
-    const approved =
-      Boolean(data.data.bookingEnabled) &&
-      data.data.approvalStatus === "Approved" &&
-      data.data.status === "Active";
-
-    if (approved) {
+    if (isRiderApproved(data.data)) {
       markRiderPlanReady();
       if (getChosenPlan()) {
         window.location.replace(riderResumeHref());
@@ -381,12 +422,19 @@ export default function RideOptionsPage() {
       )}
 
       {view === "pending" && (
-        <section className="px-4 pb-24 pt-40 text-center">
+        <section className="flex min-h-[70vh] flex-col justify-center px-4 pb-24 pt-40 text-center">
           <h1 className="text-3xl font-black text-[#0F172A]">Waiting for admin approval</h1>
           <p className="mx-auto mt-3 max-w-xl text-slate-500">
             Your rider profile is under review. Ride options appear here as soon as an
             admin approves your account.
           </p>
+          <button
+            type="button"
+            onClick={() => void logoutRider()}
+            className="mt-8 text-sm font-bold text-slate-500 underline-offset-4 hover:text-[#1F6B4A] hover:underline"
+          >
+            Log out
+          </button>
         </section>
       )}
 

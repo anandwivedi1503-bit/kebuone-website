@@ -109,8 +109,10 @@ export default function Navbar() {
 
   useEffect(() => {
     const refreshSession = () => {
+      const signedIn =
+        Boolean(firebaseAuth?.currentUser) && isRiderLoggedIn();
       setResumeHref(riderResumeHref());
-      setRiderLoggedIn(isRiderLoggedIn());
+      setRiderLoggedIn(signedIn);
     };
 
     const unsubscribe = firebaseAuth

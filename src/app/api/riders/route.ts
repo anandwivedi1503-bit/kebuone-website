@@ -27,6 +27,7 @@ import {
   RiderWalletError,
 } from "@/lib/ensureRiderWallet";
 import { walletSpendable } from "@/lib/walletMoney";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -1578,10 +1579,15 @@ export async function GET(req: Request) {
 
       const rider =
   await Rider.findOne({
-    phone,
-    $or: [
-      { isDeleted: false },
-      { isDeleted: { $exists: false } },
+    $and: [
+      NOT_DELETED_FILTER,
+      {
+        $or: [
+          { phone },
+          { phone: `+91${phone}` },
+          { phone: `91${phone}` },
+        ],
+      },
     ],
   })
           .select(
@@ -1738,6 +1744,7 @@ export async function GET(req: Request) {
   await Rider.find(riderFilter)
         .select(
           [
+            "_id",
             "riderId",
             "fullName",
             "phone",

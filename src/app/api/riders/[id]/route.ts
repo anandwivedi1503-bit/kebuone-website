@@ -17,6 +17,7 @@ import Wallet from "@/models/Wallet";
 import mongoose from "mongoose";
 
 import { writeAudit } from "@/lib/writeAudit";
+import { riderLookupFilter } from "@/lib/riderLookup";
 
 import {
   firebaseUserOwnsRider,
@@ -31,10 +32,6 @@ import {
 /* =========================================================
    TYPES
 ========================================================= */
-
-type RiderLookup = {
-  $or: Array<Record<string, unknown>>;
-};
 
 type RiderForResponse = {
   _id?: unknown;
@@ -69,57 +66,6 @@ type RiderForResponse = {
 
   firebaseUid?: string;
 };
-
-/* =========================================================
-   RIDER LOOKUP
-========================================================= */
-
-function riderLookupFilter(
-  id: string
-): RiderLookup {
-  const cleanedId =
-    String(id || "").trim();
-
-  const filters: Array<
-    Record<string, unknown>
-  > = [
-    {
-      riderId:
-        cleanedId.toUpperCase(),
-
-      isDeleted: false,
-    },
-  ];
-
-  /*
-   * Also support MongoDB ObjectId.
-   *
-   * This allows the endpoint to work whether the
-   * dashboard sends:
-   *
-   * /api/riders/RDR-000001
-   *
-   * or:
-   *
-   * /api/riders/<mongo-id>
-   */
-
-  if (
-    mongoose.Types.ObjectId.isValid(
-      cleanedId
-    )
-  ) {
-    filters.push({
-      _id: cleanedId,
-
-      isDeleted: false,
-    });
-  }
-
-  return {
-    $or: filters,
-  };
-}
 
 /* =========================================================
    SAFE RIDER RESPONSE
