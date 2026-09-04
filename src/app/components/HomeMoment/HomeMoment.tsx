@@ -8,7 +8,7 @@ export default function HomeMoment() {
       <img
         src={BRAND.highway}
         alt="EVUDDY yellow scooter on a scenic Indian highway"
-        className="absolute inset-0 h-full w-full object-cover object-center opacity-95"
+        className="absolute inset-0 h-full w-full object-contain object-center opacity-95"
       />
       <div className="absolute inset-0 bg-gradient-to-r from-[#1C1917]/82 via-[#1C1917]/40 to-transparent" />
       <div className="relative mx-auto flex min-h-[420px] max-w-[1440px] items-end px-5 py-16 sm:min-h-[520px] sm:px-8 lg:px-12 lg:py-20">

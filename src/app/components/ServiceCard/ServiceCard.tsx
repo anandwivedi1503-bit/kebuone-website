@@ -77,7 +77,7 @@ export default function ServiceCard({
             alt={title}
             width={960}
             height={720}
-            className="aspect-[5/4] h-auto w-full bg-[#EDE8DE] object-contain object-center"
+            className="aspect-[16/10] h-auto w-full bg-[#EDE8DE] object-contain object-center p-4"
           />
         ) : null}
         <div className="mt-4 flex justify-between text-[11px] uppercase tracking-[0.18em] text-[#8A847A]">

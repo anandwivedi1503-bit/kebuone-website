@@ -17,8 +17,8 @@ export default function HomeStill() {
         </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {stills.map((item) => (
-            <figure key={item.title} className={`group ${SCOOTER_FRAME}`}>
-              <div className={`flex aspect-[16/11] items-center justify-center overflow-hidden ${SCOOTER_FRAME}`}>
+            <figure key={item.title} className="group bg-[#EDE8DE]">
+              <div className={`aspect-[16/10] ${SCOOTER_FRAME}`}>
                 <img src={item.src} alt={item.alt} className={SCOOTER_IMG} />
               </div>
               <figcaption className="flex items-baseline justify-between gap-3 border-t border-[#E4DDD2] px-1 pt-3">

@@ -40,8 +40,8 @@ export default function HomePlaces() {
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4">
         {places.map((place) => (
-          <figure key={place.title} className={`relative overflow-hidden ${SCOOTER_FRAME}`}>
-            <div className="aspect-[4/3]">
+          <figure key={place.title} className="overflow-hidden bg-[#1C1917]">
+            <div className={`aspect-[16/10] ${SCOOTER_FRAME}`}>
               <img src={place.src} alt={place.alt} className={SCOOTER_IMG} />
             </div>
             <figcaption className="bg-[#1C1917] px-5 py-5 text-white">

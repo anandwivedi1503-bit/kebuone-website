@@ -55,7 +55,7 @@ export default function PartnerSection() {
             <img
               src={BRAND.highway}
               alt="EVUDDY yellow scooter on the open road — partner fleet in motion"
-              className="aspect-[16/7] w-full bg-[#EDE8DE] object-contain object-center"
+              className="aspect-[16/7] w-full bg-[#EDE8DE] object-contain object-center p-4"
             />
           </div>
 

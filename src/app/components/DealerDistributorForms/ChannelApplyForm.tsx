@@ -163,7 +163,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
                   ? "EVUDDY yellow scooter at a dealer pickup point"
                   : "EVUDDY yellow scooter on the road — distributor fleet in motion"
               }
-              className="aspect-[5/4] w-full bg-[#EDE8DE] object-contain object-center"
+              className="aspect-[16/10] w-full bg-[#EDE8DE] object-contain object-center p-4"
             />
           </div>
           <p className="mt-6 text-sm text-[#5C635E]">

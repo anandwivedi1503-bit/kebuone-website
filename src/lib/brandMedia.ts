@@ -9,6 +9,6 @@ export const BRAND = {
 } as const;
 
 /** Cream frame + contain so wheels and body stay in shot (landscape stills in any box). */
-export const SCOOTER_FRAME = "bg-[#EDE8DE]";
-export const SCOOTER_IMG =
-  "h-full w-full object-contain object-center";
+export const SCOOTER_FRAME =
+  "flex items-center justify-center overflow-hidden bg-[#EDE8DE] p-4";
+export const SCOOTER_IMG = "max-h-full max-w-full object-contain object-center";
