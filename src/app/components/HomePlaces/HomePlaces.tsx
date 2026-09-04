@@ -1,10 +1,30 @@
-import { BRAND } from "@/lib/brandMedia";
+import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
 
 const places = [
-  { src: BRAND.dusk, kicker: "Dusk", title: "After work" },
-  { src: BRAND.yard, kicker: "Yard", title: "Hub ready" },
-  { src: BRAND.wall, kicker: "Street", title: "City quiet" },
-  { src: BRAND.houseParked, kicker: "Home", title: "Parked" },
+  {
+    src: BRAND.city,
+    kicker: "Street",
+    title: "City commute",
+    alt: "EVUDDY yellow scooter riding an Indian city road",
+  },
+  {
+    src: BRAND.highway,
+    kicker: "Open road",
+    title: "After work",
+    alt: "EVUDDY yellow scooter on a highway after the work day",
+  },
+  {
+    src: BRAND.parked,
+    kicker: "Hub",
+    title: "Pickup ready",
+    alt: "EVUDDY yellow scooter parked at a roadside hub",
+  },
+  {
+    src: BRAND.houseParked,
+    kicker: "Home",
+    title: "Parked at gate",
+    alt: "EVUDDY yellow scooter parked at a home courtyard",
+  },
 ];
 
 export default function HomePlaces() {
@@ -20,14 +40,11 @@ export default function HomePlaces() {
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4">
         {places.map((place) => (
-          <figure key={place.title} className="group relative min-h-[280px] overflow-hidden sm:min-h-[380px]">
-            <img
-              src={place.src}
-              alt={`EVUDDY scooter — ${place.title}`}
-              className="absolute inset-0 h-full w-full object-cover transition duration-[1400ms] group-hover:scale-[1.04]"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1C1917]/80 via-transparent to-transparent" />
-            <figcaption className="absolute bottom-5 left-5 right-5 text-white">
+          <figure key={place.title} className="overflow-hidden bg-[#1C1917]">
+            <div className={`aspect-[16/10] ${SCOOTER_FRAME}`}>
+              <img src={place.src} alt={place.alt} className={SCOOTER_IMG} />
+            </div>
+            <figcaption className="bg-[#1C1917] px-5 py-5 text-white">
               <p className="text-[11px] uppercase tracking-[0.2em] text-white/70">{place.kicker}</p>
               <p className="font-display mt-1 text-2xl font-medium">{place.title}</p>
             </figcaption>

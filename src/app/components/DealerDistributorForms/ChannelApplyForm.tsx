@@ -157,9 +157,13 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
           </p>
           <div className="relative mt-10 hidden overflow-hidden lg:block">
             <img
-              src={isDealer ? BRAND.parked : BRAND.dusk}
-              alt={isDealer ? "EVUDDY scooter at a city pickup point" : "EVUDDY scooter on an Indian road"}
-              className="aspect-[5/4] w-full object-cover"
+              src={isDealer ? BRAND.parked : BRAND.highway}
+              alt={
+                isDealer
+                  ? "EVUDDY yellow scooter at a dealer pickup point"
+                  : "EVUDDY yellow scooter on the road — distributor fleet in motion"
+              }
+              className="aspect-[16/10] w-full bg-[#EDE8DE] object-contain object-center p-4"
             />
           </div>
           <p className="mt-6 text-sm text-[#5C635E]">

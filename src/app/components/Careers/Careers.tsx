@@ -101,7 +101,7 @@ export default function Careers() {
         photos={[
           { src: BRAND.highway, alt: "EVUDDY scooters in the city" },
           { src: BRAND.parked, alt: "Electric scooter rental" },
-          { src: BRAND.dusk, alt: "EVUDDY scooter at dusk" },
+          { src: BRAND.houseParked, alt: "EVUDDY yellow scooter parked at a hub home" },
         ]}
       />
 

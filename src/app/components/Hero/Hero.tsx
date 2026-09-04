@@ -90,11 +90,11 @@ export default function Hero() {
           </div>
         </div>
 
-        <Link href="/ride-options" className="relative block overflow-hidden bg-[#EDE8DE]">
+        <Link href="/ride-options" className="relative flex min-h-[280px] items-center justify-center overflow-hidden bg-[#EDE8DE] p-5 sm:min-h-[360px] lg:min-h-[420px]">
           <img
             src={BRAND.rider}
             alt="EVUDDY yellow electric scooter on a scenic Indian road"
-            className="aspect-[16/10] h-full w-full object-cover object-center sm:aspect-[5/3] lg:min-h-[420px]"
+            className="max-h-[420px] w-full object-contain object-center"
           />
           <span className="absolute bottom-4 left-4 text-[11px] font-medium uppercase tracking-[0.22em] text-[#1C1917]/80">
             Live in city
@@ -104,11 +104,11 @@ export default function Hero() {
 
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.38fr_0.62fr]">
-          <div className="relative hidden min-h-[280px] bg-[#EDE8DE] lg:block">
+          <div className="relative hidden min-h-[280px] items-center justify-center bg-[#EDE8DE] p-5 lg:flex">
             <img
               src={BRAND.city}
               alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="max-h-[260px] w-full object-contain object-center"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-[#1C1917]/80">
               GPS on scooter

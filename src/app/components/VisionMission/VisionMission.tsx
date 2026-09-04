@@ -89,7 +89,7 @@ export default function VisionMission() {
         photos={[
           { src: BRAND.highway, alt: "EVUDDY scooters on city roads" },
           { src: BRAND.parked, alt: "EVUDDY rental scooter" },
-          { src: BRAND.dusk, alt: "EVUDDY scooter at dusk" },
+          { src: BRAND.houseParked, alt: "EVUDDY yellow scooter parked at home" },
         ]}
       />
 
@@ -103,7 +103,7 @@ export default function VisionMission() {
         eyebrow="The ride"
         title="One scooter. One standard."
         text="Partners and fleets share the same platform as riders: one booking engine, one hub network, one standard of #safeRideWithEvuddy."
-        image={BRAND.yard}
+        image={BRAND.parked}
         alt="EVUDDY electric scooter"
       />
 
