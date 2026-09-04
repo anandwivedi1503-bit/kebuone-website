@@ -1106,7 +1106,7 @@ if (submitted) {
         p-6 md:p-12
         shadow-[0_30px_100px_rgba(255,22,94,0.12)]
         text-center
-        border border-pink-100
+        border border-[#18B368]/20
         ">
 
           <div className="text-6xl mb-6 animate-bounce sm:text-8xl">
@@ -1123,7 +1123,7 @@ if (submitted) {
 
           <div className="grid md:grid-cols-3 gap-6 mb-10">
 
-            <div className="bg-pink-50 rounded-3xl p-6">
+            <div className="bg-[#F0F7F3] rounded-3xl p-6">
               <p className="text-sm text-gray-500 mb-2">
                 Reference ID
               </p>
@@ -1133,7 +1133,7 @@ if (submitted) {
               </h3>
             </div>
 
-            <div className="bg-pink-50 rounded-3xl p-6">
+            <div className="bg-[#F0F7F3] rounded-3xl p-6">
               <p className="text-sm text-gray-500 mb-2">
                 KYC Status
               </p>
@@ -1151,7 +1151,7 @@ approvalStatus==="Approved"
 </h3>
             </div>
 
-            <div className="bg-pink-50 rounded-3xl p-6">
+            <div className="bg-[#F0F7F3] rounded-3xl p-6">
               <p className="text-sm text-gray-500 mb-2">
                 Approval Time
               </p>
@@ -1161,7 +1161,7 @@ approvalStatus==="Approved"
               </h3>
             </div>
 
-            <div className="bg-pink-50 rounded-3xl p-6">
+            <div className="bg-[#F0F7F3] rounded-3xl p-6">
     <p className="text-sm text-gray-500 mb-2">
         Booking Access
     </p>
@@ -1266,7 +1266,7 @@ Waiting For Admin Approval
     py-4
     rounded-2xl
     border
-    border-pink-200
+    border-[#18B368]/25
     text-[#FF165E]
     font-bold
     "
@@ -1288,9 +1288,9 @@ Waiting For Admin Approval
    <section
   id="rider-registration"
   className="
-pt-8
+pt-4
 pb-16
-lg:pt-44
+lg:pt-8
 lg:pb-24
 bg-gradient-to-br
 from-white
@@ -1317,17 +1317,15 @@ sm:h-[380px]
 lg:h-[720px]
 lg:rounded-[42px]
 bg-[#081C15]
-p-4
-sm:p-5
-lg:p-0
+p-0
 shadow-[0_40px_120px_rgba(0,0,0,0.18)]
 "
 >
 
     <img
       src="/new-vehicle.jpeg"
-      alt="EVUDDY Bike"
-      className="object-contain object-center"
+      alt="EVUDDY yellow electric scooter"
+      className="h-full w-full object-cover object-center"
       style={{
         width: "100%",
         height: "100%",
@@ -2355,14 +2353,14 @@ Step 4 of 4
     cursor-pointer
     border-2
     border-dashed
-    border-pink-200
+    border-[#18B368]/25
     rounded-3xl
     p-8
-    bg-pink-50/50
+    bg-[#F0F7F3]/50
     hover:scale-[1.03]
 hover:shadow-xl
     hover:border-[#FF165E]
-    hover:bg-pink-50
+    hover:bg-[#F0F7F3]
     transition-all
     duration-300
     text-center
@@ -2434,14 +2432,14 @@ Maximum Size: 5 MB
     cursor-pointer
     border-2
     border-dashed
-    border-pink-200
+    border-[#18B368]/25
     rounded-3xl
     p-8
-    bg-pink-50/50
+    bg-[#F0F7F3]/50
     hover:scale-[1.03]
 hover:shadow-xl
     hover:border-[#FF165E]
-    hover:bg-pink-50
+    hover:bg-[#F0F7F3]
     transition-all
     duration-300
     text-center
@@ -2513,12 +2511,12 @@ Maximum Size: 5 MB
     cursor-pointer
     border-2
     border-dashed
-    border-pink-200
+    border-[#18B368]/25
     rounded-3xl
     p-8
-    bg-pink-50/50
+    bg-[#F0F7F3]/50
     hover:border-[#FF165E]
-    hover:bg-pink-50
+    hover:bg-[#F0F7F3]
     hover:scale-[1.03]
 hover:shadow-xl
     transition-all
@@ -2594,12 +2592,12 @@ Maximum Size: 5 MB
     cursor-pointer
     border-2
     border-dashed
-    border-pink-200
+    border-[#18B368]/25
     rounded-3xl
     p-8
-    bg-pink-50/50
+    bg-[#F0F7F3]/50
     hover:border-[#FF165E]
-    hover:bg-pink-50
+    hover:bg-[#F0F7F3]
     hover:scale-[1.03]
 hover:shadow-xl
     transition-all
@@ -2675,12 +2673,12 @@ Maximum Size: 5 MB
   cursor-pointer
   border-2
   border-dashed
-  border-pink-200
+  border-[#18B368]/25
   rounded-3xl
   p-8
-  bg-pink-50/50
+  bg-[#F0F7F3]/50
   hover:border-[#FF165E]
-  hover:bg-pink-50
+  hover:bg-[#F0F7F3]
   hover:scale-[1.03]
   hover:shadow-xl
   transition-all

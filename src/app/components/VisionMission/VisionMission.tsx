@@ -47,7 +47,7 @@ export default function VisionMission() {
         primaryLabel="Book an EV"
         secondaryHref="/about"
         secondaryLabel="About EVUDDY"
-        posterSrc="/vision/vision-pic.png?v=20260901"
+        posterSrc="/vision/vision-pic.png"
         posterAlt="EVUDDY vision and mission"
       />
 

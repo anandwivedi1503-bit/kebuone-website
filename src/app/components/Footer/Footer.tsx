@@ -357,6 +357,13 @@ export default function Footer() {
       </Link>
 
       <Link
+        href="/partners#dealer-network"
+        className="block text-gray-400 transition hover:text-white"
+      >
+        Become a dealer
+      </Link>
+
+      <Link
         href="/partners"
         className="block text-gray-400 transition hover:text-white"
       >

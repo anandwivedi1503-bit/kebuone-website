@@ -12,6 +12,7 @@ import HomePlans from "./components/HomePlans/HomePlans";
 import HomeStill from "./components/HomeStill/HomeStill";
 import WhyKebu from "./components/WhyKebu/WhyKebu";
 import InvestHomeInvite from "./components/InvestHomeInvite/InvestHomeInvite";
+import DealerNetwork from "./components/DealerNetwork/DealerNetwork";
 import HowItWorks from "./components/HowItWorks/HowItWorks";
 import Stats from "./components/Stats/Stats";
 import Testimonials from "./components/Testimonials/Testimonials";
@@ -34,6 +35,7 @@ export default function Home() {
       <HomeStill />
       <WhyKebu />
       <InvestHomeInvite />
+      <DealerNetwork />
       <HowItWorks />
       <Stats />
       <Testimonials />

@@ -21,7 +21,7 @@ export default function HomeStill() {
                 <img
                   src={item.src}
                   alt={item.alt}
-                  className="h-full w-full object-contain object-center transition duration-[1200ms] ease-out group-hover:scale-[1.03]"
+                  className="h-full w-full object-cover object-center transition duration-[1200ms] ease-out group-hover:scale-[1.03]"
                 />
               </div>
               <figcaption className="flex items-baseline justify-between gap-3 border-t border-[#E4DDD2] px-1 pt-3">
