@@ -10,8 +10,8 @@ import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 const SLIDES = [
   { src: BRAND.cityCommute, kicker: "City commute", title: "Ride the city" },
   { src: BRAND.afterWork, kicker: "After work", title: "Home in minutes" },
-  { src: BRAND.yard, kicker: "Hub pickup", title: "OTP at the yard" },
-  { src: BRAND.city, kicker: "Live GPS", title: "Tracked while you ride" },
+  { src: BRAND.yard, kicker: "Flagship hub", title: "OTP at the yard" },
+  { src: BRAND.range, kicker: "Range", title: "120 km on one ride" },
 ];
 
 type LiveHub = {
@@ -106,7 +106,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative min-h-[320px] overflow-hidden sm:min-h-[420px] lg:min-h-[520px]">
+        <div className="relative aspect-[16/9] overflow-hidden">
           {SLIDES.map((item, index) => (
             <img
               key={item.src}
@@ -138,8 +138,8 @@ export default function Hero() {
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.42fr_0.58fr]">
           <div className="relative min-h-[240px] overflow-hidden lg:min-h-[280px]">
             <img
-              src={BRAND.city}
-              alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
+              src={BRAND.cityCommute}
+              alt="GPS-enabled EVUDDY scooter on a city boulevard"
               className="absolute inset-0 h-full w-full object-cover object-center"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">

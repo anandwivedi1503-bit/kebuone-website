@@ -47,7 +47,7 @@ export default function WhyChoose() {
           <div className="relative min-h-[320px] overflow-hidden lg:min-h-[480px]">
             <img
               src={BRAND.yard}
-              alt="EVUDDY commercial hub with scooters ready for OTP pickup"
+              alt="EVUDDY flagship hub with scooters ready for OTP pickup"
               className="absolute inset-0 h-full w-full object-cover object-center"
             />
           </div>

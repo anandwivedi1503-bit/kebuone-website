@@ -3,21 +3,22 @@ export const BRAND = {
   film: "/brand/evuddy-ride.mp4",
   rider: "/new-vehicle.jpeg",
   city: "/brand/indian-city-road.png",
-  cityCommute: "/brand/scene-city-commute.png",
-  afterWork: "/brand/scene-after-work.png",
+  cityCommute: "/brand/scene-city-front.png",
+  afterWork: "/brand/scene-after-front.png",
   highway: "/brand/scenic-highway.png",
+  range: "/new-vehicle.jpeg",
   parked: "/brand/roadside-parked.png",
   houseParked: "/brand/yellow-house-parked.png",
   register: "/brand/scene-register-kyc.png",
   pay: "/brand/scene-pay-book.png",
-  yard: "/brand/scene-hub-ops.png",
-  pickup: "/brand/scene-hub-ops.png",
-  charge: "/brand/scene-batterysmart.png",
+  yard: "/brand/scene-indian-hub.png",
+  pickup: "/brand/scene-indian-hub.png",
+  charge: "/brand/scene-charge.png",
+  batterysmart: "/brand/scene-batterysmart.png",
   franchise: "/brand/scene-franchise.png",
   dealer: "/brand/scene-dealer.png",
   distributor: "/brand/scene-distributor-b2b.png",
 } as const;
 
-/** Full-bleed photo frame — image fills the box. */
 export const SCOOTER_FRAME = "overflow-hidden bg-[#1C1917]";
 export const SCOOTER_IMG = "h-full w-full object-cover object-center";

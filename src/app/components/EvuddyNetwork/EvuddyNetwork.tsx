@@ -8,7 +8,7 @@ import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
 import { BRAND } from "@/lib/brandMedia";
 
-type CityZone = "pickup" | "charge" | "hub";
+type CityZone = "pickup" | "charge" | "swap" | "hub";
 
 type CityMark = {
   name: string;
@@ -72,27 +72,8 @@ function cityPoint(name: string, lat?: number, lng?: number) {
 }
 
 const FALLBACK_CITIES: CityMark[] = [
-  { name: "Srinagar", x: 117.8, y: 107.04, hubs: "Valley hub", hubCount: 1, lat: 34.0837, lng: 74.7973 },
-  { name: "Chandigarh", x: 147.58, y: 157.43, hubs: "North hub", hubCount: 1, lat: 30.7333, lng: 76.7794 },
-  { name: "Delhi", x: 154.05, y: 189.31, hubs: "Capital hub", hubCount: 1, lat: 28.6139, lng: 77.209 },
-  { name: "Gurugram", x: 151.34, y: 191.57, hubs: "NCR hub", hubCount: 1, lat: 28.4595, lng: 77.0266 },
-  { name: "Noida", x: 156.76, y: 190.36, hubs: "NCR hub", hubCount: 1, lat: 28.5355, lng: 77.391 },
-  { name: "Mathura", x: 160.97, y: 206.16, hubs: "Pickup yard", hubCount: 1, lat: 27.4924, lng: 77.6737 },
-  { name: "Agra", x: 166.08, y: 210.82, hubs: "City hub", hubCount: 1, lat: 27.1767, lng: 78.0081 },
-  { name: "Jaipur", x: 132.69, y: 214.88, hubs: "City hub", hubCount: 1, lat: 26.9124, lng: 75.7873 },
-  { name: "Lucknow", x: 210.3, y: 215.78, hubs: "Ride & return yard", hubCount: 1, lat: 26.8467, lng: 80.9462 },
-  { name: "Kanpur", x: 200.97, y: 221.8, hubs: "Ride & return yard", hubCount: 1, lat: 26.4499, lng: 80.3319 },
-  { name: "Patna", x: 273.31, y: 234.73, hubs: "East hub", hubCount: 1, lat: 25.5941, lng: 85.1376 },
-  { name: "Ahmedabad", x: 84.26, y: 273.38, hubs: "West hub", hubCount: 1, lat: 23.0225, lng: 72.5714 },
-  { name: "Indore", x: 133.74, y: 277.89, hubs: "MP hub", hubCount: 1, lat: 22.7196, lng: 75.8577 },
-  { name: "Bhopal", x: 157.06, y: 269.77, hubs: "MP hub", hubCount: 1, lat: 23.2599, lng: 77.4126 },
-  { name: "Kolkata", x: 321.74, y: 280.15, hubs: "East hub", hubCount: 1, lat: 22.5726, lng: 88.3639 },
-  { name: "Surat", x: 88.17, y: 301.21, hubs: "West hub", hubCount: 1, lat: 21.1702, lng: 72.8311 },
-  { name: "Mumbai", x: 88.93, y: 332.64, hubs: "Coastal hub", hubCount: 1, lat: 19.076, lng: 72.8777 },
-  { name: "Pune", x: 103.67, y: 341.06, hubs: "West hub", hubCount: 1, lat: 18.5204, lng: 73.8567 },
-  { name: "Hyderabad", x: 173.3, y: 358.06, hubs: "South hub", hubCount: 1, lat: 17.385, lng: 78.4867 },
-  { name: "Bengaluru", x: 159.76, y: 424.53, hubs: "Tech city hub", hubCount: 1, lat: 12.9716, lng: 77.5946 },
-  { name: "Chennai", x: 200.07, y: 422.88, hubs: "South hub", hubCount: 1, lat: 13.0827, lng: 80.2707 },
+  { name: "Lucknow", x: 210.3, y: 215.78, hubs: "Live hub", hubCount: 1, lat: 26.8467, lng: 80.9462 },
+  { name: "Kanpur", x: 200.97, y: 221.8, hubs: "Live hub", hubCount: 1, lat: 26.4499, lng: 80.3319 },
 ];
 
 const STEPS = [
@@ -104,7 +85,7 @@ const STEPS = [
 
 const PROOFS = [
   { icon: Radio, title: "IoT on every scooter", text: "Live GPS, lock and battery from the vehicle — same as ops." },
-  { icon: Zap, title: "BatterySmart swap", text: "EVUDDY does not run charging stations. Packs swap at BatterySmart points tied to our hubs." },
+  { icon: Zap, title: "EV charge + BatterySmart", text: "Branded EV charge at the hub. Packs also swap at BatterySmart points tied to the yard." },
   { icon: ShieldCheck, title: "Yard-verified pickup", text: "OTP after first payment. No scooter leaves without it." },
 ];
 
@@ -127,7 +108,7 @@ function CountUp({ value }: { value: number }) {
 export default function EvuddyNetwork() {
   const reduceMotion = useReducedMotion();
   const stageRef = useRef<HTMLElement | null>(null);
-  const [active, setActive] = useState<CityMark>(FALLBACK_CITIES[3]);
+  const [active, setActive] = useState<CityMark>(FALLBACK_CITIES[0]);
   const [liveCities, setLiveCities] = useState<string[]>([]);
   const [liveHubs, setLiveHubs] = useState<LiveHub[]>([]);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
@@ -170,15 +151,8 @@ export default function EvuddyNetwork() {
       } satisfies CityMark;
     });
 
-    const operated = new Set(fromApi.map((city) => city.name.toLowerCase()));
-    const extra = FALLBACK_CITIES.filter((city) => !operated.has(city.name.toLowerCase()));
-    return fromApi.length > 0 ? [...fromApi, ...extra] : FALLBACK_CITIES;
+    return fromApi.length > 0 ? fromApi : FALLBACK_CITIES;
   }, [liveCities, liveHubs]);
-
-  const operatedNames = useMemo(
-    () => new Set(liveCities.map((name) => name.toLowerCase())),
-    [liveCities]
-  );
 
   useEffect(() => {
     if (marks.length && !marks.some((city) => city.name === active.name)) {
@@ -251,9 +225,9 @@ export default function EvuddyNetwork() {
         <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
-              EVUDDY operated cities
+              Live cities from ops
             </p>
-            <p className="mt-1 text-xs text-[#8A847A]">Green = live. Grey pin = on the India map.</p>
+            <p className="mt-1 text-xs text-[#8A847A]">Only cities and hubs stored in the EVUDDY database.</p>
             <div className="mt-3 max-h-[320px] overflow-y-auto border-t border-[#E4DDD2] sm:max-h-none">
               {marks.map((city) => {
                 const on = selected.name === city.name;
@@ -271,9 +245,7 @@ export default function EvuddyNetwork() {
                       <span className="break-words font-medium">{city.name}</span>
                     </span>
                     <span className="shrink-0 text-xs text-[#8A847A]">
-                      {operatedNames.has(city.name.toLowerCase()) || liveCities.length === 0
-                        ? "Live"
-                        : "Map"}
+                      {city.hubCount} hub{city.hubCount === 1 ? "" : "s"}
                     </span>
                   </button>
                 );
@@ -369,7 +341,6 @@ export default function EvuddyNetwork() {
                 })}
               {marks.map((city) => {
                 const on = selected.name === city.name;
-                const live = operatedNames.has(city.name.toLowerCase()) || liveCities.length === 0;
                 return (
                   <g
                     key={city.name}
@@ -377,12 +348,12 @@ export default function EvuddyNetwork() {
                     onMouseEnter={() => setActive(city)}
                     onClick={() => selectCity(city, selected.name === city.name)}
                   >
-                    <circle cx={city.x} cy={city.y} r={on ? 18 : 10} fill={live ? "#1F6B4A" : "#8A847A"} opacity={on ? 0.2 : 0.1} />
+                    <circle cx={city.x} cy={city.y} r={on ? 18 : 10} fill="#1F6B4A" opacity={on ? 0.2 : 0.1} />
                     <circle
                       cx={city.x}
                       cy={city.y}
                       r={on ? 6 : 4}
-                      fill={on ? "#C45B2D" : live ? "#1F6B4A" : "#8A847A"}
+                      fill={on ? "#C45B2D" : "#1F6B4A"}
                     />
                     <text
                       x={city.x + 8}
@@ -452,22 +423,23 @@ export default function EvuddyNetwork() {
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">City operations</p>
               <h3 className="font-display mt-2 text-3xl font-medium tracking-[-0.03em]">
-                Pickup, BatterySmart, hub.
+                Pickup, EV charge, BatterySmart, hub.
               </h3>
             </div>
             <p className="max-w-sm text-sm leading-7 text-[#5C635E]">
-              Hubs are gated EVUDDY yards. Battery packs swap at BatterySmart — we do not run our own charging stations.
+              Flagship EVUDDY hubs for OTP pickup. Branded EV charge on site. Battery packs also swap at BatterySmart.
             </p>
           </div>
           <div
-            className="mt-6 inline-flex border border-[#E4DDD2] bg-[#F7F4EE] p-1"
+            className="mt-6 inline-flex flex-wrap border border-[#E4DDD2] bg-[#F7F4EE] p-1"
             role="tablist"
             aria-label="City operation zones"
           >
             {(
               [
                 { id: "pickup", label: "Pickup yard" },
-                { id: "charge", label: "BatterySmart" },
+                { id: "charge", label: "EV charge" },
+                { id: "swap", label: "BatterySmart" },
                 { id: "hub", label: "EVUDDY hub" },
               ] as const
             ).map((chip) => (
@@ -488,23 +460,25 @@ export default function EvuddyNetwork() {
             ))}
           </div>
         </div>
-        <div className="relative mt-8 min-h-[320px] w-full overflow-hidden bg-[#1C1917] sm:min-h-[480px]">
+        <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden bg-[#1C1917]">
           <img
             src={
-              cityZone === "pickup"
-                ? BRAND.yard
-                : cityZone === "charge"
-                  ? BRAND.charge
+              cityZone === "charge"
+                ? BRAND.charge
+                : cityZone === "swap"
+                  ? BRAND.batterysmart
                   : BRAND.yard
             }
             alt={
               cityZone === "pickup"
-                ? "EVUDDY pickup yard"
+                ? "EVUDDY flagship pickup hub"
                 : cityZone === "charge"
-                  ? "BatterySmart swap with an EVUDDY scooter"
-                  : "EVUDDY commercial hub"
+                  ? "EVUDDY branded EV charging station"
+                  : cityZone === "swap"
+                    ? "BatterySmart swap with an EVUDDY scooter"
+                    : "EVUDDY flagship hub"
             }
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className="h-full w-full object-cover object-center"
           />
         </div>
         <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12">
@@ -519,8 +493,8 @@ export default function EvuddyNetwork() {
               {
                 icon: Cpu,
                 kicker: "BatterySmart",
-                title: "Swap, not our charger",
-                text: "EVUDDY does not own charging stations. Riders swap packs at BatterySmart points linked to the hub.",
+                title: "Swap at the network",
+                text: "Riders also swap packs at BatterySmart points linked to the hub — alongside branded EV charge on site.",
               },
               {
                 icon: KeyRound,

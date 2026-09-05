@@ -96,8 +96,7 @@ function MediaVideo({ src }: { src: string }) {
       muted
       loop
       playsInline
-      className="h-full w-full object-contain object-center"
-      style={{ maxWidth: "none", maxHeight: "none" }}
+      style={fillCover}
     />
   );
 }
@@ -174,8 +173,8 @@ export function BrandHero({
           </div>
         </div>
 
-        <MediaFrame fit="poster">
-          <MediaImage src={posterSrc} alt={posterAlt} />
+        <MediaFrame fit="video">
+          <MediaImage src={posterSrc} alt={posterAlt} cover />
         </MediaFrame>
       </div>
     </section>
@@ -297,11 +296,11 @@ export function BrandSplit({
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
         </div>
-        <MediaFrame fit={mediaFit} src={image} padded={mediaFit === "product" || mediaFit === "poster"}>
+        <MediaFrame fit="video" src={image}>
           {video || mediaFit === "video" ? (
             <MediaVideo src={image} />
           ) : (
-            <MediaImage src={image} alt={alt} />
+            <MediaImage src={image} alt={alt} cover />
           )}
         </MediaFrame>
       </div>
@@ -327,17 +326,15 @@ export function BrandMosaic({
         </p>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {photos.map((photo, index) => {
-            const mediaFit = photo.fit ?? (index === 0 ? "wide" : fitForSrc(photo.src));
             const span = index === 0 ? "sm:col-span-2 lg:col-span-3" : "";
             return (
               <MediaFrame
                 key={`${photo.src}-${index}`}
-                fit={mediaFit}
+                fit="video"
                 src={photo.src}
                 className={span}
-                padded={mediaFit === "product"}
               >
-                <MediaImage src={photo.src} alt={photo.alt} />
+                <MediaImage src={photo.src} alt={photo.alt} cover />
               </MediaFrame>
             );
           })}

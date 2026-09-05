@@ -59,8 +59,8 @@ export default function Careers() {
         primaryLabel="Apply now"
         secondaryHref="/about"
         secondaryLabel="About EVUDDY"
-        posterSrc="/careers/careers-pic.png"
-        posterAlt="EVUDDY careers — join the team building smart electric mobility"
+        posterSrc={BRAND.cityCommute}
+        posterAlt="EVUDDY city commute — the work is on the street"
       />
 
       <BrandStatement
@@ -82,7 +82,7 @@ export default function Careers() {
         eyebrow="The work"
         title="You will see riders use what you ship."
         text="Booking, KYC, pickup OTP, payments and fleet status are live. Join if you want product, operations and cities in the same week — not a distant roadmap."
-        image={BRAND.city}
+        image={BRAND.cityCommute}
         alt="Rider on an EVUDDY electric scooter"
       />
 
@@ -90,8 +90,8 @@ export default function Careers() {
         eyebrow="The scooter"
         title="Build the machine people actually ride."
         text="Hubs, availability and Rent to Own all sit on the same EV. If you join, you work on that ride — not a side category."
-        image={BRAND.rider}
-        alt="EVUDDY electric scooter"
+        image={BRAND.yard}
+        alt="EVUDDY flagship hub"
         reverse
       />
 
@@ -99,9 +99,9 @@ export default function Careers() {
         title="Same brand. The scooter at the centre."
         text="Engineering, hubs, support, growth and finance share one mission: smart, electric, dependable rides."
         photos={[
-          { src: BRAND.highway, alt: "EVUDDY scooters in the city" },
-          { src: BRAND.parked, alt: "Electric scooter rental" },
-          { src: BRAND.houseParked, alt: "EVUDDY yellow scooter parked at a hub home" },
+          { src: BRAND.cityCommute, alt: "EVUDDY scooters in the city" },
+          { src: BRAND.yard, alt: "EVUDDY flagship hub operations" },
+          { src: BRAND.dealer, alt: "EVUDDY dealer showroom" },
         ]}
       />
 
