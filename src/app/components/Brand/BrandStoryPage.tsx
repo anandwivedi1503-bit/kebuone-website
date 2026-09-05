@@ -96,7 +96,7 @@ function MediaVideo({ src }: { src: string }) {
       muted
       loop
       playsInline
-      className="h-full w-full object-contain object-center"
+      className="h-full w-full object-cover object-center"
       style={{ maxWidth: "none", maxHeight: "none" }}
     />
   );
@@ -174,8 +174,8 @@ export function BrandHero({
           </div>
         </div>
 
-        <MediaFrame fit="poster">
-          <MediaImage src={posterSrc} alt={posterAlt} />
+        <MediaFrame fit="video">
+          <MediaImage src={posterSrc} alt={posterAlt} cover />
         </MediaFrame>
       </div>
     </section>

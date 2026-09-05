@@ -52,8 +52,8 @@ export default function AboutUs() {
         primaryLabel="Book an EV"
         secondaryHref="/Leadership"
         secondaryLabel="Meet leadership"
-        posterSrc="/about/about-poster.png"
-        posterAlt="EVUDDY About Us — mission and vision"
+        posterSrc={BRAND.yard}
+        posterAlt="EVUDDY flagship hub"
       />
 
       <BrandStatement

@@ -138,8 +138,8 @@ export default function Hero() {
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.42fr_0.58fr]">
           <div className="relative min-h-[240px] overflow-hidden lg:min-h-[280px]">
             <img
-              src={BRAND.city}
-              alt="GPS-enabled EVUDDY yellow scooter on an Indian road"
+              src={BRAND.cityCommute}
+              alt="GPS-enabled EVUDDY scooter on a city boulevard"
               className="absolute inset-0 h-full w-full object-cover object-center"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">

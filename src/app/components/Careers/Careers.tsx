@@ -59,8 +59,8 @@ export default function Careers() {
         primaryLabel="Apply now"
         secondaryHref="/about"
         secondaryLabel="About EVUDDY"
-        posterSrc="/careers/careers-pic.png"
-        posterAlt="EVUDDY careers — join the team building smart electric mobility"
+        posterSrc={BRAND.cityCommute}
+        posterAlt="EVUDDY city commute — the work is on the street"
       />
 
       <BrandStatement
