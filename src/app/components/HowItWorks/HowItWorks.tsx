@@ -31,7 +31,7 @@ export default function HowItWorks() {
       hi: cityLine,
       text: `${hubLine}. Choose city, hub and hourly, daily, weekly, monthly — or Rent to Own.`,
       icon: MapPinned,
-      image: BRAND.city,
+      image: BRAND.cityCommute,
     },
     {
       n: "03",
@@ -74,8 +74,8 @@ export default function HowItWorks() {
             const Icon = step.icon;
             return (
               <div key={step.n} className="overflow-hidden border-t border-[#E4DDD2] pt-6">
-                <div className="mb-5 flex aspect-[16/10] items-center justify-center overflow-hidden bg-[#EDE8DE] p-3">
-                  <img src={step.image} alt={step.title} className="max-h-full max-w-full object-contain object-center" />
+                <div className="mb-5 aspect-[16/10] overflow-hidden bg-[#1C1917]">
+                  <img src={step.image} alt={step.title} className="h-full w-full object-cover object-center" />
                 </div>
                 <p className="text-[11px] tracking-[0.2em] text-[#8A847A]">{step.n}</p>
                 <Icon size={18} strokeWidth={1.5} className="mt-5 text-[#1F6B4A]" />
@@ -89,11 +89,11 @@ export default function HowItWorks() {
           })}
         </div>
 
-        <div className="mt-16 grid sm:grid-cols-[0.4fr_0.6fr]">
+        <div className="mt-16 grid overflow-hidden sm:grid-cols-[0.48fr_0.52fr]">
           <img
             src={BRAND.yard}
-            alt="EVUDDY scooter"
-            className="h-56 w-full bg-[#EDE8DE] object-contain object-center sm:h-full"
+            alt="EVUDDY hub ready for OTP pickup"
+            className="h-64 w-full object-cover object-center sm:h-full sm:min-h-[280px]"
           />
           <div className="flex flex-col justify-center gap-6 bg-[#FBF9F5] px-6 py-10 sm:px-12">
             <div>

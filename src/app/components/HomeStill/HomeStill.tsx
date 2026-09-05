@@ -1,11 +1,11 @@
 import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
 
 const stills = [
+  { src: BRAND.cityCommute, alt: "EVUDDY scooter in city traffic", kicker: "City", title: "Commute" },
+  { src: BRAND.afterWork, alt: "Coming home after work on EVUDDY", kicker: "Evening", title: "After work" },
   { src: BRAND.rider, alt: "EVUDDY yellow scooter on a scenic road", kicker: "Range", title: "120 KM" },
-  { src: BRAND.city, alt: "EVUDDY yellow scooter on an Indian city road", kicker: "Live in city", title: "City ride" },
-  { src: BRAND.highway, alt: "EVUDDY yellow scooter on a highway", kicker: "Open road", title: "Scenic" },
-  { src: BRAND.parked, alt: "EVUDDY yellow scooter parked roadside", kicker: "Hub", title: "Pickup ready" },
-  { src: BRAND.houseParked, alt: "EVUDDY yellow scooter parked at a home gate", kicker: "Home", title: "Parked" },
+  { src: BRAND.yard, alt: "EVUDDY commercial hub", kicker: "Hub", title: "Pickup" },
+  { src: BRAND.houseParked, alt: "EVUDDY scooter parked at a home gate", kicker: "Home", title: "Parked" },
 ];
 
 export default function HomeStill() {

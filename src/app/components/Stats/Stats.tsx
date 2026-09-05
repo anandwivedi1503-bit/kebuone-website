@@ -55,7 +55,7 @@ export default function PartnerSection() {
             <img
               src={BRAND.franchise}
               alt="EVUDDY franchise showroom — partners shaking hands beside yellow scooters"
-              className="aspect-[16/7] w-full bg-[#EDE8DE] object-contain object-center p-4"
+              className="aspect-[16/7] w-full object-cover object-center"
             />
           </div>
 

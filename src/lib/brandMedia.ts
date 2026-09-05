@@ -3,19 +3,21 @@ export const BRAND = {
   film: "/brand/evuddy-ride.mp4",
   rider: "/new-vehicle.jpeg",
   city: "/brand/indian-city-road.png",
+  cityCommute: "/brand/scene-city-commute.png",
+  afterWork: "/brand/scene-after-work.png",
   highway: "/brand/scenic-highway.png",
   parked: "/brand/roadside-parked.png",
   houseParked: "/brand/yellow-house-parked.png",
   register: "/brand/scene-register-kyc.png",
   pay: "/brand/scene-pay-book.png",
-  yard: "/brand/scene-yard-hub.png",
-  charge: "/brand/scene-charge.png",
+  yard: "/brand/scene-hub-ops.png",
+  pickup: "/brand/scene-hub-ops.png",
+  charge: "/brand/scene-batterysmart.png",
   franchise: "/brand/scene-franchise.png",
   dealer: "/brand/scene-dealer.png",
-  distributor: "/brand/scene-distributor.png",
+  distributor: "/brand/scene-distributor-b2b.png",
 } as const;
 
-/** Cream frame + contain so wheels and body stay in shot. */
-export const SCOOTER_FRAME =
-  "flex items-center justify-center overflow-hidden bg-[#EDE8DE] p-4";
-export const SCOOTER_IMG = "max-h-full max-w-full object-contain object-center";
+/** Full-bleed photo frame — image fills the box. */
+export const SCOOTER_FRAME = "overflow-hidden bg-[#1C1917]";
+export const SCOOTER_IMG = "h-full w-full object-cover object-center";

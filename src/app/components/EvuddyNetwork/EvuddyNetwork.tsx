@@ -72,13 +72,27 @@ function cityPoint(name: string, lat?: number, lng?: number) {
 }
 
 const FALLBACK_CITIES: CityMark[] = [
+  { name: "Srinagar", x: 117.8, y: 107.04, hubs: "Valley hub", hubCount: 1, lat: 34.0837, lng: 74.7973 },
+  { name: "Chandigarh", x: 147.58, y: 157.43, hubs: "North hub", hubCount: 1, lat: 30.7333, lng: 76.7794 },
   { name: "Delhi", x: 154.05, y: 189.31, hubs: "Capital hub", hubCount: 1, lat: 28.6139, lng: 77.209 },
+  { name: "Gurugram", x: 151.34, y: 191.57, hubs: "NCR hub", hubCount: 1, lat: 28.4595, lng: 77.0266 },
+  { name: "Noida", x: 156.76, y: 190.36, hubs: "NCR hub", hubCount: 1, lat: 28.5355, lng: 77.391 },
   { name: "Mathura", x: 160.97, y: 206.16, hubs: "Pickup yard", hubCount: 1, lat: 27.4924, lng: 77.6737 },
+  { name: "Agra", x: 166.08, y: 210.82, hubs: "City hub", hubCount: 1, lat: 27.1767, lng: 78.0081 },
   { name: "Jaipur", x: 132.69, y: 214.88, hubs: "City hub", hubCount: 1, lat: 26.9124, lng: 75.7873 },
   { name: "Lucknow", x: 210.3, y: 215.78, hubs: "Ride & return yard", hubCount: 1, lat: 26.8467, lng: 80.9462 },
+  { name: "Kanpur", x: 200.97, y: 221.8, hubs: "Ride & return yard", hubCount: 1, lat: 26.4499, lng: 80.3319 },
+  { name: "Patna", x: 273.31, y: 234.73, hubs: "East hub", hubCount: 1, lat: 25.5941, lng: 85.1376 },
+  { name: "Ahmedabad", x: 84.26, y: 273.38, hubs: "West hub", hubCount: 1, lat: 23.0225, lng: 72.5714 },
+  { name: "Indore", x: 133.74, y: 277.89, hubs: "MP hub", hubCount: 1, lat: 22.7196, lng: 75.8577 },
+  { name: "Bhopal", x: 157.06, y: 269.77, hubs: "MP hub", hubCount: 1, lat: 23.2599, lng: 77.4126 },
+  { name: "Kolkata", x: 321.74, y: 280.15, hubs: "East hub", hubCount: 1, lat: 22.5726, lng: 88.3639 },
+  { name: "Surat", x: 88.17, y: 301.21, hubs: "West hub", hubCount: 1, lat: 21.1702, lng: 72.8311 },
   { name: "Mumbai", x: 88.93, y: 332.64, hubs: "Coastal hub", hubCount: 1, lat: 19.076, lng: 72.8777 },
+  { name: "Pune", x: 103.67, y: 341.06, hubs: "West hub", hubCount: 1, lat: 18.5204, lng: 73.8567 },
   { name: "Hyderabad", x: 173.3, y: 358.06, hubs: "South hub", hubCount: 1, lat: 17.385, lng: 78.4867 },
   { name: "Bengaluru", x: 159.76, y: 424.53, hubs: "Tech city hub", hubCount: 1, lat: 12.9716, lng: 77.5946 },
+  { name: "Chennai", x: 200.07, y: 422.88, hubs: "South hub", hubCount: 1, lat: 13.0827, lng: 80.2707 },
 ];
 
 const STEPS = [
@@ -90,7 +104,7 @@ const STEPS = [
 
 const PROOFS = [
   { icon: Radio, title: "IoT on every scooter", text: "Live GPS, lock and battery from the vehicle — same as ops." },
-  { icon: Zap, title: "Charge & swap at hub", text: "Yards keep packs ready. Swaps never dump a live ride." },
+  { icon: Zap, title: "BatterySmart swap", text: "EVUDDY does not run charging stations. Packs swap at BatterySmart points tied to our hubs." },
   { icon: ShieldCheck, title: "Yard-verified pickup", text: "OTP after first payment. No scooter leaves without it." },
 ];
 
@@ -151,17 +165,20 @@ export default function EvuddyNetwork() {
         y: point.y,
         lat: Number.isFinite(lat) ? lat : point.lat,
         lng: Number.isFinite(lng) ? lng : point.lng,
-        hubCount: cityHubs.length,
-        hubs: first?.hubName
-          ? first.hubName
-          : cityHubs.length
-            ? `${cityHubs.length} live hub${cityHubs.length === 1 ? "" : "s"}`
-            : "EVUDDY hub",
+        hubCount: Math.max(1, cityHubs.length),
+        hubs: first?.hubName || first?.hubLocation || "Live EVUDDY hub",
       } satisfies CityMark;
     });
 
-    return fromApi.length > 0 ? fromApi : FALLBACK_CITIES;
+    const operated = new Set(fromApi.map((city) => city.name.toLowerCase()));
+    const extra = FALLBACK_CITIES.filter((city) => !operated.has(city.name.toLowerCase()));
+    return fromApi.length > 0 ? [...fromApi, ...extra] : FALLBACK_CITIES;
   }, [liveCities, liveHubs]);
+
+  const operatedNames = useMemo(
+    () => new Set(liveCities.map((name) => name.toLowerCase())),
+    [liveCities]
+  );
 
   useEffect(() => {
     if (marks.length && !marks.some((city) => city.name === active.name)) {
@@ -233,7 +250,10 @@ export default function EvuddyNetwork() {
 
         <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">Select a city</p>
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
+              EVUDDY operated cities
+            </p>
+            <p className="mt-1 text-xs text-[#8A847A]">Green = live. Grey pin = on the India map.</p>
             <div className="mt-3 max-h-[320px] overflow-y-auto border-t border-[#E4DDD2] sm:max-h-none">
               {marks.map((city) => {
                 const on = selected.name === city.name;
@@ -251,7 +271,9 @@ export default function EvuddyNetwork() {
                       <span className="break-words font-medium">{city.name}</span>
                     </span>
                     <span className="shrink-0 text-xs text-[#8A847A]">
-                      {city.hubCount > 0 ? `${city.hubCount} hub${city.hubCount === 1 ? "" : "s"}` : "Hub"}
+                      {operatedNames.has(city.name.toLowerCase()) || liveCities.length === 0
+                        ? "Live"
+                        : "Map"}
                     </span>
                   </button>
                 );
@@ -347,6 +369,7 @@ export default function EvuddyNetwork() {
                 })}
               {marks.map((city) => {
                 const on = selected.name === city.name;
+                const live = operatedNames.has(city.name.toLowerCase()) || liveCities.length === 0;
                 return (
                   <g
                     key={city.name}
@@ -354,18 +377,18 @@ export default function EvuddyNetwork() {
                     onMouseEnter={() => setActive(city)}
                     onClick={() => selectCity(city, selected.name === city.name)}
                   >
-                    <circle cx={city.x} cy={city.y} r={on ? 18 : 10} fill="#1F6B4A" opacity={on ? 0.2 : 0.1} />
+                    <circle cx={city.x} cy={city.y} r={on ? 18 : 10} fill={live ? "#1F6B4A" : "#8A847A"} opacity={on ? 0.2 : 0.1} />
                     <circle
                       cx={city.x}
                       cy={city.y}
                       r={on ? 6 : 4}
-                      fill={on ? "#C45B2D" : "#1F6B4A"}
+                      fill={on ? "#C45B2D" : live ? "#1F6B4A" : "#8A847A"}
                     />
                     <text
                       x={city.x + 8}
                       y={city.y + (on ? -12 : 16)}
                       fill="#1C1917"
-                      fontSize="11"
+                      fontSize="10"
                       fontWeight="500"
                       className="hidden sm:inline"
                       pointerEvents="none"
@@ -429,11 +452,11 @@ export default function EvuddyNetwork() {
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">City operations</p>
               <h3 className="font-display mt-2 text-3xl font-medium tracking-[-0.03em]">
-                Pickup, charge, hub — in motion.
+                Pickup, BatterySmart, hub.
               </h3>
             </div>
             <p className="max-w-sm text-sm leading-7 text-[#5C635E]">
-              Scooters stay on the north lane. Cars stay south. Yards never sit on the road.
+              Hubs are gated EVUDDY yards. Battery packs swap at BatterySmart — we do not run our own charging stations.
             </p>
           </div>
           <div
@@ -444,7 +467,7 @@ export default function EvuddyNetwork() {
             {(
               [
                 { id: "pickup", label: "Pickup yard" },
-                { id: "charge", label: "EV charge" },
+                { id: "charge", label: "BatterySmart" },
                 { id: "hub", label: "EVUDDY hub" },
               ] as const
             ).map((chip) => (
@@ -465,23 +488,23 @@ export default function EvuddyNetwork() {
             ))}
           </div>
         </div>
-        <div className="relative mt-8 w-full overflow-hidden bg-[#EDE8DE]">
+        <div className="relative mt-8 min-h-[320px] w-full overflow-hidden bg-[#1C1917] sm:min-h-[480px]">
           <img
             src={
               cityZone === "pickup"
                 ? BRAND.yard
                 : cityZone === "charge"
                   ? BRAND.charge
-                  : BRAND.dealer
+                  : BRAND.yard
             }
             alt={
               cityZone === "pickup"
                 ? "EVUDDY pickup yard"
                 : cityZone === "charge"
-                  ? "EVUDDY charging bay"
-                  : "EVUDDY hub with scooters ready"
+                  ? "BatterySmart swap with an EVUDDY scooter"
+                  : "EVUDDY commercial hub"
             }
-            className="mx-auto max-h-[520px] w-full object-contain object-center p-4 sm:p-8"
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
         </div>
         <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12">
@@ -495,9 +518,9 @@ export default function EvuddyNetwork() {
               },
               {
                 icon: Cpu,
-                kicker: "On the vehicle",
-                title: "IoT lock",
-                text: "GPS, lock and battery stream from the scooter, the same feed ops uses.",
+                kicker: "BatterySmart",
+                title: "Swap, not our charger",
+                text: "EVUDDY does not own charging stations. Riders swap packs at BatterySmart points linked to the hub.",
               },
               {
                 icon: KeyRound,

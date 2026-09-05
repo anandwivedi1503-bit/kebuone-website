@@ -2,28 +2,28 @@ import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
 
 const places = [
   {
-    src: BRAND.city,
+    src: BRAND.cityCommute,
     kicker: "Street",
     title: "City commute",
-    alt: "EVUDDY yellow scooter riding an Indian city road",
+    alt: "EVUDDY scooter in dense Indian city traffic",
   },
   {
-    src: BRAND.highway,
-    kicker: "Open road",
+    src: BRAND.afterWork,
+    kicker: "Evening",
     title: "After work",
-    alt: "EVUDDY yellow scooter on a highway after the work day",
+    alt: "Rider coming home after work on an EVUDDY scooter",
   },
   {
     src: BRAND.yard,
     kicker: "Yard",
     title: "Hub pickup",
-    alt: "EVUDDY hub yard with scooters lined for OTP pickup",
+    alt: "Commercial EVUDDY hub with scooters ready for OTP",
   },
   {
     src: BRAND.houseParked,
     kicker: "Home",
     title: "Parked at gate",
-    alt: "EVUDDY yellow scooter parked at a home courtyard",
+    alt: "EVUDDY scooter parked at a home courtyard",
   },
 ];
 
@@ -41,7 +41,7 @@ export default function HomePlaces() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4">
         {places.map((place) => (
           <figure key={place.title} className="overflow-hidden bg-[#1C1917]">
-            <div className={`aspect-[16/10] ${SCOOTER_FRAME}`}>
+            <div className={`aspect-[4/5] sm:aspect-[3/4] ${SCOOTER_FRAME}`}>
               <img src={place.src} alt={place.alt} className={SCOOTER_IMG} />
             </div>
             <figcaption className="bg-[#1C1917] px-5 py-5 text-white">

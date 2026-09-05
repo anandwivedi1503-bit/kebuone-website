@@ -57,7 +57,7 @@ export default function Services() {
             tags={["120 KM Range", product.batteryType, product.gpsLive ? "GPS live" : "GPS Enabled", "Zero Emissions"]}
             title={model}
             description="Designed for effortless daily commuting with smart technology, long battery life, and a premium riding experience."
-            image="/new-vehicle.jpeg"
+            images={["/brand/scene-city-commute.png", "/new-vehicle.jpeg", "/brand/scene-after-work.png", "/brand/indian-city-road.png"]}
             link="/ride-options"
           />
         </motion.div>
