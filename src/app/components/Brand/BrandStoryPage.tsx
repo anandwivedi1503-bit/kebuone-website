@@ -297,11 +297,11 @@ export function BrandSplit({
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
         </div>
-        <MediaFrame fit={mediaFit} src={image} padded={mediaFit === "product" || mediaFit === "poster"}>
+        <MediaFrame fit={video ? "video" : "video"} src={image}>
           {video || mediaFit === "video" ? (
             <MediaVideo src={image} />
           ) : (
-            <MediaImage src={image} alt={alt} />
+            <MediaImage src={image} alt={alt} cover />
           )}
         </MediaFrame>
       </div>
@@ -332,12 +332,11 @@ export function BrandMosaic({
             return (
               <MediaFrame
                 key={`${photo.src}-${index}`}
-                fit={mediaFit}
+                fit="video"
                 src={photo.src}
                 className={span}
-                padded={mediaFit === "product"}
               >
-                <MediaImage src={photo.src} alt={photo.alt} />
+                <MediaImage src={photo.src} alt={photo.alt} cover />
               </MediaFrame>
             );
           })}

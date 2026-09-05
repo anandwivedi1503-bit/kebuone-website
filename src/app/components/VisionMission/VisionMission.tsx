@@ -70,15 +70,15 @@ export default function VisionMission() {
         eyebrow="Mission"
         title="Affordable. Accessible. Asset-building."
         text="Riders should not choose between a clean commute and a scooter they can never own. Flexible rentals get you moving. Rent to Own turns the same habit into an asset."
-        image={BRAND.rider}
-        alt="EVUDDY electric scooter"
+        image={BRAND.range}
+        alt="EVUDDY electric scooter on the open road"
       />
 
       <BrandSplit
         eyebrow="Cities"
         title="Quiet streets. Live operations."
         text="Hubs, OTP pickup, GPS and support keep electric scooters working in real Indian cities for daily riders."
-        image={BRAND.city}
+        image={BRAND.cityCommute}
         alt="EVUDDY fleet on city roads"
         reverse
       />
@@ -87,9 +87,9 @@ export default function VisionMission() {
         title="The scooter is the story."
         text="The vision is not a slogan. It is the ride people take tomorrow morning."
         photos={[
-          { src: BRAND.highway, alt: "EVUDDY scooters on city roads" },
-          { src: BRAND.parked, alt: "EVUDDY rental scooter" },
-          { src: BRAND.houseParked, alt: "EVUDDY yellow scooter parked at home" },
+          { src: BRAND.yard, alt: "EVUDDY flagship hub" },
+          { src: BRAND.afterWork, alt: "After-work ride on EVUDDY" },
+          { src: BRAND.charge, alt: "EVUDDY EV charging station" },
         ]}
       />
 
@@ -103,8 +103,8 @@ export default function VisionMission() {
         eyebrow="The ride"
         title="One scooter. One standard."
         text="Partners and fleets share the same platform as riders: one booking engine, one hub network, one standard of #safeRideWithEvuddy."
-        image={BRAND.parked}
-        alt="EVUDDY electric scooter"
+        image={BRAND.yard}
+        alt="EVUDDY flagship hub"
       />
 
       <BrandCardGrid title="SMART · ELECTRIC · MOBILITY">

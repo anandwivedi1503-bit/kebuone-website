@@ -1,11 +1,10 @@
 import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
 
 const stills = [
-  { src: BRAND.cityCommute, alt: "EVUDDY scooter in city traffic", kicker: "City", title: "Commute" },
+  { src: BRAND.cityCommute, alt: "EVUDDY scooter on a city boulevard commute", kicker: "City", title: "Commute" },
   { src: BRAND.afterWork, alt: "Coming home after work on EVUDDY", kicker: "Evening", title: "After work" },
-  { src: BRAND.rider, alt: "EVUDDY yellow scooter on a scenic road", kicker: "Range", title: "120 KM" },
-  { src: BRAND.yard, alt: "EVUDDY commercial hub", kicker: "Hub", title: "Pickup" },
-  { src: BRAND.houseParked, alt: "EVUDDY scooter parked at a home gate", kicker: "Home", title: "Parked" },
+  { src: BRAND.range, alt: "EVUDDY scooter on an open highway with 120 km range", kicker: "Range", title: "120 KM" },
+  { src: BRAND.yard, alt: "EVUDDY flagship hub for OTP pickup", kicker: "Hub", title: "Pickup" },
 ];
 
 export default function HomeStill() {
@@ -15,10 +14,10 @@ export default function HomeStill() {
         <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
           Electric scooter
         </p>
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
           {stills.map((item) => (
             <figure key={item.title} className="group bg-[#EDE8DE]">
-              <div className={`aspect-[16/10] ${SCOOTER_FRAME}`}>
+              <div className={`aspect-[16/9] ${SCOOTER_FRAME}`}>
                 <img src={item.src} alt={item.alt} className={SCOOTER_IMG} />
               </div>
               <figcaption className="flex items-baseline justify-between gap-3 border-t border-[#E4DDD2] px-1 pt-3">

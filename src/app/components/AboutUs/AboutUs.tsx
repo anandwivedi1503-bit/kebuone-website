@@ -75,17 +75,17 @@ export default function AboutUs() {
         eyebrow="Riders"
         title="A scooter when you need it. An asset if you want it."
         text="Hourly to monthly plans for daily riders. GST is 5% on rental only. Normal bookings include a refundable deposit. Rent to Own has no deposit."
-        image={BRAND.rider}
-        alt="EVUDDY rental scooter"
+        image={BRAND.cityCommute}
+        alt="EVUDDY rental scooter on a city commute"
       />
 
       <BrandMosaic
         title="One ecosystem. The scooter at the centre."
         text="B2C rentals, hubs, fleets and Rent to Own sit on the same live platform."
         photos={[
-          { src: BRAND.highway, alt: "EVUDDY scooters on the open road" },
-          { src: BRAND.city, alt: "EVUDDY rental scooter in the city" },
-          { src: BRAND.parked, alt: "EVUDDY scooter ready for pickup" },
+          { src: BRAND.yard, alt: "EVUDDY flagship hub" },
+          { src: BRAND.charge, alt: "EVUDDY branded EV charging station" },
+          { src: BRAND.cityCommute, alt: "EVUDDY scooter in the city" },
         ]}
       />
 

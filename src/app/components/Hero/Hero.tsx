@@ -10,8 +10,8 @@ import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 const SLIDES = [
   { src: BRAND.cityCommute, kicker: "City commute", title: "Ride the city" },
   { src: BRAND.afterWork, kicker: "After work", title: "Home in minutes" },
-  { src: BRAND.yard, kicker: "Hub pickup", title: "OTP at the yard" },
-  { src: BRAND.city, kicker: "Live GPS", title: "Tracked while you ride" },
+  { src: BRAND.yard, kicker: "Flagship hub", title: "OTP at the yard" },
+  { src: BRAND.range, kicker: "Range", title: "120 km on one ride" },
 ];
 
 type LiveHub = {
@@ -106,7 +106,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative min-h-[320px] overflow-hidden sm:min-h-[420px] lg:min-h-[520px]">
+        <div className="relative aspect-[16/9] overflow-hidden">
           {SLIDES.map((item, index) => (
             <img
               key={item.src}

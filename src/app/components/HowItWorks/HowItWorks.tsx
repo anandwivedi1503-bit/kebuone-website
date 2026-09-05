@@ -92,7 +92,7 @@ export default function HowItWorks() {
         <div className="mt-16 grid overflow-hidden sm:grid-cols-[0.48fr_0.52fr]">
           <img
             src={BRAND.yard}
-            alt="EVUDDY hub ready for OTP pickup"
+            alt="EVUDDY flagship hub ready for OTP pickup"
             className="h-64 w-full object-cover object-center sm:h-full sm:min-h-[280px]"
           />
           <div className="flex flex-col justify-center gap-6 bg-[#FBF9F5] px-6 py-10 sm:px-12">
