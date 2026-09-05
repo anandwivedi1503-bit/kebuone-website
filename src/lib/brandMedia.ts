@@ -13,12 +13,10 @@ export const BRAND = {
   pay: "/brand/scene-pay-book.png",
   yard: "/brand/scene-indian-hub.png",
   pickup: "/brand/scene-indian-hub.png",
-  charge: "/brand/scene-charge.png",
-  batterysmart: "/brand/scene-batterysmart.png",
   franchise: "/brand/scene-franchise.png",
   dealer: "/brand/scene-dealer.png",
   distributor: "/brand/scene-distributor-b2b.png",
 } as const;
 
 export const SCOOTER_FRAME = "overflow-hidden bg-[#1C1917]";
-export const SCOOTER_IMG = "h-full w-full object-cover object-center";
+export const SCOOTER_IMG = "h-full w-full object-contain object-center";

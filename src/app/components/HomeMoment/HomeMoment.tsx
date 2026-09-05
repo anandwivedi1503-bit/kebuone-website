@@ -24,11 +24,11 @@ export default function HomeMoment() {
             </span>
           </Link>
         </div>
-        <div className="relative aspect-[16/9] min-h-[280px] overflow-hidden lg:min-h-full">
+        <div className="relative aspect-[16/9] min-h-[320px] bg-[#1C1917] lg:min-h-full">
           <img
             src={BRAND.cityCommute}
             alt="EVUDDY scooter on a clean city boulevard commute"
-            className="absolute inset-0 h-full w-full object-cover object-center"
+            className="absolute inset-0 h-full w-full object-contain object-center"
           />
         </div>
       </div>

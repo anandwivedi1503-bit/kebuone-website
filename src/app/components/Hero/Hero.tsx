@@ -106,13 +106,13 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative aspect-[16/9] overflow-hidden">
+        <div className="relative aspect-[16/9] overflow-hidden bg-[#1C1917]">
           {SLIDES.map((item, index) => (
             <img
               key={item.src}
               src={item.src}
               alt={item.title}
-              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
+              className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-700 ${
                 index === slide ? "opacity-100" : "opacity-0"
               }`}
             />
@@ -136,11 +136,11 @@ export default function Hero() {
 
       <div className="mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.42fr_0.58fr]">
-          <div className="relative min-h-[240px] overflow-hidden lg:min-h-[280px]">
+          <div className="relative aspect-[16/9] overflow-hidden bg-[#1C1917]">
             <img
               src={BRAND.cityCommute}
               alt="GPS-enabled EVUDDY scooter on a city boulevard"
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              className="absolute inset-0 h-full w-full object-contain object-center"
             />
             <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
               GPS on scooter

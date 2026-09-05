@@ -2,13 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { Cpu, KeyRound, MapPin, Navigation, Radio, ShieldCheck, Warehouse, Zap } from "lucide-react";
+import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
 import { GpsScooterMark } from "../Hero/GpsScooter";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
 import { BRAND } from "@/lib/brandMedia";
-
-type CityZone = "pickup" | "charge" | "swap" | "hub";
 
 type CityMark = {
   name: string;
@@ -85,8 +83,16 @@ const STEPS = [
 
 const PROOFS = [
   { icon: Radio, title: "IoT on every scooter", text: "Live GPS, lock and battery from the vehicle — same as ops." },
-  { icon: Zap, title: "EV charge + BatterySmart", text: "Branded EV charge at the hub. Packs also swap at BatterySmart points tied to the yard." },
+  { icon: MapPin, title: "Live GPS while you ride", text: "Same feed ops use — location, lock and battery on the scooter." },
   { icon: ShieldCheck, title: "Yard-verified pickup", text: "OTP after first payment. No scooter leaves without it." },
+];
+
+const OPS_SCENES = [
+  { src: BRAND.yard, label: "EVUDDY hub", alt: "EVUDDY pickup hub" },
+  { src: BRAND.cityCommute, label: "City ride", alt: "EVUDDY scooter on an Indian city road" },
+  { src: BRAND.afterWork, label: "After work", alt: "EVUDDY scooter after work" },
+  { src: BRAND.dealer, label: "Dealer desk", alt: "EVUDDY dealer showroom" },
+  { src: BRAND.range, label: "On the road", alt: "EVUDDY scooter on the open road" },
 ];
 
 function CountUp({ value }: { value: number }) {
@@ -112,7 +118,7 @@ export default function EvuddyNetwork() {
   const [liveCities, setLiveCities] = useState<string[]>([]);
   const [liveHubs, setLiveHubs] = useState<LiveHub[]>([]);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [cityZone, setCityZone] = useState<CityZone>("hub");
+  const [opsSlide, setOpsSlide] = useState(0);
 
   useEffect(() => {
     fetch("/api/cities")
@@ -130,6 +136,14 @@ export default function EvuddyNetwork() {
       .then((json) => setLiveHubs(json.data || []))
       .catch(() => setLiveHubs([]));
   }, []);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    const timer = window.setInterval(() => {
+      setOpsSlide((current) => (current + 1) % OPS_SCENES.length);
+    }, 4200);
+    return () => window.clearInterval(timer);
+  }, [reduceMotion]);
 
   const marks = useMemo(() => {
     const fromApi = liveCities.map((name) => {
@@ -423,63 +437,28 @@ export default function EvuddyNetwork() {
             <div>
               <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">City operations</p>
               <h3 className="font-display mt-2 text-3xl font-medium tracking-[-0.03em]">
-                Pickup, EV charge, BatterySmart, hub.
+                Hub, ride, dealer desk.
               </h3>
             </div>
             <p className="max-w-sm text-sm leading-7 text-[#5C635E]">
-              Flagship EVUDDY hubs for OTP pickup. Branded EV charge on site. Battery packs also swap at BatterySmart.
+              Pickup at the yard, ride in the city, partner at the desk — scenes rotate on their own.
             </p>
-          </div>
-          <div
-            className="mt-6 inline-flex flex-wrap border border-[#E4DDD2] bg-[#F7F4EE] p-1"
-            role="tablist"
-            aria-label="City operation zones"
-          >
-            {(
-              [
-                { id: "pickup", label: "Pickup yard" },
-                { id: "charge", label: "EV charge" },
-                { id: "swap", label: "BatterySmart" },
-                { id: "hub", label: "EVUDDY hub" },
-              ] as const
-            ).map((chip) => (
-              <button
-                key={chip.id}
-                type="button"
-                role="tab"
-                aria-selected={cityZone === chip.id}
-                onClick={() => setCityZone(chip.id)}
-                className={`px-4 py-2 text-[12px] font-medium tracking-[0.04em] transition ${
-                  cityZone === chip.id
-                    ? "bg-[#1F6B4A] text-white"
-                    : "text-[#5C635E] hover:text-[#1C1917]"
-                }`}
-              >
-                {chip.label}
-              </button>
-            ))}
           </div>
         </div>
         <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden bg-[#1C1917]">
-          <img
-            src={
-              cityZone === "charge"
-                ? BRAND.charge
-                : cityZone === "swap"
-                  ? BRAND.batterysmart
-                  : BRAND.yard
-            }
-            alt={
-              cityZone === "pickup"
-                ? "EVUDDY flagship pickup hub"
-                : cityZone === "charge"
-                  ? "EVUDDY branded EV charging station"
-                  : cityZone === "swap"
-                    ? "BatterySmart swap with an EVUDDY scooter"
-                    : "EVUDDY flagship hub"
-            }
-            className="h-full w-full object-cover object-center"
-          />
+          {OPS_SCENES.map((scene, index) => (
+            <img
+              key={scene.src}
+              src={scene.src}
+              alt={scene.alt}
+              className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-700 ${
+                index === opsSlide ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
+            {OPS_SCENES[opsSlide]?.label}
+          </p>
         </div>
         <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12">
           <div className="grid gap-8 sm:grid-cols-3">
@@ -491,10 +470,10 @@ export default function EvuddyNetwork() {
                 text: "Every scooter starts and ends at a gated EVUDDY hub — never a random street.",
               },
               {
-                icon: Cpu,
-                kicker: "BatterySmart",
-                title: "Swap at the network",
-                text: "Riders also swap packs at BatterySmart points linked to the hub — alongside branded EV charge on site.",
+                icon: Store,
+                kicker: "Partners",
+                title: "Dealers & distributors",
+                text: "Applications from /partners/dealer and /partners/distributor land on the partner desk for approve, call and notes.",
               },
               {
                 icon: KeyRound,

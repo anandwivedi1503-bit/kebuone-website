@@ -37,7 +37,7 @@ export default function PartnerDashboard() {
 
   useEffect(() => {
     loadPartners();
-    const interval = setInterval(loadPartners, 8000);
+    const interval = setInterval(loadPartners, 10000);
     return () => clearInterval(interval);
   }, []);
 

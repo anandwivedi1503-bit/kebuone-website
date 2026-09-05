@@ -89,7 +89,7 @@ export default function VisionMission() {
         photos={[
           { src: BRAND.yard, alt: "EVUDDY flagship hub" },
           { src: BRAND.afterWork, alt: "After-work ride on EVUDDY" },
-          { src: BRAND.charge, alt: "EVUDDY EV charging station" },
+          { src: BRAND.dealer, alt: "EVUDDY dealer showroom" },
         ]}
       />
 
