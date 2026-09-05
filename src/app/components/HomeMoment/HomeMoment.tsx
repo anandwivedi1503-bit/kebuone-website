@@ -4,15 +4,15 @@ import { BRAND } from "@/lib/brandMedia";
 
 export default function HomeMoment() {
   return (
-    <section className="overflow-hidden bg-[#1C1917]">
-      <div className="mx-auto grid max-w-[1440px] lg:grid-cols-[0.42fr_0.58fr]">
-        <div className="flex flex-col justify-center px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
+    <section className="bg-[#1C1917]">
+      <div className="mx-auto grid max-w-[1440px] items-center lg:grid-cols-2">
+        <div className="flex flex-col justify-center px-5 py-12 sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-white/70">
             Live in city
           </p>
-          <h2 className="font-display mt-4 text-[clamp(2rem,5vw,3.4rem)] font-medium leading-[1.2] text-white sm:text-5xl">
+          <h2 className="font-display mt-4 text-[clamp(2rem,5vw,3.4rem)] font-medium leading-[1.25] text-white sm:text-5xl">
             मिनटों में बुक करें.
-            <span className="mt-2 block italic leading-[1.25]">शहर घूमें. राइड अपना बनाएँ.</span>
+            <span className="mt-3 block italic leading-[1.3]">शहर घूमें. राइड अपना बनाएँ.</span>
           </h2>
           <p className="mt-5 max-w-md text-sm leading-7 text-white/80 sm:text-[15px]">
             Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
@@ -24,11 +24,11 @@ export default function HomeMoment() {
             </span>
           </Link>
         </div>
-        <div className="relative aspect-[16/9] min-h-[320px] bg-[#1C1917] lg:min-h-full">
+        <div className="bg-[#1C1917]">
           <img
             src={BRAND.cityCommute}
-            alt="EVUDDY scooter on a clean city boulevard commute"
-            className="absolute inset-0 h-full w-full object-contain object-center"
+            alt="EVUDDY scooter on a city road"
+            className="block h-auto w-full object-cover object-center"
           />
         </div>
       </div>

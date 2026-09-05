@@ -445,13 +445,13 @@ export default function EvuddyNetwork() {
             </p>
           </div>
         </div>
-        <div className="relative mt-8 aspect-[16/9] w-full overflow-hidden bg-[#1C1917]">
+        <div className="relative mt-8 aspect-[3/2] w-full overflow-hidden bg-[#1C1917]">
           {OPS_SCENES.map((scene, index) => (
             <img
               key={scene.src}
               src={scene.src}
               alt={scene.alt}
-              className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-700 ${
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
                 index === opsSlide ? "opacity-100" : "opacity-0"
               }`}
             />

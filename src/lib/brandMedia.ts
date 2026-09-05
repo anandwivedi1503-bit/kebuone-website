@@ -6,7 +6,7 @@ export const BRAND = {
   cityCommute: "/brand/scene-city-front.png",
   afterWork: "/brand/scene-after-front.png",
   highway: "/brand/scenic-highway.png",
-  range: "/new-vehicle.jpeg",
+  range: "/brand/scene-range-16x9.png",
   parked: "/brand/roadside-parked.png",
   houseParked: "/brand/yellow-house-parked.png",
   register: "/brand/scene-register-kyc.png",
@@ -19,4 +19,4 @@ export const BRAND = {
 } as const;
 
 export const SCOOTER_FRAME = "overflow-hidden bg-[#1C1917]";
-export const SCOOTER_IMG = "h-full w-full object-contain object-center";
+export const SCOOTER_IMG = "h-full w-full object-cover object-center";

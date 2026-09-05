@@ -296,7 +296,7 @@ export function BrandSplit({
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
         </div>
-        <MediaFrame fit="video" src={image}>
+        <MediaFrame fit="video" src={image} className={video ? "" : "!aspect-[3/2]"}>
           {video || mediaFit === "video" ? (
             <MediaVideo src={image} />
           ) : (
@@ -332,7 +332,7 @@ export function BrandMosaic({
                 key={`${photo.src}-${index}`}
                 fit="video"
                 src={photo.src}
-                className={span}
+                className={`${span} !aspect-[3/2]`}
               >
                 <MediaImage src={photo.src} alt={photo.alt} cover />
               </MediaFrame>
