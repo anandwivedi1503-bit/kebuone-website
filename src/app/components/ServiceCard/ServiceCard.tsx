@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import HomeImg from "../HomeMedia/HomeImg";
 
 type ServiceCardProps = {
   icon?: string;
@@ -84,16 +85,21 @@ export default function ServiceCard({
       </div>
 
       <div className="relative min-h-[280px] overflow-hidden bg-[#1C1917] sm:min-h-[360px] lg:min-h-[480px]">
-        {slides.map((src, index) => (
-          <img
-            key={src}
-            src={src}
-            alt={title}
-            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-              index === slide ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        ))}
+        {slides.map((src, index) => {
+          const prev = (slide + slides.length - 1) % slides.length;
+          const visible = index === slide || (slide !== 0 && index === prev);
+          if (!visible) return null;
+          return (
+            <HomeImg
+              key={src}
+              src={src}
+              alt={title}
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
+                index === slide ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          );
+        })}
         <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-[#1C1917]/70 to-transparent px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-white">
           <span>Range 120 KM</span>
           <span>Speed 45 km/h</span>

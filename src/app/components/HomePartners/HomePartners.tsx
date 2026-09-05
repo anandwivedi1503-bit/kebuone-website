@@ -10,7 +10,15 @@ const PARTNERS = [
 function PartnerCard({ name, src }: { name: string; src: string }) {
   return (
     <span className="flex min-h-[110px] w-[200px] shrink-0 flex-col items-center justify-center gap-3 bg-white px-6 py-5 sm:w-[220px]">
-      <img src={src} alt={name} className="h-11 w-full max-w-[160px] object-contain object-center" />
+      <img
+        src={src}
+        alt={name}
+        width={160}
+        height={44}
+        loading="lazy"
+        decoding="async"
+        className="h-11 w-full max-w-[160px] object-contain object-center"
+      />
       <span className="text-center text-[11px] font-medium uppercase tracking-[0.14em] text-[#5F6B63]">
         {name}
       </span>

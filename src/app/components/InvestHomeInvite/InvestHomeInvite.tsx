@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { FLEET_INVESTMENT, FLEET_INVESTMENT_STARTER } from "@/lib/fleetInvestment";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const INVEST = FLEET_INVESTMENT.pageHref;
 
@@ -13,7 +14,7 @@ export default function InvestHomeInvite() {
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="grid items-center gap-8 border-y border-[#E4DDD2] py-10 sm:grid-cols-[140px_1fr_auto] sm:py-12">
           <Link href={`${INVEST}`} className="relative mx-auto w-full max-w-[140px] sm:mx-0">
-            <img
+            <HomeImg
               src={FLEET_INVESTMENT.posterSrc}
               alt="EVUDDY Fleet Partner Investment poster"
               width={320}

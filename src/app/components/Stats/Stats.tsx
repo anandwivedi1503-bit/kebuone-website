@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowRight, Briefcase, Smartphone, Users, Wallet } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const benefits = [
   {
@@ -52,7 +53,7 @@ export default function PartnerSection() {
           className="mt-12"
         >
           <div className="mt-12 overflow-hidden">
-            <img
+            <HomeImg
               src={BRAND.franchise}
               alt="EVUDDY franchise showroom — partners shaking hands beside yellow scooters"
               className="aspect-[16/7] w-full object-cover object-center"

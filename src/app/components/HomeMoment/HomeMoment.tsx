@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 export default function HomeMoment() {
   return (
@@ -25,7 +26,7 @@ export default function HomeMoment() {
           </Link>
         </div>
         <div className="bg-[#1C1917]">
-          <img
+          <HomeImg
             src={BRAND.cityCommute}
             alt="EVUDDY scooter on a city road"
             className="block h-auto w-full"

@@ -1,4 +1,5 @@
 import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const stills = [
   { src: BRAND.cityCommute, alt: "EVUDDY scooter on a city boulevard commute", kicker: "City", title: "Commute" },
@@ -18,7 +19,7 @@ export default function HomeStill() {
           {stills.map((item) => (
             <figure key={item.title} className="group bg-[#EDE8DE]">
               <div className={`aspect-[3/2] ${SCOOTER_FRAME}`}>
-                <img src={item.src} alt={item.alt} className={SCOOTER_IMG} />
+                <HomeImg src={item.src} alt={item.alt} className={SCOOTER_IMG} />
               </div>
               <figcaption className="flex items-baseline justify-between gap-3 border-t border-[#E4DDD2] px-1 pt-3">
                 <span className="text-[11px] uppercase tracking-[0.18em] text-[#8A847A]">{item.kicker}</span>

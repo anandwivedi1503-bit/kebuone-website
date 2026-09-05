@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const SLIDES = [
   { src: BRAND.cityCommute, kicker: "City commute", title: "Ride the city" },
@@ -107,16 +108,22 @@ export default function Hero() {
         </div>
 
         <div className="relative aspect-[3/2] overflow-hidden bg-[#1C1917]">
-          {SLIDES.map((item, index) => (
-            <img
-              key={item.src}
-              src={item.src}
-              alt={item.title}
-              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-                index === slide ? "opacity-100" : "opacity-0"
-              }`}
-            />
-          ))}
+          {SLIDES.map((item, index) => {
+            const prev = (slide + SLIDES.length - 1) % SLIDES.length;
+            const visible = index === slide || (slide !== 0 && index === prev);
+            if (!visible) return null;
+            return (
+              <HomeImg
+                key={item.src}
+                src={item.src}
+                alt={item.title}
+                priority={index === 0 && slide === 0}
+                className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
+                  index === slide ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            );
+          })}
           <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-[#1C1917]/70 to-transparent px-5 py-4">
             <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white">{active.kicker}</p>
             <div className="flex gap-2">
@@ -137,7 +144,7 @@ export default function Hero() {
       <div className="mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
         <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.42fr_0.58fr]">
           <div className="relative aspect-[3/2] overflow-hidden bg-[#1C1917]">
-            <img
+            <HomeImg
               src={BRAND.cityCommute}
               alt="GPS-enabled EVUDDY scooter on a city boulevard"
               className="absolute inset-0 h-full w-full object-cover object-center"
