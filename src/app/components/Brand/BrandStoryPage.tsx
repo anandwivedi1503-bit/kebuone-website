@@ -96,8 +96,7 @@ function MediaVideo({ src }: { src: string }) {
       muted
       loop
       playsInline
-      className="h-full w-full object-cover object-center"
-      style={{ maxWidth: "none", maxHeight: "none" }}
+      style={fillCover}
     />
   );
 }
