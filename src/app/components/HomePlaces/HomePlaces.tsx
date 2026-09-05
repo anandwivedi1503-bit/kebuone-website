@@ -14,10 +14,10 @@ const places = [
     alt: "EVUDDY yellow scooter on a highway after the work day",
   },
   {
-    src: BRAND.parked,
-    kicker: "Hub",
-    title: "Pickup ready",
-    alt: "EVUDDY yellow scooter parked at a roadside hub",
+    src: BRAND.yard,
+    kicker: "Yard",
+    title: "Hub pickup",
+    alt: "EVUDDY hub yard with scooters lined for OTP pickup",
   },
   {
     src: BRAND.houseParked,

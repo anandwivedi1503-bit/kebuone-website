@@ -46,8 +46,8 @@ export default function WhyChoose() {
         <div className="mt-14 grid items-stretch gap-0 lg:grid-cols-2">
           <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden bg-[#EDE8DE] p-6 lg:min-h-[480px]">
             <img
-              src={BRAND.city}
-              alt="EVUDDY yellow scooter on an Indian city road"
+              src={BRAND.yard}
+              alt="EVUDDY pickup yard with scooters ready for OTP unlock"
               className="max-h-full w-full object-contain object-center"
             />
           </div>

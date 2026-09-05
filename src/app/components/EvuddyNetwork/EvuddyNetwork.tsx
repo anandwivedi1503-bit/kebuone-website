@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { Cpu, KeyRound, MapPin, Navigation, Radio, ShieldCheck, Warehouse, Zap } from "lucide-react";
 import { GpsScooterMark } from "../Hero/GpsScooter";
-import EvuddyEcosystem, { type CityZone } from "./EvuddyEcosystem";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
+import { BRAND } from "@/lib/brandMedia";
+
+type CityZone = "pickup" | "charge" | "hub";
 
 type CityMark = {
   name: string;
@@ -463,8 +465,24 @@ export default function EvuddyNetwork() {
             ))}
           </div>
         </div>
-        <div className="relative mt-8 w-full overflow-hidden">
-          <EvuddyEcosystem zone={cityZone} />
+        <div className="relative mt-8 w-full overflow-hidden bg-[#EDE8DE]">
+          <img
+            src={
+              cityZone === "pickup"
+                ? BRAND.yard
+                : cityZone === "charge"
+                  ? BRAND.charge
+                  : BRAND.dealer
+            }
+            alt={
+              cityZone === "pickup"
+                ? "EVUDDY pickup yard"
+                : cityZone === "charge"
+                  ? "EVUDDY charging bay"
+                  : "EVUDDY hub with scooters ready"
+            }
+            className="mx-auto max-h-[520px] w-full object-contain object-center p-4 sm:p-8"
+          />
         </div>
         <div className="mx-auto max-w-[1440px] px-5 pb-16 pt-8 sm:px-8 lg:px-12">
           <div className="grid gap-8 sm:grid-cols-3">

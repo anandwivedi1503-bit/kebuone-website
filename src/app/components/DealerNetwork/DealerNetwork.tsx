@@ -44,8 +44,8 @@ export default function DealerNetwork({ showApply = true }: Props) {
           <article className="bg-[#FBF9F5] p-8 sm:p-10">
             <div className={`mb-8 aspect-[16/10] ${SCOOTER_FRAME}`}>
               <img
-                src={BRAND.parked}
-                alt="EVUDDY yellow scooter at a dealer pickup point"
+                src={BRAND.dealer}
+                alt="EVUDDY dealer showroom with yellow scooters and riders"
                 className={SCOOTER_IMG}
               />
             </div>
@@ -90,8 +90,8 @@ export default function DealerNetwork({ showApply = true }: Props) {
           <article className="bg-[#FBF9F5] p-8 sm:p-10">
             <div className={`mb-8 aspect-[16/10] ${SCOOTER_FRAME}`}>
               <img
-                src={BRAND.highway}
-                alt="EVUDDY yellow scooter on the road — distributor fleet supply"
+                src={BRAND.distributor}
+                alt="EVUDDY distributor warehouse supplying scooters to dealers"
                 className={SCOOTER_IMG}
               />
             </div>

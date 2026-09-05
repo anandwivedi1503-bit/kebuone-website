@@ -23,7 +23,7 @@ export default function HowItWorks() {
       hi: "फोन OTP + KYC",
       text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
       icon: Smartphone,
-      image: BRAND.rider,
+      image: BRAND.register,
     },
     {
       n: "02",
@@ -39,7 +39,7 @@ export default function HowItWorks() {
       hi: "Razorpay / वॉलेट",
       text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
       icon: Wallet,
-      image: BRAND.parked,
+      image: BRAND.pay,
     },
     {
       n: "04",
@@ -47,7 +47,7 @@ export default function HowItWorks() {
       hi: "यार्ड पर दिखाएँ",
       text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
       icon: KeyRound,
-      image: BRAND.highway,
+      image: BRAND.yard,
     },
   ];
 
@@ -75,7 +75,7 @@ export default function HowItWorks() {
             return (
               <div key={step.n} className="overflow-hidden border-t border-[#E4DDD2] pt-6">
                 <div className="mb-5 flex aspect-[16/10] items-center justify-center overflow-hidden bg-[#EDE8DE] p-3">
-                  <img src={step.image} alt="" className="max-h-full max-w-full object-contain object-center" />
+                  <img src={step.image} alt={step.title} className="max-h-full max-w-full object-contain object-center" />
                 </div>
                 <p className="text-[11px] tracking-[0.2em] text-[#8A847A]">{step.n}</p>
                 <Icon size={18} strokeWidth={1.5} className="mt-5 text-[#1F6B4A]" />
@@ -91,7 +91,7 @@ export default function HowItWorks() {
 
         <div className="mt-16 grid sm:grid-cols-[0.4fr_0.6fr]">
           <img
-            src="/brand/scenic-highway.png"
+            src={BRAND.yard}
             alt="EVUDDY scooter"
             className="h-56 w-full bg-[#EDE8DE] object-contain object-center sm:h-full"
           />

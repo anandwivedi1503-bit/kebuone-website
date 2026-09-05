@@ -125,7 +125,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
   return (
     <section className="relative overflow-hidden bg-[#F7F4EE] pb-24 pt-32 sm:pt-40">
       <img
-        src={isDealer ? BRAND.city : BRAND.highway}
+        src={isDealer ? BRAND.dealer : BRAND.distributor}
         alt=""
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.18]"
       />
@@ -157,11 +157,11 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
           </p>
           <div className="relative mt-10 hidden overflow-hidden lg:block">
             <img
-              src={isDealer ? BRAND.parked : BRAND.highway}
+              src={isDealer ? BRAND.dealer : BRAND.distributor}
               alt={
                 isDealer
-                  ? "EVUDDY yellow scooter at a dealer pickup point"
-                  : "EVUDDY yellow scooter on the road — distributor fleet in motion"
+                  ? "EVUDDY dealer showroom with yellow scooters"
+                  : "EVUDDY distributor warehouse with scooters ready to ship"
               }
               className="aspect-[16/10] w-full bg-[#EDE8DE] object-contain object-center p-4"
             />
