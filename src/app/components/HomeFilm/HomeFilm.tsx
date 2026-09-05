@@ -11,8 +11,8 @@ export default function HomeFilm() {
         muted
         loop
         playsInline
-        poster={BRAND.highway}
-        className="absolute inset-0 h-full w-full object-contain object-center"
+        poster={BRAND.yard}
+        className="absolute inset-0 h-full w-full object-cover object-center"
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#1C1917] via-[#1C1917]/55 to-transparent" />
       <div className="relative mx-auto flex min-h-[380px] max-w-[1440px] flex-col justify-end px-5 py-16 sm:min-h-[480px] sm:px-8 lg:px-12">

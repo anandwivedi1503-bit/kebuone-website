@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import { ArrowRight } from "lucide-react";
 
 type ServiceCardProps = {
@@ -10,6 +10,7 @@ type ServiceCardProps = {
   description: string;
   color?: string;
   image?: string;
+  images?: string[];
   link?: string;
   badge?: string;
   stat?: string;
@@ -20,13 +21,25 @@ export default function ServiceCard({
   title,
   description,
   image,
+  images,
   link = "/ride-options",
   badge,
   tags = [],
 }: ServiceCardProps) {
+  const slides = images && images.length > 0 ? images : image ? [image] : [];
+  const [slide, setSlide] = useState(0);
+
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const timer = window.setInterval(() => {
+      setSlide((current) => (current + 1) % slides.length);
+    }, 3800);
+    return () => window.clearInterval(timer);
+  }, [slides.length]);
+
   return (
-    <article className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-      <div>
+    <article className="grid items-stretch gap-0 overflow-hidden border border-[#E4DDD2] lg:grid-cols-2">
+      <div className="flex flex-col justify-center px-6 py-10 sm:px-10">
         {badge ? (
           <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
             {badge}
@@ -70,17 +83,18 @@ export default function ServiceCard({
         </div>
       </div>
 
-      <div className="relative overflow-hidden bg-[#EDE8DE]">
-        {image ? (
-          <Image
-            src={image}
+      <div className="relative min-h-[280px] overflow-hidden bg-[#1C1917] sm:min-h-[360px] lg:min-h-[480px]">
+        {slides.map((src, index) => (
+          <img
+            key={src}
+            src={src}
             alt={title}
-            width={960}
-            height={720}
-            className="aspect-[16/10] h-auto w-full bg-[#EDE8DE] object-contain object-center p-4"
+            className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
+              index === slide ? "opacity-100" : "opacity-0"
+            }`}
           />
-        ) : null}
-        <div className="mt-4 flex justify-between text-[11px] uppercase tracking-[0.18em] text-[#8A847A]">
+        ))}
+        <div className="absolute inset-x-0 bottom-0 flex justify-between bg-gradient-to-t from-[#1C1917]/70 to-transparent px-5 py-4 text-[11px] uppercase tracking-[0.18em] text-white">
           <span>Range 120 KM</span>
           <span>Speed 45 km/h</span>
         </div>
