@@ -3,6 +3,13 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
+import {
+  abortOptionalTransaction,
+  commitOptionalTransaction,
+  isMongoTransactionUnsupported,
+  sessionOpts,
+  startOptionalTransaction,
+} from "@/lib/mongoTransaction";
 
 import Wallet from "@/models/Wallet";
 import WalletTransaction from "@/models/WalletTransaction";
@@ -186,31 +193,25 @@ export async function POST(req: Request) {
     /*
      * START ATOMIC TRANSACTION
      */
-    session =
-      await mongoose.startSession();
-
-    session.startTransaction();
+    session = await startOptionalTransaction();
 
     /*
      * CHECK WHETHER THIS DEBIT
      * WAS ALREADY PROCESSED
      */
-    const existingTransaction =
-      await WalletTransaction.findOne({
-        transactionId,
-      })
-        .select(
-          "transactionId amount"
-        )
-        .session(session)
-        .lean<{
-          transactionId: string;
-          amount: number;
-        } | null>();
+    const existingTxnQuery = WalletTransaction.findOne({
+      transactionId,
+    }).select("transactionId amount");
+    const existingTransaction = (
+      session ? existingTxnQuery.session(session) : existingTxnQuery
+    ).lean<{
+      transactionId: string;
+      amount: number;
+    } | null>();
+    const existingTxn = await existingTransaction;
 
-    if (existingTransaction) {
-      await session.commitTransaction();
-      session.endSession();
+    if (existingTxn) {
+      await commitOptionalTransaction(session);
       session = null;
 
       /*
@@ -219,7 +220,7 @@ export async function POST(req: Request) {
        */
       if (
         Number(
-          existingTransaction.amount
+          existingTxn.amount
         ) !== debitAmount
       ) {
         return NextResponse.json(
@@ -238,7 +239,7 @@ export async function POST(req: Request) {
         message:
           "Debit was already processed.",
         transactionId:
-          existingTransaction.transactionId,
+          existingTxn.transactionId,
       });
     }
 
@@ -288,8 +289,8 @@ export async function POST(req: Request) {
         },
         {
           new: true,
-          session,
           runValidators: true,
+          ...sessionOpts(session),
         }
       );
 
@@ -297,8 +298,7 @@ export async function POST(req: Request) {
      * Wallet unavailable or insufficient balance.
      */
     if (!wallet) {
-      await session.abortTransaction();
-      session.endSession();
+      await abortOptionalTransaction(session);
       session = null;
 
       return NextResponse.json(
@@ -314,61 +314,50 @@ export async function POST(req: Request) {
     /*
      * CREATE IMMUTABLE TRANSACTION RECORD
      */
-    await WalletTransaction.create(
-      [
-        {
-          transactionId,
+    if (session) {
+      await WalletTransaction.create(
+        [
+          {
+            transactionId,
+            riderId: wallet.riderId,
+            userId: wallet.userId,
+            userName: wallet.userName,
+            amount: debitAmount as number,
+            transactionType: "Admin Debit",
+            paymentMethod: "Wallet",
+            transactionSource: "Admin Panel",
+            bookingId: "",
+            razorpayPaymentId: "",
+            razorpayOrderId: "",
+            balanceAfter: wallet.balance,
+            remarks,
+            status: "Success",
+            updatedBy: "Admin",
+          },
+        ],
+        { session }
+      );
+    } else {
+      await WalletTransaction.create({
+        transactionId,
+        riderId: wallet.riderId,
+        userId: wallet.userId,
+        userName: wallet.userName,
+        amount: debitAmount as number,
+        transactionType: "Admin Debit",
+        paymentMethod: "Wallet",
+        transactionSource: "Admin Panel",
+        bookingId: "",
+        razorpayPaymentId: "",
+        razorpayOrderId: "",
+        balanceAfter: wallet.balance,
+        remarks,
+        status: "Success",
+        updatedBy: "Admin",
+      });
+    }
 
-          riderId:
-            wallet.riderId,
-
-          userId:
-            wallet.userId,
-
-          userName:
-            wallet.userName,
-
-          amount:
-            debitAmount as number,
-
-          transactionType:
-            "Admin Debit",
-
-          paymentMethod:
-            "Wallet",
-
-          transactionSource:
-            "Admin Panel",
-
-          bookingId: "",
-
-          razorpayPaymentId: "",
-
-          razorpayOrderId: "",
-
-          balanceAfter:
-            wallet.balance,
-
-          remarks,
-
-          status:
-            "Success",
-
-          updatedBy:
-            "Admin",
-        },
-      ],
-      {
-        session,
-      }
-    );
-
-    /*
-     * COMMIT WALLET + LEDGER TOGETHER
-     */
-    await session.commitTransaction();
-
-    session.endSession();
+    await commitOptionalTransaction(session);
     session = null;
 
     return NextResponse.json({
@@ -384,19 +373,23 @@ export async function POST(req: Request) {
     /*
      * ROLLBACK
      */
-    if (session) {
-      try {
-        await session.abortTransaction();
-      } catch {}
-
-      session.endSession();
-      session = null;
-    }
+    await abortOptionalTransaction(session);
+    session = null;
 
     console.error(
-      "WALLET DEBIT ERROR:",
+      "WALLET DEBIT ERROR",
       error
     );
+
+    if (isMongoTransactionUnsupported(error)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Wallet debit could not start a database transaction. Retry once.",
+        },
+        { status: 503 }
+      );
+    }
 
     /*
      * CONCURRENT DUPLICATE RECOVERY

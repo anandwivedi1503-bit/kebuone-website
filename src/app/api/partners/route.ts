@@ -96,22 +96,20 @@ export async function POST(req: Request) {
     }
 
     const existingPartner = await Partner.findOne({
-  $or: [
-    { email },
-    { phone },
-  ],
-});
+      partnerType,
+      $or: [{ email }, { phone }],
+    });
 
-if (existingPartner) {
-  return NextResponse.json(
-    {
-      success: false,
-      message:
-        "A partner application already exists with this email or phone number.",
-    },
-    { status: 409 }
-  );
-}
+    if (existingPartner) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "An application for this partner type already exists with this email or phone number.",
+        },
+        { status: 409 }
+      );
+    }
 
     const partner = await Partner.create({
       fullName,
