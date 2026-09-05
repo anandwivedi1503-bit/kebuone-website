@@ -6,7 +6,7 @@ export const BRAND = {
   cityCommute: "/brand/scene-city-front.png",
   afterWork: "/brand/scene-after-front.png",
   highway: "/brand/scenic-highway.png",
-  range: "/brand/scene-range-front.png",
+  range: "/new-vehicle.jpeg",
   parked: "/brand/roadside-parked.png",
   houseParked: "/brand/yellow-house-parked.png",
   register: "/brand/scene-register-kyc.png",
