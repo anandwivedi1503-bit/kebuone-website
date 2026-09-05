@@ -390,7 +390,7 @@ export async function POST(req: Request) {
             "Admin",
         },
       ],
-      ...sessionOpts(session),
+      sessionOpts(session)
     );
 
     /*
