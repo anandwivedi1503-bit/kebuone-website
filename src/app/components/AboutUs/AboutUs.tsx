@@ -84,7 +84,7 @@ export default function AboutUs() {
         text="B2C rentals, hubs, fleets and Rent to Own sit on the same live platform."
         photos={[
           { src: BRAND.yard, alt: "EVUDDY flagship hub" },
-          { src: BRAND.charge, alt: "EVUDDY branded EV charging station" },
+          { src: BRAND.dealer, alt: "EVUDDY dealer desk" },
           { src: BRAND.cityCommute, alt: "EVUDDY scooter in the city" },
         ]}
       />
