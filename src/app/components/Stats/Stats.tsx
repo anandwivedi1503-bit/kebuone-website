@@ -53,8 +53,8 @@ export default function PartnerSection() {
         >
           <div className="mt-12 overflow-hidden">
             <img
-              src={BRAND.highway}
-              alt="EVUDDY yellow scooter on the open road — partner fleet in motion"
+              src={BRAND.franchise}
+              alt="EVUDDY franchise showroom — partners shaking hands beside yellow scooters"
               className="aspect-[16/7] w-full bg-[#EDE8DE] object-contain object-center p-4"
             />
           </div>

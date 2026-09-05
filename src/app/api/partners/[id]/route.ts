@@ -105,7 +105,13 @@ if (body.documentStatus !== undefined) {
   updateData.documentStatus = body.documentStatus;
 }
 
-updateData.reviewedDate = new Date();
+updateData.reviewedDate = body.reviewedDate !== undefined ? body.reviewedDate : new Date();
+if (body.approvedDate !== undefined) {
+  updateData.approvedDate = body.approvedDate;
+}
+if (body.applicationStatus === "Approved") {
+  updateData.approvedDate = body.approvedDate || new Date();
+}
 
 if (
   existingPartner.applicationStatus === "Rejected" &&

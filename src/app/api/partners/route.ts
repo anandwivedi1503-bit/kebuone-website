@@ -154,15 +154,31 @@ export async function GET(req: Request) {
     if (gate.error) return gate.error;
 
     await connectDB();
+    const url = new URL(req.url);
+    const type = url.searchParams.get("type")?.trim() || "";
+    const q = url.searchParams.get("q")?.trim() || "";
     const query = parseListQuery(req);
 
+    const filter: Record<string, unknown> = {};
+    if (type) filter.partnerType = type;
+    if (q) {
+      filter.$or = [
+        { fullName: { $regex: q, $options: "i" } },
+        { phone: { $regex: q, $options: "i" } },
+        { email: { $regex: q, $options: "i" } },
+        { city: { $regex: q, $options: "i" } },
+        { organizationName: { $regex: q, $options: "i" } },
+        { partnerType: { $regex: q, $options: "i" } },
+      ];
+    }
+
     const [partners, total] = await Promise.all([
-      Partner.find()
+      Partner.find(filter)
         .sort({ createdAt: -1 })
         .skip(query.skip)
         .limit(query.limit)
         .lean(),
-      Partner.countDocuments(),
+      Partner.countDocuments(filter),
     ]);
 
     return NextResponse.json({
