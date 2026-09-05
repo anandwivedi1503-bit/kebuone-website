@@ -1,4 +1,5 @@
 import { BRAND, SCOOTER_FRAME, SCOOTER_IMG } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const places = [
   {
@@ -42,7 +43,7 @@ export default function HomePlaces() {
         {places.map((place) => (
           <figure key={place.title} className="overflow-hidden bg-[#1C1917]">
             <div className={`aspect-[3/2] ${SCOOTER_FRAME}`}>
-              <img src={place.src} alt={place.alt} className={SCOOTER_IMG} />
+              <HomeImg src={place.src} alt={place.alt} className={SCOOTER_IMG} />
             </div>
             <figcaption className="bg-[#1C1917] px-5 py-5 text-white">
               <p className="text-[11px] uppercase tracking-[0.2em] text-white/70">{place.kicker}</p>

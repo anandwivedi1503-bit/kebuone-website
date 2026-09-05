@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { BatteryCharging, Gauge, MapPinned, Zap } from "lucide-react";
 import ServiceCard from "../ServiceCard/ServiceCard";
+import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 import { BRAND } from "@/lib/brandMedia";
 
 const specs = [

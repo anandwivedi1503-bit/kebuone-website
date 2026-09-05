@@ -1,17 +1,44 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
 
 export default function HomeFilm() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [src, setSrc] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) {
+          video.pause();
+          return;
+        }
+        setSrc(BRAND.film);
+        void video.play().catch(() => {});
+      },
+      { rootMargin: "240px" }
+    );
+
+    io.observe(video);
+    return () => io.disconnect();
+  }, []);
+
   return (
     <section className="relative bg-[#1C1917]">
       <div className="relative w-full overflow-hidden">
         <video
-          src={BRAND.film}
-          autoPlay
+          ref={videoRef}
+          src={src}
           muted
           loop
           playsInline
+          preload="none"
           poster={BRAND.filmPoster}
           className="aspect-video w-full object-cover object-top"
         />

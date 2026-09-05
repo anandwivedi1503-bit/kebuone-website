@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { Bike, Briefcase, KeyRound } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const cards = [
   {
@@ -56,7 +57,7 @@ export default function TrustSection() {
                 className="overflow-hidden"
               >
                 <div className="aspect-[16/10] overflow-hidden bg-[#1C1917]">
-                  <img src={card.image} alt="" className="h-full w-full object-cover object-center" />
+                  <HomeImg src={card.image} alt="" className="h-full w-full object-cover object-center" />
                 </div>
                 <Icon size={18} strokeWidth={1.5} className="mt-6 text-[#1F6B4A]" />
                 <h3 className="font-display mt-5 text-2xl font-medium text-[#1C1917]">{card.title}</h3>

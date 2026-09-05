@@ -7,6 +7,7 @@ import { GpsScooterMark } from "../Hero/GpsScooter";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
 import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 type CityMark = {
   name: string;
@@ -446,16 +447,21 @@ export default function EvuddyNetwork() {
           </div>
         </div>
         <div className="relative mt-8 aspect-[3/2] w-full overflow-hidden bg-[#1C1917]">
-          {OPS_SCENES.map((scene, index) => (
-            <img
-              key={scene.src}
-              src={scene.src}
-              alt={scene.alt}
-              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-                index === opsSlide ? "opacity-100" : "opacity-0"
-              }`}
-            />
-          ))}
+          {OPS_SCENES.map((scene, index) => {
+            const prev = (opsSlide + OPS_SCENES.length - 1) % OPS_SCENES.length;
+            const visible = index === opsSlide || (opsSlide !== 0 && index === prev);
+            if (!visible) return null;
+            return (
+              <HomeImg
+                key={scene.src}
+                src={scene.src}
+                alt={scene.alt}
+                className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
+                  index === opsSlide ? "opacity-100" : "opacity-0"
+                }`}
+              />
+            );
+          })}
           <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
             {OPS_SCENES[opsSlide]?.label}
           </p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, KeyRound, MapPinned, Smartphone, Wallet } from "lucide-react";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 export default function HowItWorks() {
   const { catalog } = useHomeCatalog();
@@ -75,7 +76,7 @@ export default function HowItWorks() {
             return (
               <div key={step.n} className="overflow-hidden border-t border-[#E4DDD2] pt-6">
                 <div className="mb-5 aspect-[3/2] overflow-hidden bg-[#F4F0E6]">
-                  <img src={step.image} alt={step.title} className="h-full w-full object-cover object-center" />
+                  <HomeImg src={step.image} alt={step.title} className="h-full w-full object-cover object-center" />
                 </div>
                 <p className="text-[11px] tracking-[0.2em] text-[#8A847A]">{step.n}</p>
                 <Icon size={18} strokeWidth={1.5} className="mt-5 text-[#1F6B4A]" />
@@ -90,7 +91,7 @@ export default function HowItWorks() {
         </div>
 
         <div className="mt-16 grid overflow-hidden sm:grid-cols-[0.48fr_0.52fr]">
-          <img
+          <HomeImg
             src={BRAND.yard}
             alt="EVUDDY hub ready for OTP pickup"
             className="h-auto w-full object-cover object-center sm:h-full sm:min-h-[320px]"

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, HeartHandshake, Leaf, MapPinned, ShieldCheck } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const features = [
   {
@@ -45,7 +46,7 @@ export default function WhyChoose() {
 
         <div className="mt-14 grid items-stretch gap-0 lg:grid-cols-2">
           <div className="overflow-hidden bg-[#1C1917]">
-            <img
+            <HomeImg
               src={BRAND.yard}
               alt="EVUDDY hub with scooters ready for OTP pickup"
               className="block h-auto w-full object-cover object-center lg:h-full lg:min-h-full"
