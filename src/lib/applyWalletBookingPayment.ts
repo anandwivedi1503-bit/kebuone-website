@@ -30,6 +30,38 @@ function generateWalletTransactionId() {
   return `WTX-${crypto.randomUUID().toUpperCase()}`;
 }
 
+async function reverseStandaloneWalletDebit(
+  walletId: mongoose.Types.ObjectId,
+  paidAmount: number,
+  bookingId: string,
+  riderId: string
+) {
+  const restored = await Wallet.findByIdAndUpdate(
+    walletId,
+    {
+      $inc: { balance: paidAmount, totalSpent: -paidAmount },
+    },
+    { new: true }
+  );
+  if (!restored) return;
+  try {
+    await WalletTransaction.create({
+      transactionId: generateWalletTransactionId(),
+      riderId,
+      amount: paidAmount,
+      transactionType: "Refund",
+      paymentMethod: "Wallet",
+      transactionSource: "System",
+      bookingId,
+      balanceAfter: Number(restored.balance || 0),
+      remarks: "Automatic reverse after a conflicting booking payment.",
+      status: "Success",
+    });
+  } catch (error) {
+    console.error("WALLET PAYMENT REVERSE LEDGER ERROR:", error);
+  }
+}
+
 async function rollback(session: mongoose.ClientSession | null) {
   if (!session) return;
   try {
@@ -288,6 +320,9 @@ export async function applyWalletBookingPayment(
 
     if (!updatedBooking) {
       await rollback(session);
+      if (!session) {
+        await reverseStandaloneWalletDebit(wallet._id, paidAmount, booking.bookingId, rider.riderId);
+      }
       return {
         ok: false as const,
         status: 409,
@@ -319,6 +354,9 @@ export async function applyWalletBookingPayment(
 
       if (!updatedVehicle) {
         await rollback(session);
+        if (!session) {
+          await reverseStandaloneWalletDebit(wallet._id, paidAmount, booking.bookingId, rider.riderId);
+        }
         return {
           ok: false as const,
           status: 409,

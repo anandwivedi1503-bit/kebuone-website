@@ -6,6 +6,8 @@ import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
+import iot from "@/models/IoT";
+import Partner from "@/models/Partner";
 
 let started = false;
 
@@ -262,5 +264,21 @@ export async function ensureScaleIndexes() {
         { background: true, name: "ops_wallet_status" }
       ),
     "ops wallet status"
+  );
+  await createIndexSafe(
+    () =>
+      iot.collection.createIndex(
+        { vehicleId: 1 },
+        { unique: true, background: true, name: "unique_iot_vehicle" }
+      ),
+    "iot vehicleId unique"
+  );
+  await createIndexSafe(
+    () =>
+      Partner.collection.createIndex(
+        { phone: 1, partnerType: 1 },
+        { unique: true, background: true, name: "unique_partner_phone_type" }
+      ),
+    "partner phone type"
   );
 }

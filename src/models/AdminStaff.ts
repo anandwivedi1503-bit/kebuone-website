@@ -29,6 +29,10 @@ const AdminStaffSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    hubs: {
+      type: [String],
+      default: [],
+    },
     isActive: {
       type: Boolean,
       default: true,

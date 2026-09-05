@@ -3,6 +3,12 @@ import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
+import {
+  abortOptionalTransaction,
+  commitOptionalTransaction,
+  sessionOpts,
+  startOptionalTransaction,
+} from "@/lib/mongoTransaction";
 
 import Rider from "@/models/Rider";
 import Wallet from "@/models/Wallet";
@@ -229,30 +235,23 @@ export async function POST(req: Request) {
     /*
      * START ATOMIC TRANSACTION
      */
-    session =
-      await mongoose.startSession();
-
-    session.startTransaction();
+    session = await startOptionalTransaction();
 
     /*
      * CHECK FOR PREVIOUSLY COMPLETED OPERATION
      */
-    const existingTransaction =
-      await WalletTransaction.findOne({
-        transactionId,
-      })
-        .select(
-          "transactionId amount"
-        )
-        .session(session)
-        .lean<{
-          transactionId: string;
-          amount: number;
-        } | null>();
+    const existingRechargeQuery = WalletTransaction.findOne({
+      transactionId,
+    }).select("transactionId amount");
+    const existingTransaction = await (
+      session ? existingRechargeQuery.session(session) : existingRechargeQuery
+    ).lean<{
+      transactionId: string;
+      amount: number;
+    } | null>();
 
     if (existingTransaction) {
-      await session.commitTransaction();
-      session.endSession();
+      await commitOptionalTransaction(session);
       session = null;
 
       /*
@@ -321,8 +320,8 @@ export async function POST(req: Request) {
         },
         {
           new: true,
-          session,
           runValidators: true,
+          ...sessionOpts(session),
         }
       );
 
@@ -331,8 +330,7 @@ export async function POST(req: Request) {
      * is blocked, or is deleted.
      */
     if (!wallet) {
-      await session.abortTransaction();
-      session.endSession();
+      await abortOptionalTransaction(session);
       session = null;
 
       return NextResponse.json(
@@ -392,9 +390,7 @@ export async function POST(req: Request) {
             "Admin",
         },
       ],
-      {
-        session,
-      }
+      ...sessionOpts(session),
     );
 
     /*
@@ -403,9 +399,7 @@ export async function POST(req: Request) {
      * If transaction creation fails,
      * wallet balance update is rolled back.
      */
-    await session.commitTransaction();
-
-    session.endSession();
+    await commitOptionalTransaction(session);
     session = null;
 
     return NextResponse.json({
@@ -421,14 +415,8 @@ export async function POST(req: Request) {
     /*
      * ROLLBACK ON FAILURE
      */
-    if (session) {
-      try {
-        await session.abortTransaction();
-      } catch {}
-
-      session.endSession();
-      session = null;
-    }
+    await abortOptionalTransaction(session);
+    session = null;
 
     console.error(
       "WALLET RECHARGE ERROR:",

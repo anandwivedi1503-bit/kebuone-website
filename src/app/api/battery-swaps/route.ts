@@ -5,6 +5,13 @@ import { requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import {
+  abortOptionalTransaction,
+  commitOptionalTransaction,
+  isMongoTransactionUnsupported,
+  sessionOpts,
+  startOptionalTransaction,
+} from "@/lib/mongoTransaction";
+import {
   applyHubScope,
   hubForbiddenResponse,
   sessionHubScope,
@@ -15,14 +22,6 @@ import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
 import Booking from "@/models/Booking";
 import Vehicle from "@/models/Vehicle";
-
-async function rollback(session: mongoose.ClientSession | null) {
-  if (!session) return;
-  try {
-    await session.abortTransaction();
-  } catch {}
-  await session.endSession();
-}
 
 export async function GET() {
   try {
@@ -42,11 +41,14 @@ export async function GET() {
       success: true,
       data: swaps,
     });
-  } catch (error) {
-    return NextResponse.json({
-      success: false,
-      error,
-    });
+  } catch {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to fetch battery swaps.",
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -171,8 +173,7 @@ export async function POST(req: Request) {
       }).sort({ updatedAt: -1 });
     }
 
-    session = await mongoose.startSession();
-    session.startTransaction();
+    session = await startOptionalTransaction();
 
     const riderId = String(
       body.riderId || booking?.riderId || vehicle.currentRiderId || vehicle.assignedRider || ""
@@ -204,7 +205,7 @@ export async function POST(req: Request) {
           status: "COMPLETED",
         },
       ],
-      { session }
+      sessionOpts(session)
     );
     const swap = swapDocs[0];
 
@@ -219,7 +220,7 @@ export async function POST(req: Request) {
             lastSwappedAt: now,
           },
         },
-        { session }
+        { ...sessionOpts(session) }
       );
     }
 
@@ -234,7 +235,7 @@ export async function POST(req: Request) {
         },
         $inc: { cycleCount: 1 },
       },
-      { session }
+      sessionOpts(session)
     );
 
     const keepRideStatus = ["Booked", "Ready For Pickup", "In Ride"].includes(
@@ -256,16 +257,15 @@ export async function POST(req: Request) {
           vehicleStatus: nextVehicleStatus,
         },
       },
-      { session }
+      sessionOpts(session)
     );
 
     if (booking) {
       booking.batteryPercentage = chargeIn;
-      await booking.save({ session });
+      await booking.save(sessionOpts(session));
     }
 
-    await session.commitTransaction();
-    await session.endSession();
+    await commitOptionalTransaction(session);
     session = null;
 
     void writeAudit({
@@ -282,10 +282,23 @@ export async function POST(req: Request) {
       data: swap,
     });
   } catch (error) {
-    await rollback(session);
-    return NextResponse.json({
-      success: false,
-      error,
-    });
+    await abortOptionalTransaction(session);
+    session = null;
+    if (isMongoTransactionUnsupported(error)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Battery swap needs a replica-set database or a retry without transactions.",
+        },
+        { status: 503 }
+      );
+    }
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to record battery swap.",
+      },
+      { status: 500 }
+    );
   }
 }

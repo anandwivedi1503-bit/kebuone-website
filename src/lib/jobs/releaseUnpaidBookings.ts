@@ -1,6 +1,11 @@
-import mongoose from "mongoose";
-
 import { recordJobHeartbeat } from "@/lib/jobHeartbeat";
+import {
+  abortOptionalTransaction,
+  commitOptionalTransaction,
+  isMongoTransactionUnsupported,
+  sessionOpts,
+  startOptionalTransaction,
+} from "@/lib/mongoTransaction";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
@@ -30,27 +35,27 @@ export async function releaseUnpaidBookings(limit = 50) {
   let released = 0;
 
   for (const row of stale) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const session = await startOptionalTransaction();
 
     try {
-      const booking = await Booking.findOne({
+      const bookingQuery = Booking.findOne({
         bookingId: row.bookingId,
         paymentStatus: "Pending",
         receivedAmount: { $lte: 0 },
         rideStatus: { $in: ["Booked", "Reserved", "Payment Pending"] },
         ...NOT_DELETED,
-      }).session(session);
+      });
+      const booking = session ? await bookingQuery.session(session) : await bookingQuery;
 
       if (!booking) {
-        await session.abortTransaction();
-        session.endSession();
+        await abortOptionalTransaction(session);
         continue;
       }
 
-      const vehicle = await Vehicle.findOne({
+      const vehicleQuery = Vehicle.findOne({
         vehicleId: booking.vehicleId,
-      }).session(session);
+      });
+      const vehicle = session ? await vehicleQuery.session(session) : await vehicleQuery;
 
       if (vehicle && vehicle.currentBookingId === booking.bookingId) {
         await Vehicle.updateOne(
@@ -67,7 +72,7 @@ export async function releaseUnpaidBookings(limit = 50) {
               lockStatus: "Locked",
             },
           },
-          { session }
+          sessionOpts(session)
         );
       }
 
@@ -84,7 +89,7 @@ export async function releaseUnpaidBookings(limit = 50) {
             updatedBy: "System",
           },
         },
-        { session }
+        sessionOpts(session)
       );
 
       booking.rideStatus = "Cancelled";
@@ -93,16 +98,15 @@ export async function releaseUnpaidBookings(limit = 50) {
       booking.pickupOTP = "";
       booking.pickupOTPExpiry = null;
       booking.updatedBy = "System";
-      await booking.save({ session });
+      await booking.save(sessionOpts(session));
 
-      await session.commitTransaction();
-      session.endSession();
+      await commitOptionalTransaction(session);
       released += 1;
     } catch (error) {
-      try {
-        await session.abortTransaction();
-      } catch {}
-      session.endSession();
+      await abortOptionalTransaction(session);
+      if (isMongoTransactionUnsupported(error)) {
+        console.error("RELEASE UNPAID BOOKING STANDALONE FALLBACK:", row.bookingId);
+      }
       console.error("RELEASE UNPAID BOOKING ERROR:", row.bookingId, error);
     }
   }

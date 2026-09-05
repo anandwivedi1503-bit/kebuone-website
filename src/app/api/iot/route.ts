@@ -61,13 +61,18 @@ export async function GET() {
     const latestAlerts = vehicleIds.length
       ? await iot
           .find({ vehicleId: { $in: vehicleIds } })
-          .select("vehicleId alertType")
+          .select("vehicleId alertType updatedAt")
+          .sort({ updatedAt: -1 })
           .lean()
       : [];
 
-    const alertByVehicle = new Map(
-      latestAlerts.map((item) => [item.vehicleId, item.alertType || ""])
-    );
+    const alertByVehicle = new Map<string, string>();
+    for (const item of latestAlerts) {
+      const id = String(item.vehicleId || "");
+      if (id && !alertByVehicle.has(id)) {
+        alertByVehicle.set(id, item.alertType || "");
+      }
+    }
 
     const iotData = vehicles.map((vehicle) => ({
       _id: vehicle._id,
