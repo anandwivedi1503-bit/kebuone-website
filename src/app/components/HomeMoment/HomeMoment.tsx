@@ -28,7 +28,7 @@ export default function HomeMoment() {
           <img
             src={BRAND.cityCommute}
             alt="EVUDDY scooter on a city road"
-            className="block h-auto w-full object-cover object-center"
+            className="block h-auto w-full"
           />
         </div>
       </div>

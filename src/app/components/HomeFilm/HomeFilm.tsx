@@ -12,8 +12,8 @@ export default function HomeFilm() {
           muted
           loop
           playsInline
-          poster={BRAND.cityCommute}
-          className="h-[min(68vh,640px)] w-full object-cover object-center"
+          poster={BRAND.filmPoster}
+          className="aspect-video h-auto w-full object-cover object-top"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#1C1917] via-[#1C1917]/40 to-transparent" />
         <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-10 pt-28 sm:px-8 sm:pb-14 lg:px-12">
