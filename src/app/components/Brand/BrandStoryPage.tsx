@@ -297,7 +297,7 @@ export function BrandSplit({
           <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
           <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
         </div>
-        <MediaFrame fit={video ? "video" : "video"} src={image}>
+        <MediaFrame fit="video" src={image}>
           {video || mediaFit === "video" ? (
             <MediaVideo src={image} />
           ) : (
@@ -327,7 +327,6 @@ export function BrandMosaic({
         </p>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {photos.map((photo, index) => {
-            const mediaFit = photo.fit ?? (index === 0 ? "wide" : fitForSrc(photo.src));
             const span = index === 0 ? "sm:col-span-2 lg:col-span-3" : "";
             return (
               <MediaFrame
