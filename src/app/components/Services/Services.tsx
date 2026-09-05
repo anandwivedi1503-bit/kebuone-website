@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { BatteryCharging, Gauge, MapPinned, Zap } from "lucide-react";
 import ServiceCard from "../ServiceCard/ServiceCard";
-import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
+import { BRAND } from "@/lib/brandMedia";
 
 const specs = [
   { value: "120", label: "KM range", icon: BatteryCharging, color: "text-[#18B368]" },
@@ -57,7 +57,7 @@ export default function Services() {
             tags={["120 KM Range", product.batteryType, product.gpsLive ? "GPS live" : "GPS Enabled", "Zero Emissions"]}
             title={model}
             description="Designed for effortless daily commuting with smart technology, long battery life, and a premium riding experience."
-            images={["/brand/scene-city-commute.png", "/new-vehicle.jpeg", "/brand/scene-after-work.png", "/brand/indian-city-road.png"]}
+            images={[BRAND.cityCommute, "/new-vehicle.jpeg", "/brand/scene-after-work.png", BRAND.city]}
             link="/ride-options"
           />
         </motion.div>
