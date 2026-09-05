@@ -42,11 +42,11 @@ export default function DealerNetwork({ showApply = true }: Props) {
 
         <div id="dealer-roles" className="mt-12 grid scroll-mt-36 gap-px bg-[#E4DDD2] sm:scroll-mt-44 lg:grid-cols-2">
           <article className="bg-[#FBF9F5] p-8 sm:p-10">
-            <div className="mb-8 aspect-[16/10] overflow-hidden">
+            <div className="mb-8 overflow-hidden bg-[#EDE8DF]">
               <img
                 src={BRAND.dealer}
                 alt="EVUDDY dealer showroom with yellow scooters and riders"
-                className="h-full w-full object-cover object-center"
+                className="block h-auto w-full"
               />
             </div>
             <Store size={20} strokeWidth={1.5} className="text-[#1F6B4A]" />
@@ -88,11 +88,11 @@ export default function DealerNetwork({ showApply = true }: Props) {
           </article>
 
           <article className="bg-[#FBF9F5] p-8 sm:p-10">
-            <div className="mb-8 aspect-[16/10] overflow-hidden">
+            <div className="mb-8 overflow-hidden bg-[#EDE8DF]">
               <img
                 src={BRAND.distributor}
                 alt="EVUDDY distributor loading bay supplying scooters to dealers"
-                className="h-full w-full object-cover object-center"
+                className="block h-auto w-full"
               />
             </div>
             <Network size={20} strokeWidth={1.5} className="text-[#1F6B4A]" />

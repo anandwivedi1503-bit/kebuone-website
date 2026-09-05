@@ -1,6 +1,7 @@
 /** Official EVUDDY yellow/teal scooter stills — never the pink bike or Kebu mascot. */
 export const BRAND = {
   film: "/brand/evuddy-ride.mp4",
+  filmPoster: "/brand/scene-film-poster.png",
   rider: "/new-vehicle.jpeg",
   city: "/brand/indian-city-road.png",
   cityCommute: "/brand/scene-city-front.png",
