@@ -7,6 +7,23 @@ export function isMongoTransactionUnsupported(error: unknown) {
   );
 }
 
+export class MongoReplicaRequiredError extends Error {
+  constructor() {
+    super("MONEY_REPLICA_REQUIRED");
+    this.name = "MongoReplicaRequiredError";
+  }
+}
+
+export function isMongoReplicaRequiredError(error: unknown) {
+  return (
+    error instanceof MongoReplicaRequiredError ||
+    (error instanceof Error && error.message === "MONEY_REPLICA_REQUIRED")
+  );
+}
+
+export const MONEY_REPLICA_MESSAGE =
+  "Payments need a Mongo replica set. No money was taken. Enable replica set, then retry.";
+
 export function sessionOpts(session: mongoose.ClientSession | null | undefined) {
   return session ? { session } : {};
 }
@@ -26,6 +43,13 @@ export async function startOptionalTransaction(): Promise<mongoose.ClientSession
   }
 }
 
+/** Money writes must not continue on standalone Mongo. */
+export async function startRequiredTransaction(): Promise<mongoose.ClientSession> {
+  const session = await startOptionalTransaction();
+  if (!session) throw new MongoReplicaRequiredError();
+  return session;
+}
+
 export async function commitOptionalTransaction(session: mongoose.ClientSession | null) {
   if (!session) return;
   await session.commitTransaction();
@@ -42,9 +66,9 @@ export async function abortOptionalTransaction(session: mongoose.ClientSession |
   } catch {}
 }
 
-/** Replica-set transactions when available; standalone Mongo falls back to sequential writes. */
+/** Replica-set transaction only — never sequential money writes. */
 export async function runMongoTransaction<T>(
-  work: (session: mongoose.ClientSession | null) => Promise<T>
+  work: (session: mongoose.ClientSession) => Promise<T>
 ): Promise<T> {
   const session = await mongoose.startSession();
   try {
@@ -58,7 +82,7 @@ export async function runMongoTransaction<T>(
       return result;
     } catch (error) {
       if (!started && isMongoTransactionUnsupported(error)) {
-        return work(null);
+        throw new MongoReplicaRequiredError();
       }
       throw error;
     }

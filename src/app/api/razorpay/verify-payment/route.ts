@@ -143,9 +143,13 @@ export async function POST(req: Request) {
       phone: rider.phone,
       userPhone: booking.userPhone,
     });
-    if (isAdminRequest && !riderOwns) {
+    if (riderOwns) {
+      /* rider checkout */
+    } else if (isAdminRequest) {
       const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsWrite);
       if (gate.error) return gate.error;
+    } else {
+      return riderPayUnauthorizedResponse();
     }
 
     const razorpay = getRazorpayClient();

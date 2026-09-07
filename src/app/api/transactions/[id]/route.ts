@@ -4,6 +4,7 @@ import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
+import { denyIfBookingOutOfHub, denyIfRiderOutOfHub } from "@/lib/staffHubScope";
 
 const paymentMethods = [
   "Cash",
@@ -70,6 +71,21 @@ export async function GET(
       );
     }
 
+    const bookingBlock = await denyIfBookingOutOfHub(
+      gate.session,
+      String(transaction.bookingId || "")
+    );
+    if (bookingBlock) return bookingBlock;
+    if (!String(transaction.bookingId || "").trim()) {
+      const riderId = String(
+        (transaction as { riderId?: string }).riderId || ""
+      );
+      if (riderId) {
+        const riderBlock = await denyIfRiderOutOfHub(gate.session, riderId);
+        if (riderBlock) return riderBlock;
+      }
+    }
+
     return NextResponse.json({
       success: true,
       data: transaction,
@@ -121,6 +137,12 @@ export async function PATCH(
       );
 
     }
+
+    const bookingBlock = await denyIfBookingOutOfHub(
+      gate.session,
+      String(transaction.bookingId || "")
+    );
+    if (bookingBlock) return bookingBlock;
 
     if (
       body.amount !== undefined &&

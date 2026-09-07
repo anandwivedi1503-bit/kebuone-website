@@ -9,11 +9,11 @@ export async function GET(req: Request) {
     if (!(await rateLimitAllowed(`health:${clientIp(req)}`, 120, 60 * 1000))) {
       return NextResponse.json(
         {
-          success: true,
-          database: true,
-          timestamp: new Date(),
+          success: false,
+          database: false,
+          message: "Too many health checks.",
         },
-        { status: 200 }
+        { status: 429 }
       );
     }
 

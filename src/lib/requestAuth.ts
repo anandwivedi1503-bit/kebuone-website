@@ -1,18 +1,21 @@
 import type { DecodedIdToken } from "firebase-admin/auth";
 import { NextResponse } from "next/server";
 import { adminAuth } from "@/lib/firebaseAdmin";
+import {
+  normalizeIndianPhone,
+} from "@/lib/riderOwnership";
+
+export {
+  firebaseUserOwnsRider,
+  normalizeIndianPhone,
+  type RiderOwnershipRecord,
+} from "@/lib/riderOwnership";
 
 export type VerifiedFirebaseUser = {
   uid: string;
   phone: string;
   rawPhone: string;
   decodedToken: DecodedIdToken;
-};
-
-export type RiderOwnershipRecord = {
-  firebaseUid?: string;
-  phone?: string;
-  userPhone?: string;
 };
 
 export function riderPayUnauthorizedResponse() {
@@ -25,47 +28,6 @@ export function riderPayUnauthorizedResponse() {
     { status: 401 }
   );
 }
-
-/*
- * =========================================================
- * NORMALIZE INDIAN PHONE
- * =========================================================
- */
-
-export function normalizeIndianPhone(
-  value: unknown
-): string {
-  const digits = String(value ?? "").replace(/\D/g, "");
-
-  if (!digits) {
-    return "";
-  }
-
-  if (digits.length === 12 && digits.startsWith("91")) {
-    return digits.slice(2);
-  }
-
-  if (digits.length === 11 && digits.startsWith("0")) {
-    return digits.slice(1);
-  }
-
-  if (digits.length === 10) {
-    return digits;
-  }
-
-  const lastTen = digits.slice(-10);
-  if (/^[6-9]\d{9}$/.test(lastTen)) {
-    return lastTen;
-  }
-
-  return "";
-}
-
-/*
- * =========================================================
- * GET BEARER TOKEN
- * =========================================================
- */
 
 function getBearerToken(
   req: Request
@@ -158,61 +120,6 @@ export async function getVerifiedFirebaseUser(
     return null;
   }
 }
-
-/*
- * =========================================================
- * RIDER OWNERSHIP
- * =========================================================
- */
-
-export function firebaseUserOwnsRider(
-  firebaseUser:
-    | VerifiedFirebaseUser
-    | null,
-  rider:
-    | RiderOwnershipRecord
-    | null
-): boolean {
-  if (
-    !firebaseUser ||
-    !rider
-  ) {
-    return false;
-  }
-
-  /*
-   * Firebase UID is the strongest ownership match.
-   */
-
-  if (
-    firebaseUser.uid &&
-    rider.firebaseUid &&
-    firebaseUser.uid ===
-      rider.firebaseUid
-  ) {
-    return true;
-  }
-
-  /*
-   * Verified Firebase phone is the
-   * fallback ownership match.
-   */
-
-  const firebasePhone = normalizeIndianPhone(firebaseUser.phone);
-  const riderPhones = [rider.phone, rider.userPhone]
-    .map((value) => normalizeIndianPhone(value))
-    .filter(Boolean);
-
-  return Boolean(
-    firebasePhone && riderPhones.includes(firebasePhone)
-  );
-}
-
-/*
- * =========================================================
- * REGISTRATION PHONE MATCH
- * =========================================================
- */
 
 export function firebasePhoneMatches(
   firebaseUser:

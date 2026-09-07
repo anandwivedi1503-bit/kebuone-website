@@ -5,6 +5,7 @@ import { API_DASHBOARDS } from "@/lib/adminCan";
 import { connectDB } from "@/lib/mongodb";
 import { writeAudit } from "@/lib/writeAudit";
 import Transaction from "@/models/Transaction";
+import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 
 export async function POST(req: Request) {
   try {
@@ -26,6 +27,27 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    const existing = await Transaction.findOne({
+      transactionId,
+      paymentMethod: "Cash",
+      status: "Success",
+      $or: [
+        { cashHandoverStatus: "DueToCompany" },
+        { cashHandoverStatus: { $exists: false } },
+        { cashHandoverStatus: "None" },
+      ],
+    }).select("bookingId");
+
+    if (!existing) {
+      return NextResponse.json(
+        { success: false, message: "Cash receipt not found or already handed over." },
+        { status: 404 }
+      );
+    }
+
+    const hubBlock = await denyIfBookingOutOfHub(session, String(existing.bookingId || ""));
+    if (hubBlock) return hubBlock;
 
     const txn = await Transaction.findOneAndUpdate(
       {

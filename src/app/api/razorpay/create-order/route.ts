@@ -17,6 +17,7 @@ import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
+import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 
 function clean(value: unknown) {
   return String(value || "").trim();
@@ -294,6 +295,77 @@ export async function POST(req: Request) {
     const { keyId, checkoutImage, isLive } = loaded.config;
 
     const razorpay = getRazorpayClient();
+
+    const amountPaise = Math.round(amount * 100);
+    const existingOrderId = clean(booking.razorpayOrderId);
+    if (existingOrderId) {
+      try {
+        const existing = (await razorpay.orders.fetch(existingOrderId)) as {
+          id?: string;
+          status?: string;
+          amount?: number;
+          currency?: string;
+        };
+        const payments = (await razorpay.orders.fetchPayments(existingOrderId)) as {
+          items?: Array<{ id?: string; status?: string; amount?: number }>;
+        };
+        const captured = (payments.items || []).find((item) => item.status === "captured");
+        if (captured?.id) {
+          const paidAmount = Number(captured.amount || existing.amount || amountPaise) / 100;
+          const applied = await applyCapturedRazorpayPayment({
+            bookingMongoId,
+            razorpayOrderId: existingOrderId,
+            razorpayPaymentId: String(captured.id),
+            paidAmount,
+          });
+          if (!applied.ok) {
+            return NextResponse.json(
+              { success: false, message: applied.message },
+              { status: applied.status }
+            );
+          }
+          const walletBooking = (applied.booking || {}) as {
+            receivedAmount?: number;
+            paymentDue?: number;
+          };
+          return NextResponse.json({
+            success: true,
+            alreadyCaptured: true,
+            payableAmount,
+            remainingAmount: applied.pendingAmount,
+            pendingAmount: applied.pendingAmount,
+            receivedAmount: Number(walletBooking.receivedAmount || 0),
+            paymentDue: Number(walletBooking.paymentDue || payableAmount),
+            paymentStatus: applied.paymentStatus,
+            pickupOTP: applied.pickupOTP,
+            rideEndOTP: applied.rideEndOTP,
+            booking: applied.booking,
+            data: applied.booking,
+            message: applied.message,
+          });
+        }
+        const status = String(existing.status || "");
+        if (
+          (status === "created" || status === "attempted") &&
+          Number(existing.amount || 0) === amountPaise
+        ) {
+          return NextResponse.json({
+            success: true,
+            keyId,
+            live: isLive,
+            image: checkoutImage,
+            name: "EVUDDY",
+            orderId: existing.id || existingOrderId,
+            amount: existing.amount,
+            currency: existing.currency || "INR",
+            payableAmount,
+            remainingAmount,
+          });
+        }
+      } catch (existingOrderError) {
+        console.error("RAZORPAY EXISTING ORDER LOOKUP:", existingOrderError);
+      }
+    }
 
     const order = await razorpay.orders.create({
       amount: Math.round(amount * 100),
