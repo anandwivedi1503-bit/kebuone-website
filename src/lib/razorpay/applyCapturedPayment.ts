@@ -23,7 +23,11 @@ import {
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { normalizeIndianPhone } from "@/lib/requestAuth";
 import { nextSeqId } from "@/lib/nextSeqId";
-import { runMongoTransaction } from "@/lib/mongoTransaction";
+import {
+  isMongoReplicaRequiredError,
+  MONEY_REPLICA_MESSAGE,
+  runMongoTransaction,
+} from "@/lib/mongoTransaction";
 
 function razorpayIdVariants(value: string) {
   const id = String(value || "").trim();
@@ -90,7 +94,13 @@ export async function applyCapturedRazorpayPayment(
     }
 
     if (booking.razorpayOrderId && booking.razorpayOrderId !== razorpayOrderId) {
-      return { ok: false, status: 400, message: "Booking payment order mismatch." };
+      const otherBooking = await Booking.findOne({
+        razorpayOrderId,
+        _id: { $ne: booking._id },
+      }).select("_id");
+      if (otherBooking) {
+        return { ok: false, status: 400, message: "Booking payment order mismatch." };
+      }
     }
 
     const rider = await findBookingRider(booking);
@@ -197,7 +207,7 @@ export async function applyCapturedRazorpayPayment(
     let updatedBooking: typeof booking | null = null;
     try {
       updatedBooking = await runMongoTransaction(async (mongoSession) => {
-        const sessionOpt = mongoSession ? { session: mongoSession } : {};
+        const sessionOpt = { session: mongoSession };
         if (!existingTransaction) {
           try {
             const row = {
@@ -223,11 +233,7 @@ export async function applyCapturedRazorpayPayment(
                   ? `RTO daily receipt · day ${Number(booking.rtoInstallmentsPaid || 0) + 1}`
                   : "",
             };
-            if (mongoSession) {
-              await Transaction.create([row], { session: mongoSession });
-            } else {
-              await Transaction.create(row);
-            }
+            await Transaction.create([row], { session: mongoSession });
           } catch (error) {
             if (!isDuplicateKeyError(error)) throw error;
           }
@@ -318,6 +324,9 @@ export async function applyCapturedRazorpayPayment(
           message:
             "This booking was updated by another payment. Do not charge again until Book EV refreshes.",
         };
+      }
+      if (isMongoReplicaRequiredError(error)) {
+        return { ok: false, status: 503, message: MONEY_REPLICA_MESSAGE };
       }
       throw error;
     }

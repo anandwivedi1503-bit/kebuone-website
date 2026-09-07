@@ -344,7 +344,12 @@ export async function applyStaffBookingPayment(
   } catch (error) {
     await rollback(session);
     if (useTxn && isMongoTransactionUnsupported(error)) {
-      return applyStaffBookingPayment(input, false);
+      return {
+        ok: false as const,
+        status: 503,
+        message:
+          "Payments need a Mongo replica set. No money was taken. Enable replica set, then retry.",
+      };
     }
     console.error("CASH BOOKING PAYMENT ERROR:", error);
     return { ok: false as const, status: 500, message: "Cash payment failed." };

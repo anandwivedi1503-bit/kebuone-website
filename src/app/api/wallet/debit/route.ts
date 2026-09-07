@@ -6,9 +6,11 @@ import { connectDB } from "@/lib/mongodb";
 import {
   abortOptionalTransaction,
   commitOptionalTransaction,
+  isMongoReplicaRequiredError,
   isMongoTransactionUnsupported,
+  MONEY_REPLICA_MESSAGE,
   sessionOpts,
-  startOptionalTransaction,
+  startRequiredTransaction,
 } from "@/lib/mongoTransaction";
 
 import Wallet from "@/models/Wallet";
@@ -193,7 +195,7 @@ export async function POST(req: Request) {
     /*
      * START ATOMIC TRANSACTION
      */
-    session = await startOptionalTransaction();
+    session = await startRequiredTransaction();
 
     /*
      * CHECK WHETHER THIS DEBIT
@@ -381,11 +383,11 @@ export async function POST(req: Request) {
       error
     );
 
-    if (isMongoTransactionUnsupported(error)) {
+    if (isMongoReplicaRequiredError(error) || isMongoTransactionUnsupported(error)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Wallet debit could not start a database transaction. Retry once.",
+          message: MONEY_REPLICA_MESSAGE,
         },
         { status: 503 }
       );

@@ -6,8 +6,10 @@ import { connectDB } from "@/lib/mongodb";
 import {
   abortOptionalTransaction,
   commitOptionalTransaction,
+  isMongoReplicaRequiredError,
+  MONEY_REPLICA_MESSAGE,
   sessionOpts,
-  startOptionalTransaction,
+  startRequiredTransaction,
 } from "@/lib/mongoTransaction";
 
 import Rider from "@/models/Rider";
@@ -235,7 +237,7 @@ export async function POST(req: Request) {
     /*
      * START ATOMIC TRANSACTION
      */
-    session = await startOptionalTransaction();
+    session = await startRequiredTransaction();
 
     /*
      * CHECK FOR PREVIOUSLY COMPLETED OPERATION
@@ -417,6 +419,13 @@ export async function POST(req: Request) {
      */
     await abortOptionalTransaction(session);
     session = null;
+
+    if (isMongoReplicaRequiredError(error)) {
+      return NextResponse.json(
+        { success: false, message: MONEY_REPLICA_MESSAGE },
+        { status: 503 }
+      );
+    }
 
     console.error(
       "WALLET RECHARGE ERROR:",

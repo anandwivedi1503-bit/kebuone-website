@@ -451,7 +451,12 @@ export async function applyWalletBookingPayment(
   } catch (error) {
     await rollback(session);
     if (useTxn && isMongoTransactionUnsupported(error)) {
-      return applyWalletBookingPayment(input, false);
+      return {
+        ok: false as const,
+        status: 503,
+        message:
+          "Payments need a Mongo replica set. No money was taken. Enable replica set, then retry.",
+      };
     }
     console.error("WALLET BOOKING PAYMENT ERROR:", error);
     return { ok: false as const, status: 500, message: "Wallet payment failed." };

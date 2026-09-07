@@ -23,6 +23,7 @@ import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
+import { denyIfRiderOutOfHub } from "@/lib/staffHubScope";
 
 import {
   ensureRiderWallet,
@@ -226,8 +227,9 @@ export async function GET(
      * the admin session cookie.
      */
 
+    const adminSession = await getAdminSession();
     const isAdmin = sessionHasAnyDashboard(
-      await getAdminSession(),
+      adminSession,
       ...API_DASHBOARDS.ridersRead
     );
 
@@ -250,6 +252,12 @@ export async function GET(
       ) {
         return unauthorizedResponse();
       }
+    } else {
+      const hubBlock = await denyIfRiderOutOfHub(
+        adminSession,
+        String((rider as RiderForResponse).riderId || "")
+      );
+      if (hubBlock) return hubBlock;
     }
 
     /*
@@ -628,6 +636,9 @@ export async function PATCH(
         }
       );
     }
+
+    const hubBlock = await denyIfRiderOutOfHub(gate.session, rider.riderId);
+    if (hubBlock) return hubBlock;
 
     /* =====================================================
        SOFT-DELETED RIDER

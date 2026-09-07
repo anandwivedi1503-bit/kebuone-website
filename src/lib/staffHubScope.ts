@@ -13,11 +13,10 @@ export function normalizeHubCodes(value: unknown): string[] {
   );
 }
 
-/** null = unrestricted (super admin, or staff with no hub list yet). */
+/** null = unrestricted super. Staff with no hubs get [] (see nothing). */
 export function sessionHubScope(session: AdminSessionInfo | null): string[] | null {
   if (!session || session.role === "super") return null;
-  const hubs = normalizeHubCodes(session.hubs);
-  return hubs.length ? hubs : null;
+  return normalizeHubCodes(session.hubs);
 }
 
 export function applyHubScope(
@@ -25,7 +24,11 @@ export function applyHubScope(
   hubs: string[] | null,
   fields: string[]
 ) {
-  if (!hubs?.length || fields.length === 0) return filter;
+  if (hubs === null || fields.length === 0) return filter;
+  if (hubs.length === 0) {
+    filter.$and = [...((filter.$and as unknown[]) || []), { _id: { $in: [] } }];
+    return filter;
+  }
   const match =
     fields.length === 1
       ? { [fields[0]]: { $in: hubs } }
@@ -46,7 +49,8 @@ export function staffCanAccessBooking(
   booking: { currentHub?: unknown; startHub?: unknown }
 ) {
   const hubs = sessionHubScope(session);
-  if (!hubs) return true;
+  if (hubs === null) return true;
+  if (!hubs.length) return false;
   const codes = bookingHubs(booking);
   if (codes.length === 0) return false;
   return codes.some((code) => hubs.includes(code));
@@ -67,7 +71,8 @@ export async function riderInSessionScope(
   riderId?: string
 ) {
   const hubs = sessionHubScope(session);
-  if (!hubs) return true;
+  if (hubs === null) return true;
+  if (!hubs.length) return false;
   const id = String(riderId || "").trim().toUpperCase();
   if (!id) return false;
   const atAssignedHub = await Booking.exists(
@@ -104,7 +109,8 @@ export async function denyIfBookingOutOfHub(
   bookingId?: string
 ) {
   const hubs = sessionHubScope(session);
-  if (!hubs) return null;
+  if (hubs === null) return null;
+  if (!hubs.length) return hubForbiddenResponse();
   const id = String(bookingId || "").trim();
   if (!id) return null;
   const booking = (await Booking.findOne({ bookingId: id })
@@ -117,7 +123,8 @@ export async function denyIfBookingOutOfHub(
 
 export async function scopedBookingIds(session: AdminSessionInfo | null) {
   const hubs = sessionHubScope(session);
-  if (!hubs) return null;
+  if (hubs === null) return null;
+  if (!hubs.length) return [];
   const ids = await Booking.distinct(
     "bookingId",
     applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub", "startHub"])
@@ -127,7 +134,8 @@ export async function scopedBookingIds(session: AdminSessionInfo | null) {
 
 export async function scopedRiderIds(session: AdminSessionInfo | null) {
   const hubs = sessionHubScope(session);
-  if (!hubs) return null;
+  if (hubs === null) return null;
+  if (!hubs.length) return [];
   const ids = await Booking.distinct(
     "riderId",
     applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub", "startHub"])

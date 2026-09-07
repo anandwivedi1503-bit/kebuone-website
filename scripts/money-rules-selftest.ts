@@ -10,6 +10,7 @@ import {
 } from "../src/lib/rtoInstallmentCycle";
 import { totpCode, totpMatches } from "../src/lib/totp";
 import { redactOpsText } from "../src/lib/redactOpsPii";
+import { firebaseUserOwnsRider } from "../src/lib/riderOwnership";
 import { sessionHubScope, staffCanAccessBooking } from "../src/lib/staffHubScope";
 import { providedSecretMatches } from "../src/lib/timingSafe";
 
@@ -77,9 +78,16 @@ assert.equal(
   sessionHubScope({ role: "super", username: "superadmin", dashboards: [] }),
   null
 );
-assert.equal(
+assert.deepEqual(
   sessionHubScope({ role: "staff", username: "yard", dashboards: ["bookings"] }),
-  null
+  []
+);
+assert.equal(
+  staffCanAccessBooking(
+    { role: "staff", username: "yard", dashboards: ["bookings"] },
+    { currentHub: "NOIDA-01" }
+  ),
+  false
 );
 assert.deepEqual(
   sessionHubScope({
@@ -133,5 +141,27 @@ assert.ok(unpaidFilter.$and?.[0]?.$or);
 assert.equal(providedSecretMatches("cron-secret-value", "cron-secret-value"), true);
 assert.equal(providedSecretMatches("cron-secret-value", "other"), false);
 assert.equal(providedSecretMatches("", ""), false);
+
+assert.equal(
+  firebaseUserOwnsRider(
+    { uid: "uid-a", phone: "9876543210" },
+    { firebaseUid: "uid-a", phone: "9876543210" }
+  ),
+  true
+);
+assert.equal(
+  firebaseUserOwnsRider(
+    { uid: "uid-b", phone: "9876543210" },
+    { firebaseUid: "uid-a", phone: "9876543210" }
+  ),
+  false
+);
+assert.equal(
+  firebaseUserOwnsRider(
+    { uid: "uid-b", phone: "9876543210" },
+    { phone: "9876543210" }
+  ),
+  true
+);
 
 console.log("money-rules self-test ok");
