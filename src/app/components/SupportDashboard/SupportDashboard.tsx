@@ -15,6 +15,8 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 export default function SupportDashboard(){
 
 const [tickets,setTickets]=useState<any[]>([]);
+const [ticketPages,setTicketPages]=useState(1);
+const [hasMoreTickets,setHasMoreTickets]=useState(false);
 const [refunds,setRefunds]=useState<any[]>([]);
 const [selectedTicket,setSelectedTicket]=useState<any>(null);
 const [editingTicket,setEditingTicket]=useState<any>(null);
@@ -32,15 +34,24 @@ const queueTickets = tickets.filter((ticket) =>
   ticketQueue === "website" ? isWebsiteEnquiry(ticket) : !isWebsiteEnquiry(ticket)
 );
 
+const fetchTickets = async (pages = ticketPages) => {
+  const ticketRes = await fetch(
+    `/api/tickets?limit=${Math.min(500, 80 * pages)}&page=1`,
+    { cache: "no-store" }
+  );
+  const ticketData = await ticketRes.json();
+  setTickets(ticketData.data || []);
+  setHasMoreTickets(Boolean(ticketData.pagination?.hasMore));
+  return ticketData.data || [];
+};
+
 useEffect(() => {
 
 const loadData = async () => {
 
-const ticketRes = await fetch("/api/tickets?limit=80");
-const ticketData = await ticketRes.json();
-setTickets(ticketData.data || []);
+await fetchTickets();
 
-const refundRes = await fetch("/api/refunds");
+const refundRes = await fetch("/api/refunds?limit=200");
 const refundData = await refundRes.json();
 setRefunds(refundData.data || []);
 
@@ -52,7 +63,7 @@ const timer = setInterval(loadData,10000);
 
 return ()=>clearInterval(timer);
 
-},[]);
+},[ticketPages]);
 
 const saveTicket = async () => {
 
@@ -73,17 +84,13 @@ const data = await res.json();
 
 if (data.success) {
 
-  const ticketRes = await fetch("/api/tickets?limit=80");
+  const latest = await fetchTickets();
 
-  const ticketData = await ticketRes.json();
-
-  setTickets(ticketData.data || []);
-
-  const latest = (ticketData.data || []).find(
+  const found = latest.find(
     (t: any) => t._id === editingTicket._id
   );
 
-  setSelectedTicket(latest || null);
+  setSelectedTicket(found || null);
 
   setShowEditModal(false);
 
@@ -571,20 +578,17 @@ status:e.target.value
 
 });
 
- const ticketRes = await fetch("/api/tickets?limit=80");
-const ticketData = await ticketRes.json();
-
-setTickets(ticketData.data || []);
+ const latest = await fetchTickets();
 
 if (
   selectedTicket &&
   selectedTicket._id === ticket._id
 ) {
-  const latest = (ticketData.data || []).find(
+  const found = latest.find(
     (t: any) => t._id === ticket._id
   );
 
-  setSelectedTicket(latest || null);
+  setSelectedTicket(found || null);
 }
 
 }}
@@ -647,10 +651,7 @@ await fetch(`/api/tickets/${ticket._id}`,{
 method:"DELETE",
 });
 
-const ticketRes = await fetch("/api/tickets?limit=80");
-const ticketData = await ticketRes.json();
-
-setTickets(ticketData.data || []);
+const latest = await fetchTickets();
 
 if (selectedTicket?._id === ticket._id) {
   setSelectedTicket(null);
@@ -688,6 +689,18 @@ Delete
 </table>
 
 </div>
+
+{hasMoreTickets ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setTicketPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
 
 </DashboardCard>
 

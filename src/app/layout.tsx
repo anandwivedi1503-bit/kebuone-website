@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
-import EvuddyAssistant from "./components/EvuddyAssistant/EvuddyAssistant";
+import EvuddyAssistantGate from "./components/EvuddyAssistant/EvuddyAssistantGate";
 
 const display = Cormorant_Garamond({
   variable: "--font-display",
@@ -51,7 +51,7 @@ export default function RootLayout({
 >
       <body className={`${display.variable} ${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} min-h-full flex flex-col font-sans`}>
         {children}
-        <EvuddyAssistant />
+        <EvuddyAssistantGate />
       </body>
     </html>
   );

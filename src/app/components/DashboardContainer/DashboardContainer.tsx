@@ -1,34 +1,107 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 
 import DashboardSidebar from "../DashboardSidebar/DashboardSidebar";
 import "../DashboardUI/ops-shell.css";
-
-import AdminDashboard from "../AdminDashboard/AdminDashboard";
-import FleetDashboard from "../FleetDashboard/FleetDashboard";
-import HubDashboard from "../HubDashboard/HubDashboard";
-import BatteryDashboard from "../BatteryDashboard/BatteryDashboard";
-import BatterySwapDashboard from "../BatterySwapDashboard/BatterySwapDashboard";
-import IoTDashboard from "../IoTDashboard/IoTDashboard";
-import RevenueDashboard from "../RevenueDashboard/RevenueDashboard";
-import WalletDashboard from "../WalletDashboard/WalletDashboard";
-import PartnerDashboard from "../PartnerDashboard/PartnerDashboard";
-import SupportDashboard from "../SupportDashboard/SupportDashboard";
-import KYCDashboard from "../KYCDashboard/KYCDashboard";
-import UserManagement from "../UserManagement/UserManagement";
-import VehicleManagement from "../VehicleManagement/VehicleManagement";
-import HubManagement from "../HubManagement/HubManagement";
-import CityManagement from "../CityManagement/CityManagement";
-import BookingDashboard from "../BookingDashboard/BookingDashboard";
-import TransactionDashboard from "../TransactionDashboard/TransactionDashboard";
-import AnalyticsDashboard from "../AnalyticsDashboard/AnalyticsDashboard";
-import RefundDashboard from "../RefundDashboard/RefundDashboard";
-import RentToOwnDashboard from "../RentToOwnDashboard/RentToOwnDashboard";
-import AuditLogsDashboard from "../AuditLogsDashboard/AuditLogsDashboard";
-import TeamAccess from "../TeamAccess/TeamAccess";
-import OpsAssistant from "../OpsAssistant/OpsAssistant";
 import { ALL_DASHBOARDS } from "@/lib/adminRoles";
+
+const deskFallback = (
+  <p className="rounded-3xl bg-white p-8 text-slate-600">Loading desk…</p>
+);
+
+const AdminDashboard = dynamic(() => import("../AdminDashboard/AdminDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const FleetDashboard = dynamic(() => import("../FleetDashboard/FleetDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const HubDashboard = dynamic(() => import("../HubDashboard/HubDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const BatteryDashboard = dynamic(() => import("../BatteryDashboard/BatteryDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const BatterySwapDashboard = dynamic(
+  () => import("../BatterySwapDashboard/BatterySwapDashboard"),
+  { ssr: false, loading: () => deskFallback }
+);
+const IoTDashboard = dynamic(() => import("../IoTDashboard/IoTDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const RevenueDashboard = dynamic(() => import("../RevenueDashboard/RevenueDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const WalletDashboard = dynamic(() => import("../WalletDashboard/WalletDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const PartnerDashboard = dynamic(() => import("../PartnerDashboard/PartnerDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const SupportDashboard = dynamic(() => import("../SupportDashboard/SupportDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const KYCDashboard = dynamic(() => import("../KYCDashboard/KYCDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const UserManagement = dynamic(() => import("../UserManagement/UserManagement"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const VehicleManagement = dynamic(() => import("../VehicleManagement/VehicleManagement"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const HubManagement = dynamic(() => import("../HubManagement/HubManagement"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const CityManagement = dynamic(() => import("../CityManagement/CityManagement"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const BookingDashboard = dynamic(() => import("../BookingDashboard/BookingDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const TransactionDashboard = dynamic(
+  () => import("../TransactionDashboard/TransactionDashboard"),
+  { ssr: false, loading: () => deskFallback }
+);
+const AnalyticsDashboard = dynamic(
+  () => import("../AnalyticsDashboard/AnalyticsDashboard"),
+  { ssr: false, loading: () => deskFallback }
+);
+const RefundDashboard = dynamic(() => import("../RefundDashboard/RefundDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const RentToOwnDashboard = dynamic(
+  () => import("../RentToOwnDashboard/RentToOwnDashboard"),
+  { ssr: false, loading: () => deskFallback }
+);
+const AuditLogsDashboard = dynamic(
+  () => import("../AuditLogsDashboard/AuditLogsDashboard"),
+  { ssr: false, loading: () => deskFallback }
+);
+const TeamAccess = dynamic(() => import("../TeamAccess/TeamAccess"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
+const OpsAssistant = dynamic(() => import("../OpsAssistant/OpsAssistant"), {
+  ssr: false,
+});
 
 type SessionInfo = {
   role: "super" | "staff";

@@ -25,18 +25,21 @@ const [statusFilter, setStatusFilter] = useState("ALL");
 const [paymentFilter, setPaymentFilter] = useState("ALL");
 const [dateFilter,setDateFilter] = useState("ALL");
 
+const [listPages, setListPages] = useState(1);
+const [hasMoreRevenue, setHasMoreRevenue] = useState(false);
 const [selectedTransaction, setSelectedTransaction] =
   useState<any | null>(null);
 
 const fetchRevenue = async () => {
 
   try {
+    const limit = Math.min(500, 80 * listPages);
 
     const [transactionRes, refundRes, walletRes] =
       await Promise.all([
-        fetch("/api/transactions?limit=80"),
-        fetch("/api/refunds?limit=80"),
-        fetch("/api/wallet?limit=80"),
+        fetch(`/api/transactions?limit=${limit}&page=1`),
+        fetch(`/api/refunds?limit=${limit}&page=1`),
+        fetch(`/api/wallet?limit=${limit}&page=1`),
       ]);
 
     const transactionData = await transactionRes.json();
@@ -45,6 +48,7 @@ const fetchRevenue = async () => {
 
     if (transactionData.success) {
       setTransactions(transactionData.data || []);
+      setHasMoreRevenue(Boolean(transactionData.pagination?.hasMore));
     }
 
     if (refundData.success) {
@@ -71,7 +75,7 @@ useEffect(() => {
 
   return () => clearInterval(interval);
 
-}, []);
+}, [listPages]);
 
 const totalRevenue = transactions.reduce(
   (sum, t) =>
@@ -443,6 +447,18 @@ Number(txn.gstAmount || 0)
 </table>
 
 </div>
+
+{hasMoreRevenue ? (
+  <div className="mb-8 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setListPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
 
 </DashboardCard>
 
