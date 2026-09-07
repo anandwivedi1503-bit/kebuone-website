@@ -170,21 +170,21 @@ export async function GET(req: Request) {
       ];
     }
 
-    const [partners, total] = await Promise.all([
-      Partner.find(filter)
+    const partners = await Partner.find(filter)
         .sort({ createdAt: -1 })
         .skip(query.skip)
-        .limit(query.limit)
-        .lean(),
-      Partner.countDocuments(filter),
-    ]);
+        .limit(query.limit + 1)
+        .lean();
+    const hasMore = partners.length > query.limit;
+    const pageRows = hasMore ? partners.slice(0, query.limit) : partners;
 
     return NextResponse.json({
       success: true,
-      data: partners,
+      data: pageRows,
       page: query.page,
       limit: query.limit,
-      total,
+      total: query.skip + pageRows.length + (hasMore ? 1 : 0),
+      hasMore,
     });
   } catch {
     return NextResponse.json(

@@ -104,34 +104,26 @@ export async function GET(
       filter.status = status;
     }
 
-    const [history, total] =
-      await Promise.all([
-        WalletTransaction.find(filter)
+    const history = await WalletTransaction.find(filter)
           .sort({
             createdAt: -1,
             _id: -1,
           })
           .skip(skip)
-          .limit(limit)
-          .lean(),
-
-        WalletTransaction.countDocuments(
-          filter
-        ),
-      ]);
+          .limit(limit + 1)
+          .lean();
+    const hasMore = history.length > limit;
+    const pageRows = hasMore ? history.slice(0, limit) : history;
 
     return NextResponse.json({
       success: true,
-      data: history,
+      data: pageRows,
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(
-          total / limit
-        ),
-        hasNextPage:
-          skip + history.length < total,
+        total: skip + pageRows.length + (hasMore ? 1 : 0),
+        hasMore,
+        hasNextPage: hasMore,
       },
     });
   } catch (error) {

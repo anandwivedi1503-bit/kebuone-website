@@ -1,23 +1,26 @@
+import dynamic from "next/dynamic";
+
 import Navbar from "./Navbar/Navbar";
 import AnchorScroll from "./components/AnchorScroll/AnchorScroll";
 import HomeScrollLine from "./components/HomeScrollLine/HomeScrollLine";
 import Hero from "./components/Hero/Hero";
 import HomePartners from "./components/HomePartners/HomePartners";
 import HomeTrustBar from "./components/HomeTrustBar/HomeTrustBar";
-import EvuddyNetwork from "./components/EvuddyNetwork/EvuddyNetwork";
-import HomeMoment from "./components/HomeMoment/HomeMoment";
 import HomeFilm from "./components/HomeFilm/HomeFilm";
-import Services from "./components/Services/Services";
 import HomePlans from "./components/HomePlans/HomePlans";
-import HomeStill from "./components/HomeStill/HomeStill";
-import WhyKebu from "./components/WhyKebu/WhyKebu";
-import InvestHomeInvite from "./components/InvestHomeInvite/InvestHomeInvite";
-import DealerNetwork from "./components/DealerNetwork/DealerNetwork";
-import HomePlaces from "./components/HomePlaces/HomePlaces";
-import HowItWorks from "./components/HowItWorks/HowItWorks";
-import Stats from "./components/Stats/Stats";
-import Testimonials from "./components/Testimonials/Testimonials";
 import Footer from "./components/Footer/Footer";
+
+const EvuddyNetwork = dynamic(() => import("./components/EvuddyNetwork/EvuddyNetwork"));
+const HomeMoment = dynamic(() => import("./components/HomeMoment/HomeMoment"));
+const Services = dynamic(() => import("./components/Services/Services"));
+const HomeStill = dynamic(() => import("./components/HomeStill/HomeStill"));
+const HomePlaces = dynamic(() => import("./components/HomePlaces/HomePlaces"));
+const WhyKebu = dynamic(() => import("./components/WhyKebu/WhyKebu"));
+const InvestHomeInvite = dynamic(() => import("./components/InvestHomeInvite/InvestHomeInvite"));
+const DealerNetwork = dynamic(() => import("./components/DealerNetwork/DealerNetwork"));
+const HowItWorks = dynamic(() => import("./components/HowItWorks/HowItWorks"));
+const Stats = dynamic(() => import("./components/Stats/Stats"));
+const Testimonials = dynamic(() => import("./components/Testimonials/Testimonials"));
 
 export default function Home() {
   return (
@@ -28,10 +31,10 @@ export default function Home() {
       <Hero />
       <HomePartners />
       <HomeTrustBar />
-      <EvuddyNetwork />
-      <HomeMoment />
       <HomeFilm />
       <HomePlans />
+      <EvuddyNetwork />
+      <HomeMoment />
       <Services />
       <HomeStill />
       <HomePlaces />

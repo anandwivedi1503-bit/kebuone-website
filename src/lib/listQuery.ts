@@ -124,3 +124,16 @@ export function listResponse<T>(
     },
   };
 }
+
+/** Skip a collection count: fetch one extra row to know if Load more exists. */
+export function listResponseFromPage<T>(rows: T[], page: number, limit: number) {
+  const hasMore = rows.length > limit;
+  const data = hasMore ? rows.slice(0, limit) : rows;
+  const skip = (page - 1) * limit;
+  return listResponse(
+    data,
+    skip + data.length + (hasMore ? 1 : 0),
+    page,
+    limit
+  );
+}

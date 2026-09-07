@@ -386,6 +386,7 @@ const hubs = await Hub.find(hubQuery)
   .sort({
     createdAt: -1,
   })
+  .limit(isAdmin ? 200 : 80)
   .lean<IHub[]>();
 
     /*

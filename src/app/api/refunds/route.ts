@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
 import Booking from "@/models/Booking";
-import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { attachBookingSnapshotsToRefunds } from "@/lib/opsMoneySummary";
 import { writeAudit } from "@/lib/writeAudit";
@@ -222,10 +222,7 @@ export async function GET(req: Request) {
       delete filter.$or;
     }
 
-    const [refunds, total] = await Promise.all([
-      Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Refund.countDocuments(filter),
-    ]);
+    const refunds = await Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
     const data = (
       await attachBookingSnapshotsToRefunds(refunds as Array<Record<string, unknown>>)
     ).filter(
@@ -234,7 +231,7 @@ export async function GET(req: Request) {
         Boolean(String((row as { ticketId?: unknown }).ticketId || "").trim())
     );
 
-    return NextResponse.json(listResponse(data, total, page, limit));
+    return NextResponse.json(listResponseFromPage(data, page, limit));
   } catch (error) {
     return NextResponse.json(
       {

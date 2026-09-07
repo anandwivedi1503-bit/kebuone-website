@@ -43,13 +43,15 @@ export async function GET(req: Request) {
         }
       : notDeleted;
 
-    const [batteries, vehicles, total] = await Promise.all([
-      Battery.find(batteryQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    const [batteryRows, vehicles] = await Promise.all([
+      Battery.find(batteryQuery).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean(),
       Vehicle.find(vehicleQuery)
         .select("vehicleId batteryPercentage vehicleStatus currentHub currentBatteryId")
+        .limit(500)
         .lean(),
-      Battery.countDocuments(batteryQuery),
     ]);
+    const hasMoreBatteries = batteryRows.length > limit;
+    const batteries = hasMoreBatteries ? batteryRows.slice(0, limit) : batteryRows;
 
     const vehicleMap = new Map(vehicles.map((row) => [String(row.vehicleId), row]));
     const vehicleByPack = new Map(
@@ -102,7 +104,14 @@ export async function GET(req: Request) {
       });
     }
 
-    return NextResponse.json(listResponse(data, Math.max(total, data.length), page, limit));
+    return NextResponse.json(
+      listResponse(
+        data,
+        skip + batteries.length + (hasMoreBatteries ? 1 : 0),
+        page,
+        limit
+      )
+    );
   } catch (error) {
     return NextResponse.json({
       success: false,
