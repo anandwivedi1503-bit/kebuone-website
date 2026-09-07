@@ -114,9 +114,12 @@ if (!booking) {
 
 }
 
+const refundSource = ticketId ? "Ticket" : "Booking Cancellation";
+
 const existingBookingRefund =
   await Refund.findOne({
     bookingId: clean(body.bookingId),
+    refundSource,
     refundStatus: {
       $ne: "REJECTED",
     },
@@ -128,7 +131,7 @@ if (existingBookingRefund) {
     {
       success: false,
       errors: [
-        "A refund already exists for this booking.",
+        `A ${refundSource.toLowerCase()} refund already exists for this booking.`,
       ],
     },
     {
@@ -154,6 +157,8 @@ if (existingBookingRefund) {
   gatewayTxnId,
 
   refundStatus,
+
+  refundSource,
 
   remarks: clean(body.remarks),
 

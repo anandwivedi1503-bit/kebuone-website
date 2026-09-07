@@ -2,7 +2,8 @@ import JobHeartbeat from "@/models/JobHeartbeat";
 
 export async function recordJobHeartbeat(
   jobId: string,
-  detail: Record<string, unknown> = {}
+  detail: Record<string, unknown> = {},
+  ok = true
 ) {
   try {
     await JobHeartbeat.findByIdAndUpdate(
@@ -10,7 +11,7 @@ export async function recordJobHeartbeat(
       {
         $set: {
           lastRunAt: new Date(),
-          ok: true,
+          ok,
           detail,
         },
       },

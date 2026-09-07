@@ -16,10 +16,9 @@ import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
 
-import Wallet from "@/models/Wallet";
-import WalletTransaction from "@/models/WalletTransaction";
 import Refund from "@/models/Refund";
 import { getBookingPayableAmount } from "@/lib/gst";
+import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
 import {
   hubForbiddenResponse,
   staffCanAccessBooking,
@@ -763,88 +762,11 @@ export async function PATCH(
       /* RELEASE SECURITY DEPOSIT HOLD (hold only — not a cash refund)        */
       /* -------------------------------------------------------------------- */
 
-      const existingHold = await WalletTransaction.findOne({
-        bookingId: booking.bookingId,
-        transactionType: "Security Deposit Hold",
-      }).session(session);
-
-      const wallet = await Wallet.findOne({
-        riderId: booking.riderId,
-        isDeleted: false,
-      }).session(session);
-
-      if (
-        existingHold &&
-        wallet &&
-        Number(booking.securityDeposit || 0) > 0
-      ) {
-        wallet.securityDepositHold = Math.max(
-          0,
-          Number(wallet.securityDepositHold || 0) -
-            Number(booking.securityDeposit || 0)
-        );
-
-        wallet.updatedBy = "Admin";
-        wallet.version += 1;
-
-        await wallet.save({
-          session,
-        });
-      }
-
-      /* -------------------------------------------------------------------- */
-      /* CREATE SECURITY DEPOSIT RELEASE TRANSACTION                          */
-      /* -------------------------------------------------------------------- */
-
-      const existingRelease =
-        await WalletTransaction.findOne({
-          bookingId: booking.bookingId,
-          transactionType: "Security Deposit Release",
-        }).session(session);
-
-      if (
-        existingHold &&
-        !existingRelease &&
-        Number(booking.securityDeposit || 0) > 0
-      ) {
-        await WalletTransaction.create(
-          [
-            {
-              transactionId:
-                generateTransactionId(),
-
-              riderId: booking.riderId,
-
-              userId: booking.userId,
-
-              userName: booking.userName,
-
-              bookingId: booking.bookingId,
-
-              amount: Number(
-                booking.securityDeposit || 0
-              ),
-
-              paymentMethod: "Wallet",
-
-              transactionType:
-                "Security Deposit Release",
-
-              balanceAfter: wallet
-                ? wallet.balance
-                : 0,
-
-              remarks:
-                "Security deposit hold released after booking cancellation.",
-
-              status: "Success",
-            },
-          ],
-          {
-            session,
-          }
-        );
-      }
+      await releaseSecurityDepositHoldOnce(
+        booking,
+        session,
+        "Security deposit hold released after booking cancellation."
+      );
 
       /* Deposit cash refund is queued only after a fully paid completed ride. */
 
@@ -1168,61 +1090,11 @@ export async function DELETE(
       }
     );
 
-    const wallet = await Wallet.findOne({
-      riderId: booking.riderId,
-      isDeleted: false,
-    }).session(session);
-
-    const existingHold = await WalletTransaction.findOne({
-      bookingId: booking.bookingId,
-      transactionType: "Security Deposit Hold",
-    }).session(session);
-
-    const existingRelease = await WalletTransaction.findOne({
-      bookingId: booking.bookingId,
-      transactionType: "Security Deposit Release",
-    }).session(session);
-
-    if (
-      wallet &&
-      existingHold &&
-      !existingRelease &&
-      Number(booking.securityDeposit || 0) > 0
-    ) {
-      wallet.securityDepositHold = Math.max(
-        0,
-        Number(wallet.securityDepositHold || 0) -
-          Number(booking.securityDeposit || 0)
-      );
-      wallet.updatedBy = "Admin";
-      wallet.version += 1;
-
-      await wallet.save({
-        session,
-      });
-
-      await WalletTransaction.create(
-        [
-          {
-            transactionId: generateTransactionId(),
-            riderId: booking.riderId,
-            userId: booking.userId,
-            userName: booking.userName,
-            bookingId: booking.bookingId,
-            amount: Number(booking.securityDeposit || 0),
-            paymentMethod: "Wallet",
-            transactionType: "Security Deposit Release",
-            balanceAfter: wallet.balance,
-            remarks:
-              "Security deposit hold released after unpaid booking deletion.",
-            status: "Success",
-          },
-        ],
-        {
-          session,
-        }
-      );
-    }
+    await releaseSecurityDepositHoldOnce(
+      booking,
+      session,
+      "Security deposit hold released after unpaid booking deletion."
+    );
 
     /* ---------------------------------------------------------------------- */
     /* SOFT DELETE                                                            */

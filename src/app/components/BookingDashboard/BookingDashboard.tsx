@@ -20,6 +20,8 @@ import CashCollectForm from "../YardRideDesk/CashCollectForm";
 export default function BookingDashboard(){
 
 const [bookings,setBookings]=useState<any[]>([]);
+const [listPages,setListPages]=useState(1);
+const [hasMoreBookings,setHasMoreBookings]=useState(false);
 const [loading,setLoading]=useState(true);
 const [loadError,setLoadError]=useState("");
 const [search,setSearch]=useState(() => consumeOpsFocus());
@@ -53,7 +55,10 @@ const fetchBookings=async()=>{
 
 try{
 
-const params = new URLSearchParams({ limit: "80" });
+const params = new URLSearchParams({
+  limit: String(Math.min(500, 80 * listPages)),
+  page: "1",
+});
 if (statusFilter !== "ALL") params.set("rideStatus", statusFilter);
 if (paymentFilter !== "ALL") params.set("paymentStatus", paymentFilter);
 if (modeFilter !== "ALL") params.set("rentalMode", modeFilter);
@@ -66,6 +71,7 @@ const data=await res.json();
 if(data.success){
 
 setBookings(data.data || []);
+setHasMoreBookings(Boolean(data.pagination?.hasMore));
 setLoadError("");
 
 } else {
@@ -95,7 +101,7 @@ fetchBookings();
 
 return ()=>clearInterval(interval);
 
-},[search, statusFilter, paymentFilter, modeFilter]);
+},[search, statusFilter, paymentFilter, modeFilter, listPages]);
 
 const cancelBooking = async (id: string) => {
 
@@ -679,7 +685,7 @@ placeholder="Search Booking ID, Rider, Phone, Vehicle or Hub..."
 
 value={search}
 
-onChange={(e)=>setSearch(e.target.value)}
+onChange={(e)=>{ setListPages(1); setSearch(e.target.value); }}
 
 className="
 w-full
@@ -714,7 +720,7 @@ focus:ring-pink-200
 
 key={status}
 
-onClick={()=>setStatusFilter(status)}
+onClick={()=>{ setListPages(1); setStatusFilter(status); }}
 
 className={`
 
@@ -758,7 +764,7 @@ statusFilter===status
 
 key={status}
 
-onClick={()=>setPaymentFilter(status)}
+onClick={()=>{ setListPages(1); setPaymentFilter(status); }}
 
 className={`
 rounded-xl
@@ -795,7 +801,7 @@ paymentFilter===status
 
 <button
 key={value}
-onClick={()=>setModeFilter(value)}
+onClick={()=>{ setListPages(1); setModeFilter(value); }}
 className={`
 rounded-xl
 px-5
@@ -1458,6 +1464,18 @@ View
 </table>
 
 </div>
+
+{hasMoreBookings ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setListPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
 
 )}
 </DashboardCard>

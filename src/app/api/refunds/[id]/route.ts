@@ -14,6 +14,7 @@ import { refundRazorpayPayment } from "@/lib/razorpay/refundRazorpayPayment";
 import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
 import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
+import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -382,11 +383,11 @@ if (sendToRazorpay) {
     riderId: liveBooking.riderId,
   }).session(session);
   if (razorpayWallet) {
-    razorpayWallet.securityDepositHold = Math.max(
-      0,
-      Number(razorpayWallet.securityDepositHold || 0) - Number(liveRefund.amount)
+    await releaseSecurityDepositHoldOnce(
+      liveBooking,
+      session,
+      "Hold released with Razorpay deposit refund"
     );
-    await razorpayWallet.save({ session });
   }
 
   const existingRefundTransaction = await Transaction.findOne({
@@ -439,6 +440,12 @@ await Rider.findOneAndUpdate(
   }
 );
 
+await releaseSecurityDepositHoldOnce(
+  booking,
+  session,
+  "Hold released with wallet deposit refund"
+);
+
 const wallet = await Wallet.findOne({
   riderId: booking.riderId,
 }).session(session);
@@ -463,11 +470,6 @@ if (!wallet) {
       wallet.balance += Number(refund.amount);
 
 wallet.totalRefund += Number(refund.amount);
-
-wallet.securityDepositHold = Math.max(
-  0,
-  wallet.securityDepositHold - Number(refund.amount)
-);
 
 await wallet.save({
   session,

@@ -446,10 +446,15 @@ dropLongitude: {
   min: 0,
 },
 
-securityDepositRefunded: {
-  type: Boolean,
-  default: false,
-},
+    securityDepositRefunded: {
+      type: Boolean,
+      default: false,
+    },
+
+    securityDepositHoldReleased: {
+      type: Boolean,
+      default: false,
+    },
 
     // Payment
     paymentMode: {

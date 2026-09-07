@@ -152,11 +152,10 @@ export async function maybeSweepUnpaidBookings() {
     return { unpaid, rto };
   } catch (error) {
     console.error("UNPAID BOOKING SWEEP ERROR:", error);
+    const message = String(error instanceof Error ? error.message : error);
+    await recordJobHeartbeat("unpaidSweep", { error: message }, false);
     const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
-    void notifyOpsAlert(
-      "Unpaid sweep failed",
-      String(error instanceof Error ? error.message : error)
-    );
+    void notifyOpsAlert("Unpaid sweep failed", message);
     return null;
   }
 }
