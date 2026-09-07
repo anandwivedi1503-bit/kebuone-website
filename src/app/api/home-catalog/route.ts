@@ -10,6 +10,8 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { HOME_CATALOG_FALLBACK, type HomeCatalog } from "@/lib/homeCatalog";
+import Review from "@/models/Review";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 function clean(value: unknown) {
   return String(value ?? "").trim();
@@ -45,7 +47,7 @@ export async function GET() {
   try {
     await connectDB();
 
-    const [cityDocs, hubStats, vehicles] = await Promise.all([
+    const [cityDocs, hubStats, vehicles, ratingAgg] = await Promise.all([
       City.find({ isDeleted: false, status: "Active" })
         .sort({ cityName: 1 })
         .select("cityName")
@@ -77,6 +79,10 @@ export async function GET() {
         )
         .limit(500)
         .lean(),
+      Review.aggregate([
+        { $match: { ...NOT_DELETED_FILTER, status: "Published" } },
+        { $group: { _id: null, avg: { $avg: "$stars" }, n: { $sum: 1 } } },
+      ]),
     ]);
 
     let cityNames = cityDocs.map((row) => clean(row.cityName)).filter(Boolean);
@@ -142,6 +148,12 @@ export async function GET() {
         ),
         gpsLive: vehicles.some((row) => String(row.gpsStatus || "") === "ONLINE"),
         availableCount: vehicles.length,
+      },
+      ratings: {
+        average: Number(ratingAgg[0]?.n || 0)
+          ? Number(Number(ratingAgg[0].avg).toFixed(2))
+          : 0,
+        count: Number(ratingAgg[0]?.n || 0),
       },
     };
 

@@ -23,6 +23,7 @@ import Ticket from "@/models/Ticket";
 import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
+import Review from "@/models/Review";
 
 export type CommandCenterCounts = {
   riders: number;
@@ -32,6 +33,7 @@ export type CommandCenterCounts = {
   availableVehicles: number;
   activeRides: number;
   openTickets: number;
+  pendingReviews: number;
   processingRefunds: number;
   onlineVehicles: number;
   offlineVehicles: number;
@@ -163,6 +165,7 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     recentRefunds,
     recentSwaps,
     recentPartners,
+    pendingReviews,
   ] = await Promise.all([
     Rider.countDocuments(riderFilter).maxTimeMS(2500),
     Vehicle.countDocuments(vehicleFilter).maxTimeMS(2500),
@@ -276,6 +279,11 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
       .sort({ createdAt: -1 })
       .limit(6)
       .lean(),
+    Review.countDocuments({
+      ...NOT_DELETED_FILTER,
+      status: "Pending",
+      ...idInScopeFilter("bookingId", bookingIds),
+    }).maxTimeMS(2500),
   ]);
 
   const counts: CommandCenterCounts = {
@@ -286,6 +294,7 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     availableVehicles,
     activeRides,
     openTickets,
+    pendingReviews,
     processingRefunds,
     onlineVehicles,
     offlineVehicles,
@@ -327,6 +336,7 @@ function filterCommandCenterForSession(
   const { counts, recent } = snapshot;
   const canBookings = sessionHasAnyDashboard(session, ...API_DASHBOARDS.bookingsRead);
   const canTickets = sessionHasAnyDashboard(session, ...API_DASHBOARDS.tickets);
+  const canReviews = sessionHasAnyDashboard(session, ...API_DASHBOARDS.reviews);
   const canRefunds = sessionHasAnyDashboard(session, ...API_DASHBOARDS.refunds);
   const canRiders = sessionHasAnyDashboard(session, ...API_DASHBOARDS.ridersRead);
   const canVehicles = sessionHasAnyDashboard(session, ...API_DASHBOARDS.vehiclesRead);
@@ -357,6 +367,9 @@ function filterCommandCenterForSession(
   if (!canTickets) {
     counts.openTickets = 0;
     recent.tickets = [];
+  }
+  if (!canReviews) {
+    counts.pendingReviews = 0;
   }
   if (!canRefunds) {
     counts.processingRefunds = 0;

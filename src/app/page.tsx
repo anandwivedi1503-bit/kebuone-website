@@ -21,6 +21,7 @@ const DealerNetwork = dynamic(() => import("./components/DealerNetwork/DealerNet
 const HowItWorks = dynamic(() => import("./components/HowItWorks/HowItWorks"));
 const Stats = dynamic(() => import("./components/Stats/Stats"));
 const Testimonials = dynamic(() => import("./components/Testimonials/Testimonials"));
+const RiderReviews = dynamic(() => import("./components/RiderReviews/RiderReviews"));
 
 export default function Home() {
   return (
@@ -44,6 +45,7 @@ export default function Home() {
       <HowItWorks />
       <Stats />
       <Testimonials />
+      <RiderReviews />
       <Footer />
     </main>
   );

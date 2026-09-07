@@ -32,6 +32,7 @@ import {
   Search,
   Settings,
   Sparkles,
+  Star,
   Sun,
   UserRound,
   Users,
@@ -59,6 +60,7 @@ type CommandCenterCounts = {
   availableVehicles: number;
   activeRides: number;
   openTickets: number;
+  pendingReviews: number;
   processingRefunds: number;
   onlineVehicles: number;
   offlineVehicles: number;
@@ -85,6 +87,7 @@ const EMPTY_COUNTS: CommandCenterCounts = {
   availableVehicles: 0,
   activeRides: 0,
   openTickets: 0,
+  pendingReviews: 0,
   processingRefunds: 0,
   onlineVehicles: 0,
   offlineVehicles: 0,
@@ -267,6 +270,7 @@ const [refreshing, setRefreshing] = useState(false);
   const offlineVehicles = counts.offlineVehicles;
   const availableVehicles = counts.availableVehicles;
   const openTickets = counts.openTickets;
+  const pendingReviews = counts.pendingReviews || 0;
   const processingRefunds = counts.processingRefunds;
   const activeHubs = counts.activeHubs;
   const lowBatteryVehicles = counts.lowBatteryVehicles;
@@ -479,7 +483,7 @@ time:formatActivityTime(p.createdAt)
     {
       title: "Open Tickets",
       value: openTickets,
-      note: `${processingRefunds} Refund Pending`,
+      note: `${processingRefunds} refund · ${pendingReviews} reviews pending`,
       icon: LifeBuoy,
       tone: {
         icon: "bg-red-50 text-red-600",
@@ -598,6 +602,7 @@ time:formatActivityTime(p.createdAt)
   { title: "Wallet", description: "Wallet Management", dashboard: "wallet", icon: Wallet, tone: "bg-green-50 text-green-600" },
   { title: "Analytics", description: "Business Reports", dashboard: "analytics", icon: BarChart3, tone: "bg-violet-50 text-violet-600" },
   { title: "Support", description: "Tickets & Refunds", dashboard: "support", icon: Headphones, tone: "bg-red-50 text-red-600" },
+  { title: "Reviews", description: "Rider ratings", dashboard: "reviews", icon: Star, tone: "bg-amber-50 text-amber-600" },
   { title: "IoT", description: "Live Tracking", dashboard: "iot", icon: Cpu, tone: "bg-cyan-50 text-cyan-600" },
   { title: "Bookings", description: "Ride Management", dashboard: "bookings", icon: BookOpen, tone: "bg-orange-50 text-orange-600" },
   { title: "Rent to Own", description: "18-month ownership plans", dashboard: "renttoown", icon: KeyRound, tone: "bg-emerald-50 text-emerald-700" },

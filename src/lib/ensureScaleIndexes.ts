@@ -6,6 +6,7 @@ import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
+import Review from "@/models/Review";
 import iot from "@/models/IoT";
 import Partner from "@/models/Partner";
 import Transaction from "@/models/Transaction";
@@ -313,5 +314,25 @@ export async function ensureScaleIndexes() {
         { background: true, name: "hub_status_city_created" }
       ),
     "hub status city"
+  );
+  await createIndexSafe(
+    () =>
+      Review.collection.createIndex(
+        { bookingId: 1 },
+        {
+          unique: true,
+          name: "unique_review_booking",
+          background: true,
+        }
+      ),
+    "review bookingId unique"
+  );
+  await createIndexSafe(
+    () =>
+      Review.collection.createIndex(
+        { status: 1, createdAt: -1 },
+        { background: true, name: "review_status_created" }
+      ),
+    "review status created"
   );
 }

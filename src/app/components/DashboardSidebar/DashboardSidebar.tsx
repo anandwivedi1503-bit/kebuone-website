@@ -25,6 +25,7 @@ import {
   MapPin,
   KeyRound,
   Shield,
+  Star,
 } from "lucide-react";
 
 type Props = {
@@ -57,6 +58,7 @@ const menus = [
   { id: "transactions", name: "Transactions", icon: CreditCard },
   { id: "analytics", name: "Analytics", icon: BarChart3 },
   { id: "refunds", name: "Refund Dashboard", icon: RefreshCcw },
+  { id: "reviews", name: "Reviews", icon: Star },
   { id: "audit", name: "Audit Logs", icon: BarChart3 },
   { id: "team", name: "Team Access", icon: Shield },
 ];

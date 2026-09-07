@@ -14,6 +14,7 @@ import {
   rtoInstallment,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
+import RideReviewCard from "../RideReview/RideReviewCard";
 import {
   loadRtoDraft,
   markRiderBookingLock,
@@ -140,6 +141,13 @@ export default function RentToOwnBooking() {
   const [pickupOtp, setPickupOtp] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [rtoReview, setRtoReview] = useState<{
+    reviewId?: string;
+    stars?: number;
+    status?: string;
+    staffReply?: string;
+    comment?: string;
+  } | null>(null);
   const rtoDraftHydrated = useRef(true);
 
   const currentBike = vehicles.find((bike) => bike.vehicleId === selectedBike);
@@ -211,6 +219,27 @@ export default function RentToOwnBooking() {
   useEffect(() => {
     void loadData();
   }, []);
+
+  useEffect(() => {
+    if (!firebaseIdToken || !bookingId) return;
+    let cancelled = false;
+    fetch("/api/reviews/mine", {
+      headers: { Authorization: `Bearer ${firebaseIdToken}` },
+      cache: "no-store",
+    })
+      .then((res) => res.json())
+      .then((json) => {
+        if (cancelled || !json.success) return;
+        const found = (json.data || []).find(
+          (row: { bookingId?: string }) => row.bookingId === bookingId
+        );
+        if (found) setRtoReview(found);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [firebaseIdToken, bookingId]);
 
   useEffect(() => {
     if (!rtoDraftHydrated.current) return;
@@ -872,6 +901,16 @@ export default function RentToOwnBooking() {
                 <p className="mt-2 text-sm text-emerald-800">
                   Show this OTP at the hub, then open Book EV and swipe Ride started. Pay ₹280 + GST each day — a receipt is sent to you. Keep the certificate.
                 </p>
+                {firebaseIdToken && bookingId ? (
+                  <div className="mt-4">
+                    <RideReviewCard
+                      bookingId={bookingId}
+                      token={firebaseIdToken}
+                      existing={rtoReview}
+                      onSaved={setRtoReview}
+                    />
+                  </div>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => window.print()}

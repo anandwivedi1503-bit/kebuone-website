@@ -27,6 +27,7 @@ export const API_DASHBOARDS = {
   transactions: ["transactions", "revenue"],
   refunds: ["refunds", "support"],
   tickets: ["support"],
+  reviews: ["reviews", "support", "admin"],
   ridersRead: ["users", "kyc", "admin", "bookings"],
   ridersWrite: ["users", "kyc"],
   batteries: ["battery", "swap"],

@@ -656,6 +656,10 @@ if (publicCityIndex) {
           hub.closingTime,
         status:
           hub.status,
+        customerRating:
+          Number(hub.customerRating || 0),
+        ratingsCount:
+          Number(hub.ratingsCount || 0),
       }));
 
     return NextResponse.json({

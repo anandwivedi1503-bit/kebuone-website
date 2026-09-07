@@ -87,6 +87,10 @@ const RefundDashboard = dynamic(() => import("../RefundDashboard/RefundDashboard
   ssr: false,
   loading: () => deskFallback,
 });
+const ReviewsDashboard = dynamic(() => import("../ReviewsDashboard/ReviewsDashboard"), {
+  ssr: false,
+  loading: () => deskFallback,
+});
 const RentToOwnDashboard = dynamic(
   () => import("../RentToOwnDashboard/RentToOwnDashboard"),
   { ssr: false, loading: () => deskFallback }
@@ -189,6 +193,7 @@ export default function DashboardContainer() {
             <AnalyticsDashboard />
           )}
           {activeDashboard === "refunds" && show("refunds") && <RefundDashboard />}
+          {activeDashboard === "reviews" && show("reviews") && <ReviewsDashboard />}
           {activeDashboard === "team" && isSuper && <TeamAccess />}
           {!isSuper && allowed.length === 0 ? (
             <p className="rounded-3xl bg-white p-8 text-slate-600">
