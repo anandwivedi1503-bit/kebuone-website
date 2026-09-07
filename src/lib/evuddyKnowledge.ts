@@ -65,6 +65,8 @@ SUPPORT:
 - Directory: Customer Support, Helpdesk phone, Business Partnerships, Careers, Corporate Office (same helpdesk email except office address).
 - After pay: Book EV → Need help? → ticket bound to that booking (pickup, mid-ride, battery, breakdown).
 - Rider sees tickets on Book EV; staff see Support dashboard.
+- After a completed ride (or a paid Rent to Own day), Book EV asks for 1–5 star ratings of the scooter and hub. One review per booking. 4–5 stars can publish on the homepage; 1–3 wait on the Reviews desk.
+- Staff Reviews desk: publish, hide, or reply. Hub pages show the running average.
 
 ${fleetInvestmentKnowledgeBlock()}
 

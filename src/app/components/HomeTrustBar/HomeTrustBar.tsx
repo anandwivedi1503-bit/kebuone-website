@@ -1,14 +1,28 @@
-import { BadgeCheck, Clock, KeyRound, Shield, Smartphone } from "lucide-react";
+"use client";
 
-const items = [
-  { icon: Shield, label: "GST invoice on rent" },
-  { icon: BadgeCheck, label: "KYC-verified riders" },
-  { icon: KeyRound, label: "Hub OTP pickup" },
-  { icon: Smartphone, label: "Razorpay UPI & cards" },
-  { icon: Clock, label: "24×7 helpdesk" },
-];
+import { BadgeCheck, Clock, KeyRound, Shield, Smartphone, Star } from "lucide-react";
+import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 
 export default function HomeTrustBar() {
+  const { catalog } = useHomeCatalog();
+  const ratingCount = Number(catalog.ratings?.count || 0);
+  const ratingAvg = Number(catalog.ratings?.average || 0);
+
+  const items = [
+    ratingCount
+      ? {
+          icon: Star,
+          label: `${ratingAvg.toFixed(1)} / 5 from ${ratingCount} rider rating${
+            ratingCount === 1 ? "" : "s"
+          }`,
+        }
+      : { icon: Shield, label: "GST invoice on rent" },
+    { icon: BadgeCheck, label: "KYC-verified riders" },
+    { icon: KeyRound, label: "Hub OTP pickup" },
+    { icon: Smartphone, label: "Razorpay UPI & cards" },
+    { icon: Clock, label: "24×7 helpdesk" },
+  ];
+
   return (
     <section
       aria-label="Why riders trust EVUDDY"

@@ -17,6 +17,13 @@ import { listResponse, listResponseFromPage, parseListQuery } from "../src/lib/l
 import { existingDepositRefundFilter } from "../src/lib/queueDepositRefund";
 import { existingCancellationRefundFilter } from "../src/lib/queueCancellationRefund";
 import { clientIp } from "../src/lib/rateLimit";
+import {
+  bookingEligibleForReview,
+  clampStars,
+  defaultReviewStatus,
+  riderPublicDisplayName,
+  sanitizeReviewComment,
+} from "../src/lib/reviews";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -211,6 +218,24 @@ assert.equal(
     })
   ),
   "10.0.0.9"
+);
+
+assert.equal(clampStars(7), 5);
+assert.equal(clampStars(0), 0);
+assert.equal(clampStars("3.2"), 3);
+assert.equal(defaultReviewStatus(5), "Published");
+assert.equal(defaultReviewStatus(3), "Pending");
+assert.equal(riderPublicDisplayName("Anand Dhar Dwivedi"), "Anand D.");
+assert.equal(sanitizeReviewComment("  nice ride http://spam.example  "), "nice ride");
+assert.equal(bookingEligibleForReview({ rideStatus: "Completed" }), true);
+assert.equal(bookingEligibleForReview({ rideStatus: "In Ride" }), false);
+assert.equal(
+  bookingEligibleForReview({
+    rideStatus: "In Ride",
+    rentalMode: "Rent To Own",
+    receivedAmount: 280,
+  }),
+  true
 );
 
 console.log("money-rules self-test ok");

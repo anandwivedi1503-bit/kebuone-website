@@ -47,6 +47,9 @@ export interface IHub {
     | "Maintenance"
     | "Closed";
 
+  customerRating: number;
+  ratingsCount: number;
+
   updatedBy: string;
 
   isDeleted: boolean;
@@ -198,6 +201,19 @@ const HubSchema =
           "Closed",
         ],
         default: "Active",
+      },
+
+      customerRating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
+
+      ratingsCount: {
+        type: Number,
+        default: 0,
+        min: 0,
       },
 
       updatedBy: {

@@ -23,6 +23,10 @@ export type HomeCatalog = {
     gpsLive: boolean;
     availableCount: number;
   };
+  ratings: {
+    average: number;
+    count: number;
+  };
 };
 
 export const HOME_CATALOG_FALLBACK: HomeCatalog = {
@@ -42,5 +46,9 @@ export const HOME_CATALOG_FALLBACK: HomeCatalog = {
     batteryType: "Chargeable",
     gpsLive: true,
     availableCount: 0,
+  },
+  ratings: {
+    average: 0,
+    count: 0,
   },
 };

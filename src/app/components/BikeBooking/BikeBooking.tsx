@@ -17,6 +17,7 @@ import { downloadHtmlFile } from "@/lib/dashboardExport";
 import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, catalogRate } from "@/lib/rentalPlans";
 import RideSwipeControl from "./RideSwipeControl";
+import RideReviewCard from "../RideReview/RideReviewCard";
 import {
   loadRentalDraft,
   markRiderBookingLock,
@@ -92,6 +93,8 @@ type Hub = {
   city?: string;
   latitude?: number;
   longitude?: number;
+  customerRating?: number;
+  ratingsCount?: number;
 };
 
 type CityRecord = {
@@ -216,10 +219,55 @@ const [pickupOtp, setPickupOtp] = useState("");
       createdAt?: string;
     }>
   >([]);
+  const [myReviews, setMyReviews] = useState<
+    Array<{
+      reviewId?: string;
+      bookingId?: string;
+      stars?: number;
+      status?: string;
+      staffReply?: string;
+      comment?: string;
+    }>
+  >([]);
+  const [pastRides, setPastRides] = useState<
+    Array<{
+      bookingId?: string;
+      rideStatus?: string;
+      vehicleModel?: string;
+      startHub?: string;
+      pickupCity?: string;
+      canReview?: boolean;
+      reviewStars?: number | null;
+      completedAt?: string;
+    }>
+  >([]);
   const [otpSmsStatus, setOtpSmsStatus] = useState("");
   const otpSmsKeyRef = useRef("");
   const recoverPayRef = useRef(false);
   const rentalDraftHydrated = useRef(true);
+
+  const loadReviewExtras = async (token: string) => {
+    try {
+      const [reviewRes, historyRes] = await Promise.all([
+        fetch("/api/reviews/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }),
+        fetch("/api/bookings/history", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        }),
+      ]);
+      const reviewData = await reviewRes.json();
+      const historyData = await historyRes.json();
+      if (reviewData.success && Array.isArray(reviewData.data)) {
+        setMyReviews(reviewData.data);
+      }
+      if (historyData.success && Array.isArray(historyData.data)) {
+        setPastRides(historyData.data);
+      }
+    } catch {}
+  };
 
   const loadData = async (selectedCity = "", silent = false) => {
   try {
@@ -361,6 +409,7 @@ useEffect(() => {
         if (receiptData.success && Array.isArray(receiptData.data)) {
           setReceipts(receiptData.data);
         }
+        await loadReviewExtras(firebaseIdToken);
       } catch {}
       if (
         Number(active.receivedAmount || 0) <= 0.009 &&
@@ -503,6 +552,7 @@ useEffect(() => {
         if (receiptData.success && Array.isArray(receiptData.data)) {
           setReceipts(receiptData.data);
         }
+        await loadReviewExtras(token);
       } catch {}
     } catch (error) {
       console.error(error);
@@ -1917,6 +1967,9 @@ cursor-pointer
   {filteredHubs.map((item, index) => (
   <option key={item._id || index} value={item.hubCode}>
     {item.hubName} ({item.hubCode})
+    {Number(item.ratingsCount || 0) > 0
+      ? ` · ${Number(item.customerRating || 0).toFixed(1)}★`
+      : ""}
   </option>
 ))}
 </select>
@@ -2692,6 +2745,23 @@ focus:ring-[#18B368]/10
                         <p className="mt-2 text-sm text-slate-600">
                           The yard has taken the scooter back. We hope to see you again soon. Deposit refunds (if any) are approved by admin after return.
                         </p>
+                        {firebaseIdToken && bookingId ? (
+                          <div className="mt-5 text-left">
+                            <RideReviewCard
+                              bookingId={bookingId}
+                              token={firebaseIdToken}
+                              existing={
+                                myReviews.find((row) => row.bookingId === bookingId) || null
+                              }
+                              onSaved={(review) =>
+                                setMyReviews((rows) => [
+                                  { ...review, bookingId },
+                                  ...rows.filter((row) => row.bookingId !== bookingId),
+                                ])
+                              }
+                            />
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
 
@@ -2878,6 +2948,44 @@ Payment Status
     {helpLoading ? "Sending..." : "Send to support"}
   </button>
   {helpStatus ? <p className="mt-2 text-sm text-slate-600">{helpStatus}</p> : null}
+  {pastRides.length ? (
+    <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
+      <p className="text-sm font-bold text-[#0F172A]">Your recent rides</p>
+      <ul className="mt-2 space-y-3">
+        {pastRides.slice(0, 8).map((ride) => {
+          const existing = myReviews.find((row) => row.bookingId === ride.bookingId);
+          return (
+            <li key={String(ride.bookingId)} className="text-sm text-slate-700">
+              <p className="font-medium">
+                {ride.bookingId} · {ride.rideStatus} · {ride.vehicleModel || "Scooter"}
+                {ride.pickupCity ? ` · ${ride.pickupCity}` : ""}
+              </p>
+              {existing ? (
+                <p className="text-amber-700">
+                  Rated {"★".repeat(Number(existing.stars || ride.reviewStars || 0))} ({existing.status})
+                </p>
+              ) : ride.canReview && firebaseIdToken && ride.bookingId ? (
+                <div className="mt-2">
+                  <RideReviewCard
+                    bookingId={ride.bookingId}
+                    token={firebaseIdToken}
+                    onSaved={(review) =>
+                      setMyReviews((rows) => [
+                        { ...review, bookingId: ride.bookingId },
+                        ...rows.filter((row) => row.bookingId !== ride.bookingId),
+                      ])
+                    }
+                  />
+                </div>
+              ) : ride.reviewStars ? (
+                <p className="text-amber-700">Rated {"★".repeat(Number(ride.reviewStars))}</p>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  ) : null}
   {helpTickets.length ? (
     <div className="mt-4 space-y-2">
       {helpTickets.slice(0, 5).map((ticket) => (

@@ -527,6 +527,17 @@ remarks: {
   default: "",
 },
 
+reviewId: {
+  type: String,
+  trim: true,
+  default: "",
+  index: true,
+},
+
+reviewedAt: {
+  type: Date,
+},
+
 invoiceGenerated: {
   type: Boolean,
   default: false,
