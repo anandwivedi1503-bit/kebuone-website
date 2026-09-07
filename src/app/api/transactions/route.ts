@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Transaction from "@/models/Transaction";
 import Booking from "@/models/Booking";
-import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
+import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
@@ -53,7 +53,7 @@ export async function GET(req: Request) {
     await connectDB();
 
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q } = parsed;
+    const { page, limit, skip, cursor, q } = parsed;
     const filter: Record<string, unknown> = {
       $or: [
         { isDeleted: false },
@@ -78,9 +78,17 @@ export async function GET(req: Request) {
       delete filter.$or;
     }
 
-    const transactions = await Transaction.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
+    applyCreatedCursor(filter, cursor);
+    const transactions = await Transaction.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(cursor ? 0 : skip)
+      .limit(limit + 1)
+      .lean();
 
-    return NextResponse.json(listResponseFromPage(transactions, page, limit));
+    const payload = listResponseFromPage(transactions, cursor ? 1 : page, limit);
+    return NextResponse.json(
+      withNextCursor(payload, payload.data[payload.data.length - 1])
+    );
   } catch (error) {
     return NextResponse.json(
       {

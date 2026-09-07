@@ -14,7 +14,7 @@ import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
-import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
+import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
@@ -399,7 +399,7 @@ export async function GET(req: Request) {
     await connectDB();
 
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q } = parsed;
+    const { page, limit, skip, cursor, q } = parsed;
     const filter: Record<string, unknown> = {};
     applyOpsListFilters(filter, parsed);
     const bookingIds = await scopedBookingIds(gate.session);
@@ -418,9 +418,17 @@ export async function GET(req: Request) {
       ];
     }
 
-    const tickets = await Ticket.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
+    applyCreatedCursor(filter, cursor);
+    const tickets = await Ticket.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(cursor ? 0 : skip)
+      .limit(limit + 1)
+      .lean();
 
-    return NextResponse.json(listResponseFromPage(tickets, page, limit));
+    const payload = listResponseFromPage(tickets, cursor ? 1 : page, limit);
+    return NextResponse.json(
+      withNextCursor(payload, payload.data[payload.data.length - 1])
+    );
   } catch (error) {
     return NextResponse.json(
       {

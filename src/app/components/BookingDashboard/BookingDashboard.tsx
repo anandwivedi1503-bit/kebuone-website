@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
@@ -20,7 +20,8 @@ import CashCollectForm from "../YardRideDesk/CashCollectForm";
 export default function BookingDashboard(){
 
 const [bookings,setBookings]=useState<any[]>([]);
-const [listPages,setListPages]=useState(1);
+const nextCursorRef=useRef("");
+const loadedMoreRef=useRef(false);
 const [hasMoreBookings,setHasMoreBookings]=useState(false);
 const [loading,setLoading]=useState(true);
 const [loadError,setLoadError]=useState("");
@@ -51,18 +52,21 @@ useState("");
 const [enteredEndHub, setEnteredEndHub] =
 useState("");
 
-const fetchBookings=async()=>{
+const fetchBookings=async(mode:"replace"|"append"|"poll"="replace")=>{
 
 try{
 
 const params = new URLSearchParams({
-  limit: String(Math.min(500, 80 * listPages)),
+  limit: "80",
   page: "1",
 });
 if (statusFilter !== "ALL") params.set("rideStatus", statusFilter);
 if (paymentFilter !== "ALL") params.set("paymentStatus", paymentFilter);
 if (modeFilter !== "ALL") params.set("rentalMode", modeFilter);
 if (search.trim()) params.set("q", search.trim());
+if (mode === "append" && nextCursorRef.current) {
+  params.set("cursor", nextCursorRef.current);
+}
 
 const res=await fetch(`/api/bookings?${params.toString()}`, { cache: "no-store" });
 
@@ -70,8 +74,31 @@ const data=await res.json();
 
 if(data.success){
 
-setBookings(data.data || []);
-setHasMoreBookings(Boolean(data.pagination?.hasMore));
+const rows = data.data || [];
+if (mode === "append") {
+  loadedMoreRef.current = true;
+  setBookings((prev) => {
+    const seen = new Set(prev.map((row) => String(row._id)));
+    return [...prev, ...rows.filter((row: { _id?: string }) => !seen.has(String(row._id)))];
+  });
+} else if (mode === "poll") {
+  setBookings((prev) => {
+    if (!nextCursorRef.current) return rows;
+    const freshIds = new Set(rows.map((row: { _id?: string }) => String(row._id)));
+    const rest = prev.filter((row) => !freshIds.has(String(row._id)));
+    return [...rows, ...rest];
+  });
+} else {
+  loadedMoreRef.current = false;
+  setBookings(rows);
+}
+if (mode !== "poll") {
+  const cursor = String(data.pagination?.nextCursor || "");
+  nextCursorRef.current = cursor;
+}
+if (mode !== "poll" || !loadedMoreRef.current) {
+  setHasMoreBookings(Boolean(data.pagination?.hasMore));
+}
 setLoadError("");
 
 } else {
@@ -91,17 +118,17 @@ setLoading(false);
 
 useEffect(() => {
 
-fetchBookings();
+fetchBookings("replace");
 
 const interval = setInterval(() => {
 
-fetchBookings();
+fetchBookings("poll");
 
 }, 20000);
 
 return ()=>clearInterval(interval);
 
-},[search, statusFilter, paymentFilter, modeFilter, listPages]);
+},[search, statusFilter, paymentFilter, modeFilter]);
 
 const cancelBooking = async (id: string) => {
 
@@ -129,7 +156,7 @@ if (!data.success) {
   return;
 }
 
-await fetchBookings();
+await fetchBookings("poll");
 setProcessingId("");
  };
 
@@ -174,7 +201,7 @@ setProcessingId("");
 
     alert("Pickup OTP generated successfully.");
 
-    await fetchBookings();
+    await fetchBookings("poll");
 
   } catch {
 
@@ -245,7 +272,7 @@ setSelectedRideBooking(null);
 
 setEnteredPickupOTP("");
 
-await fetchBookings();
+await fetchBookings("poll");
 
 setGeneratedPickupOTP((prev) => {
   const updated = { ...prev };
@@ -334,7 +361,7 @@ setEnteredRideEndOTP("");
 
 setEnteredEndHub("");
 
-await fetchBookings();
+await fetchBookings("poll");
 
 setProcessingId("");
 
@@ -651,7 +678,7 @@ Download file
 </button>
 
 <button
-onClick={fetchBookings}
+onClick={() => void fetchBookings("replace")}
 className="
 rounded-xl
 bg-gradient-to-r
@@ -685,7 +712,7 @@ placeholder="Search Booking ID, Rider, Phone, Vehicle or Hub..."
 
 value={search}
 
-onChange={(e)=>{ setListPages(1); setSearch(e.target.value); }}
+onChange={(e)=>setSearch(e.target.value)}
 
 className="
 w-full
@@ -720,7 +747,7 @@ focus:ring-pink-200
 
 key={status}
 
-onClick={()=>{ setListPages(1); setStatusFilter(status); }}
+onClick={()=>setStatusFilter(status)}
 
 className={`
 
@@ -764,7 +791,7 @@ statusFilter===status
 
 key={status}
 
-onClick={()=>{ setListPages(1); setPaymentFilter(status); }}
+onClick={()=>setPaymentFilter(status)}
 
 className={`
 rounded-xl
@@ -801,7 +828,7 @@ paymentFilter===status
 
 <button
 key={value}
-onClick={()=>{ setListPages(1); setModeFilter(value); }}
+onClick={()=>setModeFilter(value)}
 className={`
 rounded-xl
 px-5
@@ -1230,7 +1257,7 @@ booking.actualRideEnd
   <CashCollectForm
     bookingId={booking.bookingId}
     pendingAmount={Number(booking.pendingAmount || 0)}
-    onDone={() => void fetchBookings()}
+    onDone={() => void fetchBookings("poll")}
   />
 ) : null}
 
@@ -1471,7 +1498,7 @@ View
   <div className="mt-6 flex justify-center">
     <button
       type="button"
-      onClick={() => setListPages((pages) => pages + 1)}
+      onClick={() => void fetchBookings("append")}
       className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
     >
       Load more

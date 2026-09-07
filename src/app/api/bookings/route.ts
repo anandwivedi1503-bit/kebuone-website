@@ -23,7 +23,7 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
-import { applyOpsListFilters, listResponseFromPage, parseListQuery, redactBookingOtps } from "@/lib/listQuery";
+import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, redactBookingOtps, withNextCursor } from "@/lib/listQuery";
 import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
@@ -94,7 +94,7 @@ export async function GET(req: Request) {
     await connectDB();
 
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q, rideStatus, paymentStatus, rentalMode } = parsed;
+    const { page, limit, skip, cursor, q, rideStatus, paymentStatus, rentalMode } = parsed;
     const filter: Record<string, unknown> = {
   $or: [
     { isDeleted: false },
@@ -125,21 +125,25 @@ export async function GET(req: Request) {
       delete filter.$or;
     }
 
+    applyCreatedCursor(filter, cursor);
+
     const bookings = await Booking.find(filter)
-        .sort({ createdAt: -1 })
-        .skip(skip)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(cursor ? 0 : skip)
         .limit(limit + 1)
         .lean();
 
-    return NextResponse.json(
-      listResponseFromPage(
+    const payload = listResponseFromPage(
         bookings.map((booking) =>
           redactBookingOtps(booking as Record<string, unknown>)
         ),
-        page,
+        cursor ? 1 : page,
         limit
-      )
-    );
+      );
+    const last = payload.data[payload.data.length - 1] as
+      | { createdAt?: unknown; _id?: unknown }
+      | undefined;
+    return NextResponse.json(withNextCursor(payload, last));
   } catch (error) {
     return NextResponse.json(
       {

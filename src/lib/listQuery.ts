@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export const DEFAULT_LIST_LIMIT = 300;
 export const MAX_LIST_LIMIT = 500;
 
@@ -17,10 +19,13 @@ export function parseListQuery(req: Request) {
   const from = String(searchParams.get("from") || "").trim();
   const to = String(searchParams.get("to") || "").trim();
 
+  const cursor = String(searchParams.get("cursor") || "").trim();
+
   return {
     page,
     limit,
-    skip: (page - 1) * limit,
+    skip: cursor ? 0 : (page - 1) * limit,
+    cursor,
     q,
     rideStatus,
     paymentStatus,
@@ -136,4 +141,61 @@ export function listResponseFromPage<T>(rows: T[], page: number, limit: number) 
     page,
     limit
   );
+}
+
+export function encodeCreatedCursor(createdAt: unknown, id: unknown) {
+  const stamp = new Date(String(createdAt || "")).toISOString();
+  const key = String(id || "").trim();
+  if (!key || Number.isNaN(Date.parse(stamp))) return "";
+  return Buffer.from(JSON.stringify({ t: stamp, id: key }), "utf8").toString(
+    "base64url"
+  );
+}
+
+export function decodeCreatedCursor(raw: string) {
+  try {
+    const parsed = JSON.parse(
+      Buffer.from(String(raw || ""), "base64url").toString("utf8")
+    ) as { t?: string; id?: string };
+    const createdAt = new Date(String(parsed.t || ""));
+    const id = String(parsed.id || "").trim();
+    if (!id || Number.isNaN(createdAt.getTime())) return null;
+    return { createdAt, id };
+  } catch {
+    return null;
+  }
+}
+
+export function applyCreatedCursor(
+  filter: Record<string, unknown>,
+  rawCursor: string
+) {
+  const cursor = decodeCreatedCursor(rawCursor);
+  if (!cursor) return;
+  const id = mongoose.Types.ObjectId.isValid(cursor.id)
+    ? new mongoose.Types.ObjectId(cursor.id)
+    : cursor.id;
+  const clause = {
+    $or: [
+      { createdAt: { $lt: cursor.createdAt } },
+      { createdAt: cursor.createdAt, _id: { $lt: id } },
+    ],
+  };
+  filter.$and = [...((filter.$and as unknown[]) || []), clause];
+}
+
+export function withNextCursor(
+  payload: ReturnType<typeof listResponse>,
+  last?: { createdAt?: unknown; _id?: unknown }
+) {
+  if (payload.pagination.hasMore && last) {
+    const nextCursor = encodeCreatedCursor(last.createdAt, last._id);
+    if (nextCursor) {
+      return {
+        ...payload,
+        pagination: { ...payload.pagination, nextCursor },
+      };
+    }
+  }
+  return payload;
 }

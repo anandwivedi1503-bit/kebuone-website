@@ -45,17 +45,26 @@ export async function GET() {
   try {
     await connectDB();
 
-    const [cityDocs, hubs, vehicles] = await Promise.all([
+    const [cityDocs, hubStats, vehicles] = await Promise.all([
       City.find({ isDeleted: false, status: "Active" })
         .sort({ cityName: 1 })
         .select("cityName")
         .lean(),
-      Hub.find({
-        status: "Active",
-        $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-      })
-        .select("city hubName")
-        .lean(),
+      Hub.aggregate([
+        {
+          $match: {
+            status: "Active",
+            $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+          },
+        },
+        {
+          $group: {
+            _id: { $toLower: { $ifNull: ["$city", ""] } },
+            city: { $first: "$city" },
+            n: { $sum: 1 },
+          },
+        },
+      ]),
       Vehicle.find({
         $and: [
           { $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }] },
@@ -72,21 +81,20 @@ export async function GET() {
 
     let cityNames = cityDocs.map((row) => clean(row.cityName)).filter(Boolean);
     if (cityNames.length === 0) {
-      cityNames = [
-        ...new Set(
-          hubs
-            .map((hub) => clean(hub.city))
-            .filter(Boolean)
-        ),
-      ].sort((a, b) => a.localeCompare(b));
+      cityNames = hubStats
+        .map((row: { city?: string }) => clean(row.city))
+        .filter(Boolean)
+        .sort((a: string, b: string) => a.localeCompare(b));
     }
 
     const hubCountByCity = new Map<string, number>();
-    for (const hub of hubs) {
-      const city = clean(hub.city);
-      if (!city) continue;
-      const key = city.toLowerCase();
-      hubCountByCity.set(key, (hubCountByCity.get(key) || 0) + 1);
+    let hubCount = 0;
+    for (const row of hubStats as Array<{ _id?: string; n?: number }>) {
+      const key = clean(row._id);
+      const n = Number(row.n || 0);
+      if (!key) continue;
+      hubCountByCity.set(key, n);
+      hubCount += n;
     }
 
     const cities = cityNames.map((cityName) => ({
@@ -96,7 +104,7 @@ export async function GET() {
 
     const catalog: HomeCatalog = {
       cities,
-      hubCount: hubs.length,
+      hubCount,
       rates: {
         hourly: minRate(
           vehicles.map((row) => catalogRate("Hourly", row.hourlyRate)),
