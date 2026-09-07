@@ -15,6 +15,8 @@ import { sessionHubScope, staffCanAccessBooking } from "../src/lib/staffHubScope
 import { providedSecretMatches } from "../src/lib/timingSafe";
 import { listResponse, parseListQuery } from "../src/lib/listQuery";
 import { existingDepositRefundFilter } from "../src/lib/queueDepositRefund";
+import { existingCancellationRefundFilter } from "../src/lib/queueCancellationRefund";
+import { clientIp } from "../src/lib/rateLimit";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -180,5 +182,32 @@ const depositFilter = existingDepositRefundFilter("BK-1") as {
 };
 assert.equal(depositFilter.bookingId, "BK-1");
 assert.equal(depositFilter.$or[0]?.refundSource, "Security Deposit");
+
+const cancelFilter = existingCancellationRefundFilter("BK-2") as {
+  bookingId: string;
+  refundSource: string;
+};
+assert.equal(cancelFilter.bookingId, "BK-2");
+assert.equal(cancelFilter.refundSource, "Booking Cancellation");
+
+assert.equal(
+  clientIp(
+    new Request("https://www.evuddy.com", {
+      headers: { "x-forwarded-for": "1.1.1.1, 10.0.0.1" },
+    })
+  ),
+  "10.0.0.1"
+);
+assert.equal(
+  clientIp(
+    new Request("https://www.evuddy.com", {
+      headers: {
+        "x-forwarded-for": "1.1.1.1, 10.0.0.1",
+        "x-real-ip": "10.0.0.9",
+      },
+    })
+  ),
+  "10.0.0.9"
+);
 
 console.log("money-rules self-test ok");

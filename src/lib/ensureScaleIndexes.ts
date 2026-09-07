@@ -8,6 +8,7 @@ import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import iot from "@/models/IoT";
 import Partner from "@/models/Partner";
+import Transaction from "@/models/Transaction";
 
 let started = false;
 
@@ -280,5 +281,20 @@ export async function ensureScaleIndexes() {
         { unique: true, background: true, name: "unique_partner_phone_type" }
       ),
     "partner phone type"
+  );
+  await createIndexSafe(
+    () =>
+      Transaction.collection.createIndex(
+        { razorpayPaymentId: 1 },
+        {
+          unique: true,
+          name: "unique_txn_razorpay_payment",
+          partialFilterExpression: {
+            razorpayPaymentId: { $type: "string", $gt: "" },
+          },
+          background: true,
+        }
+      ),
+    "transaction razorpayPaymentId"
   );
 }

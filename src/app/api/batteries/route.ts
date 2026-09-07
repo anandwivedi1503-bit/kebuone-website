@@ -6,12 +6,14 @@ import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
 import Vehicle from "@/models/Vehicle";
 import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { listResponse, parseListQuery } from "@/lib/listQuery";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.batteries);
     if (gate.error) return gate.error;
     await connectDB();
+    const { page, limit, skip } = parseListQuery(req);
 
     const notDeleted = {
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
@@ -41,11 +43,12 @@ export async function GET() {
         }
       : notDeleted;
 
-    const [batteries, vehicles] = await Promise.all([
-      Battery.find(batteryQuery).sort({ createdAt: -1 }).lean(),
+    const [batteries, vehicles, total] = await Promise.all([
+      Battery.find(batteryQuery).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
       Vehicle.find(vehicleQuery)
         .select("vehicleId batteryPercentage vehicleStatus currentHub currentBatteryId")
         .lean(),
+      Battery.countDocuments(batteryQuery),
     ]);
 
     const vehicleMap = new Map(vehicles.map((row) => [String(row.vehicleId), row]));
@@ -99,10 +102,7 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({
-      success: true,
-      data,
-    });
+    return NextResponse.json(listResponse(data, Math.max(total, data.length), page, limit));
   } catch (error) {
     return NextResponse.json({
       success: false,

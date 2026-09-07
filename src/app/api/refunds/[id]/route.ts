@@ -301,12 +301,40 @@ const sendToRazorpay = body.sendToRazorpay === true;
 
 if (sendToRazorpay) {
   const paymentId = String(booking.razorpayPaymentId || "");
+  let gatewayId = String(refund.razorpayRefundId || "").trim();
 
   await session.abortTransaction();
   session.endSession();
   session = null;
 
-  if (!paymentId) {
+  if (!gatewayId) {
+    const claimed = await Refund.findOneAndUpdate(
+      {
+        _id: refund._id,
+        refundStatus: { $in: ["PENDING", "APPROVED"] },
+      },
+      { $set: { refundStatus: "PROCESSING" } },
+      { new: true }
+    );
+    if (!claimed) {
+      const live = await Refund.findById(id);
+      gatewayId = String(live?.razorpayRefundId || "").trim();
+      if (!gatewayId) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              live?.refundStatus === "REFUNDED"
+                ? "This refund has already been processed."
+                : "This refund is already being sent to Razorpay.",
+          },
+          { status: live?.refundStatus === "REFUNDED" ? 400 : 409 }
+        );
+      }
+    }
+  }
+
+  if (!paymentId && !gatewayId) {
     return NextResponse.json(
       {
         success: false,
@@ -317,19 +345,42 @@ if (sendToRazorpay) {
   }
 
   try {
-    const razorpayRefund = await refundRazorpayPayment(
-      paymentId,
-      Number(refund.amount)
-    );
-    updateData.razorpayRefundId = String(
-      (razorpayRefund as { id?: string }).id || ""
-    );
-    updateData.gatewayTxnId = String(
-      (razorpayRefund as { id?: string }).id || paymentId
-    );
-    updateData.paymentGateway = "Razorpay";
+    if (!gatewayId) {
+      const razorpayRefund = await refundRazorpayPayment(
+        paymentId,
+        Number(refund.amount)
+      );
+      gatewayId = String((razorpayRefund as { id?: string }).id || "");
+      updateData.razorpayRefundId = gatewayId;
+      updateData.gatewayTxnId = gatewayId || paymentId;
+      updateData.paymentGateway = "Razorpay";
+      await Refund.updateOne(
+        { _id: id },
+        {
+          $set: {
+            razorpayRefundId: gatewayId,
+            gatewayTxnId: gatewayId || paymentId,
+            paymentGateway: "Razorpay",
+            refundStatus: "PROCESSING",
+          },
+        }
+      );
+    } else {
+      updateData.razorpayRefundId = gatewayId;
+      updateData.gatewayTxnId = gatewayId;
+      updateData.paymentGateway = "Razorpay";
+    }
   } catch (error) {
     console.error("RAZORPAY REFUND ERROR:", error);
+    await Refund.updateOne(
+      { _id: id, refundStatus: "PROCESSING" },
+      {
+        $set: {
+          refundStatus: "APPROVED",
+          failureReason: "Razorpay refund failed",
+        },
+      }
+    );
     return NextResponse.json(
       {
         success: false,

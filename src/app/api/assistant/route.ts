@@ -7,7 +7,7 @@ import { loadEvaRiderSession } from "@/lib/riderAssistantHelp";
 
 export async function POST(req: Request) {
   try {
-    if (!(await rateLimitAllowed(`assistant:${clientIp(req)}`, 30, 10 * 60 * 1000))) {
+    if (!(await rateLimitAllowed(`assistant:${clientIp(req)}`, 20, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "थोड़ी देर बाद फिर पूछें जी।" },
         { status: 429 }
