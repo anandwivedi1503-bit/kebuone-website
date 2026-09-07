@@ -6,6 +6,7 @@ import Vehicle from "@/models/Vehicle";
 import Hub from "@/models/Hub";
 import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
+import Review from "@/models/Review";
 import { isAdminAuthenticated,
   requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
@@ -88,6 +89,7 @@ export async function GET(req: Request) {
       paymentMethodsAgg,
       hubBookingsAgg,
       vehicleBookingsAgg,
+      reviewAgg,
     ] = await Promise.all([
       Rider.countDocuments(riderMatch),
       Vehicle.countDocuments(vehicleMatch),
@@ -168,6 +170,17 @@ export async function GET(req: Request) {
         { $sort: { total: -1 } },
         { $limit: 5 },
       ]),
+      Review.aggregate([
+        {
+          $match: {
+            ...NOT_DELETED,
+            status: "Published",
+            ...createdInPeriod,
+            ...idInScopeFilter("bookingId", bookingIds),
+          },
+        },
+        { $group: { _id: null, avg: { $avg: "$stars" }, n: { $sum: 1 } } },
+      ]),
     ]);
 
     const totalRevenue = Number(totalRevenueAgg[0]?.total || 0);
@@ -229,6 +242,10 @@ export async function GET(req: Request) {
           row.total,
         ]),
         paymentDistribution: Object.entries(paymentMethods),
+        publishedReviews: Number(reviewAgg[0]?.n || 0),
+        averageRiderStars: Number(reviewAgg[0]?.n || 0)
+          ? Number(Number(reviewAgg[0].avg).toFixed(2))
+          : 0,
       },
     });
   } catch (error) {

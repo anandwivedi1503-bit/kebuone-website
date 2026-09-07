@@ -48,6 +48,7 @@ const DASHBOARD_ALIASES: { keys: RegExp; id: string }[] = [
   { keys: /\b(transaction|transactions|payments list)\b/i, id: "transactions" },
   { keys: /\b(analytics|stats board)\b/i, id: "analytics" },
   { keys: /\b(refund|refunds)\b/i, id: "refunds" },
+  { keys: /\b(review|reviews|rating|ratings|testimonial)\b/i, id: "reviews" },
   { keys: /\b(audit|logs)\b/i, id: "audit" },
   { keys: /\b(team|staff access)\b/i, id: "team" },
   { keys: /\b(admin home|home|overview)\b/i, id: "admin" },

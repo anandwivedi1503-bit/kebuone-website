@@ -19,6 +19,7 @@ export const ALL_DASHBOARDS = [
   "transactions",
   "analytics",
   "refunds",
+  "reviews",
   "audit",
   "team",
 ] as const;
@@ -46,6 +47,7 @@ export const DASHBOARD_LABELS: Record<string, string> = {
   transactions: "Transactions",
   analytics: "Analytics",
   refunds: "Refunds",
+  reviews: "Reviews",
   audit: "Audit logs",
   team: "Team access",
 };

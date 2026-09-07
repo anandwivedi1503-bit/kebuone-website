@@ -323,6 +323,18 @@ Average earning generated per booking.
   />
 
   <KPICard
+    title="Published ratings"
+    value={analytics?.publishedReviews || 0}
+    subtitle={
+      analytics?.averageRiderStars
+        ? `${analytics.averageRiderStars} / 5 average`
+        : "No published reviews"
+    }
+    icon={<UserCheck size={24} />}
+    color="yellow"
+  />
+
+  <KPICard
     title="Active Riders"
     value={analytics?.activeRiders || 0}
     subtitle="Currently riding"
