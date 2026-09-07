@@ -23,11 +23,10 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { publicApiError } from "@/lib/publicError";
-import { applyOpsListFilters, listResponse, parseListQuery, redactBookingOtps } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponseFromPage, parseListQuery, redactBookingOtps } from "@/lib/listQuery";
 import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
-import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 
@@ -93,7 +92,6 @@ export async function GET(req: Request) {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.bookingsRead);
     if (gate.error) return gate.error;
     await connectDB();
-    void maybeSweepUnpaidBookings();
 
     const parsed = parseListQuery(req);
     const { page, limit, skip, q, rideStatus, paymentStatus, rentalMode } = parsed;
@@ -127,21 +125,17 @@ export async function GET(req: Request) {
       delete filter.$or;
     }
 
-    const [bookings, total] = await Promise.all([
-      Booking.find(filter)
+    const bookings = await Booking.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
-        .limit(limit)
-        .lean(),
-      Booking.countDocuments(filter),
-    ]);
+        .limit(limit + 1)
+        .lean();
 
     return NextResponse.json(
-      listResponse(
+      listResponseFromPage(
         bookings.map((booking) =>
           redactBookingOtps(booking as Record<string, unknown>)
         ),
-        total,
         page,
         limit
       )

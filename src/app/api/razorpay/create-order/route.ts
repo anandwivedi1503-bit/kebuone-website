@@ -15,7 +15,6 @@ import {
 } from "@/lib/gst";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
-import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 
@@ -68,7 +67,6 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
-    void maybeSweepUnpaidBookings();
 
     const booking = await Booking.findById(bookingMongoId);
 

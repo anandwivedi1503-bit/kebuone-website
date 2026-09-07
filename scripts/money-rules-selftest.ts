@@ -13,7 +13,7 @@ import { redactOpsText } from "../src/lib/redactOpsPii";
 import { firebaseUserOwnsRider } from "../src/lib/riderOwnership";
 import { sessionHubScope, staffCanAccessBooking } from "../src/lib/staffHubScope";
 import { providedSecretMatches } from "../src/lib/timingSafe";
-import { listResponse, parseListQuery } from "../src/lib/listQuery";
+import { listResponse, listResponseFromPage, parseListQuery } from "../src/lib/listQuery";
 import { existingDepositRefundFilter } from "../src/lib/queueDepositRefund";
 import { existingCancellationRefundFilter } from "../src/lib/queueCancellationRefund";
 import { clientIp } from "../src/lib/rateLimit";
@@ -175,6 +175,9 @@ assert.equal(listPage.limit, 80);
 assert.equal(listPage.page, 1);
 assert.equal(listResponse(["a"], 200, 1, 80).pagination.hasMore, true);
 assert.equal(listResponse(["a"], 80, 1, 80).pagination.hasMore, false);
+assert.equal(listResponseFromPage(new Array(81).fill("x"), 1, 80).pagination.hasMore, true);
+assert.equal(listResponseFromPage(new Array(81).fill("x"), 1, 80).data.length, 80);
+assert.equal(listResponseFromPage(new Array(80).fill("x"), 1, 80).pagination.hasMore, false);
 
 const depositFilter = existingDepositRefundFilter("BK-1") as {
   bookingId: string;

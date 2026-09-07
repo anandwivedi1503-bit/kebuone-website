@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated,
   requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
-import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
 import { connectDB } from "@/lib/mongodb";
 import AuditLog from "@/models/AuditLog";
 import { idInScopeFilter, scopedBookingIds, scopedRiderIds } from "@/lib/staffHubScope";
@@ -47,12 +47,9 @@ export async function GET(req: Request) {
       ];
     }
 
-    const [rows, total] = await Promise.all([
-      AuditLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      AuditLog.countDocuments(filter),
-    ]);
+    const rows = await AuditLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
 
-    return NextResponse.json(listResponse(rows, total, page, limit));
+    return NextResponse.json(listResponseFromPage(rows, page, limit));
   } catch (error) {
     return NextResponse.json(
       { success: false, error: String(error) },

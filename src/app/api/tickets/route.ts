@@ -14,7 +14,7 @@ import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
-import { applyOpsListFilters, listResponse, parseListQuery } from "@/lib/listQuery";
+import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
@@ -418,12 +418,9 @@ export async function GET(req: Request) {
       ];
     }
 
-    const [tickets, total] = await Promise.all([
-      Ticket.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Ticket.countDocuments(filter),
-    ]);
+    const tickets = await Ticket.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
 
-    return NextResponse.json(listResponse(tickets, total, page, limit));
+    return NextResponse.json(listResponseFromPage(tickets, page, limit));
   } catch (error) {
     return NextResponse.json(
       {

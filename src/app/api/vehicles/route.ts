@@ -19,7 +19,6 @@ import {
   rtoDailyRate,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
-import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 
 const registrationTypes = [
@@ -562,7 +561,6 @@ export async function POST(req: Request) {
 export async function GET(req: Request) {
   try {
     await connectDB();
-    void maybeSweepUnpaidBookings();
 
     const session = await getAdminSession();
     const isAdmin = sessionHasAnyDashboard(

@@ -150,40 +150,28 @@ export async function GET(req: Request) {
     /*
      * Fetch wallets and total count in parallel.
      */
-    const [wallets, total] =
-      await Promise.all([
-        Wallet.find(filter)
+    const wallets = await Wallet.find(filter)
           .sort({
             createdAt: -1,
             _id: -1,
           })
           .skip(skip)
-          .limit(limit)
-          .lean(),
+          .limit(limit + 1)
+          .lean();
+    const hasMore = wallets.length > limit;
+    const pageRows = hasMore ? wallets.slice(0, limit) : wallets;
 
-        Wallet.countDocuments(filter),
-      ]);
+    const data = await attachLiveBookingsByRider(pageRows as Array<Record<string, unknown>>);
 
-    const data = await attachLiveBookingsByRider(wallets as Array<Record<string, unknown>>);
-
-    /*
-     * Return paginated wallet data.
-     */
     return NextResponse.json({
       success: true,
-
       data,
-
       pagination: {
         page,
         limit,
-        total,
-
-        totalPages:
-          Math.ceil(total / limit),
-
-        hasNextPage:
-          skip + wallets.length < total,
+        total: skip + pageRows.length + (hasMore ? 1 : 0),
+        hasMore,
+        hasNextPage: hasMore,
       },
     });
   } catch (error) {
