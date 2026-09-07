@@ -27,6 +27,8 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 export default function TransactionDashboard(){
 
 const [transactions,setTransactions]=useState<any[]>([]);
+const [listPages,setListPages]=useState(1);
+const [hasMoreTransactions,setHasMoreTransactions]=useState(false);
 const [search,setSearch]=useState("");
 const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 const [loading, setLoading] = useState(true);
@@ -44,15 +46,13 @@ fetchTransactions();
 
 return () => clearInterval(interval);
 
-},[]);
+},[listPages]);
 
 const fetchTransactions = async () => {
 
 try {
 
-setLoading(true);
-
-const res = await fetch("/api/transactions?limit=80");
+const res = await fetch(`/api/transactions?limit=${Math.min(500, 80 * listPages)}&page=1`, { cache: "no-store" });
 
 const data = await res.json();
 
@@ -65,6 +65,7 @@ return;
 }
 
 setTransactions(data.data || []);
+setHasMoreTransactions(Boolean(data.pagination?.hasMore));
 
 }
 
@@ -667,6 +668,18 @@ View
 </table>
 
 </div>
+
+{hasMoreTransactions ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setListPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
 
 </DashboardCard>
 

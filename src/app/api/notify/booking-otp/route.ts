@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
+import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
@@ -26,6 +27,24 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
+
+    if (
+      !(await rateLimitAllowed(
+        `booking-otp:${firebaseUser.uid}`,
+        8,
+        10 * 60 * 1000
+      )) ||
+      !(await rateLimitAllowed(
+        `booking-otp-ip:${clientIp(req)}`,
+        20,
+        10 * 60 * 1000
+      ))
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Too many OTP SMS requests. Try again later." },
+        { status: 429 }
+      );
+    }
 
     let requestedBookingId = "";
     try {

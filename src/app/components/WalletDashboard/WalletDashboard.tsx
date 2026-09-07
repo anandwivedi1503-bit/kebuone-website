@@ -16,7 +16,11 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 export default function WalletDashboard() {
 
 const [wallets,setWallets]=useState<any[]>([]);
+const [walletPages,setWalletPages]=useState(1);
+const [hasMoreWallets,setHasMoreWallets]=useState(false);
 const [transactions,setTransactions]=useState<any[]>([]);
+const [txnPages,setTxnPages]=useState(1);
+const [hasMoreWalletTxns,setHasMoreWalletTxns]=useState(false);
 
 const [search,setSearch]=useState("");
 const [statusFilter, setStatusFilter] = useState("ALL");
@@ -57,7 +61,7 @@ useEffect(() => {
 
     return () => clearInterval(interval);
 
-}, []);
+}, [walletPages, txnPages]);
 
 const loadWallets = async (showPageLoader = false) => {
   if (showPageLoader) {
@@ -65,7 +69,7 @@ const loadWallets = async (showPageLoader = false) => {
   }
 
   try {
-    const res = await fetch("/api/wallet?limit=80", {
+    const res = await fetch(`/api/wallet?limit=${Math.min(500, 80 * walletPages)}&page=1`, {
       cache: "no-store",
     });
 
@@ -78,6 +82,7 @@ const loadWallets = async (showPageLoader = false) => {
     }
 
     setWallets(data.data || []);
+    setHasMoreWallets(Boolean(data.pagination?.hasMore));
   } catch (error) {
     console.error("LOAD WALLETS ERROR:", error);
   } finally {
@@ -90,7 +95,7 @@ const loadWallets = async (showPageLoader = false) => {
 const loadTransactions = async () => {
   try {
     const res = await fetch(
-      "/api/wallet-transactions?limit=80",
+      `/api/wallet-transactions?limit=${Math.min(500, 80 * txnPages)}&page=1`,
       {
         cache: "no-store",
       }
@@ -106,6 +111,7 @@ const loadTransactions = async () => {
     }
 
     setTransactions(data.data || []);
+    setHasMoreWalletTxns(Boolean(data.pagination?.hasMore));
   } catch (error) {
     console.error(
       "LOAD TRANSACTIONS ERROR:",
@@ -903,6 +909,18 @@ No wallets found.
 
 </div>
 
+{hasMoreWallets ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setWalletPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
+
 </DashboardCard>
 
 {showRecharge&&(
@@ -1164,6 +1182,18 @@ className="border-b border-pink-50"
 </table>
 
 </div>
+
+{hasMoreWalletTxns ? (
+  <div className="mt-4 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setTxnPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
 
 </div>
 

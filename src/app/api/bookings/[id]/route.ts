@@ -19,6 +19,7 @@ import Vehicle from "@/models/Vehicle";
 import Refund from "@/models/Refund";
 import { getBookingPayableAmount } from "@/lib/gst";
 import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
+import { queueCancellationRefundIfPaid } from "@/lib/queueCancellationRefund";
 import {
   hubForbiddenResponse,
   staffCanAccessBooking,
@@ -244,6 +245,20 @@ export async function PATCH(
     const paymentStatus = body.paymentStatus;
     const rideStatus = body.rideStatus;
     const remarks = body.remarks;
+
+    if (receivedAmount !== undefined || paymentStatus !== undefined) {
+      await session.abortTransaction();
+      session.endSession();
+      session = null;
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Record cash on the yard desk or wait for Razorpay/wallet capture. Do not PATCH received amount.",
+        },
+        { status: 400 }
+      );
+    }
 
     /* ---------------------------------------------------------------------- */
     /* VALIDATE PAYMENT MODE                                                   */
@@ -809,6 +824,8 @@ export async function PATCH(
       booking.actualRideStart = undefined;
       booking.actualRideEnd = undefined;
       booking.completedAt = undefined;
+
+      await queueCancellationRefundIfPaid(booking, session);
     } else if (rideStatus !== undefined) {
       booking.rideStatus = requestedRideStatus;
 

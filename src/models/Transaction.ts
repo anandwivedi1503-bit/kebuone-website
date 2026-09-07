@@ -89,9 +89,9 @@ transactionSource: {
 
 razorpayPaymentId: {
   type: String,
-  unique:true,
-  sparse:true,
-  default: "",
+  trim: true,
+  unique: true,
+  sparse: true,
 },
 
 gatewayResponseCode: {
@@ -235,9 +235,6 @@ TransactionSchema.index({
   bookingId: 1,
 });
 
-TransactionSchema.index({
-  razorpayPaymentId: 1,
-});
 
 TransactionSchema.index({
   userId: 1,
@@ -294,9 +291,11 @@ TransactionSchema.pre("save", function (next) {
       this.razorpayOrderId.trim();
   }
 
-  if (this.razorpayPaymentId) {
-    this.razorpayPaymentId =
-      this.razorpayPaymentId.trim();
+  const razorpayPaymentId = String(this.razorpayPaymentId || "").trim();
+  if (razorpayPaymentId) {
+    this.razorpayPaymentId = razorpayPaymentId;
+  } else {
+    this.razorpayPaymentId = undefined;
   }
 
   if (this.remarks) {

@@ -103,7 +103,7 @@ export default function BatteryDashboard() {
   const [selectedBattery, setSelectedBattery] = useState<Battery | null>(null);
 
   const fetchBatteries = async () => {
-    const res = await fetch("/api/batteries", { cache: "no-store" });
+    const res = await fetch("/api/batteries?limit=500", { cache: "no-store" });
     const data = await res.json();
     setBatteries(data.data || []);
   };
