@@ -10,6 +10,7 @@ import Review from "@/models/Review";
 import iot from "@/models/IoT";
 import Partner from "@/models/Partner";
 import Transaction from "@/models/Transaction";
+import Hub from "@/models/Hub";
 
 let started = false;
 
@@ -297,6 +298,22 @@ export async function ensureScaleIndexes() {
         }
       ),
     "transaction razorpayPaymentId"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "booking_created_id_cursor" }
+      ),
+    "booking createdAt _id cursor"
+  );
+  await createIndexSafe(
+    () =>
+      Hub.collection.createIndex(
+        { status: 1, city: 1, createdAt: -1 },
+        { background: true, name: "hub_status_city_created" }
+      ),
+    "hub status city"
   );
   await createIndexSafe(
     () =>

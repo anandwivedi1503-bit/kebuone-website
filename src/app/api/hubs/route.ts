@@ -382,12 +382,35 @@ if (cityFilter) {
   );
 }
 
-const hubs = await Hub.find(hubQuery)
-  .sort({
-    createdAt: -1,
-  })
-  .limit(isAdmin ? 200 : 80)
-  .lean<IHub[]>();
+const publicCityIndex = !isAdmin && !cityFilter;
+
+let hubs: IHub[] = [];
+if (publicCityIndex) {
+  const grouped = await Hub.aggregate([
+    { $match: hubQuery },
+    { $sort: { createdAt: -1 } },
+    {
+      $group: {
+        _id: { $toLower: { $ifNull: ["$city", ""] } },
+        doc: { $first: "$$ROOT" },
+        hubCount: { $sum: 1 },
+      },
+    },
+    { $match: { _id: { $ne: "" } } },
+    { $limit: 80 },
+  ]);
+  hubs = grouped.map((row: { doc: IHub; hubCount?: number }) => ({
+    ...row.doc,
+    hubCount: Number(row.hubCount || 1),
+  })) as IHub[];
+} else {
+  hubs = await Hub.find(hubQuery)
+    .sort({
+      createdAt: -1,
+    })
+    .limit(isAdmin ? 500 : 100)
+    .lean<IHub[]>();
+}
 
     /*
      * Calculate actual vehicle inventory
@@ -396,8 +419,9 @@ const hubs = await Hub.find(hubQuery)
      * This removes the need for the admin
      * to manually maintain availableBikes.
      */
-    const vehicleCounts =
-      await Vehicle.aggregate([
+    const vehicleCounts = publicCityIndex
+      ? []
+      : await Vehicle.aggregate([
         {
           $match: {
             isDeleted: false,
@@ -504,11 +528,27 @@ const hubs = await Hub.find(hubQuery)
       );
     }
 
-    const batteries = await Battery.find({
-      $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    })
-      .select("hubId hubName status")
-      .lean();
+    const hubKeys = hubs.flatMap((hub) =>
+      [hub.hubCode, hub.hubName]
+        .map((value) => String(value || "").trim().toUpperCase())
+        .filter(Boolean)
+    );
+    const batteries = publicCityIndex || hubKeys.length === 0
+      ? []
+      : await Battery.find({
+          $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+          $and: [
+            {
+              $or: [
+                { hubId: { $in: hubKeys } },
+                { hubName: { $in: hubKeys } },
+              ],
+            },
+          ],
+        })
+          .select("hubId hubName status")
+          .limit(2000)
+          .lean();
 
     const data =
   hubs.map((hub: IHub) => {
