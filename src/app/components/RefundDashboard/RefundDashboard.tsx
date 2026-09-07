@@ -415,6 +415,8 @@ Loading refund records...
 
 ) : (
 
+<>
+
 <div className="overflow-x-auto rounded-3xl">
 
 <table className="min-w-full">
@@ -749,6 +751,8 @@ Done ✕
     </button>
   </div>
 ) : null}
+
+</>
 
 )}
 

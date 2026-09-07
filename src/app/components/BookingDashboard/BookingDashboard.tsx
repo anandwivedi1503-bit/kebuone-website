@@ -840,6 +840,8 @@ Loading Bookings...
 
 ) : (
 
+<>
+
 <div className="overflow-x-auto rounded-3xl">
 
 <table className="min-w-[1800px] w-full">
@@ -1476,6 +1478,8 @@ View
     </button>
   </div>
 ) : null}
+
+</>
 
 )}
 </DashboardCard>
