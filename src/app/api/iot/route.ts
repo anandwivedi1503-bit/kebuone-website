@@ -63,6 +63,7 @@ export async function GET() {
           .find({ vehicleId: { $in: vehicleIds } })
           .select("vehicleId alertType updatedAt")
           .sort({ updatedAt: -1 })
+          .limit(500)
           .lean()
       : [];
 

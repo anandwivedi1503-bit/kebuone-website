@@ -21,14 +21,20 @@ type AuditRow = {
 
 export default function AuditLogsDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditRow[]>([]);
+  const [listPages, setListPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       try {
-        const auditRes = await fetch("/api/audit-logs?limit=80", { cache: "no-store" });
+        const auditRes = await fetch(
+          `/api/audit-logs?limit=${Math.min(500, 80 * listPages)}&page=1`,
+          { cache: "no-store" }
+        );
         const auditData = await auditRes.json();
         setAuditLogs(Array.isArray(auditData.data) ? auditData.data : []);
+        setHasMore(Boolean(auditData.pagination?.hasMore));
       } finally {
         setLoading(false);
       }
@@ -37,7 +43,7 @@ export default function AuditLogsDashboard() {
     void load();
     const interval = window.setInterval(() => void load(), 30000);
     return () => window.clearInterval(interval);
-  }, []);
+  }, [listPages]);
 
   const rows = useMemo(() => {
     return auditLogs.map((item) => ({
@@ -101,6 +107,17 @@ export default function AuditLogsDashboard() {
             </tbody>
           </table>
         </div>
+        {hasMore ? (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={() => setListPages((pages) => pages + 1)}
+              className="rounded-xl border border-slate-200 bg-white px-6 py-3 font-bold text-slate-800"
+            >
+              Load more
+            </button>
+          </div>
+        ) : null}
       </DashboardCard>
     </PageContainer>
   );
