@@ -16,6 +16,8 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 export default function RefundDashboard(){
 
 const [refunds,setRefunds]=useState<any[]>([]);
+const [listPages,setListPages]=useState(1);
+const [hasMoreRefunds,setHasMoreRefunds]=useState(false);
 const [search,setSearch] = useState(() => consumeOpsFocus())
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [selectedRefund, setSelectedRefund] = useState<any | null>(null);
@@ -23,17 +25,19 @@ const [processingId, setProcessingId] = useState("");
 const [loading, setLoading] = useState(true);
 const fetchRefunds = async () => {
 
-  setLoading(true);
-
   try {
 
-    const res = await fetch("/api/refunds?limit=80");
+    const res = await fetch(
+      `/api/refunds?limit=${Math.min(500, 80 * listPages)}&page=1`,
+      { cache: "no-store" }
+    );
 
     const data = await res.json();
 
     if (data.success) {
 
       setRefunds(data.data || []);
+      setHasMoreRefunds(Boolean(data.pagination?.hasMore));
 
     }
 
@@ -61,7 +65,7 @@ useEffect(() => {
 
   return () => clearInterval(interval);
 
-}, []);
+}, [listPages]);
 
 const processingRefunds=refunds.filter(
 (r)=>r.refundStatus==="PROCESSING" || r.refundStatus==="PENDING"
@@ -411,6 +415,8 @@ Loading refund records...
 
 ) : (
 
+<>
+
 <div className="overflow-x-auto rounded-3xl">
 
 <table className="min-w-full">
@@ -733,6 +739,20 @@ Done ✕
 </table>
 
 </div>
+
+{hasMoreRefunds ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      onClick={() => setListPages((pages) => pages + 1)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+    >
+      Load more
+    </button>
+  </div>
+) : null}
+
+</>
 
 )}
 

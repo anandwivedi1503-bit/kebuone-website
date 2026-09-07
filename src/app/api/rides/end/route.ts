@@ -7,13 +7,12 @@ import {
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
-import { generateSixDigitOtp, isOtpExpired, otpMatches } from "@/lib/otp";
+import { isOtpExpired, otpMatches } from "@/lib/otp";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
-import Wallet from "@/models/Wallet";
-import WalletTransaction from "@/models/WalletTransaction";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
+import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
 import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import {
   hubForbiddenResponse,
@@ -255,43 +254,11 @@ export async function POST(req: Request) {
       );
     }
 
-    const wallet = await Wallet.findOne({
-      riderId: booking.riderId,
-    }).session(session);
-
-    if (wallet && Number(booking.securityDeposit || 0) > 0) {
-      wallet.securityDepositHold = Math.max(
-        0,
-        Number(wallet.securityDepositHold || 0) - Number(booking.securityDeposit || 0)
-      );
-      await wallet.save({ session });
-
-      const existingRelease = await WalletTransaction.findOne({
-        bookingId: booking.bookingId,
-        transactionType: "Security Deposit Release",
-      }).session(session);
-
-      if (!existingRelease) {
-        await WalletTransaction.create(
-          [
-            {
-              transactionId: "WTX-" + generateSixDigitOtp() + Date.now(),
-              riderId: booking.riderId,
-              userId: booking.userId,
-              userName: booking.userName,
-              bookingId: booking.bookingId,
-              amount: booking.securityDeposit,
-              paymentMethod: "Wallet",
-              transactionType: "Security Deposit Release",
-              balanceAfter: wallet.balance,
-              remarks: "Ride completed",
-              status: "Success",
-            },
-          ],
-          { session }
-        );
-      }
-    }
+    await releaseSecurityDepositHoldOnce(
+      booking,
+      session,
+      "Ride completed"
+    );
 
     await queueDepositRefundIfEligible(booking, session);
 

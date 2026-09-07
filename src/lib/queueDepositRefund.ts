@@ -3,6 +3,18 @@ import type mongoose from "mongoose";
 import { nextSeqId } from "@/lib/nextSeqId";
 import Refund from "@/models/Refund";
 
+/** Ticket/cancel refunds do not block deposit queue; legacy deposit rows still match. */
+export function existingDepositRefundFilter(bookingId: string) {
+  return {
+    bookingId,
+    refundStatus: { $nin: ["REJECTED", "FAILED"] },
+    $or: [
+      { refundSource: "Security Deposit" },
+      { remarks: /security deposit/i },
+    ],
+  };
+}
+
 type BookingDoc = {
   bookingId: string;
   riderId?: string;
@@ -28,11 +40,11 @@ export async function queueDepositRefundIfEligible(
     return false;
   }
 
+  const existingFilter = existingDepositRefundFilter(booking.bookingId);
   const existingRefund = session
-    ? await Refund.findOne({ bookingId: booking.bookingId }).session(session)
-    : await Refund.findOne({ bookingId: booking.bookingId });
+    ? await Refund.findOne(existingFilter).session(session)
+    : await Refund.findOne(existingFilter);
 
-  // Any existing refund row for this booking (ticket or deposit) — keep prior behaviour.
   if (existingRefund) {
     return false;
   }
@@ -48,6 +60,7 @@ export async function queueDepositRefundIfEligible(
           riderId: booking.riderId,
           amount: booking.securityDeposit,
           refundStatus: "PENDING",
+          refundSource: "Security Deposit",
           remarks: "Security deposit refund pending admin approval",
         },
       ],
@@ -60,6 +73,7 @@ export async function queueDepositRefundIfEligible(
       riderId: booking.riderId,
       amount: booking.securityDeposit,
       refundStatus: "PENDING",
+      refundSource: "Security Deposit",
       remarks: "Security deposit refund pending admin approval",
     });
   }

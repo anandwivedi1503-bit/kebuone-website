@@ -13,6 +13,8 @@ import { redactOpsText } from "../src/lib/redactOpsPii";
 import { firebaseUserOwnsRider } from "../src/lib/riderOwnership";
 import { sessionHubScope, staffCanAccessBooking } from "../src/lib/staffHubScope";
 import { providedSecretMatches } from "../src/lib/timingSafe";
+import { listResponse, parseListQuery } from "../src/lib/listQuery";
+import { existingDepositRefundFilter } from "../src/lib/queueDepositRefund";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -163,5 +165,20 @@ assert.equal(
   ),
   true
 );
+
+const listPage = parseListQuery(
+  new Request("https://www.evuddy.com/api/bookings?limit=80&page=1")
+);
+assert.equal(listPage.limit, 80);
+assert.equal(listPage.page, 1);
+assert.equal(listResponse(["a"], 200, 1, 80).pagination.hasMore, true);
+assert.equal(listResponse(["a"], 80, 1, 80).pagination.hasMore, false);
+
+const depositFilter = existingDepositRefundFilter("BK-1") as {
+  bookingId: string;
+  $or: Array<{ refundSource?: string }>;
+};
+assert.equal(depositFilter.bookingId, "BK-1");
+assert.equal(depositFilter.$or[0]?.refundSource, "Security Deposit");
 
 console.log("money-rules self-test ok");
