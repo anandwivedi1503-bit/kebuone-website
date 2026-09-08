@@ -43,7 +43,7 @@ const pillars = [
 
 export default function AboutUs() {
   return (
-    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
+    <div className="overflow-x-hidden bg-[#F7F4EE] text-[#1C1917]">
       <BrandHero
         title="About"
         accent="Us"
@@ -89,40 +89,37 @@ export default function AboutUs() {
         ]}
       />
 
-      <section className="mx-auto grid max-w-6xl gap-3 px-4 py-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-4 lg:px-10">
+      <section className="mx-auto grid max-w-[1440px] gap-8 px-5 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:px-12">
         {facts.map((item) => (
-          <div
-            key={item.label}
-            className="rounded-[24px] border border-white bg-white px-5 py-5 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
-          >
-            <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">
+          <div key={item.label} className="border-t border-[#E4DDD2] pt-5">
+            <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#5F6B63]">
               {item.label}
             </p>
-            <p className="mt-2 text-2xl font-black text-[#18B368]">{item.value}</p>
+            <p className="font-display mt-2 text-3xl font-medium text-[#1F6B4A]">{item.value}</p>
           </div>
         ))}
       </section>
 
-      <section className="bg-white py-14 sm:py-20">
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:px-10">
+      <section className="bg-[#FBF9F5] py-16 sm:py-20">
+        <div className="mx-auto grid max-w-[1440px] gap-10 px-5 sm:px-8 lg:grid-cols-2 lg:px-12">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#18B368]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
               How we work
             </p>
-            <h2 className="mt-3 text-2xl font-black tracking-[-0.04em] sm:text-4xl lg:text-5xl">
-              Affordable. Accessible. Asset-building.
+            <h2 className="font-display mt-3 text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-4xl">
+              Affordable. Accessible. <span className="italic text-[#1F6B4A]">Asset-building.</span>
             </h2>
-            <p className="mt-5 text-base leading-7 text-slate-600">
+            <p className="mt-5 max-w-xl text-[15px] leading-8 text-[#5C635E]">
               GST is 5% on rental only (CGST 2.5% + SGST 2.5%). Security deposit
               on normal rentals is refundable and not taxed. Rent to Own has no
               deposit.
             </p>
           </div>
-          <div className="rounded-[28px] bg-[#08112F] p-7 text-white sm:p-10">
-            <p className="text-sm font-bold uppercase tracking-[0.16em] text-[#86EFAC]">
+          <div className="border-t border-[#E4DDD2] pt-6 lg:border-t-0 lg:border-l lg:pl-10 lg:pt-0">
+            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#1F6B4A]">
               What we operate
             </p>
-            <ul className="mt-6 space-y-4 text-sm leading-6 text-white/80 sm:text-base">
+            <ul className="mt-6 space-y-4 text-[15px] leading-8 text-[#5C635E]">
               <li>B2C rentals for daily riders</li>
               <li>B2B fleets, hubs and delivery partners</li>
               <li>Rent to Own so every ride can lead to ownership</li>
@@ -136,11 +133,11 @@ export default function AboutUs() {
         {pillars.map((item) => (
           <article
             key={item.title}
-            className="rounded-[28px] border border-slate-100 bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.05)]"
+            className="border-t border-[#E4DDD2] pt-5"
           >
-            <item.icon className="h-10 w-10 text-[#18B368]" />
-            <h3 className="mt-4 text-xl font-black">{item.title}</h3>
-            <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+            <item.icon className="text-[#1F6B4A]" size={18} strokeWidth={1.5} />
+            <h3 className="mt-4 text-base font-medium text-[#1C1917]">{item.title}</h3>
+            <p className="mt-2 text-sm leading-7 text-[#5C635E]">{item.text}</p>
           </article>
         ))}
       </BrandCardGrid>

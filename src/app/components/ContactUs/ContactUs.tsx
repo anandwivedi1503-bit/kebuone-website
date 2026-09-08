@@ -48,7 +48,7 @@ const directory = [
 ];
 
 const fieldClass =
-  "h-14 w-full rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-[#08112F] outline-none focus:border-[#18B368]";
+  "h-12 w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]";
 
 export default function ContactUs() {
   const [form, setForm] = useState(initialForm);
@@ -101,8 +101,8 @@ export default function ContactUs() {
   };
 
   return (
-    <div className="overflow-x-hidden bg-[#F4F7F8] text-[#08112F]">
-      <section className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:px-10">
+    <div className="overflow-x-hidden bg-[#F7F4EE] text-[#1C1917]">
+      <section className="relative mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:px-12">
         <div className="min-w-0">
           <Image
             src="/Evuddy-logo-dark-E.png"
@@ -111,26 +111,26 @@ export default function ContactUs() {
             height={78}
             className="h-10 w-auto max-w-full object-contain sm:h-14"
           />
-          <p className="mt-3 text-[10px] font-bold tracking-[0.22em] text-[#08112F] sm:text-[11px] sm:tracking-[0.32em]">
-            SMART · ELECTRIC · MOBILITY
+          <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+            Smart · electric · mobility
           </p>
-          <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-[-0.05em] sm:mt-7 sm:text-6xl">
-            Contact <span className="text-[#18B368]">EVUDDY</span>
+          <h1 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl lg:text-[3.5rem]">
+            Contact <span className="italic text-[#1F6B4A]">EVUDDY</span>
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
+          <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
             Questions about scooter rentals, Rent to Own, hubs or partnerships —
             the EVUDDY team is here.
           </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/ride-options"
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-6 text-sm font-bold text-white sm:h-14 sm:w-auto sm:px-8 sm:text-base"
+              className="inline-flex w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] sm:w-auto"
             >
-              Book an EV <ArrowRight className="h-5 w-5" />
+              Book an EV <ArrowRight size={16} />
             </Link>
             <Link
               href="/partners#dealer-network"
-              className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-[#18B368] sm:h-14 sm:w-auto sm:px-8 sm:text-base"
+              className="inline-flex w-full items-center justify-center border border-[#1C1917]/15 px-8 py-3.5 text-[13px] font-medium text-[#1C1917] sm:w-auto"
             >
               Become a dealer
             </Link>
@@ -146,54 +146,57 @@ export default function ContactUs() {
         </figure>
       </section>
 
-      <section className="px-4 pb-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-6xl rounded-[24px] bg-[#08112F] px-5 py-8 text-center text-white sm:rounded-[32px] sm:px-12 sm:py-12">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">
+      <section className="px-5 pb-6 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1440px] border-t border-[#E4DDD2] pt-12 text-center sm:pt-16">
+          <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
             Contact
           </p>
-          <p className="mx-auto mt-4 max-w-4xl text-sm leading-7 text-white/92 sm:text-lg sm:leading-8">
-            Reach support, partnerships or hiring. Every message is about getting
-            riders onto EVUDDY electric scooters safely.
+          <p className="font-display mx-auto mt-6 max-w-3xl text-2xl font-medium leading-snug text-[#1C1917] sm:text-4xl">
+            Reach support, partnerships or hiring.
           </p>
-          <div className="mt-7 rounded-2xl bg-[#18B368] px-4 py-3 sm:mt-8">
-            <p className="text-xs font-black tracking-wide sm:text-sm">#safeRideWithEvuddy</p>
-          </div>
+          <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-8 text-[#5C635E]">
+            Every message is about getting riders onto EVUDDY electric scooters safely.
+          </p>
+          <p className="mt-8 text-[11px] font-medium tracking-[0.22em] text-[#1F6B4A]">
+            #safeRideWithEvuddy
+          </p>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
-        <h2 className="text-2xl font-black tracking-[-0.04em] sm:text-4xl">Get in touch</h2>
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">
+      <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+        <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-4xl">
+          Get in touch
+        </h2>
+        <div className="mt-10 grid gap-8 sm:grid-cols-2">
           {directory.map((item) => (
-            <article
-              key={item.title}
-              className="rounded-[22px] border border-slate-100 bg-white p-5 sm:p-6"
-            >
-              <h3 className="text-lg font-black sm:text-xl">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+            <article key={item.title} className="border-t border-[#E4DDD2] pt-5">
+              <h3 className="text-base font-medium text-[#1C1917]">{item.title}</h3>
+              <p className="mt-2 text-sm leading-7 text-[#5C635E]">{item.text}</p>
               {item.href ? (
-                <a href={item.href} className="mt-4 inline-block text-sm font-bold text-[#18B368]">
+                <a href={item.href} className="mt-4 inline-block text-sm font-medium text-[#1F6B4A]">
                   {item.value}
                 </a>
               ) : (
-                <p className="mt-4 text-sm font-bold text-[#18B368]">{item.value}</p>
+                <p className="mt-4 text-sm font-medium text-[#1F6B4A]">{item.value}</p>
               )}
             </article>
           ))}
         </div>
       </section>
 
-      <section className="px-4 py-8 sm:px-6 lg:px-10">
-        <div className="mx-auto grid max-w-6xl items-start gap-6 lg:grid-cols-2 lg:gap-12">
+      <section className="px-5 py-10 sm:px-8 lg:px-12">
+        <div className="mx-auto grid max-w-[1440px] items-start gap-10 lg:grid-cols-2 lg:gap-12">
           <form
             onSubmit={submitForm}
-            className="space-y-4 rounded-[28px] bg-white p-6 shadow-[0_20px_50px_rgba(8,17,47,0.06)] sm:p-10"
+            className="space-y-4 border-t border-[#E4DDD2] bg-[#FBF9F5] p-6 sm:p-10"
           >
-            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#18B368]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
               Message
             </p>
-            <h2 className="text-2xl font-black sm:text-3xl">Send us a message</h2>
-            <p className="text-sm leading-6 text-slate-500">
+            <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
+              Send us a message
+            </h2>
+            <p className="text-[15px] leading-8 text-[#5C635E]">
               We will get back to you about EVUDDY rentals, hubs or partnerships.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
@@ -239,14 +242,14 @@ export default function ContactUs() {
               onChange={updateField}
               required
               placeholder="Your message"
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-[#08112F] outline-none focus:border-[#18B368]"
+              className="w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 py-3 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]"
             />
-            {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-            {status && <p className="text-sm font-semibold text-[#18B368]">{status}</p>}
+            {error && <p className="text-sm font-medium text-red-700">{error}</p>}
+            {status && <p className="text-sm font-medium text-[#1F6B4A]">{status}</p>}
             <button
               disabled={loading}
               type="submit"
-              className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#18B368] px-8 font-bold text-white disabled:opacity-60 sm:h-14 sm:w-auto"
+              className="inline-flex w-full items-center justify-center bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] disabled:opacity-60 sm:w-auto"
             >
               {loading ? "Sending..." : "Submit enquiry"}
             </button>
@@ -264,23 +267,23 @@ export default function ContactUs() {
                 className="aspect-video h-auto w-full object-contain object-center"
               />
             </figure>
-            <article className="rounded-[22px] border border-slate-100 bg-white p-6">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#18B368]">
+            <article className="border-t border-[#E4DDD2] pt-6">
+              <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
                 Helpdesk
               </p>
               <a
                 href="mailto:helpdesk@kebuone.in"
-                className="mt-2 inline-block text-xl font-black text-[#08112F]"
+                className="font-display mt-3 inline-block text-2xl font-medium text-[#1C1917]"
               >
                 helpdesk@kebuone.in
               </a>
               <a
                 href="tel:+918726006512"
-                className="mt-2 block text-lg font-black text-[#08112F]"
+                className="mt-2 block text-[15px] font-medium text-[#1F6B4A]"
               >
                 +91 8726006512
               </a>
-              <p className="mt-2 text-sm leading-6 text-slate-600">
+              <p className="mt-3 text-sm leading-7 text-[#5C635E]">
                 Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow,
                 Uttar Pradesh 226010.
               </p>
@@ -289,18 +292,22 @@ export default function ContactUs() {
         </div>
       </section>
 
-      <section className="px-4 pb-12 sm:px-6 sm:pb-16 lg:px-10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-5 rounded-[24px] bg-[#08112F] px-5 py-8 text-white sm:flex-row sm:items-center sm:justify-between sm:rounded-[32px] sm:px-10">
-          <div>
-            <p className="text-sm font-bold text-[#86EFAC]">#safeRideWithEvuddy</p>
-            <h2 className="mt-2 text-2xl font-black sm:text-3xl">Ready to ride electric?</h2>
+      <section className="px-5 pb-16 sm:px-8 sm:pb-20 lg:px-12">
+        <div className="mx-auto max-w-[1440px] border-t border-[#E4DDD2] pt-10 text-center">
+          <h2 className="font-display text-3xl font-medium text-[#1C1917] sm:text-4xl">
+            Ready to ride electric?
+          </h2>
+          <p className="mt-3 text-[11px] font-medium tracking-[0.22em] text-[#1F6B4A]">
+            #safeRideWithEvuddy
+          </p>
+          <div className="mt-7 flex justify-center">
+            <Link
+              href="/ride-options"
+              className="inline-flex items-center justify-center bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c]"
+            >
+              Book an EV
+            </Link>
           </div>
-          <Link
-            href="/ride-options"
-            className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-white px-8 font-bold text-[#08112F] sm:h-14 sm:w-auto"
-          >
-            Book an EV
-          </Link>
         </div>
       </section>
     </div>
