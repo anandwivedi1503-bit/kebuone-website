@@ -101,6 +101,20 @@ function MediaVideo({ src }: { src: string }) {
   );
 }
 
+const eyebrowClass =
+  "text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]";
+const eyebrowOnDark =
+  "text-[11px] font-medium uppercase tracking-[0.26em] text-[#C8E6D4]";
+const displayH1 =
+  "font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl lg:text-[3.5rem]";
+const displayH2 =
+  "font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-4xl";
+const bodyClass = "mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]";
+const btnPrimary =
+  "inline-flex w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] sm:w-auto";
+const btnSecondary =
+  "inline-flex w-full items-center justify-center border border-[#1C1917]/15 px-8 py-3.5 text-[13px] font-medium text-[#1C1917] sm:w-auto";
+
 function fitForSrc(src: string, video?: boolean): BrandMediaFit {
   if (video || src.endsWith(".mp4")) return "video";
   if (src.includes("evuddy-scooter")) return "product";
@@ -139,7 +153,7 @@ export function BrandHero({
         style={{ backgroundImage: iconPattern }}
       />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-2 lg:gap-12 lg:px-10">
+      <div className="relative mx-auto grid max-w-[1440px] items-center gap-8 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-2 lg:gap-12 lg:px-12">
         <div className="min-w-0">
           <Image
             src="/Evuddy-logo-dark-E.png"
@@ -148,26 +162,16 @@ export function BrandHero({
             height={78}
             className="h-10 w-auto max-w-full object-contain sm:h-14"
           />
-          <p className="mt-3 text-[10px] font-bold tracking-[0.22em] text-[#08112F] sm:text-[11px] sm:tracking-[0.32em]">
-            SMART · ELECTRIC · MOBILITY
-          </p>
-          <h1 className="mt-5 text-4xl font-black leading-[1.08] tracking-[-0.05em] sm:mt-7 sm:text-6xl">
-            {title} <span className="text-[#18B368]">{accent}</span>
+          <p className={`mt-6 ${eyebrowClass}`}>Smart · electric · mobility</p>
+          <h1 className={displayH1}>
+            {title} <span className="italic text-[#1F6B4A]">{accent}</span>
           </h1>
-          <p className="mt-4 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">
-            {subtitle}
-          </p>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-            <Link
-              href={primaryHref}
-              className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#18B368] px-6 text-sm font-bold text-white sm:h-14 sm:w-auto sm:px-8 sm:text-base"
-            >
-              {primaryLabel} <ArrowRight className="h-5 w-5" />
+          <p className={bodyClass}>{subtitle}</p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href={primaryHref} className={btnPrimary}>
+              {primaryLabel} <ArrowRight size={16} />
             </Link>
-            <Link
-              href={secondaryHref}
-              className="inline-flex h-12 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-bold text-[#18B368] sm:h-14 sm:w-auto sm:px-8 sm:text-base"
-            >
+            <Link href={secondaryHref} className={btnSecondary}>
               {secondaryLabel}
             </Link>
           </div>
@@ -189,22 +193,24 @@ export function BrandStatement({
   paragraphs: string[];
 }) {
   return (
-    <section className="px-4 pb-4 sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-6xl rounded-[24px] bg-[#08112F] px-5 py-8 text-center text-white sm:rounded-[32px] sm:px-12 sm:py-12">
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">
-          {label}
-        </p>
-        {paragraphs.map((text) => (
+    <section className="px-5 pb-6 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1440px] border-t border-[#E4DDD2] pt-12 text-center sm:pt-16">
+        <p className={eyebrowClass}>{label}</p>
+        {paragraphs.map((text, index) => (
           <p
             key={text}
-            className="mx-auto mt-4 max-w-4xl text-sm leading-7 text-white/92 sm:mt-5 sm:text-lg sm:leading-8"
+            className={
+              index === 0
+                ? "font-display mx-auto mt-6 max-w-3xl text-2xl font-medium leading-snug text-[#1C1917] sm:text-4xl"
+                : "mx-auto mt-5 max-w-2xl text-[15px] leading-8 text-[#5C635E]"
+            }
           >
             {text}
           </p>
         ))}
-        <div className="mt-7 rounded-2xl bg-[#18B368] px-4 py-3 sm:mt-8">
-          <p className="text-xs font-black tracking-wide sm:text-sm">#safeRideWithEvuddy</p>
-        </div>
+        <p className="mt-8 text-[11px] font-medium tracking-[0.22em] text-[#1F6B4A]">
+          #safeRideWithEvuddy
+        </p>
       </div>
     </section>
   );
@@ -220,18 +226,18 @@ export function BrandCta({
   label: string;
 }) {
   return (
-    <section className="px-4 pb-12 sm:px-6 sm:pb-16 lg:px-10">
-      <div className="mx-auto flex max-w-6xl flex-col gap-5 rounded-[24px] bg-[#08112F] px-5 py-8 text-white sm:flex-row sm:items-center sm:justify-between sm:rounded-[32px] sm:px-10">
-        <div>
-          <p className="text-sm font-bold text-[#86EFAC]">#safeRideWithEvuddy</p>
-          <h2 className="mt-2 text-2xl font-black sm:text-3xl">{title}</h2>
+    <section className="px-5 pb-16 sm:px-8 sm:pb-20 lg:px-12">
+      <div className="mx-auto max-w-[1440px] border-t border-[#E4DDD2] pt-10 text-center">
+        <h2 className="font-display text-3xl font-medium text-[#1C1917] sm:text-4xl">{title}</h2>
+        <p className="mt-3 text-[11px] font-medium tracking-[0.22em] text-[#1F6B4A]">
+          #safeRideWithEvuddy
+        </p>
+        <div className="mt-7 flex justify-center">
+          <Link href={href} className={btnPrimary}>
+            {label}
+            <ArrowRight size={16} />
+          </Link>
         </div>
-        <Link
-          href={href}
-          className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-full bg-white px-8 font-bold text-[#08112F] sm:h-14 sm:w-auto"
-        >
-          {label}
-        </Link>
       </div>
     </section>
   );
@@ -245,18 +251,18 @@ export function BrandCardGrid({
   children: ReactNode;
 }) {
   return (
-    <section className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
-      <h2 className="text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 sm:gap-4">{children}</div>
+    <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+      <h2 className={displayH2}>{title}</h2>
+      <div className="mt-10 grid gap-8 sm:grid-cols-2">{children}</div>
     </section>
   );
 }
 
 export function BrandCard({ title, text }: { title: string; text: string }) {
   return (
-    <article className="rounded-[22px] border border-slate-100 bg-white p-5 sm:p-6">
-      <h3 className="text-lg font-black sm:text-xl">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
+    <article className="border-t border-[#E4DDD2] pt-5">
+      <h3 className="text-base font-medium text-[#1C1917]">{title}</h3>
+      <p className="mt-2 text-sm leading-7 text-[#5C635E]">{text}</p>
     </article>
   );
 }
@@ -283,18 +289,16 @@ export function BrandSplit({
   const mediaFit = fit ?? fitForSrc(image, video);
 
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-10">
+    <section className="px-5 py-10 sm:px-8 lg:px-12">
       <div
-        className={`mx-auto grid max-w-6xl items-center gap-6 lg:grid-cols-2 lg:gap-12 ${
+        className={`mx-auto grid max-w-[1440px] items-center gap-8 lg:grid-cols-2 lg:gap-12 ${
           reverse ? "lg:[&>figure]:order-2" : ""
         }`}
       >
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#18B368] sm:text-[11px]">
-            {eyebrow}
-          </p>
-          <h2 className="mt-2 text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
-          <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">{text}</p>
+          <p className={eyebrowClass}>{eyebrow}</p>
+          <h2 className={`mt-3 ${displayH2}`}>{title}</h2>
+          <p className={bodyClass}>{text}</p>
         </div>
         <MediaFrame fit="video" src={image} className={video ? "" : "!aspect-[3/2]"}>
           {video || mediaFit === "video" ? (
@@ -318,12 +322,10 @@ export function BrandMosaic({
   photos: Array<{ src: string; alt: string; fit?: BrandMediaFit }>;
 }) {
   return (
-    <section className="bg-white px-4 py-10 sm:px-6 sm:py-14 lg:px-10">
-      <div className="mx-auto max-w-6xl">
-        <h2 className="max-w-3xl text-2xl font-black tracking-[-0.04em] sm:text-4xl">{title}</h2>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600 sm:text-base sm:leading-8">
-          {text}
-        </p>
+    <section className="bg-[#FBF9F5] px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
+      <div className="mx-auto max-w-[1440px]">
+        <h2 className={`max-w-3xl ${displayH2}`}>{title}</h2>
+        <p className={bodyClass}>{text}</p>
         <div className="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
           {photos.map((photo, index) => {
             const span = index === 0 ? "sm:col-span-2 lg:col-span-3" : "";
@@ -358,8 +360,8 @@ export function BrandFilm({
   const clips = secondSrc ? [src, secondSrc] : [src];
 
   return (
-    <section className="px-4 py-8 sm:px-6 lg:px-10">
-      <div className="mx-auto max-w-6xl overflow-hidden rounded-[24px] bg-[#08112F] sm:rounded-[32px]">
+    <section className="px-5 py-10 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1440px] overflow-hidden bg-[#1C1917]">
         <div
           className={`flex flex-col items-center justify-center gap-4 px-4 pt-6 sm:px-8 sm:pt-8 ${
             clips.length > 1 ? "lg:flex-row" : ""
@@ -371,11 +373,11 @@ export function BrandFilm({
             </MediaFrame>
           ))}
         </div>
-        <div className="px-5 py-6 text-center text-white sm:px-8 sm:py-8">
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#6EE7A8] sm:text-[11px]">
-            {eyebrow}
-          </p>
-          <h2 className="mt-2 text-xl font-black leading-tight sm:text-3xl">{title}</h2>
+        <div className="px-5 py-8 text-center text-[#F7F4EE] sm:px-8 sm:py-10">
+          <p className={eyebrowOnDark}>{eyebrow}</p>
+          <h2 className="font-display mt-3 text-2xl font-medium tracking-[-0.03em] sm:text-3xl">
+            {title}
+          </h2>
         </div>
       </div>
     </section>

@@ -51,17 +51,22 @@ export default function CareersApply() {
     }
   };
 
+  const field =
+    "h-12 w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]";
+
   return (
-    <section id="careers-apply" className="px-4 py-8 sm:px-6 lg:px-10">
+    <section id="careers-apply" className="px-5 py-10 sm:px-8 lg:px-12">
       <form
         onSubmit={submit}
-        className="mx-auto max-w-6xl space-y-4 rounded-[32px] bg-white p-6 shadow-[0_20px_50px_rgba(8,17,47,0.06)] sm:p-10"
+        className="mx-auto max-w-[1440px] space-y-4 border-t border-[#E4DDD2] bg-[#FBF9F5] p-6 sm:p-10"
       >
-        <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#18B368]">
+        <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
           Apply
         </p>
-        <h2 className="text-2xl font-black text-[#08112F] sm:text-3xl">Apply to EVUDDY</h2>
-        <p className="max-w-2xl text-sm leading-6 text-slate-500">
+        <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
+          Apply to EVUDDY
+        </h2>
+        <p className="max-w-2xl text-[15px] leading-8 text-[#5C635E]">
           This creates a hiring ticket for the team. You can also email helpdesk@kebuone.in.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -70,7 +75,7 @@ export default function CareersApply() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Full name"
-            className="h-14 w-full rounded-2xl border border-slate-200 px-4"
+            className={field}
           />
           <input
             required
@@ -78,7 +83,7 @@ export default function CareersApply() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
-            className="h-14 w-full rounded-2xl border border-slate-200 px-4"
+            className={field}
           />
         </div>
         <input
@@ -86,7 +91,7 @@ export default function CareersApply() {
           value={role}
           onChange={(e) => setRole(e.target.value)}
           placeholder="Role you are applying for"
-          className="h-14 w-full rounded-2xl border border-slate-200 px-4"
+          className={field}
         />
         <textarea
           required
@@ -94,13 +99,13 @@ export default function CareersApply() {
           onChange={(e) => setMessage(e.target.value)}
           placeholder="Tell us briefly why you want to join"
           rows={4}
-          className="w-full rounded-2xl border border-slate-200 px-4 py-3"
+          className="w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 py-3 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]"
         />
-        {error && <p className="text-sm font-semibold text-red-600">{error}</p>}
-        {status && <p className="text-sm font-semibold text-[#18B368]">{status}</p>}
+        {error && <p className="text-sm font-medium text-red-700">{error}</p>}
+        {status && <p className="text-sm font-medium text-[#1F6B4A]">{status}</p>}
         <button
           disabled={loading}
-          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#18B368] px-8 font-bold text-white disabled:opacity-60 sm:h-14 sm:w-auto"
+          className="inline-flex w-full items-center justify-center bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] disabled:opacity-60 sm:w-auto"
         >
           {loading ? "Sending..." : "Submit application"}
         </button>
