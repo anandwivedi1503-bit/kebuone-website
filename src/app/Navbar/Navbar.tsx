@@ -33,11 +33,16 @@ const navLinks = [
 /** Physical handset, even if the browser is in “Desktop site” mode. */
 function isHandsetScreen() {
   if (typeof window === "undefined") return false;
-  const shortest = Math.min(window.screen.width, window.screen.height);
+  const shortest = Math.min(window.screen.width || 0, window.screen.height || 0);
   const touch =
     navigator.maxTouchPoints > 0 ||
-    window.matchMedia("(pointer: coarse)").matches;
-  return touch && shortest <= 850;
+    window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+  return touch && shortest > 0 && shortest <= 850;
+}
+
+function closeDetails(el: HTMLElement | null) {
+  const details = el?.closest("details");
+  if (details) details.open = false;
 }
 
 function NavbarInner() {
@@ -100,6 +105,9 @@ function NavbarInner() {
   }, []);
 
   const handleLogout = async () => {
+    document.querySelectorAll<HTMLDetailsElement>(".nav-phone-menu").forEach((el) => {
+      el.open = false;
+    });
     setMenuOpen(false);
     await logoutRider();
   };
@@ -107,7 +115,7 @@ function NavbarInner() {
   return (
     <nav
       data-compact-nav={compactNav ? "true" : "false"}
-      className={`fixed inset-x-0 top-0 z-[999] pt-[env(safe-area-inset-top)] transition-colors duration-300 ${
+      className={`fixed inset-x-0 top-0 z-[1102] pt-[env(safe-area-inset-top)] transition-colors duration-300 ${
         isScrolled
           ? "border-b border-[#E4DDD2] bg-[#F7F4EE]/95 backdrop-blur-md"
           : "border-b border-transparent bg-[#F7F4EE]"
@@ -183,35 +191,31 @@ function NavbarInner() {
 
         <div className="nav-phone-toggle shrink-0 items-center gap-2">
           {riderLoggedIn && <RiderAccountMenu compact />}
-          <button
-            type="button"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            className="nav-burger relative z-[1001]"
+          <details
+            className="nav-phone-menu"
+            onToggle={(event) => {
+              setMenuOpen((event.currentTarget as HTMLDetailsElement).open);
+            }}
           >
-            {menuOpen ? (
-              <X size={22} strokeWidth={2.25} />
-            ) : (
-              <>
-                <span />
-                <span />
-                <span />
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {menuOpen ? (
-      <div className="nav-drawer-layer is-open">
-        <button
-          type="button"
-          className="nav-drawer-overlay"
-          aria-label="Close menu"
-          onClick={() => setMenuOpen(false)}
-        />
-        <div className="nav-drawer" role="dialog" aria-modal="true" aria-label="Site menu">
+            <summary className="nav-burger" aria-label="Open menu">
+              {menuOpen ? (
+                <X size={22} strokeWidth={2.25} />
+              ) : (
+                <>
+                  <span />
+                  <span />
+                  <span />
+                </>
+              )}
+            </summary>
+            <div className="nav-drawer-layer is-open">
+              <button
+                type="button"
+                className="nav-drawer-overlay"
+                aria-label="Close menu"
+                onClick={(event) => closeDetails(event.currentTarget)}
+              />
+              <div className="nav-drawer" role="dialog" aria-label="Site menu">
           <div className="flex items-center justify-between border-b px-4 py-6">
             <Image
               src="/Evuddy-logo-dark-E.png"
@@ -222,7 +226,7 @@ function NavbarInner() {
             />
             <button
               type="button"
-              onClick={() => setMenuOpen(false)}
+              onClick={(event) => closeDetails(event.currentTarget)}
               className="rounded-full p-2 transition hover:bg-gray-100"
               aria-label="Close menu"
             >
@@ -234,7 +238,7 @@ function NavbarInner() {
               <Link
                 key={item.title}
                 href={item.href}
-                onClick={() => setMenuOpen(false)}
+                onClick={(event) => closeDetails(event.currentTarget)}
                 className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold text-gray-800 transition hover:bg-green-50 hover:text-green-600"
               >
                 {item.title}
@@ -247,7 +251,7 @@ function NavbarInner() {
               <>
                 <Link
                   href={resumeHref}
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(event) => closeDetails(event.currentTarget)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white"
                 >
                   Continue my ride
@@ -266,7 +270,7 @@ function NavbarInner() {
               <>
                 <Link
                   href="/partners#dealer-network"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(event) => closeDetails(event.currentTarget)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
                 >
                   <Building2 size={20} />
@@ -274,7 +278,7 @@ function NavbarInner() {
                 </Link>
                 <Link
                   href="/partners"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(event) => closeDetails(event.currentTarget)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
                 >
                   <Building2 size={20} />
@@ -282,7 +286,7 @@ function NavbarInner() {
                 </Link>
                 <Link
                   href="/partners#fleet-investment"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(event) => closeDetails(event.currentTarget)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition hover:bg-[#18573c]"
                 >
                   <Wallet size={20} />
@@ -290,7 +294,7 @@ function NavbarInner() {
                 </Link>
                 <Link
                   href="/ride-options"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={(event) => closeDetails(event.currentTarget)}
                   className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white transition hover:bg-black"
                 >
                   Book Ride
@@ -299,9 +303,11 @@ function NavbarInner() {
               </>
             )}
           </div>
+              </div>
+            </div>
+          </details>
         </div>
       </div>
-      ) : null}
     </nav>
   );
 }

@@ -84,7 +84,18 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
   border: 0;
   background: transparent;
   color: #0f172a;
+  cursor: pointer;
+  list-style: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+.nav-burger::-webkit-details-marker,
+.nav-burger::marker {
+  display: none;
+}
+
+.nav-phone-menu {
+  position: relative;
 }
 
 .nav-burger span {
