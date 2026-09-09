@@ -86,7 +86,7 @@ export default function Navbar() {
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="relative mx-auto flex min-h-[64px] w-full max-w-[1650px] items-center justify-between gap-3 px-3 py-2 sm:min-h-[74px] sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8">
+      <div className="relative mx-auto flex min-h-[64px] w-full max-w-[1650px] items-center justify-between gap-4 px-3 py-2 sm:min-h-[74px] sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8">
         <Link href="/" className="relative z-20 flex shrink-0 items-center">
           <Image
             src="/Evuddy-logo-dark-E.png"
@@ -98,7 +98,7 @@ export default function Navbar() {
           />
         </Link>
 
-        <div className="hidden min-w-0 flex-1 items-center justify-center gap-[clamp(0.7rem,1.5vw,2rem)] min-[1280px]:flex">
+        <div className="hidden shrink-0 items-center justify-center gap-[clamp(0.85rem,1.6vw,2rem)] min-[1280px]:flex">
           {navLinks.map((item) => (
             <Link
               key={item.title}
@@ -111,7 +111,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="ml-2 hidden shrink-0 items-center gap-[clamp(0.2rem,0.7vw,0.75rem)] min-[1280px]:flex">
+        <div className="hidden shrink-0 items-center gap-[clamp(0.35rem,0.8vw,0.75rem)] min-[1280px]:flex">
           <Link
             href="/partners#dealer-network"
             className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
