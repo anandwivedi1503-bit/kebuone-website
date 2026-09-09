@@ -131,8 +131,9 @@ export default function Leadership() {
           <p className="mt-4 max-w-2xl text-[15px] leading-8 text-[#5C635E]">
             Official team posters: Anoop Pathak (Operations Incharge, Shubhrax
             Mobility Ltd), Anand Dhar Dwivedi (SDE), Aanya Singh (Admin &amp; Front
-            Desk), and Akanksha Maurya (Graphic Designer), followed by the wider
-            functions.
+            Desk), Akanksha Maurya (Graphic Designer), and the Marketing Team
+            (Aryan Dwivedi, Yashvardhan Jaiswal and Adarsh Pandey), followed by
+            the wider functions.
           </p>
 
           <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -216,7 +217,7 @@ function LeaderProfile({ leader }: { leader: LeaderPoster }) {
 }
 
 function posterSrc(src: string) {
-  const stamp = "v20260901";
+  const stamp = "v20260909";
   if (!src) return src;
   if (/^https?:\/\//.test(src)) {
     return src.includes("?") ? `${src}&${stamp}` : `${src}?${stamp}`;
