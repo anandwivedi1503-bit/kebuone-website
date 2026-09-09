@@ -14,7 +14,7 @@ export default function Page() {
   return (
     <main>
       <Navbar />
-      <div className="pt-32 sm:pt-40 lg:pt-44 2xl:pt-40">
+      <div className="pt-32 sm:pt-40">
         <VisionMission />
       </div>
       <Footer />

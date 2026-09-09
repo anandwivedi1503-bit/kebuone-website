@@ -20,7 +20,7 @@ import {
 } from "@/lib/riderPlanGate";
 import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 const navLinks = [
   { title: "Home", href: "/" },
@@ -31,19 +31,19 @@ const navLinks = [
   { title: "Contact", href: "/contact" },
 ];
 
-const linkClass =
-  "group relative inline-flex h-11 shrink-0 items-center justify-center px-1 text-[15px] font-medium tracking-[0.04em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]";
+const pageLinkClass =
+  "group relative inline-flex h-12 shrink-0 items-center justify-center px-1 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.04em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]";
 
-const textBtnClass =
-  "flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[15px] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c]";
+const actionLinkClass =
+  "flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.75rem,1.2vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c]";
 
 function PageLinks() {
   return (
     <>
       {navLinks.map((item) => (
-        <Link key={item.title} href={item.href} className={linkClass}>
+        <Link key={item.title} href={item.href} className={pageLinkClass}>
           <span>{item.title}</span>
-          <span className="absolute -bottom-[5px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
+          <span className="absolute -bottom-[6px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
         </Link>
       ))}
     </>
@@ -53,24 +53,23 @@ function PageLinks() {
 function PartnerActions({ riderLoggedIn }: { riderLoggedIn: boolean }) {
   return (
     <>
-      <Link href="/partners#dealer-network" className={textBtnClass}>
+      <Link href="/partners#dealer-network" className={actionLinkClass}>
         <Building2 size={18} />
         Dealers
       </Link>
-
       {!riderLoggedIn && (
         <>
-          <Link href="/partners" className={textBtnClass}>
+          <Link href="/partners" className={actionLinkClass}>
             <Building2 size={18} />
             Fleet Partner
           </Link>
-          <Link href="/partners#fleet-investment" className={textBtnClass}>
+          <Link href="/partners#fleet-investment" className={actionLinkClass}>
             <Wallet size={18} />
             Invest
           </Link>
           <Link
             href="/ride-options"
-            className="group flex h-11 shrink-0 items-center gap-2 whitespace-nowrap bg-[#1F6B4A] px-5 text-[15px] font-medium tracking-[0.06em] text-white transition-colors duration-300 hover:bg-[#18573c]"
+            className="group flex h-11 shrink-0 items-center gap-2 whitespace-nowrap bg-[#1F6B4A] px-[clamp(1rem,1.4vw,1.5rem)] text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors duration-300 hover:bg-[#18573c]"
           >
             Book EV
             <ChevronRight
@@ -80,7 +79,6 @@ function PartnerActions({ riderLoggedIn }: { riderLoggedIn: boolean }) {
           </Link>
         </>
       )}
-
       {riderLoggedIn && <RiderAccountMenu />}
     </>
   );
@@ -91,11 +89,12 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
   const [resumeHref, setResumeHref] = useState("/ride-options");
+  const [compact, setCompact] = useState(true);
+  const rowRef = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -113,23 +112,43 @@ export default function Navbar() {
       setResumeHref(riderResumeHref());
       setRiderLoggedIn(signedIn);
     };
-
     const unsubscribe = firebaseAuth
-      ? onAuthStateChanged(firebaseAuth, () => {
-          refreshSession();
-        })
+      ? onAuthStateChanged(firebaseAuth, () => refreshSession())
       : () => {};
-
     window.addEventListener(RIDER_SESSION_EVENT, refreshSession);
     window.addEventListener("storage", refreshSession);
     refreshSession();
-
     return () => {
       unsubscribe();
       window.removeEventListener(RIDER_SESSION_EVENT, refreshSession);
       window.removeEventListener("storage", refreshSession);
     };
   }, []);
+
+  useLayoutEffect(() => {
+    const row = rowRef.current;
+    const measure = measureRef.current;
+    if (!row || !measure) return;
+
+    const update = () => {
+      const available = row.clientWidth;
+      const needed = measure.scrollWidth;
+      setCompact(needed > available - 12);
+    };
+
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(row);
+    window.addEventListener("resize", update);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+    };
+  }, [riderLoggedIn]);
+
+  useEffect(() => {
+    if (!compact) setMenuOpen(false);
+  }, [compact]);
 
   const handleLogout = async () => {
     setMenuOpen(false);
@@ -144,32 +163,53 @@ export default function Navbar() {
           : "border-b border-transparent bg-[#F7F4EE]"
       }`}
     >
-      <div className="hidden bg-[#1C3A2E] px-4 py-2 text-center text-[10px] font-medium uppercase leading-snug tracking-[0.14em] text-white/90 sm:block sm:tracking-[0.18em]">
+      <div className="hidden bg-[#1C3A2E] px-3 py-2 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-white/90 sm:block">
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="mx-auto w-full max-w-[1650px] px-3 py-2 sm:px-5 lg:px-6 xl:px-8">
-        <div className="flex min-h-[56px] items-center justify-between gap-4 sm:min-h-[68px]">
-          <Link href="/" className="relative z-20 shrink-0">
-            <Image
-              src="/Evuddy-logo-dark-E.png"
-              alt="EVUDDY"
-              width={320}
-              height={95}
-              priority
-              className="h-[36px] w-auto max-w-[148px] object-contain object-left sm:h-[46px] sm:max-w-[190px] 2xl:h-[52px] 2xl:max-w-[210px]"
-            />
-          </Link>
-
-          <div className="hidden min-w-0 flex-1 items-center justify-center gap-8 2xl:flex">
+      <div
+        ref={rowRef}
+        className="relative mx-auto flex min-h-[64px] max-w-[1650px] items-center justify-between gap-3 px-3 py-2 sm:min-h-[74px] sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8"
+      >
+        <div
+          ref={measureRef}
+          aria-hidden
+          className="pointer-events-none invisible absolute left-0 top-0 flex h-0 w-max items-center gap-[clamp(0.75rem,1.6vw,2rem)]"
+        >
+          <div className="h-[52px] w-[210px] shrink-0" />
+          <div className="flex items-center gap-[clamp(1rem,1.8vw,2rem)]">
             <PageLinks />
           </div>
-
-          <div className="hidden shrink-0 items-center justify-end gap-4 lg:flex">
+          <div className="ml-5 flex items-center gap-[clamp(0.25rem,0.8vw,0.75rem)]">
             <PartnerActions riderLoggedIn={riderLoggedIn} />
           </div>
+        </div>
 
-          <div className="flex shrink-0 items-center justify-end gap-2 lg:hidden">
+        <Link href="/" className="relative z-20 flex shrink-0 items-center">
+          <Image
+            src="/Evuddy-logo-dark-E.png"
+            alt="EVUDDY"
+            width={320}
+            height={95}
+            priority
+            className="h-[36px] w-auto max-w-[150px] object-contain object-left sm:h-[46px] sm:max-w-[190px] lg:h-[50px] xl:h-[52px] xl:max-w-[210px]"
+          />
+        </Link>
+
+        {!compact && (
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-[clamp(1rem,1.8vw,2rem)]">
+            <PageLinks />
+          </div>
+        )}
+
+        {!compact && (
+          <div className="ml-2 flex shrink-0 items-center gap-[clamp(0.25rem,0.8vw,0.75rem)] xl:ml-5">
+            <PartnerActions riderLoggedIn={riderLoggedIn} />
+          </div>
+        )}
+
+        {compact && (
+          <div className="flex items-center gap-2">
             {riderLoggedIn && <RiderAccountMenu compact />}
             <button
               type="button"
@@ -180,15 +220,11 @@ export default function Navbar() {
               {menuOpen ? <X size={32} /> : <Menu size={30} />}
             </button>
           </div>
-        </div>
-
-        <div className="hidden items-center justify-center gap-x-8 gap-y-1 border-t border-[#E4DDD2]/80 py-1.5 lg:flex 2xl:hidden">
-          <PageLinks />
-        </div>
+        )}
       </div>
 
       <AnimatePresence>
-        {menuOpen && (
+        {menuOpen && compact && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
@@ -196,15 +232,14 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={() => setMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
             />
-
             <motion.div
               initial={{ x: -420 }}
               animate={{ x: 0 }}
               exit={{ x: -420 }}
               transition={{ duration: 0.45, type: "spring", stiffness: 120 }}
-              className="fixed top-0 left-0 z-50 h-screen w-[88%] max-w-[360px] overflow-y-auto bg-white shadow-2xl lg:hidden"
+              className="fixed top-0 left-0 z-50 h-screen w-[88%] max-w-[360px] overflow-y-auto bg-white shadow-2xl"
             >
               <div className="flex items-center justify-between border-b px-4 py-6">
                 <Image
@@ -223,7 +258,6 @@ export default function Navbar() {
                   <X size={28} className="text-gray-800" />
                 </button>
               </div>
-
               <div className="space-y-1 px-4 py-8">
                 {navLinks.map((item) => (
                   <Link
@@ -237,7 +271,6 @@ export default function Navbar() {
                   </Link>
                 ))}
               </div>
-
               <div className="space-y-4 px-4 pb-10">
                 {riderLoggedIn ? (
                   <>
@@ -263,7 +296,7 @@ export default function Navbar() {
                     <Link
                       href="/partners#dealer-network"
                       onClick={() => setMenuOpen(false)}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition-all duration-300 hover:bg-[#18B368] hover:text-white"
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
                     >
                       <Building2 size={20} />
                       Become a dealer
@@ -271,7 +304,7 @@ export default function Navbar() {
                     <Link
                       href="/partners"
                       onClick={() => setMenuOpen(false)}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition-all duration-300 hover:bg-[#18B368] hover:text-white"
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
                     >
                       <Building2 size={20} />
                       Fleet Partner
@@ -279,7 +312,7 @@ export default function Navbar() {
                     <Link
                       href="/partners#fleet-investment"
                       onClick={() => setMenuOpen(false)}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition-all duration-300 hover:bg-[#18573c]"
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition hover:bg-[#18573c]"
                     >
                       <Wallet size={20} />
                       Invest
