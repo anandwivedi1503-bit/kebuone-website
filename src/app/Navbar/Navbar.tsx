@@ -125,16 +125,22 @@ function NavbarInner() {
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="relative mx-auto flex h-14 w-full max-w-[1650px] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-8">
-        <Link href="/" className="relative z-20 flex shrink-0 items-center">
+      <div className="relative mx-auto flex h-16 w-full max-w-[1650px] items-center justify-between gap-3 overflow-hidden bg-[#F7F4EE] px-4 sm:h-[4.25rem] sm:px-6 lg:px-8">
+        <Link
+          href="/"
+          className="relative z-20 flex h-full max-h-full shrink-0 items-center gap-2 overflow-hidden py-1"
+        >
           <Image
-            src="/Evuddy-logo-dark-E.png"
+            src="/Evuddy-logo-nav.png"
             alt="EVUDDY"
-            width={320}
-            height={95}
+            width={966}
+            height={230}
             priority
-            className="h-9 w-auto max-w-[132px] object-contain object-left sm:h-10 sm:max-w-[168px] min-[1280px]:h-11 min-[1280px]:max-w-[184px]"
+            className="h-10 w-auto max-h-10 max-w-[148px] object-contain object-left sm:h-11 sm:max-h-11 sm:max-w-[184px] min-[1280px]:h-12 min-[1280px]:max-h-12 min-[1280px]:max-w-[210px]"
           />
+          <span className="inline-flex shrink-0 items-center self-center bg-[#1C3A2E] px-1.5 py-1 text-[8px] font-semibold uppercase leading-none tracking-[0.12em] text-[#EC2A8C] sm:px-2 sm:text-[9px]">
+            By Kebu One
+          </span>
         </Link>
 
         <div className="nav-desktop-row shrink-0 items-center justify-center gap-[clamp(0.75rem,1.4vw,1.75rem)]">
@@ -218,11 +224,11 @@ function NavbarInner() {
               <div className="nav-drawer" role="dialog" aria-label="Site menu">
           <div className="flex items-center justify-between border-b px-4 py-6">
             <Image
-              src="/Evuddy-logo-dark-E.png"
+              src="/Evuddy-logo-nav.png"
               alt="EVUDDY"
-              width={180}
-              height={55}
-              className="h-11 w-auto"
+              width={966}
+              height={230}
+              className="h-11 w-auto max-h-11 object-contain object-left"
             />
             <button
               type="button"
