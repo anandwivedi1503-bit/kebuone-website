@@ -61,7 +61,7 @@ export default function Hero() {
   const active = SLIDES[slide];
 
   return (
-    <section id="home" className="relative overflow-x-hidden scroll-mt-28 bg-[#F7F4EE] sm:scroll-mt-40">
+    <section id="home" className="relative overflow-x-hidden scroll-mt-28 bg-[#F7F4EE] sm:scroll-mt-40 lg:scroll-mt-44 2xl:scroll-mt-40">
       <style>{`
         @keyframes evuddy-draw {
           0% { stroke-dashoffset: 900; }
@@ -77,7 +77,7 @@ export default function Hero() {
         }
       `}</style>
 
-      <div className="mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 pt-28 sm:px-8 sm:pt-40 lg:px-12 lg:pt-40 xl:grid-cols-[0.88fr_1.12fr]">
+      <div className="mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 pt-28 sm:px-8 sm:pt-40 lg:px-12 lg:pt-44 xl:grid-cols-[0.88fr_1.12fr] 2xl:pt-40">
         <div className="flex flex-col justify-center py-8 pr-0 lg:py-12 lg:pr-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
             India&apos;s smart EV rental
