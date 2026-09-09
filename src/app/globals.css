@@ -30,12 +30,12 @@
 }
 
 html {
-  scroll-padding-top: 8rem;
+  scroll-padding-top: 6rem;
 }
 
 @media (min-width: 640px) {
   html {
-    scroll-padding-top: 10rem;
+    scroll-padding-top: 8rem;
   }
 }
 

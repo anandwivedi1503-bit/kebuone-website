@@ -76,17 +76,17 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`fixed inset-x-0 top-0 z-[999] overflow-x-clip transition-colors duration-300 ${
+      className={`fixed inset-x-0 top-0 z-[999] transition-colors duration-300 ${
         isScrolled
           ? "border-b border-[#E4DDD2] bg-[#F7F4EE]/95 backdrop-blur-md"
           : "border-b border-transparent bg-[#F7F4EE]"
       }`}
     >
-      <div className="hidden bg-[#1C3A2E] px-3 py-2 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-white/90 sm:block">
+      <div className="hidden bg-[#1C3A2E] px-4 py-1.5 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-white/90 sm:block">
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="relative mx-auto flex min-h-[64px] w-full max-w-[1650px] items-center justify-between gap-4 px-3 py-2 sm:min-h-[74px] sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8">
+      <div className="relative mx-auto flex h-14 w-full max-w-[1650px] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-8">
         <Link href="/" className="relative z-20 flex shrink-0 items-center">
           <Image
             src="/Evuddy-logo-dark-E.png"
@@ -94,54 +94,54 @@ export default function Navbar() {
             width={320}
             height={95}
             priority
-            className="h-[36px] w-auto max-w-[140px] object-contain object-left sm:h-[46px] sm:max-w-[180px] min-[1280px]:h-[50px] min-[1280px]:max-w-[200px]"
+            className="h-9 w-auto max-w-[132px] object-contain object-left sm:h-10 sm:max-w-[168px] min-[1280px]:h-11 min-[1280px]:max-w-[184px]"
           />
         </Link>
 
-        <div className="hidden shrink-0 items-center justify-center gap-[clamp(0.85rem,1.6vw,2rem)] min-[1280px]:flex">
+        <div className="hidden shrink-0 items-center justify-center gap-[clamp(0.75rem,1.4vw,1.75rem)] min-[1280px]:flex">
           {navLinks.map((item) => (
             <Link
               key={item.title}
               href={item.href}
-              className="group relative inline-flex h-12 shrink-0 items-center justify-center whitespace-nowrap px-1 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.04em] text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]"
+              className="group relative inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap px-1 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.04em] text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]"
             >
               <span>{item.title}</span>
-              <span className="absolute -bottom-[6px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
+              <span className="absolute -bottom-[4px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
         </div>
 
-        <div className="hidden shrink-0 items-center gap-[clamp(0.35rem,0.8vw,0.75rem)] min-[1280px]:flex">
+        <div className="hidden shrink-0 items-center gap-[clamp(0.35rem,0.7vw,0.65rem)] min-[1280px]:flex">
           <Link
             href="/partners#dealer-network"
-            className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+            className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.5rem,0.9vw,0.9rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
           >
-            <Building2 size={18} />
+            <Building2 size={16} />
             Dealers
           </Link>
           {!riderLoggedIn && (
             <>
               <Link
                 href="/partners"
-                className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+                className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.5rem,0.9vw,0.9rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
               >
-                <Building2 size={18} />
+                <Building2 size={16} />
                 Fleet Partner
               </Link>
               <Link
                 href="/partners#fleet-investment"
-                className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+                className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.5rem,0.9vw,0.9rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
               >
-                <Wallet size={18} />
+                <Wallet size={16} />
                 Invest
               </Link>
               <Link
                 href="/ride-options"
-                className="group flex h-11 shrink-0 items-center gap-2 whitespace-nowrap bg-[#1F6B4A] px-[clamp(0.9rem,1.3vw,1.5rem)] text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
+                className="group flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-4 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
               >
                 Book EV
                 <ChevronRight
-                  size={18}
+                  size={16}
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
               </Link>
@@ -150,7 +150,7 @@ export default function Navbar() {
           {riderLoggedIn && <RiderAccountMenu />}
         </div>
 
-        <div className="flex items-center gap-2 min-[1280px]:hidden">
+        <div className="flex shrink-0 items-center gap-2 min-[1280px]:hidden">
           {riderLoggedIn && <RiderAccountMenu compact />}
           <button
             type="button"
