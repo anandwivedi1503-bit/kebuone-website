@@ -32,7 +32,7 @@ const navLinks = [
 ];
 
 const linkClass =
-  "group relative inline-flex h-12 shrink-0 items-center justify-center px-2 text-[15px] font-medium tracking-[0.04em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]";
+  "group relative inline-flex h-12 shrink-0 items-center justify-center px-2.5 text-[15px] font-medium tracking-[0.04em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]";
 
 const textBtnClass =
   "flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[15px] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c] 2xl:px-5";
@@ -114,7 +114,7 @@ export default function Navbar() {
           />
         </Link>
 
-        <div className="hidden min-w-0 items-center justify-center gap-6 xl:flex 2xl:gap-8">
+        <div className="hidden min-w-0 items-center justify-center gap-7 xl:flex 2xl:gap-9">
           {navLinks.map((item) => (
             <Link key={item.title} href={item.href} className={linkClass}>
               <span className="whitespace-nowrap">{item.title}</span>
@@ -123,7 +123,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden min-w-0 shrink-0 items-center justify-end gap-3 xl:ml-4 xl:flex 2xl:ml-5 2xl:gap-4">
+        <div className="hidden min-w-0 shrink-0 items-center justify-end gap-4 xl:ml-5 xl:flex 2xl:ml-6 2xl:gap-5">
           <Link href="/partners#dealer-network" className={textBtnClass}>
             <Building2 size={18} />
             Dealers
