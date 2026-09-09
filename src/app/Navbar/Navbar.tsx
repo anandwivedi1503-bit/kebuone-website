@@ -32,10 +32,10 @@ const navLinks = [
 ];
 
 const linkClass =
-  "group relative inline-flex h-10 shrink-0 items-center justify-center px-1.5 text-[12.5px] font-medium tracking-[0.02em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A] 2xl:h-12 2xl:px-1 2xl:text-[15px] 2xl:tracking-[0.04em]";
+  "group relative inline-flex h-12 shrink-0 items-center justify-center px-2.5 text-[15px] font-medium tracking-[0.04em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]";
 
 const textBtnClass =
-  "flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap px-2 text-[12.5px] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c] 2xl:h-11 2xl:gap-2 2xl:px-5 2xl:text-[14px]";
+  "flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[15px] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c] 2xl:px-5";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -99,10 +99,10 @@ export default function Navbar() {
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="relative mx-auto grid min-h-[64px] w-full max-w-[1650px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:min-h-[74px] sm:gap-3 sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8">
+      <div className="relative mx-auto grid min-h-[64px] w-full max-w-[1650px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-3 py-2 sm:min-h-[74px] sm:px-5 lg:min-h-[82px] lg:px-6 xl:gap-6 xl:px-8">
         <Link
           href="/"
-          className="relative z-20 flex max-w-[132px] shrink-0 items-center justify-start sm:max-w-[168px] xl:max-w-[176px] 2xl:max-w-[210px]"
+          className="relative z-20 flex max-w-[150px] shrink-0 items-center justify-start sm:max-w-[190px] xl:max-w-[210px]"
         >
           <Image
             src="/Evuddy-logo-dark-E.png"
@@ -110,45 +110,44 @@ export default function Navbar() {
             width={320}
             height={95}
             priority
-            className="h-[34px] w-auto max-w-full object-contain object-left sm:h-[42px] xl:h-[44px] 2xl:h-[52px]"
+            className="h-[36px] w-auto max-w-full object-contain object-left sm:h-[46px] xl:h-[52px]"
           />
         </Link>
 
-        <div className="hidden min-w-0 items-center justify-center gap-0.5 overflow-hidden xl:flex 2xl:gap-6">
+        <div className="hidden min-w-0 items-center justify-center gap-7 xl:flex 2xl:gap-9">
           {navLinks.map((item) => (
             <Link key={item.title} href={item.href} className={linkClass}>
               <span className="whitespace-nowrap">{item.title}</span>
-              <span className="absolute bottom-[-4px] left-1.5 right-1.5 h-[2px] w-auto origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-transform duration-300 group-hover:scale-x-100 2xl:bottom-[-6px] 2xl:left-0 2xl:right-0" />
+              <span className="absolute -bottom-[6px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
             </Link>
           ))}
         </div>
 
-        <div className="hidden min-w-0 shrink-0 items-center justify-end gap-0 xl:flex 2xl:ml-5 2xl:gap-3">
+        <div className="hidden min-w-0 shrink-0 items-center justify-end gap-4 xl:ml-5 xl:flex 2xl:ml-6 2xl:gap-5">
           <Link href="/partners#dealer-network" className={textBtnClass}>
-            <Building2 size={16} className="hidden 2xl:block" />
+            <Building2 size={18} />
             Dealers
           </Link>
 
           {!riderLoggedIn && (
             <>
               <Link href="/partners" className={textBtnClass}>
-                <Building2 size={16} className="hidden 2xl:block" />
-                <span className="2xl:hidden">Fleet</span>
-                <span className="hidden 2xl:inline">Fleet Partner</span>
+                <Building2 size={18} />
+                Fleet Partner
               </Link>
 
               <Link href="/partners#fleet-investment" className={textBtnClass}>
-                <Wallet size={16} className="hidden 2xl:block" />
+                <Wallet size={18} />
                 Invest
               </Link>
 
               <Link
                 href="/ride-options"
-                className="group flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-3 text-[12.5px] font-medium tracking-[0.04em] text-white transition-colors duration-300 hover:bg-[#18573c] 2xl:h-11 2xl:gap-2 2xl:px-6 2xl:text-[14px] 2xl:tracking-[0.06em]"
+                className="group flex h-11 shrink-0 items-center gap-2 whitespace-nowrap bg-[#1F6B4A] px-5 text-[15px] font-medium tracking-[0.06em] text-white transition-colors duration-300 hover:bg-[#18573c] 2xl:px-6"
               >
                 Book EV
                 <ChevronRight
-                  size={16}
+                  size={18}
                   className="transition-transform duration-300 group-hover:translate-x-1"
                 />
               </Link>
