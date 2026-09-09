@@ -46,13 +46,37 @@ function emitRiderSession() {
   window.dispatchEvent(new Event(RIDER_SESSION_EVENT));
 }
 
+function storageGet(store: Storage, key: string) {
+  try {
+    return store.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function storageSet(store: Storage, key: string, value: string) {
+  try {
+    store.setItem(key, value);
+  } catch {
+    // Private mode / quota — never crash the site.
+  }
+}
+
+function storageRemove(store: Storage, key: string) {
+  try {
+    store.removeItem(key);
+  } catch {
+    // ignore
+  }
+}
+
 function readKey(key: string) {
   if (typeof window === "undefined") return null;
-  const local = window.localStorage.getItem(key);
+  const local = storageGet(window.localStorage, key);
   if (local) return local;
-  const session = window.sessionStorage.getItem(key);
+  const session = storageGet(window.sessionStorage, key);
   if (session) {
-    window.localStorage.setItem(key, session);
+    storageSet(window.localStorage, key, session);
     return session;
   }
   return null;
@@ -60,15 +84,15 @@ function readKey(key: string) {
 
 function writeKey(key: string, value: string, emit = true) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, value);
-  window.sessionStorage.setItem(key, value);
+  storageSet(window.localStorage, key, value);
+  storageSet(window.sessionStorage, key, value);
   if (emit) emitRiderSession();
 }
 
 function removeKey(key: string) {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(key);
-  window.sessionStorage.removeItem(key);
+  storageRemove(window.localStorage, key);
+  storageRemove(window.sessionStorage, key);
 }
 
 export function hasRiderPlanReady() {
@@ -135,9 +159,18 @@ export function getRiderProfile() {
     return { riderId: "", phone: "", name: "" };
   }
   return {
-    riderId: window.localStorage.getItem("kebu_rider_id") || window.sessionStorage.getItem("kebu_rider_id") || "",
-    phone: window.localStorage.getItem("kebu_rider_phone") || window.sessionStorage.getItem("kebu_rider_phone") || "",
-    name: window.localStorage.getItem("kebu_rider_name") || window.sessionStorage.getItem("kebu_rider_name") || "",
+    riderId:
+      storageGet(window.localStorage, "kebu_rider_id") ||
+      storageGet(window.sessionStorage, "kebu_rider_id") ||
+      "",
+    phone:
+      storageGet(window.localStorage, "kebu_rider_phone") ||
+      storageGet(window.sessionStorage, "kebu_rider_phone") ||
+      "",
+    name:
+      storageGet(window.localStorage, "kebu_rider_name") ||
+      storageGet(window.sessionStorage, "kebu_rider_name") ||
+      "",
   };
 }
 
@@ -148,16 +181,16 @@ export function rememberRiderProfile(profile: {
 }) {
   if (typeof window === "undefined") return;
   if (profile.riderId) {
-    window.localStorage.setItem("kebu_rider_id", profile.riderId);
-    window.sessionStorage.setItem("kebu_rider_id", profile.riderId);
+    storageSet(window.localStorage, "kebu_rider_id", profile.riderId);
+    storageSet(window.sessionStorage, "kebu_rider_id", profile.riderId);
   }
   if (profile.phone) {
-    window.localStorage.setItem("kebu_rider_phone", profile.phone);
-    window.sessionStorage.setItem("kebu_rider_phone", profile.phone);
+    storageSet(window.localStorage, "kebu_rider_phone", profile.phone);
+    storageSet(window.sessionStorage, "kebu_rider_phone", profile.phone);
   }
   if (profile.name) {
-    window.localStorage.setItem("kebu_rider_name", profile.name);
-    window.sessionStorage.setItem("kebu_rider_name", profile.name);
+    storageSet(window.localStorage, "kebu_rider_name", profile.name);
+    storageSet(window.sessionStorage, "kebu_rider_name", profile.name);
   }
   emitRiderSession();
 }
@@ -226,12 +259,12 @@ export function clearRiderClientSession() {
   removeKey(RIDE_OPTIONS_VIEW_KEY);
   removeKey(RENTAL_DRAFT_KEY);
   removeKey(RTO_DRAFT_KEY);
-  window.localStorage.removeItem("kebu_rider_id");
-  window.localStorage.removeItem("kebu_rider_phone");
-  window.localStorage.removeItem("kebu_rider_name");
-  window.sessionStorage.removeItem("kebu_rider_id");
-  window.sessionStorage.removeItem("kebu_rider_phone");
-  window.sessionStorage.removeItem("kebu_rider_name");
+  storageRemove(window.localStorage, "kebu_rider_id");
+  storageRemove(window.localStorage, "kebu_rider_phone");
+  storageRemove(window.localStorage, "kebu_rider_name");
+  storageRemove(window.sessionStorage, "kebu_rider_id");
+  storageRemove(window.sessionStorage, "kebu_rider_phone");
+  storageRemove(window.sessionStorage, "kebu_rider_name");
   emitRiderSession();
 }
 

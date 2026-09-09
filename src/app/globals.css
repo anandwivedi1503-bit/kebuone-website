@@ -46,6 +46,102 @@ body {
   overflow-x: hidden;
 }
 
+/* Phone menu must not depend on Tailwind arbitrary variants (some WebViews skip them). */
+.nav-desktop-row {
+  display: none;
+}
+
+.nav-phone-toggle {
+  display: flex;
+}
+
+@media (min-width: 1280px) {
+  .nav-desktop-row {
+    display: flex;
+  }
+
+  .nav-phone-toggle {
+    display: none;
+  }
+}
+
+nav[data-compact-nav="true"] .nav-desktop-row {
+  display: none !important;
+}
+
+nav[data-compact-nav="true"] .nav-phone-toggle {
+  display: flex !important;
+}
+
+.nav-burger {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  background: transparent;
+  color: #0f172a;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-burger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  border-radius: 1px;
+  background: #0f172a;
+}
+
+.nav-drawer-layer {
+  pointer-events: none;
+}
+
+.nav-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 0;
+  background: rgb(0 0 0 / 0.6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  height: 100dvh;
+  width: min(88%, 360px);
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 25px 50px rgb(0 0 0 / 0.25);
+  transform: translateX(-105%);
+  transition: transform 0.28s ease;
+  padding-top: env(safe-area-inset-top);
+}
+
+.nav-drawer-layer.is-open {
+  pointer-events: auto;
+}
+
+.nav-drawer-layer.is-open .nav-drawer-overlay {
+  opacity: 1;
+}
+
+.nav-drawer-layer.is-open .nav-drawer {
+  transform: translateX(0);
+}
+
+@media (min-width: 1280px) {
+  nav:not([data-compact-nav="true"]) .nav-drawer-layer {
+    display: none;
+  }
+}
+
 body::after {
   content: "";
   pointer-events: none;
