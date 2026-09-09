@@ -67,8 +67,13 @@ export const team: TeamMember[] = [
     role: "Graphic Designer",
     image: "/leadership/designer.png",
   },
+  {
+    id: "marketing",
+    name: "Aryan Dwivedi, Yashvardhan Jaiswal & Adarsh Pandey",
+    role: "Marketing Team",
+    image: "/leadership/marketing-team.png",
+  },
   { id: "finance", name: "Team member", role: "Finance", image: "" },
   { id: "hr", name: "Team member", role: "Human Resources", image: "" },
-  { id: "marketing", name: "Team member", role: "Marketing", image: "" },
   { id: "business", name: "Team member", role: "Business Development", image: "" },
 ];

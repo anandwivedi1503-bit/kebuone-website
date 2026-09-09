@@ -146,8 +146,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["leadership", "ceo", "chairman", "team", "लीडरशिप", "टीम", "फाउंडर", "founder", "anjali", "bindu", "sunil"],
     href: "/Leadership",
-    en: "Leadership posters: Chairman Anjali Mishra, Founder & CEO Sunil Pathak, General Manager Bindu Singh. Team posters include SDE Anand Dhar Dwivedi, Admin & Front Desk Aanya Singh, and Graphic Designer Akanksha Maurya. Values: integrity, innovation, customer first, sustainability. Hashtag #safeRideWithEvuddy.",
-    hi: "EVUDDY लीडरशिप (/Leadership):\n• चेयरमैन — अंजलि मिश्रा\n• फाउंडर व CEO — सुनील पाठक\n• GM — बिंदू सिंह\nटीम पोस्टर: SDE आनंद धर द्विवेदी, Admin & Front Desk आन्या सिंह, Graphic Designer आकांक्षा मौर्य। हैशटैग #safeRideWithEvuddy।",
+    en: "Leadership posters: Chairman Anjali Mishra, Founder & CEO Sunil Pathak, General Manager Bindu Singh. Team posters include SDE Anand Dhar Dwivedi, Admin & Front Desk Aanya Singh, Graphic Designer Akanksha Maurya, and Marketing Team Aryan Dwivedi, Yashvardhan Jaiswal and Adarsh Pandey. Values: integrity, innovation, customer first, sustainability. Hashtag #safeRideWithEvuddy.",
+    hi: "EVUDDY लीडरशिप (/Leadership):\n• चेयरमैन — अंजलि मिश्रा\n• फाउंडर व CEO — सुनील पाठक\n• GM — बिंदू सिंह\nटीम पोस्टर: SDE आनंद धर द्विवेदी, Admin & Front Desk आन्या सिंह, Graphic Designer आकांक्षा मौर्य, मार्केटिंग टीम आर्यन द्विवेदी, यशवर्धन जायसवाल और आदर्श पांडेय। हैशटैग #safeRideWithEvuddy।",
   },
   {
     keys: ["career", "careers", "job", "hiring", "join", "करियर", "नौकरी", "जॉब", "vacancy", "apply"],

@@ -15,8 +15,8 @@ export const BRAND = {
   yard: "/brand/scene-indian-hub.png",
   pickup: "/brand/scene-indian-hub.png",
   franchise: "/brand/scene-franchise.png",
-  dealer: "/brand/scene-dealer.png",
-  distributor: "/brand/scene-distributor-b2b.png",
+  dealer: "/brand/scene-dealer-showroom.png",
+  distributor: "/brand/scene-distributor-warehouse.png",
 } as const;
 
 export const SCOOTER_FRAME = "overflow-hidden bg-[#1C1917]";

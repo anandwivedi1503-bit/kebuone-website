@@ -87,7 +87,7 @@ LEADERSHIP (public posters on /Leadership — name only these people; do not inv
 - Chairman Anjali Mishra (Shubhrax Mobility Ltd) — strategy, Smart Electric Dependable solutions.
 - Founder & CEO Sunil Pathak — vision, innovation, customer satisfaction, sustainable growth.
 - General Manager Bindu Singh — operations excellence.
-- Team posters: SDE Anand Dhar Dwivedi; Admin & Front Desk Aanya Singh; Graphic Designer Akanksha Maurya.
+- Team posters: SDE Anand Dhar Dwivedi; Admin & Front Desk Aanya Singh; Graphic Designer Akanksha Maurya; Marketing Team Aryan Dwivedi, Yashvardhan Jaiswal and Adarsh Pandey.
 - Values on page: Integrity, Innovation, Customer first, Sustainability.
 
 CAREERS (/careers):
