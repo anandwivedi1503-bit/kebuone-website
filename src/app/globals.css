@@ -30,22 +30,10 @@
 }
 
 html {
-  scroll-padding-top: 7.5rem;
+  scroll-padding-top: 8rem;
 }
 
 @media (min-width: 640px) {
-  html {
-    scroll-padding-top: 10rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  html {
-    scroll-padding-top: 11.5rem;
-  }
-}
-
-@media (min-width: 1536px) {
   html {
     scroll-padding-top: 10rem;
   }

@@ -20,7 +20,7 @@ import {
 } from "@/lib/riderPlanGate";
 import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const navLinks = [
   { title: "Home", href: "/" },
@@ -31,61 +31,6 @@ const navLinks = [
   { title: "Contact", href: "/contact" },
 ];
 
-const linkClass =
-  "group relative inline-flex h-11 shrink-0 items-center justify-center px-1 text-[15px] font-medium tracking-[0.04em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]";
-
-const textBtnClass =
-  "flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-3 text-[15px] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c]";
-
-function PageLinks() {
-  return (
-    <>
-      {navLinks.map((item) => (
-        <Link key={item.title} href={item.href} className={linkClass}>
-          <span>{item.title}</span>
-          <span className="absolute -bottom-[5px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
-        </Link>
-      ))}
-    </>
-  );
-}
-
-function PartnerActions({ riderLoggedIn }: { riderLoggedIn: boolean }) {
-  return (
-    <>
-      <Link href="/partners#dealer-network" className={textBtnClass}>
-        <Building2 size={18} />
-        Dealers
-      </Link>
-
-      {!riderLoggedIn && (
-        <>
-          <Link href="/partners" className={textBtnClass}>
-            <Building2 size={18} />
-            Fleet Partner
-          </Link>
-          <Link href="/partners#fleet-investment" className={textBtnClass}>
-            <Wallet size={18} />
-            Invest
-          </Link>
-          <Link
-            href="/ride-options"
-            className="group flex h-11 shrink-0 items-center gap-2 whitespace-nowrap bg-[#1F6B4A] px-5 text-[15px] font-medium tracking-[0.06em] text-white transition-colors duration-300 hover:bg-[#18573c]"
-          >
-            Book EV
-            <ChevronRight
-              size={18}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
-          </Link>
-        </>
-      )}
-
-      {riderLoggedIn && <RiderAccountMenu />}
-    </>
-  );
-}
-
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -93,9 +38,7 @@ export default function Navbar() {
   const [resumeHref, setResumeHref] = useState("/ride-options");
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 30);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -113,17 +56,12 @@ export default function Navbar() {
       setResumeHref(riderResumeHref());
       setRiderLoggedIn(signedIn);
     };
-
     const unsubscribe = firebaseAuth
-      ? onAuthStateChanged(firebaseAuth, () => {
-          refreshSession();
-        })
+      ? onAuthStateChanged(firebaseAuth, () => refreshSession())
       : () => {};
-
     window.addEventListener(RIDER_SESSION_EVENT, refreshSession);
     window.addEventListener("storage", refreshSession);
     refreshSession();
-
     return () => {
       unsubscribe();
       window.removeEventListener(RIDER_SESSION_EVENT, refreshSession);
@@ -144,46 +82,84 @@ export default function Navbar() {
           : "border-b border-transparent bg-[#F7F4EE]"
       }`}
     >
-      <div className="hidden bg-[#1C3A2E] px-4 py-2 text-center text-[10px] font-medium uppercase leading-snug tracking-[0.14em] text-white/90 sm:block sm:tracking-[0.18em]">
+      <div className="hidden bg-[#1C3A2E] px-3 py-2 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-white/90 sm:block">
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="mx-auto w-full max-w-[1650px] px-3 py-2 sm:px-5 lg:px-6 xl:px-8">
-        <div className="flex min-h-[56px] items-center justify-between gap-4 sm:min-h-[68px]">
-          <Link href="/" className="relative z-20 shrink-0">
-            <Image
-              src="/Evuddy-logo-dark-E.png"
-              alt="EVUDDY"
-              width={320}
-              height={95}
-              priority
-              className="h-[36px] w-auto max-w-[148px] object-contain object-left sm:h-[46px] sm:max-w-[190px] 2xl:h-[52px] 2xl:max-w-[210px]"
-            />
-          </Link>
+      <div className="relative mx-auto flex min-h-[64px] w-full max-w-[1650px] items-center justify-between gap-4 px-3 py-2 sm:min-h-[74px] sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8">
+        <Link href="/" className="relative z-20 flex shrink-0 items-center">
+          <Image
+            src="/Evuddy-logo-dark-E.png"
+            alt="EVUDDY"
+            width={320}
+            height={95}
+            priority
+            className="h-[36px] w-auto max-w-[140px] object-contain object-left sm:h-[46px] sm:max-w-[180px] min-[1280px]:h-[50px] min-[1280px]:max-w-[200px]"
+          />
+        </Link>
 
-          <div className="hidden min-w-0 flex-1 items-center justify-center gap-8 2xl:flex">
-            <PageLinks />
-          </div>
-
-          <div className="hidden shrink-0 items-center justify-end gap-4 lg:flex">
-            <PartnerActions riderLoggedIn={riderLoggedIn} />
-          </div>
-
-          <div className="flex shrink-0 items-center justify-end gap-2 lg:hidden">
-            {riderLoggedIn && <RiderAccountMenu compact />}
-            <button
-              type="button"
-              onClick={() => setMenuOpen(!menuOpen)}
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              className="relative z-[1001] p-2 text-[#0F172A]"
+        <div className="hidden shrink-0 items-center justify-center gap-[clamp(0.85rem,1.6vw,2rem)] min-[1280px]:flex">
+          {navLinks.map((item) => (
+            <Link
+              key={item.title}
+              href={item.href}
+              className="group relative inline-flex h-12 shrink-0 items-center justify-center whitespace-nowrap px-1 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.04em] text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]"
             >
-              {menuOpen ? <X size={32} /> : <Menu size={30} />}
-            </button>
-          </div>
+              <span>{item.title}</span>
+              <span className="absolute -bottom-[6px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
+            </Link>
+          ))}
         </div>
 
-        <div className="hidden items-center justify-center gap-x-8 gap-y-1 border-t border-[#E4DDD2]/80 py-1.5 lg:flex 2xl:hidden">
-          <PageLinks />
+        <div className="hidden shrink-0 items-center gap-[clamp(0.35rem,0.8vw,0.75rem)] min-[1280px]:flex">
+          <Link
+            href="/partners#dealer-network"
+            className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+          >
+            <Building2 size={18} />
+            Dealers
+          </Link>
+          {!riderLoggedIn && (
+            <>
+              <Link
+                href="/partners"
+                className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+              >
+                <Building2 size={18} />
+                Fleet Partner
+              </Link>
+              <Link
+                href="/partners#fleet-investment"
+                className="flex h-11 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.65rem,1vw,1.25rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+              >
+                <Wallet size={18} />
+                Invest
+              </Link>
+              <Link
+                href="/ride-options"
+                className="group flex h-11 shrink-0 items-center gap-2 whitespace-nowrap bg-[#1F6B4A] px-[clamp(0.9rem,1.3vw,1.5rem)] text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
+              >
+                Book EV
+                <ChevronRight
+                  size={18}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </Link>
+            </>
+          )}
+          {riderLoggedIn && <RiderAccountMenu />}
+        </div>
+
+        <div className="flex items-center gap-2 min-[1280px]:hidden">
+          {riderLoggedIn && <RiderAccountMenu compact />}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className="relative z-[1001] p-2 text-[#0F172A]"
+          >
+            {menuOpen ? <X size={32} /> : <Menu size={30} />}
+          </button>
         </div>
       </div>
 
@@ -196,15 +172,14 @@ export default function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               onClick={() => setMenuOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm min-[1280px]:hidden"
             />
-
             <motion.div
               initial={{ x: -420 }}
               animate={{ x: 0 }}
               exit={{ x: -420 }}
               transition={{ duration: 0.45, type: "spring", stiffness: 120 }}
-              className="fixed top-0 left-0 z-50 h-screen w-[88%] max-w-[360px] overflow-y-auto bg-white shadow-2xl lg:hidden"
+              className="fixed top-0 left-0 z-50 h-screen w-[88%] max-w-[360px] overflow-y-auto bg-white shadow-2xl min-[1280px]:hidden"
             >
               <div className="flex items-center justify-between border-b px-4 py-6">
                 <Image
@@ -223,7 +198,6 @@ export default function Navbar() {
                   <X size={28} className="text-gray-800" />
                 </button>
               </div>
-
               <div className="space-y-1 px-4 py-8">
                 {navLinks.map((item) => (
                   <Link
@@ -237,7 +211,6 @@ export default function Navbar() {
                   </Link>
                 ))}
               </div>
-
               <div className="space-y-4 px-4 pb-10">
                 {riderLoggedIn ? (
                   <>
@@ -263,7 +236,7 @@ export default function Navbar() {
                     <Link
                       href="/partners#dealer-network"
                       onClick={() => setMenuOpen(false)}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition-all duration-300 hover:bg-[#18B368] hover:text-white"
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
                     >
                       <Building2 size={20} />
                       Become a dealer
@@ -271,7 +244,7 @@ export default function Navbar() {
                     <Link
                       href="/partners"
                       onClick={() => setMenuOpen(false)}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition-all duration-300 hover:bg-[#18B368] hover:text-white"
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
                     >
                       <Building2 size={20} />
                       Fleet Partner
@@ -279,7 +252,7 @@ export default function Navbar() {
                     <Link
                       href="/partners#fleet-investment"
                       onClick={() => setMenuOpen(false)}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition-all duration-300 hover:bg-[#18573c]"
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition hover:bg-[#18573c]"
                     >
                       <Wallet size={20} />
                       Invest
