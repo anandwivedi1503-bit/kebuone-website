@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
 import {
   Menu,
   X,
@@ -11,9 +10,7 @@ import {
   LogOut,
   Wallet,
 } from "lucide-react";
-
 import { onAuthStateChanged } from "firebase/auth";
-
 import { firebaseAuth } from "@/lib/firebase";
 import {
   isRiderLoggedIn,
@@ -22,95 +19,48 @@ import {
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
 import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
-
-import {
-  motion,
-  AnimatePresence,
-} from "framer-motion";
-
-import {
-  useState,
-  useEffect,
-} from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
 
 const navLinks = [
-  {
-    title: "Home",
-    href: "/",
-  },
-  {
-    title: "Careers",
-    href: "/careers",
-  },
-  {
-    title: "Leadership",
-    href: "/Leadership",
-  },
-  {
-    title: "Vision",
-    href: "/vision",
-  },
-  {
-    title: "About",
-    href: "/about",
-  },
-  {
-    title: "Contact",
-    href: "/contact",
-  },
+  { title: "Home", href: "/" },
+  { title: "Careers", href: "/careers" },
+  { title: "Leadership", href: "/Leadership" },
+  { title: "Vision", href: "/vision" },
+  { title: "About", href: "/about" },
+  { title: "Contact", href: "/contact" },
 ];
 
+const linkClass =
+  "group relative inline-flex h-10 shrink-0 items-center justify-center px-1.5 text-[12.5px] font-medium tracking-[0.02em] whitespace-nowrap text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A] 2xl:h-12 2xl:px-1 2xl:text-[15px] 2xl:tracking-[0.04em]";
+
+const textBtnClass =
+  "flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap px-2 text-[12.5px] font-medium text-[#1F6B4A] transition-colors duration-300 hover:text-[#18573c] 2xl:h-11 2xl:gap-2 2xl:px-5 2xl:text-[14px]";
+
 export default function Navbar() {
-
   const [menuOpen, setMenuOpen] = useState(false);
-
   const [isScrolled, setIsScrolled] = useState(false);
-
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
   const [resumeHref, setResumeHref] = useState("/ride-options");
 
   useEffect(() => {
-
     const handleScroll = () => {
-
       setIsScrolled(window.scrollY > 30);
-
     };
-
     window.addEventListener("scroll", handleScroll);
-
-    return () =>
-      window.removeEventListener(
-        "scroll",
-        handleScroll
-      );
-
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
-
-    if (menuOpen) {
-
-      document.body.style.overflow = "hidden";
-
-    } else {
-
-      document.body.style.overflow = "auto";
-
-    }
-
+    document.body.style.overflow = menuOpen ? "hidden" : "auto";
     return () => {
-
       document.body.style.overflow = "auto";
-
     };
-
   }, [menuOpen]);
 
   useEffect(() => {
     const refreshSession = () => {
-      const signedIn =
-        Boolean(firebaseAuth?.currentUser) && isRiderLoggedIn();
+      const signedIn = Boolean(firebaseAuth?.currentUser) && isRiderLoggedIn();
       setResumeHref(riderResumeHref());
       setRiderLoggedIn(signedIn);
     };
@@ -137,551 +87,202 @@ export default function Navbar() {
     await logoutRider();
   };
 
-
-
   return (
-
-<nav
-className={`
-fixed
-inset-x-0
-top-0
-z-[999]
-overflow-visible
-transition-colors
-duration-300
-${
-isScrolled
-? "border-b border-[#E4DDD2] bg-[#F7F4EE]/95 backdrop-blur-md"
-: "border-b border-transparent bg-[#F7F4EE]"}
-`}
->
-
-<div className="hidden bg-[#1C3A2E] py-2 text-center text-[10px] font-medium uppercase tracking-[0.22em] text-white/90 sm:block">
-  GST invoice on rent · KYC-verified riders · Hub OTP pickup
-</div>
-
-<div
-className="
-relative
-max-w-[1650px]
-mx-auto
-flex
-items-center
-justify-between
-min-h-[64px]
-sm:min-h-[74px]
-lg:min-h-[82px]
-gap-3
-px-3
-sm:px-5
-lg:px-6
-xl:px-8
-py-2
-"
->
-{/* ================= Logo ================= */}
-
-<Link
-href="/"
-className="
-flex
-items-center
-justify-start
-shrink-0
-max-w-[150px]
-sm:max-w-[190px]
-xl:max-w-[210px]
-"
->
-
-<Image
-src="/Evuddy-logo-dark-E.png"
-alt="EVUDDY"
-width={320}
-height={95}
-priority
-className="
-h-[36px]
-sm:h-[46px]
-lg:h-[50px]
-xl:h-[52px]
-w-auto
-max-w-full
-object-contain
-object-left
-"
-/>
-
-</Link>
-
-
-{/* ================= Desktop Menu ================= */}
-
-<div className="hidden lg:flex min-w-0 flex-1 items-center justify-center gap-4 xl:gap-8">
-
-{navLinks.map((item)=>(
-
-<Link
-key={item.title}
-href={item.href}
-className="
-group
-relative
-inline-flex
-items-center
-justify-center
-h-12
-px-1
-text-[13px]
-xl:text-[15px]
-font-medium
-tracking-[0.04em]
-whitespace-nowrap
-text-[#1C1917]
-transition-colors
-duration-300
-hover:text-[#1F6B4A]
-"
->
-
-<span className="whitespace-nowrap">
-  {item.title}
-</span>
-
-<span
-className="
-absolute
-left-0
--bottom-[6px]
-h-[2px]
-w-0
-rounded-full
-bg-gradient-to-r
-from-[#18B368]
-via-[#45D98C]
-to-[#1F6B4A]
-transition-all
-duration-300
-group-hover:w-full
-"
-/>
-
-</Link>
-
-))}
-
-</div>
-
-{/* ================= Right Buttons ================= */}
-
-<div className="hidden lg:flex shrink-0 items-center gap-1 xl:gap-3 ml-2 xl:ml-5">
-
-<Link href="/partners#dealer-network">
-
-<button
-className="
-flex
-items-center
-gap-2
-h-11
-whitespace-nowrap
-px-3
-xl:px-5
-font-medium
-text-[#1F6B4A]
-transition-colors
-duration-300
-hover:text-[#18573c]
-"
->
-
-<Building2 size={18} />
-
-Dealers
-
-</button>
-
-</Link>
-
-{!riderLoggedIn && (
-<>
-<Link href="/partners">
-
-<button
-className="
-flex
-items-center
-gap-2
-h-11
-whitespace-nowrap
-px-3
-xl:px-5
-font-medium
-text-[#1F6B4A]
-transition-colors
-duration-300
-hover:text-[#18573c]
-"
->
-
-<Building2 size={18} />
-
-Fleet Partner
-
-</button>
-
-</Link>
-
-<Link href="/partners#fleet-investment">
-
-<button
-type="button"
-className="
-flex
-items-center
-gap-2
-h-11
-whitespace-nowrap
-px-3
-xl:px-5
-font-medium
-text-[#1F6B4A]
-transition-colors
-duration-300
-hover:text-[#18573c]
-"
-
->
-
-<Wallet size={18} />
-
-Invest
-
-</button>
-
-</Link>
-
-<Link href="/ride-options">
-
-<button
-className="
-group
-flex
-items-center
-gap-2
-h-11
-whitespace-nowrap
-px-4
-xl:px-6
-bg-[#1F6B4A]
-font-medium
-tracking-[0.06em]
-text-white
-transition-colors
-duration-300
-hover:bg-[#18573c]
-"
->
-
-Book EV
-
-<ChevronRight
-size={18}
-className="transition-transform duration-300 group-hover:translate-x-1"
-/>
-
-</button>
-
-</Link>
-</>
-)}
-
-{riderLoggedIn && <RiderAccountMenu />}
-
-</div>
-
-{/* ================= Mobile Button ================= */}
-
-<div className="flex items-center gap-2 lg:hidden">
-{riderLoggedIn && <RiderAccountMenu compact />}
-<button
-onClick={() => setMenuOpen(!menuOpen)}
-className="
-relative
-z-[1001]
-p-2
-text-[#0F172A]
-transition-all
-duration-300
-"
->
-
-{menuOpen ? (
-
-<X size={32}/>
-
-) : (
-
-<Menu size={30}/>
-
-)}
-
-</button>
-</div>
-
-</div>
-
-    {/* ================= Mobile Sidebar ================= */}
-
-<AnimatePresence>
-
-{menuOpen && (
-
-<>
-
-<motion.div
-initial={{ opacity:0 }}
-animate={{ opacity:1 }}
-exit={{ opacity:0 }}
-transition={{ duration:0.25 }}
-onClick={()=>setMenuOpen(false)}
-className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-/>
-
-<motion.div
-
-initial={{ x:-420 }}
-
-animate={{ x:0 }}
-
-exit={{ x:-420 }}
-
-transition={{
-duration:0.45,
-type:"spring",
-stiffness:120
-}}
-
-className="fixed top-0 left-0 h-screen w-[88%] max-w-[360px] bg-white shadow-2xl z-50 lg:hidden overflow-y-auto"
-
->
-
-{/* ================= Header ================= */}
-
-<div className="flex items-center justify-between px-4
-lg:px-6 py-6 border-b">
-
-<Image
-src="/Evuddy-logo-dark-E.png"
-alt="EVUDDY"
-width={180}
-height={55}
-className="h-11 w-auto"
-/>
-
-<button
-
-onClick={()=>setMenuOpen(false)}
-
-className="rounded-full p-2 hover:bg-gray-100 transition"
-
->
-
-<X size={28} className="text-gray-800"/>
-
-</button>
-
-</div>
-
-{/* ================= Links ================= */}
-
-<div className="px-4
-lg:px-6 py-8 space-y-1">
-
-{navLinks.map((item)=>(
-
-<Link
-
-key={item.title}
-
-href={item.href}
-
-onClick={()=>setMenuOpen(false)}
-
-className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold text-gray-800 hover:bg-green-50 hover:text-green-600 transition"
-
->
-
-{item.title}
-
-<ChevronRight size={18}/>
-
-</Link>
-
-))}
-
-</div>
-
-{/* ================= CTA Section ================= */}
-
-<div className="px-4
-lg:px-6 pb-10 space-y-4">
-
-{riderLoggedIn ? (
-<>
-  <Link
-    href={resumeHref}
-    onClick={()=>setMenuOpen(false)}
-    className="flex w-full items-center justify-center gap-2 h-14 rounded-full bg-[#111827] text-white font-semibold"
-  >
-    Continue my ride
-    <ChevronRight size={18}/>
-  </Link>
-  <button
-    type="button"
-    onClick={handleLogout}
-    className="w-full h-14 rounded-full border border-[#EC2A8C]/30 bg-white text-[#EC2A8C] font-semibold flex items-center justify-center gap-2"
-  >
-    <LogOut size={18} />
-    Log out
-  </button>
-</>
-) : (
-<>
-<Link
-href="/partners#dealer-network"
-onClick={()=>setMenuOpen(false)}
->
-
-<button
-className="
-w-full
-h-14
-rounded-full
-border
-border-[#18B368]/20
-bg-white
-text-[#18B368]
-font-semibold
-transition-all
-duration-300
-hover:bg-[#18B368]
-hover:text-white
-flex
-items-center
-justify-center
-gap-2
-"
->
-
-<Building2 size={20}/>
-
-Become a dealer
-
-</button>
-
-</Link>
-
-<Link
-href="/partners"
-onClick={()=>setMenuOpen(false)}
->
-
-<button
-
-className="
-w-full
-h-14
-rounded-full
-border
-border-[#18B368]/20
-bg-white
-text-[#18B368]
-font-semibold
-transition-all
-duration-300
-hover:bg-[#18B368]
-hover:text-white
-flex
-items-center
-justify-center
-gap-2
-"
-
->
-
-<Building2 size={20}/>
-
-Fleet Partner 
-
-</button>
-
-</Link>
-
-<Link
-href="/partners#fleet-investment"
-onClick={()=>setMenuOpen(false)}
->
-
-<button
-type="button"
-className="
-w-full
-h-14
-rounded-full
-bg-[#1F6B4A]
-text-white
-font-semibold
-transition-all
-duration-300
-hover:bg-[#18573c]
-flex
-items-center
-justify-center
-gap-2
-"
->
-
-<Wallet size={20}/>
-
-Invest
-
-</button>
-
-</Link>
-
-<Link
-href="/ride-options"
-onClick={()=>setMenuOpen(false)}
->
-
-<button
-
-className="w-full h-14 rounded-full bg-[#111827] text-white font-semibold hover:bg-black transition flex items-center justify-center gap-2"
-
->
-
-Book Ride
-
-<ChevronRight size={18}/>
-
-</button>
-
-</Link>
-</>
-)}
-
-</div>
-
-</motion.div>
-
-</>
-
-)}
-
-</AnimatePresence>
-
-</nav>
+    <nav
+      className={`fixed inset-x-0 top-0 z-[999] overflow-x-clip transition-colors duration-300 ${
+        isScrolled
+          ? "border-b border-[#E4DDD2] bg-[#F7F4EE]/95 backdrop-blur-md"
+          : "border-b border-transparent bg-[#F7F4EE]"
+      }`}
+    >
+      <div className="hidden bg-[#1C3A2E] px-4 py-2 text-center text-[10px] font-medium uppercase leading-snug tracking-[0.14em] text-white/90 sm:block sm:tracking-[0.18em] xl:tracking-[0.22em]">
+        GST invoice on rent · KYC-verified riders · Hub OTP pickup
+      </div>
+
+      <div className="relative mx-auto grid min-h-[64px] w-full max-w-[1650px] grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:min-h-[74px] sm:gap-3 sm:px-5 lg:min-h-[82px] lg:px-6 xl:px-8">
+        <Link
+          href="/"
+          className="relative z-20 flex max-w-[132px] shrink-0 items-center justify-start sm:max-w-[168px] xl:max-w-[176px] 2xl:max-w-[210px]"
+        >
+          <Image
+            src="/Evuddy-logo-dark-E.png"
+            alt="EVUDDY"
+            width={320}
+            height={95}
+            priority
+            className="h-[34px] w-auto max-w-full object-contain object-left sm:h-[42px] xl:h-[44px] 2xl:h-[52px]"
+          />
+        </Link>
+
+        <div className="hidden min-w-0 items-center justify-center gap-0.5 overflow-hidden xl:flex 2xl:gap-6">
+          {navLinks.map((item) => (
+            <Link key={item.title} href={item.href} className={linkClass}>
+              <span className="whitespace-nowrap">{item.title}</span>
+              <span className="absolute bottom-[-4px] left-1.5 right-1.5 h-[2px] w-auto origin-left scale-x-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-transform duration-300 group-hover:scale-x-100 2xl:bottom-[-6px] 2xl:left-0 2xl:right-0" />
+            </Link>
+          ))}
+        </div>
+
+        <div className="hidden min-w-0 shrink-0 items-center justify-end gap-0 xl:flex 2xl:ml-5 2xl:gap-3">
+          <Link href="/partners#dealer-network" className={textBtnClass}>
+            <Building2 size={16} className="hidden 2xl:block" />
+            Dealers
+          </Link>
+
+          {!riderLoggedIn && (
+            <>
+              <Link href="/partners" className={textBtnClass}>
+                <Building2 size={16} className="hidden 2xl:block" />
+                <span className="2xl:hidden">Fleet</span>
+                <span className="hidden 2xl:inline">Fleet Partner</span>
+              </Link>
+
+              <Link href="/partners#fleet-investment" className={textBtnClass}>
+                <Wallet size={16} className="hidden 2xl:block" />
+                Invest
+              </Link>
+
+              <Link
+                href="/ride-options"
+                className="group flex h-10 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-3 text-[12.5px] font-medium tracking-[0.04em] text-white transition-colors duration-300 hover:bg-[#18573c] 2xl:h-11 2xl:gap-2 2xl:px-6 2xl:text-[14px] 2xl:tracking-[0.06em]"
+              >
+                Book EV
+                <ChevronRight
+                  size={16}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </Link>
+            </>
+          )}
+
+          {riderLoggedIn && <RiderAccountMenu />}
+        </div>
+
+        <div className="col-start-3 flex items-center justify-end gap-2 xl:hidden">
+          {riderLoggedIn && <RiderAccountMenu compact />}
+          <button
+            type="button"
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            className="relative z-[1001] p-2 text-[#0F172A] transition-all duration-300"
+          >
+            {menuOpen ? <X size={32} /> : <Menu size={30} />}
+          </button>
+        </div>
+      </div>
+
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm xl:hidden"
+            />
+
+            <motion.div
+              initial={{ x: -420 }}
+              animate={{ x: 0 }}
+              exit={{ x: -420 }}
+              transition={{ duration: 0.45, type: "spring", stiffness: 120 }}
+              className="fixed top-0 left-0 z-50 h-screen w-[88%] max-w-[360px] overflow-y-auto bg-white shadow-2xl xl:hidden"
+            >
+              <div className="flex items-center justify-between border-b px-4 py-6">
+                <Image
+                  src="/Evuddy-logo-dark-E.png"
+                  alt="EVUDDY"
+                  width={180}
+                  height={55}
+                  className="h-11 w-auto"
+                />
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-full p-2 transition hover:bg-gray-100"
+                  aria-label="Close menu"
+                >
+                  <X size={28} className="text-gray-800" />
+                </button>
+              </div>
+
+              <div className="space-y-1 px-4 py-8">
+                {navLinks.map((item) => (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold text-gray-800 transition hover:bg-green-50 hover:text-green-600"
+                  >
+                    {item.title}
+                    <ChevronRight size={18} />
+                  </Link>
+                ))}
+              </div>
+
+              <div className="space-y-4 px-4 pb-10">
+                {riderLoggedIn ? (
+                  <>
+                    <Link
+                      href={resumeHref}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white"
+                    >
+                      Continue my ride
+                      <ChevronRight size={18} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#EC2A8C]/30 bg-white font-semibold text-[#EC2A8C]"
+                    >
+                      <LogOut size={18} />
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/partners#dealer-network"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition-all duration-300 hover:bg-[#18B368] hover:text-white"
+                    >
+                      <Building2 size={20} />
+                      Become a dealer
+                    </Link>
+                    <Link
+                      href="/partners"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition-all duration-300 hover:bg-[#18B368] hover:text-white"
+                    >
+                      <Building2 size={20} />
+                      Fleet Partner
+                    </Link>
+                    <Link
+                      href="/partners#fleet-investment"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition-all duration-300 hover:bg-[#18573c]"
+                    >
+                      <Wallet size={20} />
+                      Invest
+                    </Link>
+                    <Link
+                      href="/ride-options"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white transition hover:bg-black"
+                    >
+                      Book Ride
+                      <ChevronRight size={18} />
+                    </Link>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </nav>
   );
 }

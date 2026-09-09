@@ -28,7 +28,7 @@ export default function HomeTrustBar() {
       aria-label="Why riders trust EVUDDY"
       className="border-y border-[#E4DDD2] bg-[#FBF9F5]"
     >
-      <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 py-10 min-[480px]:grid-cols-2 sm:px-8 lg:grid-cols-5 lg:gap-6 lg:px-12">
+      <div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-8 px-5 py-10 min-[480px]:grid-cols-2 sm:px-8 lg:grid-cols-3 xl:grid-cols-5 xl:gap-6 xl:px-12">
         {items.map((item) => {
           const Icon = item.icon;
           return (

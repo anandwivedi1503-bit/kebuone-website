@@ -60,14 +60,10 @@ export default function Footer() {
 
       {/* Watermark */}
 
-      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center overflow-hidden lg:flex">
-
-        <h1 className="select-none text-[220px] font-black tracking-[25px] text-white/[0.025]">
-
+      <div className="pointer-events-none absolute inset-0 hidden items-center justify-center overflow-hidden xl:flex">
+        <h1 className="select-none text-[140px] font-black tracking-[8px] text-white/[0.025] 2xl:text-[220px] 2xl:tracking-[25px]">
           EVUDDY
-
         </h1>
-
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6">
@@ -191,7 +187,7 @@ export default function Footer() {
       Footer Main Grid
 ======================================= */}
 
-<div className="grid gap-10 pb-16 sm:gap-16 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+<div className="grid gap-10 pb-16 sm:gap-16 xl:grid-cols-[1.4fr_1fr_1fr_1fr]">
 
   {/* ================= Brand ================= */}
 
