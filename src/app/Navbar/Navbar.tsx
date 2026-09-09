@@ -132,8 +132,14 @@ export default function Navbar() {
 
     const update = () => {
       const available = row.clientWidth;
+      if (available < 40) return;
+      if (window.innerWidth < 720) {
+        setCompact(true);
+        return;
+      }
       const needed = measure.scrollWidth;
-      setCompact(needed > available - 12);
+      if (needed < 40) return;
+      setCompact(needed > available - 8);
     };
 
     update();
@@ -174,13 +180,13 @@ export default function Navbar() {
         <div
           ref={measureRef}
           aria-hidden
-          className="pointer-events-none invisible absolute left-0 top-0 flex h-0 w-max items-center gap-[clamp(0.75rem,1.6vw,2rem)]"
+          className="pointer-events-none invisible absolute left-0 top-0 -z-50 flex w-max flex-nowrap items-center gap-[clamp(0.75rem,1.4vw,2rem)] opacity-0"
         >
-          <div className="h-[52px] w-[210px] shrink-0" />
-          <div className="flex items-center gap-[clamp(1rem,1.8vw,2rem)]">
+          <div className="h-12 w-[180px] shrink-0" />
+          <div className="flex flex-nowrap items-center gap-[clamp(0.75rem,1.4vw,2rem)]">
             <PageLinks />
           </div>
-          <div className="ml-5 flex items-center gap-[clamp(0.25rem,0.8vw,0.75rem)]">
+          <div className="ml-3 flex flex-nowrap items-center gap-[clamp(0.25rem,0.6vw,0.75rem)]">
             <PartnerActions riderLoggedIn={riderLoggedIn} />
           </div>
         </div>
@@ -197,7 +203,7 @@ export default function Navbar() {
         </Link>
 
         {!compact && (
-          <div className="flex min-w-0 flex-1 items-center justify-center gap-[clamp(1rem,1.8vw,2rem)]">
+          <div className="flex min-w-0 flex-1 flex-nowrap items-center justify-center gap-[clamp(0.75rem,1.4vw,2rem)]">
             <PageLinks />
           </div>
         )}
