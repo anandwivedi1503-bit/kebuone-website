@@ -77,7 +77,7 @@ export default function Hero() {
         }
       `}</style>
 
-      <div className="mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 pt-28 sm:px-8 sm:pt-40 lg:grid-cols-[0.88fr_1.12fr] lg:px-12 lg:pt-40">
+      <div className="mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 pt-28 sm:px-8 sm:pt-40 lg:px-12 lg:pt-40 xl:grid-cols-[0.88fr_1.12fr]">
         <div className="flex flex-col justify-center py-8 pr-0 lg:py-12 lg:pr-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
             India&apos;s smart EV rental
@@ -142,7 +142,7 @@ export default function Hero() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
-        <div className="grid border border-[#E4DDD2] lg:grid-cols-[0.42fr_0.58fr]">
+        <div className="grid border border-[#E4DDD2] xl:grid-cols-[0.42fr_0.58fr]">
           <div className="relative aspect-[3/2] overflow-hidden bg-[#1C1917]">
             <HomeImg
               src={BRAND.cityCommute}
@@ -158,7 +158,7 @@ export default function Hero() {
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#5F6B63]">
                 Live GPS tracking
               </p>
-              <p className="max-w-[60%] text-right text-[11px] leading-4 tracking-[0.08em] text-[#1F6B4A]">
+              <p className="min-w-0 max-w-[55%] truncate text-right text-[11px] leading-4 tracking-[0.08em] text-[#1F6B4A]">
                 {cityLine} · In ride
               </p>
             </div>
