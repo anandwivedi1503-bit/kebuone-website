@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus } from "@/lib/opsFocus";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -651,120 +652,27 @@ onClick={() => {
 
  <SectionHeader
  title="Booking Records"
-subtitle="Search and manage all ride bookings."
+subtitle="Search and manage all ride bookings. Sheet uses the filtered list."
 rightContent={
-
-<div className="flex gap-3">
-
-<button
-onClick={() => {
-
-const rows = filteredBookings.map((b:any)=>({
-
-BookingID:b.bookingId,
-
-Customer:b.userName,
-
-Phone:b.userPhone,
-
-Vehicle:b.vehicleId,
-
-Model:b.vehicleModel,
-
-Registration:b.vehicleNumber,
-
-Hub:b.pickupHubName || b.startHub,
-
-RideStatus:b.rideStatus,
-
-PaymentStatus:b.paymentStatus,
-
-Total:getBookingPayableAmount(b),
-
-Received:b.receivedAmount,
-
-Pending:b.pendingAmount,
-
-PickupOTP:b.pickupOTPGenerated || b.pickupOTP ? "Generated" : "Not generated",
-
-}));
-
-const csv=[
-
-Object.keys(rows[0]||{}).join(","),
-
-...rows.map(Object.values).map(r=>r.join(","))
-
-].join("\n");
-
-const blob=new Blob([csv],{
-type:"text/csv"
-});
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-
-a.download="Bookings.csv";
-
-a.click();
-
-URL.revokeObjectURL(url);
-
-}}
-
-className="
-rounded-xl
-bg-green-600
-px-5
-py-3
-font-bold
-text-white
-hover:bg-green-700
-"
->
-
-Export CSV
-
-</button>
-
-<button
-type="button"
-onClick={() => {
-  downloadHtmlFile(
-    `EVUDDY-booking-list-${new Date().toISOString().slice(0, 10)}.html`,
-    document.documentElement.outerHTML
-  );
-}}
-className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700"
->
-Download file
-</button>
-
-<button
-onClick={() => void fetchBookings("replace")}
-className="
-rounded-xl
-bg-gradient-to-r
-from-[#D6006E]
-to-[#FF165E]
-px-5
-py-3
-font-bold
-text-white
-hover:scale-105
-transition
-"
->
-
-🔄 Refresh
-
-</button>
-
-</div>
-
+  <DashboardActions
+    filename="bookings"
+    rows={filteredBookings.map((b: any) => ({
+      BookingID: b.bookingId,
+      Customer: b.userName,
+      Phone: b.userPhone,
+      Vehicle: b.vehicleId,
+      Model: b.vehicleModel,
+      Registration: b.vehicleNumber,
+      Hub: b.pickupHubName || b.startHub,
+      RideStatus: b.rideStatus,
+      PaymentStatus: b.paymentStatus,
+      Total: getBookingPayableAmount(b),
+      Received: b.receivedAmount,
+      Pending: b.pendingAmount,
+      PickupOTP: b.pickupOTPGenerated || b.pickupOTP ? "Generated" : "Not generated",
+    }))}
+    onRefresh={() => void fetchBookings("replace")}
+  />
  }
  />
 

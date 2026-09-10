@@ -11,7 +11,8 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import ActionButton from "../DashboardUI/ActionButton";
 import StatusBadge from "../DashboardUI/StatusBadge";
-import { walletSpendable } from "@/lib/walletMoney";
+import DashboardActions from "../DashboardUI/DashboardActions";
+import { walletLedgerBalance, walletSpendable } from "@/lib/walletMoney";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 export default function WalletDashboard() {
@@ -25,8 +26,7 @@ const [hasMoreWalletTxns,setHasMoreWalletTxns]=useState(false);
 
 const [search,setSearch]=useState("");
 const [statusFilter, setStatusFilter] = useState("ALL");
-
-const [transactionFilter, setTransactionFilter] = useState("ALL");
+const [holdFilter, setHoldFilter] = useState<"ALL" | "HOLD" | "CREDIT">("ALL");
 
 const [selectedWallet,setSelectedWallet]=useState<any>(null);
 const [showDetails,setShowDetails]=useState(false);
@@ -324,9 +324,19 @@ alert("Unable to update wallet.");
 
 };
 
-const totalBalance=wallets.reduce(
+const totalSpendable=wallets.reduce(
 (sum,w)=>sum+walletSpendable(w),
 0
+);
+
+const totalHold = wallets.reduce(
+  (sum, w) => sum + Number(w.securityDepositHold || 0),
+  0
+);
+
+const totalLedger = wallets.reduce(
+  (sum, w) => sum + walletLedgerBalance(w),
+  0
 );
 
 const totalCredits = transactions
@@ -360,11 +370,18 @@ const filteredWallets = useMemo(() => {
 
       wallet.status === statusFilter;
 
-    return matchesSearch && matchesStatus;
+    const hold = Number(wallet.securityDepositHold || 0);
+    const credit = walletSpendable(wallet);
+    const matchesHold =
+      holdFilter === "ALL" ||
+      (holdFilter === "HOLD" && hold > 0) ||
+      (holdFilter === "CREDIT" && credit > 0);
+
+    return matchesSearch && matchesStatus && matchesHold;
 
   });
 
-}, [wallets, search, statusFilter]);
+}, [wallets, search, statusFilter, holdFilter]);
 
 if (pageLoading) {
 
@@ -394,7 +411,7 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="Rider EVUDDY credit only: admin top-ups and returned deposits. Spendable is ledger minus freeze. Deposit hold is the security deposit until the scooter is returned; then Refunds queues it for payout. Razorpay/UPI never adds here."
+subtitle="EVUDDY credit the rider can spend, plus security deposit held until the scooter is returned. Deposit hold is tracking only — it is not freeze and Razorpay does not add credit here. Refunds pays the deposit out after the ride ends."
 />
 
 <OpsMoneyStrip />
@@ -407,14 +424,21 @@ value={wallets.length}
 subtitle="Registered"
 icon="👛"
 color="pink"
+selected={holdFilter === "ALL" && statusFilter === "ALL"}
+onClick={() => {
+  setHoldFilter("ALL");
+  setStatusFilter("ALL");
+}}
 />
 
 <KPICard
-title="Balance"
-value={`₹${totalBalance}`}
-subtitle="Spendable"
+title="Spendable credit"
+value={`₹${totalSpendable.toLocaleString("en-IN")}`}
+subtitle="Ledger minus freeze"
 icon="💰"
 color="green"
+selected={holdFilter === "CREDIT"}
+onClick={() => setHoldFilter("CREDIT")}
 />
 
 <KPICard
@@ -434,26 +458,21 @@ color="yellow"
 />
 
 <KPICard
-title="Average Balance"
-value={`₹${
-wallets.length
-? Math.round(totalBalance / wallets.length)
-: 0
-}`}
-subtitle="Per Wallet"
+title="Ledger"
+value={`₹${totalLedger.toLocaleString("en-IN")}`}
+subtitle="Gross wallet balance"
 icon="📊"
 color="blue"
 />
 
 <KPICard
-title="Security Hold"
-value={`₹${wallets.reduce(
-(sum,w)=>sum+(w.securityDepositHold||0),
-0
-)}`}
-subtitle="Tracking only — not spendable freeze"
+title="Security deposit hold"
+value={`₹${totalHold.toLocaleString("en-IN")}`}
+subtitle="Held until scooter return — not spendable"
 icon="🔒"
 color="yellow"
+selected={holdFilter === "HOLD"}
+onClick={() => setHoldFilter("HOLD")}
 />
 
 </KPIGrid>
@@ -586,118 +605,42 @@ color="yellow"
 
 </KPIGrid>
 
+<SectionHeader
+title="Wallet records"
+subtitle="Tap Security deposit hold or Spendable credit above. Sheet uses the list on screen."
+rightContent={
+  <DashboardActions
+    filename={
+      holdFilter === "HOLD"
+        ? "wallet-deposit-hold"
+        : holdFilter === "CREDIT"
+          ? "wallet-spendable-credit"
+          : "wallet-riders"
+    }
+    rows={filteredWallets.map((w) => ({
+      RiderID: w.riderId || "",
+      Name: w.userName || "",
+      Phone: w.phone || "",
+      Ledger: walletLedgerBalance(w),
+      Spendable: walletSpendable(w),
+      SecurityDepositHold: Number(w.securityDepositHold || 0),
+      Freeze: Number(w.freezeAmount || 0),
+      LiveBooking: w.liveBooking?.bookingId || "",
+      BookingPending: w.liveBooking?.pendingAmount ?? "",
+      Status: w.status || "",
+    }))}
+    onRefresh={() => {
+      void loadWallets(false);
+      void loadTransactions();
+    }}
+  />
+}
+/>
+
 <DashboardCard
 title="Wallet Records"
 subtitle="All registered rider wallets."
 >
-
-<div className="mb-6">
-
-<button
-
-onClick={() => {
-
-const headers = [
-
-"Rider ID",
-
-"Name",
-
-"Phone",
-
-"Balance",
-
-"Spendable",
-
-"Deposit Hold",
-
-"Live booking",
-
-"Booking pending",
-
-"Status",
-
-];
-
-const rows = filteredWallets.map((w)=>[
-
-w.riderId,
-
-w.userName,
-
-w.phone,
-
-w.balance,
-
-walletSpendable(w),
-
-w.securityDepositHold,
-
-w.liveBooking?.bookingId || "",
-
-w.liveBooking?.pendingAmount ?? "",
-
-w.status,
-
-]);
-
-const csv = [
-
-headers,
-
-...rows,
-
-]
-
-.map((e)=>e.join(","))
-
-.join("\n");
-
-const blob = new Blob([csv],{
-
-type:"text/csv",
-
-});
-
-const url=window.URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-
-a.download="WalletReport.csv";
-
-a.click();
-
-}}
-
-className="
-
-rounded-xl
-
-bg-[#0A1134]
-
-px-6
-
-py-3
-
-font-bold
-
-text-white
-
-hover:bg-[#16204d]
-
-transition
-
-"
-
->
-
-Export CSV
-
-</button>
-
-</div>
 
 <div className="overflow-x-auto rounded-3xl">
 
@@ -713,7 +656,7 @@ Export CSV
 
 <th className="px-6 py-5 text-center">Phone</th>
 
-<th className="px-6 py-5 text-center">Balance</th>
+<th className="px-6 py-5 text-center">Ledger</th>
 
 <th className="px-6 py-5 text-center">Spendable</th>
 
