@@ -6,6 +6,9 @@ import { sessionCanOpen } from "@/lib/adminCan";
 import { clearRiderClientSession } from "@/lib/riderPlanGate";
 import { startOpsPoll } from "@/lib/opsPoll";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import KPIGrid from "../DashboardUI/KPIGrid";
+import KPICard from "../DashboardUI/KPICard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import {
   AlertTriangle,
   BarChart3,
@@ -19,8 +22,6 @@ import {
   CircleDollarSign,
   Cpu,
   CreditCard,
-  Gauge,
-  Handshake,
   Headphones,
   IndianRupee,
   KeyRound,
@@ -41,9 +42,7 @@ import {
   WifiOff,
 } from "lucide-react";
 
-type NotificationItem = { id: string; title: string; time: string };
 type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; at?: number; tone: string };
-type Tone = { icon: string; value: string; note: string; border: string };
 
 const rupee = (value: number) => `\u20B9${value.toLocaleString("en-IN")}`;
 
@@ -231,7 +230,7 @@ const [refreshing, setRefreshing] = useState(false);
     void loadDashboard();
     return startOpsPoll(() => {
       void loadDashboard();
-    });
+    }, 8_000);
   }, []);
 
   useEffect(() => {
@@ -425,87 +424,6 @@ const notifications = [
     ? "border border-white/10 bg-[#101722] text-slate-100 shadow-2xl shadow-black/40"
     : "border border-slate-200 bg-white/90 backdrop-blur-xl text-slate-950 shadow-2xl shadow-slate-300/40";
 
-  const kpiCards: {
-    title: string;
-    value: string | number;
-    note: string;
-    icon: LucideIcon;
-    tone: Tone;
-  }[] = [
-    {
-      title: "Total Riders",
-      value: riders.length,
-      note: "Live Database",
-      icon: Users,
-      tone: {
-        icon: "bg-rose-50 text-rose-600",
-        value: headingClass,
-        note: "text-emerald-600",
-        border: "hover:border-rose-200",
-      },
-    },
-    {
-      title: "Fleet Vehicles",
-      value: vehicles.length,
-      note: `${onlineVehicles} Online`,
-      icon: Bike,
-      tone: {
-        icon: "bg-emerald-50 text-emerald-600",
-        value: "text-emerald-600",
-        note: "text-emerald-600",
-        border: "hover:border-emerald-200",
-      },
-    },
-    {
-      title: "Active Rides",
-      value: activeRides,
-      note: "Live Tracking",
-      icon: Route,
-      tone: {
-        icon: "bg-sky-50 text-sky-600",
-        value: "text-sky-600",
-        note: "text-sky-600",
-        border: "hover:border-sky-200",
-      },
-    },
-    {
-      title: "Operational Hubs",
-      value: activeHubs,
-      note: "Running Normally",
-      icon: Building2,
-      tone: {
-        icon: "bg-amber-50 text-amber-600",
-        value: "text-amber-600",
-        note: "text-amber-600",
-        border: "hover:border-amber-200",
-      },
-    },
-    {
-      title: "Total Revenue",
-      value: rupee(totalRevenue),
-      note: "Rent + GST (not deposits)",
-      icon: IndianRupee,
-      tone: {
-        icon: "bg-pink-50 text-pink-600",
-        value: "text-pink-600",
-        note: "text-pink-600",
-        border: "hover:border-pink-200",
-      },
-    },
-    {
-      title: "Open Tickets",
-      value: openTickets,
-      note: `${processingRefunds} refund · ${pendingReviews} reviews pending`,
-      icon: LifeBuoy,
-      tone: {
-        icon: "bg-red-50 text-red-600",
-        value: "text-red-600",
-        note: "text-red-600",
-        border: "hover:border-red-200",
-      },
-    },
-  ];
-
   const operationCards = [
     {
       title: "Fleet Management",
@@ -652,21 +570,9 @@ const openDashboard = (dashboard: string) => {
 };
 
 const refreshDashboard = async () => {
-
   setRefreshing(true);
-
-  setLoading(true);
-
   await loadDashboard();
-
-  setLoading(false);
-
-  setTimeout(() => {
-
-    setRefreshing(false);
-
-  },600);
-
+  setRefreshing(false);
 };
 
 if (loading) {
@@ -945,6 +851,30 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
 
         <OpsMoneyStrip />
 
+        <DashboardActions
+          filename="admin-command-center"
+          rows={[
+            {
+              riders: counts.riders,
+              vehicles: counts.vehicles,
+              activeRides: counts.activeRides,
+              hubs: counts.activeHubs,
+              revenue: counts.totalRevenue,
+              tickets: counts.openTickets,
+            },
+          ]}
+          onRefresh={() => void refreshDashboard()}
+        />
+
+        <KPIGrid>
+          <KPICard title="Total Riders" value={counts.riders} subtitle="Live database" icon="👥" color="pink" />
+          <KPICard title="Fleet Vehicles" value={counts.vehicles} subtitle={`${onlineVehicles} online`} icon="🚲" color="green" />
+          <KPICard title="Active Rides" value={activeRides} subtitle="Live tracking" icon="🛵" color="blue" />
+          <KPICard title="Operational Hubs" value={activeHubs} subtitle="Running" icon="📍" color="yellow" />
+          <KPICard title="Total Revenue" value={rupee(totalRevenue)} subtitle="Rent + GST" icon="₹" color="purple" />
+          <KPICard title="Open Tickets" value={openTickets} subtitle={`${processingRefunds} refunds pending`} icon="🎧" color="red" />
+        </KPIGrid>
+
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className={`${panelClass} rounded-[28px] p-4 sm:p-5`}>
             <p className={`text-sm font-semibold ${mutedClass}`}>Today</p>
@@ -976,107 +906,6 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
               {item}
             </span>
           ))}
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          {kpiCards.map((card) => {
-            const Icon = card.icon;
-
-            return (
-              <div key={card.title} className={`
-relative
-overflow-hidden
-rounded-[28px]
-border
-${panelClass}
-${card.tone.border}
-p-6
-transition-all
-duration-500
-hover:-translate-y-2
-hover:scale-[1.02]
-hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)]
-group
-`}
->                <div
-className="
-absolute
-top-0
-right-0
-w-40
-h-40
-rounded-full
-bg-gradient-to-br
-from-pink-500/10
-to-transparent
-blur-3xl
-pointer-events-none
-group-hover:scale-125
-transition-all
-duration-700
-"
-/>
-                <div className="flex items-start justify-between gap-3">
-                  <div
-className={`
-h-14
-w-14
-rounded-2xl
-flex
-items-center
-justify-center
-${card.tone.icon}
-shadow-lg
-group-hover:rotate-6
-group-hover:scale-110
-transition-all
-duration-500
-`}
->
-                    <Icon size={21} />
-                  </div>
-                  <Gauge size={18} className={mutedClass} />
-                </div>
-
-                <p
-className={`
-mt-6
-uppercase
-tracking-[0.15em]
-text-xs
-font-bold
-${mutedClass}
-`}
->{card.title}</p>
-               <h2
-className={`
-mt-3
-break-words
-text-4xl
-xl:text-5xl
-font-black
-tracking-tight
-${card.tone.value}
-`}
->{card.value}</h2>
-                <div className="mt-5 flex items-center gap-2">
-
-<div
-className="
-w-2
-h-2
-rounded-full
-bg-green-500
-animate-pulse
-"
-/>
-
-<p
-className={`text-sm font-semibold ${card.tone.note}`}>
-{card.note}</p></div>
-              </div>
-            );
-          })}
         </div>
 
         <section className="space-y-5">
@@ -1412,7 +1241,8 @@ IoT Network
             </div>
 
             <button
-  onClick={refreshDashboard}
+  type="button"
+  onClick={() => void refreshDashboard()}
   className="inline-flex h-12 w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5"
 >
               <RefreshCw
