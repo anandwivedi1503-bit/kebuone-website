@@ -322,6 +322,12 @@ maxlength: 100,
 default: "",
     },
 
+    comingThrough: {
+      type: String,
+      trim: true,
+      default: "Direct / EVUDDY",
+    },
+
     // References
     reference1Name: {
       type: String,
@@ -461,6 +467,10 @@ RiderSchema.index({
 
 RiderSchema.index({
   firebaseUid: 1,
+});
+
+RiderSchema.index({
+  comingThrough: 1,
 });
 
 RiderSchema.pre("save", function (next) {

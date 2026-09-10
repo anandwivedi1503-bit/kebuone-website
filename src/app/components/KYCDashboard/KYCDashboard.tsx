@@ -16,6 +16,13 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import {
+  type PartnerSegmentId,
+  RIDER_NETWORK_SEGMENTS,
+  normalizeComingThrough,
+  riderMatchesNetwork,
+  riderSheetRows,
+} from "@/lib/partnerSegments";
 
 /* =========================================================
    TYPES
@@ -68,6 +75,8 @@ type Rider = {
   updatedAt?: string;
 
   approvedAt?: string;
+
+  comingThrough?: string;
 };
 
 /* =========================================================
@@ -211,6 +220,11 @@ function normalizeRider(
             value.approvedAt
           )
         : undefined,
+
+    comingThrough: String(
+      value?.comingThrough ??
+        ""
+    ),
   };
 }
 
@@ -265,6 +279,9 @@ export default function KYCDashboard() {
 
   const [kycView, setKycView] =
     useState<"ALL" | "Pending" | "Approved" | "Rejected">("ALL");
+
+  const [channel, setChannel] =
+    useState<PartnerSegmentId>("ALL");
 
   /* =======================================================
      LOAD RIDERS
@@ -435,15 +452,23 @@ export default function KYCDashboard() {
   const visibleRiders =
     useMemo(
       () =>
-        kycView === "ALL"
-          ? riders
-          : riders.filter(
-              (rider) =>
-                rider.kycStatus ===
-                kycView
-            ),
-      [riders, kycView]
+        riders.filter((rider) => {
+          const matchesKyc =
+            kycView === "ALL" ||
+            rider.kycStatus === kycView;
+          const matchesChannel = riderMatchesNetwork(rider, channel);
+          return matchesKyc && matchesChannel;
+        }),
+      [riders, kycView, channel]
     );
+
+  const selectedNetwork =
+    RIDER_NETWORK_SEGMENTS.find((item) => item.id === channel)?.label ||
+    "All riders";
+  const sheetName =
+    channel === "ALL"
+      ? "kyc-riders"
+      : `kyc-${selectedNetwork.toLowerCase().replace(/\s+/g, "-")}`;
 
   /* =======================================================
      APPROVE KYC
@@ -707,7 +732,7 @@ export default function KYCDashboard() {
     <PageContainer>
       <DashboardHeader
         title="KYC Verification Dashboard"
-        subtitle="Review rider documents and approve KYC verification requests."
+        subtitle="Tap Direct / EVUDDY or a tied-up network to split normal riders from Zomato, Flipkart Minutes and the rest. Approve and reject stay the same."
       />
 
       {/* ===================================================
@@ -746,12 +771,33 @@ export default function KYCDashboard() {
           value={
             totalApplications
           }
-          subtitle="Total Requests"
+          subtitle={channel === "ALL" ? "Showing all riders" : "Tap to show all"}
           icon="🪪"
           color="pink"
-          selected={kycView === "ALL"}
-          onClick={() => setKycView("ALL")}
+          selected={channel === "ALL" && kycView === "ALL"}
+          onClick={() => {
+            setChannel("ALL");
+            setKycView("ALL");
+          }}
         />
+        {RIDER_NETWORK_SEGMENTS.map((segment) => (
+          <KPICard
+            key={segment.id}
+            title={segment.label}
+            value={riders.filter((rider) => riderMatchesNetwork(rider, segment.id)).length}
+            subtitle={
+              channel === segment.id
+                ? "Showing this list"
+                : segment.id === "DIRECT"
+                  ? "Normal riders"
+                  : segment.subtitle
+            }
+            icon={segment.icon}
+            color={segment.color}
+            selected={channel === segment.id}
+            onClick={() => setChannel(segment.id)}
+          />
+        ))}
 
         <KPICard
           title="Pending"
@@ -796,16 +842,11 @@ export default function KYCDashboard() {
 
       <SectionHeader
         title="KYC Applications"
-        subtitle="Review submitted rider verification documents."
+        subtitle={`Sheet download uses ${selectedNetwork.toLowerCase()}. Approve and reject are unchanged.`}
         rightContent={
           <DashboardActions
-            filename="KYC.csv"
-            rows={visibleRiders.map((rider: any) => ({
-              RiderID: rider.riderId,
-              Name: rider.fullName,
-              Phone: rider.phone,
-              KYC: rider.kycStatus || rider.approvalStatus,
-            }))}
+            filename={sheetName}
+            rows={riderSheetRows(visibleRiders)}
           />
         }
       />
@@ -818,7 +859,19 @@ export default function KYCDashboard() {
         title="Verification Requests"
         subtitle="Live KYC Records"
       >
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <select
+            value={channel}
+            onChange={(e) => setChannel(e.target.value as PartnerSegmentId)}
+            className="rounded-xl border border-gray-200 px-4 py-3"
+          >
+            <option value="ALL">All riders</option>
+            {RIDER_NETWORK_SEGMENTS.map((segment) => (
+              <option key={segment.id} value={segment.id}>
+                {segment.id === "DIRECT" ? "Normal riders (Direct / EVUDDY)" : segment.label}
+              </option>
+            ))}
+          </select>
           <button
             type="button"
             onClick={() =>
@@ -851,6 +904,10 @@ export default function KYCDashboard() {
 
                 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
                   Phone
+                </th>
+
+                <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
+                  Coming through
                 </th>
 
                 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
@@ -901,7 +958,7 @@ export default function KYCDashboard() {
                 <tr>
                   <td
                     colSpan={
-                      12
+                      13
                     }
                     className="py-12 text-center text-gray-500"
                   >
@@ -973,6 +1030,10 @@ export default function KYCDashboard() {
                           rider.phone ||
                           "—"
                         }
+                      </td>
+
+                      <td className="px-6 py-5 text-sm">
+                        {normalizeComingThrough(rider)}
                       </td>
 
                       {/* ================================
