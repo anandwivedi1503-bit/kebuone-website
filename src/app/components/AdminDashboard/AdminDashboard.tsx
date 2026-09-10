@@ -22,6 +22,7 @@ import {
   CircleDollarSign,
   Cpu,
   CreditCard,
+  Handshake,
   Headphones,
   IndianRupee,
   KeyRound,
