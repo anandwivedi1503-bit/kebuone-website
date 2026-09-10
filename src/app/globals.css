@@ -53,7 +53,7 @@ body {
   gap: 12px;
   width: 100%;
   max-width: 1650px;
-  height: 4.5rem;
+  height: 5.25rem;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -65,17 +65,19 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   max-width: calc(100% - 56px);
-  height: 4rem;
+  height: 5rem;
   overflow: hidden;
 }
 
 .nav-logo img {
   position: absolute;
-  left: 0;
-  bottom: 0;
-  height: 5.5rem;
-  width: auto;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   max-width: none;
+  max-height: none;
+  object-fit: cover;
+  object-position: center 58%;
 }
 
 .nav-desktop-row {
@@ -107,14 +109,15 @@ body {
 
 @media (min-width: 1280px) {
   .nav-shell {
-    height: 4.5rem;
+    height: 5.25rem;
     padding: 0 2rem;
   }
 
   .nav-logo {
-    flex: 0 0 220px;
-    max-width: 220px;
-    height: 3.85rem;
+    flex: 0 0 280px;
+    width: 280px;
+    max-width: 280px;
+    height: 5rem;
   }
 
   .nav-desktop-row {
@@ -154,7 +157,7 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
   gap: 5px;
   border: 0;
   border-radius: 10px;
-  background: #f7f4ee;
+  background: #ffffff;
   color: #0f172a;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;

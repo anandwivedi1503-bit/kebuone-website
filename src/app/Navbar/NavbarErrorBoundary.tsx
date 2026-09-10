@@ -16,7 +16,7 @@ export default class NavbarErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.failed) {
       return (
-        <header className="fixed inset-x-0 top-0 z-[999] border-b border-[#E4DDD2] bg-[#F7F4EE]">
+        <header className="fixed inset-x-0 top-0 z-[999] border-b border-[#E4DDD2] bg-white">
           <div className="flex h-14 items-center justify-between px-4">
             <a href="/" className="text-sm font-semibold tracking-wide text-[#1C1917]">
               EVUDDY
