@@ -47,23 +47,19 @@ const fetchTickets = async (pages = ticketPages) => {
   return ticketData.data || [];
 };
 
-useEffect(() => {
-
 const loadData = async () => {
-
-await fetchTickets();
-
-const refundRes = await fetch("/api/refunds?limit=200");
-const refundData = await refundRes.json();
-setRefunds(refundData.data || []);
-
+  await fetchTickets();
+  const refundRes = await fetch("/api/refunds?limit=200", { cache: "no-store" });
+  const refundData = await refundRes.json();
+  setRefunds(refundData.data || []);
 };
 
-loadData();
-
-return startOpsPoll(loadData);
-
-},[ticketPages]);
+useEffect(() => {
+  void loadData();
+  return startOpsPoll(() => {
+    void loadData();
+  });
+}, [ticketPages]);
 
 const saveTicket = async () => {
 
@@ -254,7 +250,7 @@ subtitle="Monitor and manage customer issues."
 rightContent={
   <DashboardActions
     filename="SupportTickets.csv"
-    onRefresh={() => window.location.reload()}
+    onRefresh={() => void loadData()}
     rows={visibleTickets.map((ticket) => ({
       TicketID: ticket.ticketId,
       Source: ticket.ticketSource || (ticket.bookingId ? "Booking" : "Website"),

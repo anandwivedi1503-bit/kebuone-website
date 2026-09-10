@@ -268,9 +268,6 @@ export default function KYCDashboard() {
   const [loading, setLoading] =
     useState(true);
 
-  const [refreshing, setRefreshing] =
-    useState(false);
-
   const [processingId, setProcessingId] =
     useState("");
 
@@ -289,13 +286,7 @@ export default function KYCDashboard() {
 
   const loadRiders =
     useCallback(
-      async (
-        showRefreshState = false
-      ) => {
-        if (showRefreshState) {
-          setRefreshing(true);
-        }
-
+      async () => {
         try {
           setError("");
 
@@ -390,8 +381,6 @@ export default function KYCDashboard() {
           );
         } finally {
           setLoading(false);
-
-          setRefreshing(false);
         }
       },
       []
@@ -569,9 +558,7 @@ export default function KYCDashboard() {
          *   the latest database state
          */
 
-        await loadRiders(
-          true
-        );
+        await loadRiders();
       } catch (approveError) {
         console.error(
           "KYC APPROVAL ERROR:",
@@ -689,9 +676,7 @@ export default function KYCDashboard() {
           );
         }
 
-        await loadRiders(
-          true
-        );
+        await loadRiders();
       } catch (rejectError) {
         console.error(
           "KYC REJECTION ERROR:",
@@ -749,9 +734,7 @@ export default function KYCDashboard() {
             <button
               type="button"
               onClick={() =>
-                void loadRiders(
-                  true
-                )
+                void loadRiders()
               }
               className="rounded-xl bg-red-600 px-4 py-2 font-semibold text-white hover:bg-red-700"
             >
@@ -842,11 +825,12 @@ export default function KYCDashboard() {
 
       <SectionHeader
         title="KYC Applications"
-        subtitle={`Sheet download uses ${selectedNetwork.toLowerCase()}. Approve and reject are unchanged.`}
+        subtitle={`Sheet download uses ${selectedNetwork.toLowerCase()}. This list updates live every few seconds.`}
         rightContent={
           <DashboardActions
             filename={sheetName}
             rows={riderSheetRows(visibleRiders)}
+            onRefresh={() => void loadRiders()}
           />
         }
       />
@@ -859,7 +843,7 @@ export default function KYCDashboard() {
         title="Verification Requests"
         subtitle="Live KYC Records"
       >
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-4">
           <select
             value={channel}
             onChange={(e) => setChannel(e.target.value as PartnerSegmentId)}
@@ -872,22 +856,6 @@ export default function KYCDashboard() {
               </option>
             ))}
           </select>
-          <button
-            type="button"
-            onClick={() =>
-              void loadRiders(
-                true
-              )
-            }
-            disabled={
-              refreshing
-            }
-            className="rounded-xl bg-[#0A1134] px-5 py-2.5 font-semibold text-white hover:bg-[#141d50] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {refreshing
-              ? "Refreshing..."
-              : "Refresh"}
-          </button>
         </div>
 
         <div className="overflow-x-auto rounded-3xl">
