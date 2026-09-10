@@ -28,6 +28,7 @@ import {
 } from "@/lib/ensureRiderWallet";
 import { walletSpendable } from "@/lib/walletMoney";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -121,6 +122,8 @@ type AdminRiderRecord = {
   licenseBackUrl?: string;
 
   profilePhotoUrl?: string;
+
+  comingThrough?: string;
 
   createdAt?: Date;
 
@@ -373,6 +376,13 @@ export async function POST(req: Request) {
       optionalString(
         body.facebookId
       );
+
+    const comingThroughRaw = clean(body.comingThrough);
+    const comingThrough =
+      !comingThroughRaw ||
+      (COMING_THROUGH_OPTIONS as readonly string[]).includes(comingThroughRaw)
+        ? comingThroughRaw || DIRECT_THROUGH
+        : DIRECT_THROUGH;
 
     /* =====================================================
        DOCUMENT URLS
@@ -1040,6 +1050,8 @@ if (drivingLicense) {
           instagramId,
 
           facebookId,
+
+          comingThrough,
 
           /* ==============================
              FIREBASE
@@ -1760,6 +1772,7 @@ export async function GET(req: Request) {
             "licenseFrontUrl",
             "licenseBackUrl",
             "profilePhotoUrl",
+            "comingThrough",
             "createdAt",
             "updatedAt",
           ].join(" ")

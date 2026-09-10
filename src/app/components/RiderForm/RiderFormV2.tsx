@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { auth } from "@/lib/firebase";
 import { hasRiderPlanReady, markRiderPlanReady, riderResumeHref } from "@/lib/riderPlanGate";
+import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
 
 import {
   RecaptchaVerifier,
@@ -20,6 +21,7 @@ export default function RiderFormV2() {
   const [fullName, setFullName] = useState("");
 const [phone, setPhone] = useState("");
 const [email, setEmail] = useState("");
+const [comingThrough, setComingThrough] = useState<string>(DIRECT_THROUGH);
 
 const [otp, setOtp] = useState("");
 const [otpSent, setOtpSent] = useState(false);
@@ -520,6 +522,8 @@ profilePhotoUrl: profileUrl,
 
         instagramId,
         facebookId,
+
+        comingThrough,
 
         reference1Name,
         reference1Phone,
@@ -1956,6 +1960,40 @@ focus:ring-4
 focus:ring-[#22C55E]/20
 "
 />
+
+                    <select
+                      value={comingThrough}
+                      onChange={(e) => {
+                        setComingThrough(e.target.value);
+                        setError("");
+                      }}
+                      className="
+w-full
+h-14
+px-5
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+text-[#0F172A]
+shadow-sm
+transition-all
+duration-300
+outline-none
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/20
+"
+                    >
+                      {COMING_THROUGH_OPTIONS.map((option) => (
+                        <option key={option} value={option}>
+                          {option === DIRECT_THROUGH
+                            ? "Coming through: Direct / EVUDDY (normal rider)"
+                            : `Coming through: ${option}`}
+                        </option>
+                      ))}
+                    </select>
 
                   </div>
                 </>

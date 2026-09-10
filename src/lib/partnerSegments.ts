@@ -193,6 +193,31 @@ export function partnerMatchesSegment(partner: PartnerLike, segmentId: PartnerSe
   return Boolean(segment.types?.includes(type));
 }
 
+export const RIDER_NETWORK_SEGMENTS = PARTNER_SEGMENTS.filter(
+  (segment) => segment.kind === "network"
+);
+
+export function riderMatchesNetwork(
+  rider: { comingThrough?: string },
+  segmentId: PartnerSegmentId
+) {
+  if (segmentId === "ALL") return true;
+  return partnerMatchesSegment({ comingThrough: rider.comingThrough }, segmentId);
+}
+
+export function riderSheetRows(riders: Array<Record<string, unknown>>) {
+  return riders.map((rider) => ({
+    RiderID: rider.riderId || "",
+    Name: rider.fullName || "",
+    Phone: rider.phone || "",
+    Email: rider.email || "",
+    ComingThrough: normalizeComingThrough(rider),
+    KYC: rider.kycStatus || rider.approvalStatus || "",
+    Status: rider.status || "",
+    Submitted: rider.createdAt || "",
+  }));
+}
+
 export function partnerSheetRows(partners: Array<Record<string, unknown>>) {
   return partners.map((partner) => ({
     Name: partner.fullName || "",

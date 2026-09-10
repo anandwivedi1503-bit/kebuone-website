@@ -4,6 +4,7 @@ import {
   DIRECT_THROUGH,
   normalizeComingThrough,
   partnerMatchesSegment,
+  riderMatchesNetwork,
 } from "../src/lib/partnerSegments";
 
 assert.equal(
@@ -25,6 +26,19 @@ assert.equal(
 );
 assert.equal(
   partnerMatchesSegment({ comingThrough: "Direct / EVUDDY", partnerType: "EVUDDY Dealer" }, "ZOMATO"),
+  false
+);
+
+assert.equal(
+  riderMatchesNetwork({ comingThrough: "Zomato" }, "ZOMATO"),
+  true
+);
+assert.equal(
+  riderMatchesNetwork({ comingThrough: "" }, "DIRECT"),
+  true
+);
+assert.equal(
+  riderMatchesNetwork({ comingThrough: "Swiggy" }, "DIRECT"),
   false
 );
 
