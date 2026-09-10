@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npx tsx scripts/money-rules-selftest.ts && npx tsx scripts/assistant-selftest.ts"
+    "test": "npx tsx scripts/money-rules-selftest.ts && npx tsx scripts/assistant-selftest.ts && npx tsx scripts/partner-segments-selftest.ts"
   },
   "dependencies": {
     "cloudinary": "^2.10.0",

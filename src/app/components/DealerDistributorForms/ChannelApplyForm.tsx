@@ -30,6 +30,7 @@ const empty = {
   availableSpace: "",
   businessExperience: "",
   plannedFleetSize: "",
+  comingThrough: "Direct / EVUDDY",
   message: "",
   consentAccepted: false,
 };
@@ -94,6 +95,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
           availableSpace: form.availableSpace,
           businessExperience: form.businessExperience,
           plannedFleetSize: form.plannedFleetSize,
+          comingThrough: form.comingThrough || "Direct / EVUDDY",
           message: notes,
           consentAccepted: form.consentAccepted,
         }),
@@ -237,6 +239,21 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
               placeholder={isDealer ? "Showroom address" : "Warehouse address"}
               className={`${fieldClass} sm:col-span-2`}
             />
+            <select
+              required
+              value={form.comingThrough}
+              onChange={set("comingThrough")}
+              className={fieldClass}
+            >
+              <option value="Direct / EVUDDY">Coming through: Direct / EVUDDY</option>
+              <option value="Flipkart Minutes">Coming through: Flipkart Minutes</option>
+              <option value="Zomato">Coming through: Zomato</option>
+              <option value="Swiggy">Coming through: Swiggy</option>
+              <option value="Instamart">Coming through: Instamart</option>
+              <option value="Blinkit">Coming through: Blinkit</option>
+              <option value="Zepto">Coming through: Zepto</option>
+              <option value="Other">Coming through: Other</option>
+            </select>
             <select
               required
               value={form.propertyAvailable}

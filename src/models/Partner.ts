@@ -65,6 +65,12 @@ const PartnerSchema = new mongoose.Schema(
 
     plannedFleetSize: String,
 
+    comingThrough: {
+      type: String,
+      trim: true,
+      default: "Direct / EVUDDY",
+    },
+
     message: {
   type: String,
   trim: true,
@@ -162,6 +168,8 @@ PartnerSchema.index({ city: 1 });
 PartnerSchema.index({ state: 1 });
 
 PartnerSchema.index({ partnerType: 1 });
+
+PartnerSchema.index({ comingThrough: 1 });
 
 PartnerSchema.index({
   phone: 1,

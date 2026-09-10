@@ -263,6 +263,9 @@ export default function KYCDashboard() {
   const [error, setError] =
     useState("");
 
+  const [kycView, setKycView] =
+    useState<"ALL" | "Pending" | "Approved" | "Rejected">("ALL");
+
   /* =======================================================
      LOAD RIDERS
   ======================================================= */
@@ -427,6 +430,19 @@ export default function KYCDashboard() {
             "Rejected"
         ).length,
       [riders]
+    );
+
+  const visibleRiders =
+    useMemo(
+      () =>
+        kycView === "ALL"
+          ? riders
+          : riders.filter(
+              (rider) =>
+                rider.kycStatus ===
+                kycView
+            ),
+      [riders, kycView]
     );
 
   /* =======================================================
@@ -733,6 +749,8 @@ export default function KYCDashboard() {
           subtitle="Total Requests"
           icon="🪪"
           color="pink"
+          selected={kycView === "ALL"}
+          onClick={() => setKycView("ALL")}
         />
 
         <KPICard
@@ -743,6 +761,8 @@ export default function KYCDashboard() {
           subtitle="Under Review"
           icon="⏳"
           color="yellow"
+          selected={kycView === "Pending"}
+          onClick={() => setKycView("Pending")}
         />
 
         <KPICard
@@ -753,6 +773,8 @@ export default function KYCDashboard() {
           subtitle="Verified"
           icon="✅"
           color="green"
+          selected={kycView === "Approved"}
+          onClick={() => setKycView("Approved")}
         />
 
         <KPICard
@@ -763,6 +785,8 @@ export default function KYCDashboard() {
           subtitle="Declined"
           icon="❌"
           color="red"
+          selected={kycView === "Rejected"}
+          onClick={() => setKycView("Rejected")}
         />
       </KPIGrid>
 
@@ -776,7 +800,7 @@ export default function KYCDashboard() {
         rightContent={
           <DashboardActions
             filename="KYC.csv"
-            rows={riders.map((rider: any) => ({
+            rows={visibleRiders.map((rider: any) => ({
               RiderID: rider.riderId,
               Name: rider.fullName,
               Phone: rider.phone,
@@ -872,7 +896,7 @@ export default function KYCDashboard() {
                   EMPTY STATE
               ================================================= */}
 
-              {riders.length ===
+              {visibleRiders.length ===
                 0 && (
                 <tr>
                   <td
@@ -890,7 +914,7 @@ export default function KYCDashboard() {
                   RIDERS
               ================================================= */}
 
-              {riders.map(
+              {visibleRiders.map(
                 (
                   rider
                 ) => {

@@ -8,6 +8,8 @@ type KPICardProps = {
   subtitle?: string;
   icon?: ReactNode;
   color?: "pink" | "green" | "blue" | "yellow" | "red" | "purple";
+  selected?: boolean;
+  onClick?: () => void;
 };
 
 export default function KPICard({
@@ -16,6 +18,8 @@ export default function KPICard({
   subtitle,
   icon,
   color = "blue",
+  selected = false,
+  onClick,
 }: KPICardProps) {
   const colors = {
     pink: {
@@ -56,10 +60,14 @@ export default function KPICard({
     },
   };
 
-  return (
-    <div
-      className={`group relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_8px_24px_rgba(10,17,52,0.04)] transition duration-200 hover:-translate-y-0.5 sm:p-5 ${colors[color].hover}`}
-    >
+  const className = `group relative overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-[0_8px_24px_rgba(10,17,52,0.04)] transition duration-200 hover:-translate-y-0.5 sm:p-5 ${
+    selected
+      ? "border-[#18B368] ring-2 ring-[#18B368]/30"
+      : `border-slate-200/80 ${colors[color].hover}`
+  }`;
+
+  const inner = (
+    <>
       <span className={`absolute inset-y-0 left-0 w-1 ${colors[color].bar}`} />
       <div className="flex items-start justify-between gap-3 pl-2">
         <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
@@ -79,6 +87,16 @@ export default function KPICard({
       {subtitle ? (
         <p className={`mt-1.5 pl-2 text-xs font-medium ${colors[color].text}`}>{subtitle}</p>
       ) : null}
-    </div>
+    </>
   );
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} className={className}>
+        {inner}
+      </button>
+    );
+  }
+
+  return <div className={className}>{inner}</div>;
 }

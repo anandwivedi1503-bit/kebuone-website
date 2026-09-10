@@ -85,6 +85,10 @@ statusFilter === "All"
 
 ? true
 
+: statusFilter === "Low Battery"
+
+? Number(vehicle.batteryPercentage) < 20
+
 : vehicle.vehicleStatus === statusFilter;
 
 return matchesSearch && matchesStatus;
@@ -149,7 +153,7 @@ subtitle="Same vehicles and booking money as Hub and Booking Management. Yard ca
 
 <DashboardActions
   filename="fleet-vehicles"
-  rows={vehicles.map((vehicle) => ({
+  rows={filteredVehicles.map((vehicle) => ({
     vehicleId: vehicle.vehicleId,
     hubName: vehicle.hubName,
     status: vehicle.vehicleStatus,
@@ -166,6 +170,8 @@ value={totalVehicles}
 subtitle="Fleet Registered"
 icon="🚲"
 color="pink"
+selected={statusFilter === "All"}
+onClick={() => setStatusFilter("All")}
 />
 
 <KPICard
@@ -174,6 +180,8 @@ value={availableVehicles}
 subtitle="Ready for Booking"
 icon="✅"
 color="green"
+selected={statusFilter === "Available"}
+onClick={() => setStatusFilter("Available")}
 />
 
 <KPICard
@@ -182,6 +190,8 @@ value={inRideVehicles}
 subtitle="Currently Running"
 icon="🛣️"
 color="blue"
+selected={statusFilter === "In Ride"}
+onClick={() => setStatusFilter("In Ride")}
 />
 
 <KPICard
@@ -190,6 +200,8 @@ value={maintenanceVehicles}
 subtitle="Workshop Queue"
 icon="🛠️"
 color="yellow"
+selected={statusFilter === "Maintenance"}
+onClick={() => setStatusFilter("Maintenance")}
 />
 
 <KPICard
@@ -198,6 +210,8 @@ value={lowBatteryVehicles}
 subtitle="Needs Charging"
 icon="🔋"
 color="red"
+selected={statusFilter === "Low Battery"}
+onClick={() => setStatusFilter("Low Battery")}
 />
 
 </KPIGrid>
