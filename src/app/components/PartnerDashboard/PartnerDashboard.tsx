@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, Fragment } from "react";
 import { Mail, Phone } from "lucide-react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import { DEALER_TYPE, DISTRIBUTOR_TYPE } from "@/lib/dealerProgram";
 import PageContainer from "../DashboardUI/PageContainer";
@@ -10,6 +11,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import StatusBadge from "../DashboardUI/StatusBadge";
 
 type ChannelFilter = "ALL" | "DEALER" | "DISTRIBUTOR" | "OTHER";
@@ -27,7 +29,7 @@ export default function PartnerDashboard() {
   const loadPartners = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/partners?limit=120");
+      const res = await fetch("/api/partners?limit=120", { cache: "no-store" });
       const data = await res.json();
       setPartners(data.data || []);
     } finally {
@@ -37,8 +39,7 @@ export default function PartnerDashboard() {
 
   useEffect(() => {
     loadPartners();
-    const interval = setInterval(loadPartners, 10000);
-    return () => clearInterval(interval);
+    return startOpsPoll(loadPartners);
   }, []);
 
   const rows = useMemo(() => {
@@ -95,6 +96,12 @@ export default function PartnerDashboard() {
       <DashboardHeader
         title="Partner Applications"
         subtitle="Dealer, distributor and franchise forms land here. Approve, reject and contact from one desk."
+      />
+
+      <DashboardActions
+        filename="partner-applications"
+        rows={rows}
+        onRefresh={() => void loadPartners()}
       />
 
       <KPIGrid>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -52,14 +53,12 @@ useEffect(() => {
     loadWallets(true);
     loadTransactions();
 
-    const interval = setInterval(() => {
+    return startOpsPoll(() => {
 
         loadWallets(false);
         loadTransactions();
 
-    }, 10000);
-
-    return () => clearInterval(interval);
+    });
 
 }, [walletPages, txnPages]);
 

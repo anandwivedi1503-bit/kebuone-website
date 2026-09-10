@@ -6,9 +6,12 @@ import HomeScrollLine from "./components/HomeScrollLine/HomeScrollLine";
 import Hero from "./components/Hero/Hero";
 import HomePartners from "./components/HomePartners/HomePartners";
 import HomeTrustBar from "./components/HomeTrustBar/HomeTrustBar";
-import HomeFilm from "./components/HomeFilm/HomeFilm";
 import HomePlans from "./components/HomePlans/HomePlans";
 import Footer from "./components/Footer/Footer";
+
+const HomeFilm = dynamic(() => import("./components/HomeFilm/HomeFilm"), {
+  loading: () => <section className="h-[min(72svh,560px)] bg-[#1C1917]" aria-hidden />,
+});
 
 const EvuddyNetwork = dynamic(() => import("./components/EvuddyNetwork/EvuddyNetwork"));
 const HomeMoment = dynamic(() => import("./components/HomeMoment/HomeMoment"));

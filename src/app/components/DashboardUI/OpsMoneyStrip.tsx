@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OPS_POLL_MS, startOpsPoll } from "@/lib/opsPoll";
 
 export type OpsMoneySummary = {
   asOf?: string;
@@ -46,7 +47,7 @@ export type OpsMoneySummary = {
 const rupee = (value: number) =>
   `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
-export function useOpsMoneySummary(pollMs = 12000) {
+export function useOpsMoneySummary(pollMs = OPS_POLL_MS) {
   const [summary, setSummary] = useState<OpsMoneySummary | null>(null);
 
   useEffect(() => {
@@ -61,10 +62,12 @@ export function useOpsMoneySummary(pollMs = 12000) {
       }
     };
     void load();
-    const timer = window.setInterval(load, pollMs);
+    const stop = startOpsPoll(() => {
+      void load();
+    }, pollMs);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      stop();
     };
   }, [pollMs]);
 

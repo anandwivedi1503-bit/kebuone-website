@@ -26,7 +26,9 @@ import {
   KeyRound,
   Shield,
   Star,
+  LogOut,
 } from "lucide-react";
+import { clearRiderClientSession } from "@/lib/riderPlanGate";
 
 type Props = {
   activeDashboard: string;
@@ -171,6 +173,14 @@ export default function DashboardSidebar({
               <p className="mt-1 text-[11px] text-white/50">
                 {sessionRole === "staff" ? "Staff access" : "Super admin · Operations Center"}
               </p>
+              <a
+                href="/api/admin-logout"
+                onClick={() => clearRiderClientSession()}
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#18B368]"
+              >
+                <LogOut size={14} />
+                Log out
+              </a>
             </div>
           </div>
         </div>

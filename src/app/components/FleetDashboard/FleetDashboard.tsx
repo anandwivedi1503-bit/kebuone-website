@@ -14,6 +14,8 @@ import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 
+import { startOpsPoll } from "@/lib/opsPoll";
+
 export default function FleetDashboard() {
 
 const [vehicles, setVehicles] = useState<any[]>([]);
@@ -39,8 +41,7 @@ const loadFleet = () => {
 
 useEffect(() => {
 loadFleet();
-const timer = window.setInterval(loadFleet, 10000);
-return () => window.clearInterval(timer);
+return startOpsPoll(loadFleet);
 }, []);
 
 const totalVehicles = vehicles.length;

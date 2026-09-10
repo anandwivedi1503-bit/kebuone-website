@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -359,18 +360,9 @@ export default function UserManagement() {
   useEffect(() => {
     void loadRiders();
 
-    const interval =
-      window.setInterval(
-        () => {
-          void loadRiders();
-        },
-        10000
-      );
-
-    return () =>
-      window.clearInterval(
-        interval
-      );
+    return startOpsPoll(() => {
+      void loadRiders();
+    });
   }, [loadRiders]);
 
   /* =======================================================

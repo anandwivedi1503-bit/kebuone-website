@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 
+import { startOpsPoll } from "@/lib/opsPoll";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -383,18 +384,9 @@ export default function KYCDashboard() {
   useEffect(() => {
     void loadRiders();
 
-    const interval =
-      window.setInterval(
-        () => {
-          void loadRiders();
-        },
-        10000
-      );
-
-    return () =>
-      window.clearInterval(
-        interval
-      );
+    return startOpsPoll(() => {
+      void loadRiders();
+    });
   }, [loadRiders]);
 
   /* =======================================================

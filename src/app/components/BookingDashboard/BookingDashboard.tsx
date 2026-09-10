@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -120,13 +121,11 @@ useEffect(() => {
 
 fetchBookings("replace");
 
-const interval = setInterval(() => {
+return startOpsPoll(() => {
 
 fetchBookings("poll");
 
-}, 20000);
-
-return ()=>clearInterval(interval);
+});
 
 },[search, statusFilter, paymentFilter, modeFilter]);
 

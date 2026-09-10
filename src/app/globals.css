@@ -46,6 +46,186 @@ body {
   overflow-x: hidden;
 }
 
+/* Phone menu must not depend on Tailwind arbitrary variants (some WebViews skip them). */
+.nav-shell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 1650px;
+  height: 4.5rem;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.nav-logo {
+  position: relative;
+  z-index: 20;
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: calc(100% - 56px);
+  height: 4rem;
+  overflow: hidden;
+}
+
+.nav-logo img {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 5.5rem;
+  width: auto;
+  max-width: none;
+}
+
+.nav-desktop-row {
+  display: none !important;
+}
+
+.nav-phone-toggle {
+  position: relative;
+  z-index: 1200;
+  display: flex !important;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+@media (max-width: 1279px) {
+  .nav-desktop-row {
+    display: none !important;
+  }
+
+  .nav-phone-toggle {
+    display: flex !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .nav-shell {
+    height: 4.5rem;
+    padding: 0 2rem;
+  }
+
+  .nav-logo {
+    flex: 0 0 220px;
+    max-width: 220px;
+    height: 3.85rem;
+  }
+
+  .nav-desktop-row {
+    display: flex !important;
+  }
+
+  .nav-phone-toggle {
+    display: none !important;
+  }
+}
+
+nav[data-compact-nav="true"] .nav-desktop-row {
+  display: none !important;
+}
+
+nav[data-compact-nav="true"] .nav-logo {
+  flex: 1 1 auto;
+  max-width: calc(100% - 56px);
+}
+
+nav[data-compact-nav="true"] .nav-phone-toggle {
+  display: flex !important;
+  flex: 0 0 48px;
+  width: 48px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.nav-burger {
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 10px;
+  background: #f7f4ee;
+  color: #0f172a;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-burger span {
+  display: block;
+  width: 22px;
+  height: 2.5px;
+  border-radius: 1px;
+  background: #0f172a;
+}
+
+.nav-menu-check {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.nav-drawer-layer {
+  pointer-events: none;
+}
+
+.nav-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  border: 0;
+  background: rgb(0 0 0 / 0.6);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.nav-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  height: 100dvh;
+  width: min(88%, 360px);
+  overflow-y: auto;
+  background: #fff;
+  box-shadow: 0 25px 50px rgb(0 0 0 / 0.25);
+  transform: translateX(-105%);
+  transition: transform 0.28s ease;
+  padding-top: env(safe-area-inset-top);
+}
+
+.nav-menu-check:checked ~ .nav-drawer-layer,
+.nav-drawer-layer.is-open {
+  pointer-events: auto;
+}
+
+.nav-menu-check:checked ~ .nav-drawer-layer .nav-drawer-overlay,
+.nav-drawer-layer.is-open .nav-drawer-overlay {
+  opacity: 1;
+}
+
+.nav-menu-check:checked ~ .nav-drawer-layer .nav-drawer,
+.nav-drawer-layer.is-open .nav-drawer {
+  transform: translateX(0);
+}
+
+@media (min-width: 1280px) {
+  nav:not([data-compact-nav="true"]) .nav-drawer-layer {
+    display: none;
+  }
+}
+
 body::after {
   content: "";
   pointer-events: none;

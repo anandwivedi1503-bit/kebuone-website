@@ -4,7 +4,11 @@
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
 import { clearRiderClientSession } from "@/lib/riderPlanGate";
+import { startOpsPoll } from "@/lib/opsPoll";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import KPIGrid from "../DashboardUI/KPIGrid";
+import KPICard from "../DashboardUI/KPICard";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import {
   AlertTriangle,
   BarChart3,
@@ -18,7 +22,6 @@ import {
   CircleDollarSign,
   Cpu,
   CreditCard,
-  Gauge,
   Handshake,
   Headphones,
   IndianRupee,
@@ -40,9 +43,7 @@ import {
   WifiOff,
 } from "lucide-react";
 
-type NotificationItem = { id: string; title: string; time: string };
-type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; tone: string };
-type Tone = { icon: string; value: string; note: string; border: string };
+type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; at?: number; tone: string };
 
 const rupee = (value: number) => `\u20B9${value.toLocaleString("en-IN")}`;
 
@@ -227,12 +228,11 @@ const [refreshing, setRefreshing] = useState(false);
   };
 
   useEffect(() => {
-  loadDashboard();
-
-  const timer = setInterval(loadDashboard, 20000);
-
-  return () => clearInterval(timer);
-}, []);
+    void loadDashboard();
+    return startOpsPoll(() => {
+      void loadDashboard();
+    }, 8_000);
+  }, []);
 
   useEffect(() => {
     const keyword = search.trim();
@@ -321,6 +321,7 @@ dot:"bg-red-500",
     title: `${booking.userName || booking.userPhone || "Rider"} · ${booking.bookingId || "Booking"} · ${booking.paymentStatus || "Pending"} ₹${Number(booking.receivedAmount || 0)}/${Number(booking.pendingAmount || 0)} pending`,
     subtitle: `${booking.vehicleId || "Vehicle"} · ${booking.rideStatus || ""}`,
     time: formatActivityTime(booking.createdAt),
+    at: new Date(booking.createdAt || 0).getTime(),
     tone: "bg-sky-50 text-sky-600",
   })),
 
@@ -329,6 +330,7 @@ dot:"bg-red-500",
     title: `Payment Received ₹${txn.amount || 0}`,
     subtitle: txn.transactionId || "Transaction",
     time: formatActivityTime(txn.createdAt),
+    at: new Date(txn.createdAt || 0).getTime(),
     tone: "bg-emerald-50 text-emerald-600",
   })),
 
@@ -337,6 +339,7 @@ dot:"bg-red-500",
     title: `Support Ticket ${ticket.ticketId || ""}`,
     subtitle: ticket.category || "Support",
     time: formatActivityTime(ticket.createdAt),
+    at: new Date(ticket.createdAt || 0).getTime(),
     tone: "bg-amber-50 text-amber-600",
   })),
 
@@ -345,44 +348,53 @@ dot:"bg-red-500",
     title: `Refund ₹${refund.amount || 0}`,
     subtitle: refund.refundStatus || "Processing",
     time: formatActivityTime(refund.createdAt),
+    at: new Date(refund.createdAt || 0).getTime(),
     tone: "bg-rose-50 text-rose-600",
   })),
 ]
 
-.sort((a, b) => b.time.localeCompare(a.time))
+.sort((a, b) => (b.at || 0) - (a.at || 0))
 .slice(0, 8);
 
 const notifications = [
-
-...bookings.slice(0,2).map((b:any)=>({
-id:b._id,
-title:`New Booking ${b.bookingId}`,
-time:formatActivityTime(b.createdAt)
-})),
-
-...refunds.slice(0,2).map((r:any)=>({
-id:r._id,
-title:`Refund ₹${r.amount}`,
-time:formatActivityTime(r.createdAt)
-})),
-
-...batterySwaps.slice(0,2).map((s:any)=>({
-id:s._id,
-title:`Battery Swap ${s.status}`,
-time:formatActivityTime(s.createdAt)
-})),
-
-...partners.slice(0,2).map((p:any)=>({
-id:p._id,
-title:`Partner Application ${p.applicationStatus}`,
-time:formatActivityTime(p.createdAt)
-})),
-
+  ...bookings.slice(0, 2).map((b: any) => ({
+    id: b._id,
+    title: `New Booking ${b.bookingId}`,
+    time: formatActivityTime(b.createdAt),
+    at: new Date(b.createdAt || 0).getTime(),
+    dashboard: "bookings",
+  })),
+  ...refunds.slice(0, 2).map((r: any) => ({
+    id: r._id,
+    title: `Refund ₹${r.amount}`,
+    time: formatActivityTime(r.createdAt),
+    at: new Date(r.createdAt || 0).getTime(),
+    dashboard: "refunds",
+  })),
+  ...tickets.slice(0, 2).map((t: any) => ({
+    id: t._id,
+    title: `Support Ticket ${t.ticketId || ""}`,
+    time: formatActivityTime(t.createdAt),
+    at: new Date(t.createdAt || 0).getTime(),
+    dashboard: "support",
+  })),
+  ...batterySwaps.slice(0, 2).map((s: any) => ({
+    id: s._id,
+    title: `Battery Swap ${s.status}`,
+    time: formatActivityTime(s.createdAt),
+    at: new Date(s.createdAt || 0).getTime(),
+    dashboard: "swap",
+  })),
+  ...partners.slice(0, 2).map((p: any) => ({
+    id: p._id,
+    title: `Partner Application ${p.applicationStatus}`,
+    time: formatActivityTime(p.createdAt),
+    at: new Date(p.createdAt || 0).getTime(),
+    dashboard: "partner",
+  })),
 ]
-
-  .sort((a, b) => b.time.localeCompare(a.time))
-
-.slice(0,8);
+  .sort((a, b) => b.at - a.at)
+  .slice(0, 8);
 
   const pageClass = darkMode
     ? "min-h-0 rounded-2xl bg-[#080b12] text-slate-100"
@@ -413,90 +425,10 @@ time:formatActivityTime(p.createdAt)
     ? "border border-white/10 bg-[#101722] text-slate-100 shadow-2xl shadow-black/40"
     : "border border-slate-200 bg-white/90 backdrop-blur-xl text-slate-950 shadow-2xl shadow-slate-300/40";
 
-  const kpiCards: {
-    title: string;
-    value: string | number;
-    note: string;
-    icon: LucideIcon;
-    tone: Tone;
-  }[] = [
-    {
-      title: "Total Riders",
-      value: riders.length,
-      note: "Live Database",
-      icon: Users,
-      tone: {
-        icon: "bg-rose-50 text-rose-600",
-        value: headingClass,
-        note: "text-emerald-600",
-        border: "hover:border-rose-200",
-      },
-    },
-    {
-      title: "Fleet Vehicles",
-      value: vehicles.length,
-      note: `${onlineVehicles} Online`,
-      icon: Bike,
-      tone: {
-        icon: "bg-emerald-50 text-emerald-600",
-        value: "text-emerald-600",
-        note: "text-emerald-600",
-        border: "hover:border-emerald-200",
-      },
-    },
-    {
-      title: "Active Rides",
-      value: activeRides,
-      note: "Live Tracking",
-      icon: Route,
-      tone: {
-        icon: "bg-sky-50 text-sky-600",
-        value: "text-sky-600",
-        note: "text-sky-600",
-        border: "hover:border-sky-200",
-      },
-    },
-    {
-      title: "Operational Hubs",
-      value: activeHubs,
-      note: "Running Normally",
-      icon: Building2,
-      tone: {
-        icon: "bg-amber-50 text-amber-600",
-        value: "text-amber-600",
-        note: "text-amber-600",
-        border: "hover:border-amber-200",
-      },
-    },
-    {
-      title: "Total Revenue",
-      value: rupee(totalRevenue),
-      note: "Rent + GST (not deposits)",
-      icon: IndianRupee,
-      tone: {
-        icon: "bg-pink-50 text-pink-600",
-        value: "text-pink-600",
-        note: "text-pink-600",
-        border: "hover:border-pink-200",
-      },
-    },
-    {
-      title: "Open Tickets",
-      value: openTickets,
-      note: `${processingRefunds} refund · ${pendingReviews} reviews pending`,
-      icon: LifeBuoy,
-      tone: {
-        icon: "bg-red-50 text-red-600",
-        value: "text-red-600",
-        note: "text-red-600",
-        border: "hover:border-red-200",
-      },
-    },
-  ];
-
   const operationCards = [
     {
       title: "Fleet Management",
+      dashboard: "fleet",
       badge: `${vehicles.length} Fleet`,
       icon: Bike,
       tone: "bg-emerald-50 text-emerald-600",
@@ -507,6 +439,7 @@ time:formatActivityTime(p.createdAt)
 ],},
     {
       title: "Hub Network",
+      dashboard: "hub",
       badge: activeHubs,
       icon: MapPin,
       tone: "bg-sky-50 text-sky-600",
@@ -515,6 +448,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Battery Network",
+      dashboard: "battery",
       badge: `${readyBatteries} Ready`,
       icon: BatteryCharging,
       tone: "bg-amber-50 text-amber-600",
@@ -523,6 +457,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "IoT Monitoring",
+      dashboard: "iot",
       badge: onlineVehicles,
       icon: Radio,
       tone: "bg-violet-50 text-violet-600",
@@ -531,6 +466,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Revenue Engine",
+      dashboard: "revenue",
       badge: rupee(totalRevenue),
       icon: CircleDollarSign,
       tone: "bg-pink-50 text-pink-600",
@@ -539,6 +475,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Support Center",
+      dashboard: "support",
       badge: openTickets,
       icon: Headphones,
       tone: "bg-red-50 text-red-600",
@@ -550,6 +487,7 @@ time:formatActivityTime(p.createdAt)
   const alertCards = [
     {
       title: "Low Battery",
+      dashboard: "iot",
       status: "CRITICAL",
       value: lowBatteryVehicles,
       description: "Vehicles below 20% battery.",
@@ -560,6 +498,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Geofence Alerts",
+      dashboard: "iot",
       status: "WARNING",
       value: geofenceAlerts,
       description: "Vehicles outside service zones.",
@@ -570,6 +509,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Offline Vehicles",
+      dashboard: "iot",
       status: "OFFLINE",
       value: offlineVehicles,
       description: "GPS disconnected vehicles.",
@@ -580,6 +520,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Refund Requests",
+      dashboard: "refunds",
       status: "PENDING",
       value: processingRefunds,
       description: "Waiting for approval.",
@@ -630,21 +571,9 @@ const openDashboard = (dashboard: string) => {
 };
 
 const refreshDashboard = async () => {
-
   setRefreshing(true);
-
-  setLoading(true);
-
   await loadDashboard();
-
-  setLoading(false);
-
-  setTimeout(() => {
-
-    setRefreshing(false);
-
-  },600);
-
+  setRefreshing(false);
 };
 
 if (loading) {
@@ -770,7 +699,7 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                     >
                       <div className={`border-b px-5 py-4 ${borderClass}`}>
                         <h3 className={`font-bold ${headingClass}`}>Notifications</h3>
-                        <p className={`mt-1 text-xs ${mutedClass}`}>Live bookings, refunds, swaps and partners</p>
+                        <p className={`mt-1 text-xs ${mutedClass}`}>Live bookings, tickets, refunds, swaps and partners</p>
                       </div>
 
                       <div className={`divide-y ${dividerClass}`}>
@@ -783,13 +712,7 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => {
-                              const title = item.title.toLowerCase();
-                              if (title.includes("refund")) openDashboard("refunds");
-                              else if (title.includes("swap")) openDashboard("swap");
-                              else if (title.includes("partner")) openDashboard("partner");
-                              else openDashboard("bookings");
-                            }}
+                            onClick={() => openDashboard(item.dashboard || "bookings")}
                             className="w-full px-5 py-4 text-left transition hover:bg-rose-50/70"
                           >
                             <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
@@ -929,6 +852,30 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
 
         <OpsMoneyStrip />
 
+        <DashboardActions
+          filename="admin-command-center"
+          rows={[
+            {
+              riders: counts.riders,
+              vehicles: counts.vehicles,
+              activeRides: counts.activeRides,
+              hubs: counts.activeHubs,
+              revenue: counts.totalRevenue,
+              tickets: counts.openTickets,
+            },
+          ]}
+          onRefresh={() => void refreshDashboard()}
+        />
+
+        <KPIGrid>
+          <KPICard title="Total Riders" value={counts.riders} subtitle="Live database" icon="👥" color="pink" />
+          <KPICard title="Fleet Vehicles" value={counts.vehicles} subtitle={`${onlineVehicles} online`} icon="🚲" color="green" />
+          <KPICard title="Active Rides" value={activeRides} subtitle="Live tracking" icon="🛵" color="blue" />
+          <KPICard title="Operational Hubs" value={activeHubs} subtitle="Running" icon="📍" color="yellow" />
+          <KPICard title="Total Revenue" value={rupee(totalRevenue)} subtitle="Rent + GST" icon="₹" color="purple" />
+          <KPICard title="Open Tickets" value={openTickets} subtitle={`${processingRefunds} refunds pending`} icon="🎧" color="red" />
+        </KPIGrid>
+
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className={`${panelClass} rounded-[28px] p-4 sm:p-5`}>
             <p className={`text-sm font-semibold ${mutedClass}`}>Today</p>
@@ -962,107 +909,6 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
           ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
-          {kpiCards.map((card) => {
-            const Icon = card.icon;
-
-            return (
-              <div key={card.title} className={`
-relative
-overflow-hidden
-rounded-[28px]
-border
-${panelClass}
-${card.tone.border}
-p-6
-transition-all
-duration-500
-hover:-translate-y-2
-hover:scale-[1.02]
-hover:shadow-[0_25px_60px_rgba(0,0,0,0.12)]
-group
-`}
->                <div
-className="
-absolute
-top-0
-right-0
-w-40
-h-40
-rounded-full
-bg-gradient-to-br
-from-pink-500/10
-to-transparent
-blur-3xl
-pointer-events-none
-group-hover:scale-125
-transition-all
-duration-700
-"
-/>
-                <div className="flex items-start justify-between gap-3">
-                  <div
-className={`
-h-14
-w-14
-rounded-2xl
-flex
-items-center
-justify-center
-${card.tone.icon}
-shadow-lg
-group-hover:rotate-6
-group-hover:scale-110
-transition-all
-duration-500
-`}
->
-                    <Icon size={21} />
-                  </div>
-                  <Gauge size={18} className={mutedClass} />
-                </div>
-
-                <p
-className={`
-mt-6
-uppercase
-tracking-[0.15em]
-text-xs
-font-bold
-${mutedClass}
-`}
->{card.title}</p>
-               <h2
-className={`
-mt-3
-break-words
-text-4xl
-xl:text-5xl
-font-black
-tracking-tight
-${card.tone.value}
-`}
->{card.value}</h2>
-                <div className="mt-5 flex items-center gap-2">
-
-<div
-className="
-w-2
-h-2
-rounded-full
-bg-green-500
-animate-pulse
-"
-/>
-
-<p
-className={`text-sm font-semibold ${card.tone.note}`}>
-{card.note}</p></div>
-              </div>
-            );
-          })}
-        </div>
-
         <section className="space-y-5">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -1088,8 +934,15 @@ className={`h-2.5 w-2.5 rounded-full ${systemHealth.dot}`}
               const Icon = card.icon;
 
               return (
-                <div key={card.title}
-className={`
+                <div
+                  key={card.title}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openDashboard(card.dashboard)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") openDashboard(card.dashboard);
+                  }}
+                  className={`
 relative
 overflow-hidden
 rounded-[28px]
@@ -1101,6 +954,7 @@ hover:-translate-y-2
 hover:scale-[1.02]
 hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)]
 group
+cursor-pointer
 `}
 >
                   <div
@@ -1354,7 +1208,16 @@ IoT Network
               const Icon = card.icon;
 
               return (
-                <div key={card.title} className={`${panelClass} ${card.border} rounded-[28px] border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}>
+                <div
+                  key={card.title}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openDashboard(card.dashboard)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") openDashboard(card.dashboard);
+                  }}
+                  className={`${panelClass} ${card.border} cursor-pointer rounded-[28px] border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}
+                >
                   <div className="flex items-start justify-between gap-6">
                     <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
                       <Icon size={23} />
@@ -1379,7 +1242,8 @@ IoT Network
             </div>
 
             <button
-  onClick={refreshDashboard}
+  type="button"
+  onClick={() => void refreshDashboard()}
   className="inline-flex h-12 w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5"
 >
               <RefreshCw

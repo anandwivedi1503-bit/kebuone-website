@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import {
   Users,
@@ -70,12 +71,7 @@ useEffect(() => {
 
   loadAnalytics();
 
-  const interval = setInterval(
-    loadAnalytics,
-    30000
-  );
-
-  return () => clearInterval(interval);
+  return startOpsPoll(loadAnalytics);
 
 }, [period]);
 
