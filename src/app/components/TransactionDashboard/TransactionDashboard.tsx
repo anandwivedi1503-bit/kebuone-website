@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import {
   CreditCard,
@@ -38,13 +39,11 @@ useEffect(() => {
 
 fetchTransactions();
 
-const interval = setInterval(() => {
+return startOpsPoll(() => {
 
 fetchTransactions();
 
-},10000);
-
-return () => clearInterval(interval);
+});
 
 },[listPages]);
 

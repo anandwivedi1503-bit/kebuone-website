@@ -4,6 +4,7 @@
  import type { LucideIcon } from "lucide-react";
 import { sessionCanOpen } from "@/lib/adminCan";
 import { clearRiderClientSession } from "@/lib/riderPlanGate";
+import { startOpsPoll } from "@/lib/opsPoll";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import {
   AlertTriangle,
@@ -41,7 +42,7 @@ import {
 } from "lucide-react";
 
 type NotificationItem = { id: string; title: string; time: string };
-type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; tone: string };
+type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; at?: number; tone: string };
 type Tone = { icon: string; value: string; note: string; border: string };
 
 const rupee = (value: number) => `\u20B9${value.toLocaleString("en-IN")}`;
@@ -227,12 +228,11 @@ const [refreshing, setRefreshing] = useState(false);
   };
 
   useEffect(() => {
-  loadDashboard();
-
-  const timer = setInterval(loadDashboard, 20000);
-
-  return () => clearInterval(timer);
-}, []);
+    void loadDashboard();
+    return startOpsPoll(() => {
+      void loadDashboard();
+    });
+  }, []);
 
   useEffect(() => {
     const keyword = search.trim();
@@ -321,6 +321,7 @@ dot:"bg-red-500",
     title: `${booking.userName || booking.userPhone || "Rider"} · ${booking.bookingId || "Booking"} · ${booking.paymentStatus || "Pending"} ₹${Number(booking.receivedAmount || 0)}/${Number(booking.pendingAmount || 0)} pending`,
     subtitle: `${booking.vehicleId || "Vehicle"} · ${booking.rideStatus || ""}`,
     time: formatActivityTime(booking.createdAt),
+    at: new Date(booking.createdAt || 0).getTime(),
     tone: "bg-sky-50 text-sky-600",
   })),
 
@@ -329,6 +330,7 @@ dot:"bg-red-500",
     title: `Payment Received ₹${txn.amount || 0}`,
     subtitle: txn.transactionId || "Transaction",
     time: formatActivityTime(txn.createdAt),
+    at: new Date(txn.createdAt || 0).getTime(),
     tone: "bg-emerald-50 text-emerald-600",
   })),
 
@@ -337,6 +339,7 @@ dot:"bg-red-500",
     title: `Support Ticket ${ticket.ticketId || ""}`,
     subtitle: ticket.category || "Support",
     time: formatActivityTime(ticket.createdAt),
+    at: new Date(ticket.createdAt || 0).getTime(),
     tone: "bg-amber-50 text-amber-600",
   })),
 
@@ -345,44 +348,53 @@ dot:"bg-red-500",
     title: `Refund ₹${refund.amount || 0}`,
     subtitle: refund.refundStatus || "Processing",
     time: formatActivityTime(refund.createdAt),
+    at: new Date(refund.createdAt || 0).getTime(),
     tone: "bg-rose-50 text-rose-600",
   })),
 ]
 
-.sort((a, b) => b.time.localeCompare(a.time))
+.sort((a, b) => (b.at || 0) - (a.at || 0))
 .slice(0, 8);
 
 const notifications = [
-
-...bookings.slice(0,2).map((b:any)=>({
-id:b._id,
-title:`New Booking ${b.bookingId}`,
-time:formatActivityTime(b.createdAt)
-})),
-
-...refunds.slice(0,2).map((r:any)=>({
-id:r._id,
-title:`Refund ₹${r.amount}`,
-time:formatActivityTime(r.createdAt)
-})),
-
-...batterySwaps.slice(0,2).map((s:any)=>({
-id:s._id,
-title:`Battery Swap ${s.status}`,
-time:formatActivityTime(s.createdAt)
-})),
-
-...partners.slice(0,2).map((p:any)=>({
-id:p._id,
-title:`Partner Application ${p.applicationStatus}`,
-time:formatActivityTime(p.createdAt)
-})),
-
+  ...bookings.slice(0, 2).map((b: any) => ({
+    id: b._id,
+    title: `New Booking ${b.bookingId}`,
+    time: formatActivityTime(b.createdAt),
+    at: new Date(b.createdAt || 0).getTime(),
+    dashboard: "bookings",
+  })),
+  ...refunds.slice(0, 2).map((r: any) => ({
+    id: r._id,
+    title: `Refund ₹${r.amount}`,
+    time: formatActivityTime(r.createdAt),
+    at: new Date(r.createdAt || 0).getTime(),
+    dashboard: "refunds",
+  })),
+  ...tickets.slice(0, 2).map((t: any) => ({
+    id: t._id,
+    title: `Support Ticket ${t.ticketId || ""}`,
+    time: formatActivityTime(t.createdAt),
+    at: new Date(t.createdAt || 0).getTime(),
+    dashboard: "support",
+  })),
+  ...batterySwaps.slice(0, 2).map((s: any) => ({
+    id: s._id,
+    title: `Battery Swap ${s.status}`,
+    time: formatActivityTime(s.createdAt),
+    at: new Date(s.createdAt || 0).getTime(),
+    dashboard: "swap",
+  })),
+  ...partners.slice(0, 2).map((p: any) => ({
+    id: p._id,
+    title: `Partner Application ${p.applicationStatus}`,
+    time: formatActivityTime(p.createdAt),
+    at: new Date(p.createdAt || 0).getTime(),
+    dashboard: "partner",
+  })),
 ]
-
-  .sort((a, b) => b.time.localeCompare(a.time))
-
-.slice(0,8);
+  .sort((a, b) => b.at - a.at)
+  .slice(0, 8);
 
   const pageClass = darkMode
     ? "min-h-0 rounded-2xl bg-[#080b12] text-slate-100"
@@ -497,6 +509,7 @@ time:formatActivityTime(p.createdAt)
   const operationCards = [
     {
       title: "Fleet Management",
+      dashboard: "fleet",
       badge: `${vehicles.length} Fleet`,
       icon: Bike,
       tone: "bg-emerald-50 text-emerald-600",
@@ -507,6 +520,7 @@ time:formatActivityTime(p.createdAt)
 ],},
     {
       title: "Hub Network",
+      dashboard: "hub",
       badge: activeHubs,
       icon: MapPin,
       tone: "bg-sky-50 text-sky-600",
@@ -515,6 +529,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Battery Network",
+      dashboard: "battery",
       badge: `${readyBatteries} Ready`,
       icon: BatteryCharging,
       tone: "bg-amber-50 text-amber-600",
@@ -523,6 +538,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "IoT Monitoring",
+      dashboard: "iot",
       badge: onlineVehicles,
       icon: Radio,
       tone: "bg-violet-50 text-violet-600",
@@ -531,6 +547,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Revenue Engine",
+      dashboard: "revenue",
       badge: rupee(totalRevenue),
       icon: CircleDollarSign,
       tone: "bg-pink-50 text-pink-600",
@@ -539,6 +556,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Support Center",
+      dashboard: "support",
       badge: openTickets,
       icon: Headphones,
       tone: "bg-red-50 text-red-600",
@@ -550,6 +568,7 @@ time:formatActivityTime(p.createdAt)
   const alertCards = [
     {
       title: "Low Battery",
+      dashboard: "iot",
       status: "CRITICAL",
       value: lowBatteryVehicles,
       description: "Vehicles below 20% battery.",
@@ -560,6 +579,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Geofence Alerts",
+      dashboard: "iot",
       status: "WARNING",
       value: geofenceAlerts,
       description: "Vehicles outside service zones.",
@@ -570,6 +590,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Offline Vehicles",
+      dashboard: "iot",
       status: "OFFLINE",
       value: offlineVehicles,
       description: "GPS disconnected vehicles.",
@@ -580,6 +601,7 @@ time:formatActivityTime(p.createdAt)
     },
     {
       title: "Refund Requests",
+      dashboard: "refunds",
       status: "PENDING",
       value: processingRefunds,
       description: "Waiting for approval.",
@@ -770,7 +792,7 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                     >
                       <div className={`border-b px-5 py-4 ${borderClass}`}>
                         <h3 className={`font-bold ${headingClass}`}>Notifications</h3>
-                        <p className={`mt-1 text-xs ${mutedClass}`}>Live bookings, refunds, swaps and partners</p>
+                        <p className={`mt-1 text-xs ${mutedClass}`}>Live bookings, tickets, refunds, swaps and partners</p>
                       </div>
 
                       <div className={`divide-y ${dividerClass}`}>
@@ -783,13 +805,7 @@ className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-c
                           <button
                             key={item.id}
                             type="button"
-                            onClick={() => {
-                              const title = item.title.toLowerCase();
-                              if (title.includes("refund")) openDashboard("refunds");
-                              else if (title.includes("swap")) openDashboard("swap");
-                              else if (title.includes("partner")) openDashboard("partner");
-                              else openDashboard("bookings");
-                            }}
+                            onClick={() => openDashboard(item.dashboard || "bookings")}
                             className="w-full px-5 py-4 text-left transition hover:bg-rose-50/70"
                           >
                             <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
@@ -1088,8 +1104,15 @@ className={`h-2.5 w-2.5 rounded-full ${systemHealth.dot}`}
               const Icon = card.icon;
 
               return (
-                <div key={card.title}
-className={`
+                <div
+                  key={card.title}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openDashboard(card.dashboard)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") openDashboard(card.dashboard);
+                  }}
+                  className={`
 relative
 overflow-hidden
 rounded-[28px]
@@ -1101,6 +1124,7 @@ hover:-translate-y-2
 hover:scale-[1.02]
 hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)]
 group
+cursor-pointer
 `}
 >
                   <div
@@ -1354,7 +1378,16 @@ IoT Network
               const Icon = card.icon;
 
               return (
-                <div key={card.title} className={`${panelClass} ${card.border} rounded-[28px] border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}>
+                <div
+                  key={card.title}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openDashboard(card.dashboard)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") openDashboard(card.dashboard);
+                  }}
+                  className={`${panelClass} ${card.border} cursor-pointer rounded-[28px] border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}
+                >
                   <div className="flex items-start justify-between gap-6">
                     <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
                       <Icon size={23} />

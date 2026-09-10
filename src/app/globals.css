@@ -48,7 +48,7 @@ body {
 
 /* Phone menu must not depend on Tailwind arbitrary variants (some WebViews skip them). */
 .nav-desktop-row {
-  display: none;
+  display: none !important;
 }
 
 .nav-phone-toggle {
@@ -57,9 +57,21 @@ body {
   opacity: 1 !important;
 }
 
+@media (max-width: 1279px) {
+  .nav-desktop-row {
+    display: none !important;
+  }
+
+  .nav-phone-toggle {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
 @media (min-width: 1280px) {
   .nav-desktop-row {
-    display: flex;
+    display: flex !important;
   }
 
   .nav-phone-toggle {

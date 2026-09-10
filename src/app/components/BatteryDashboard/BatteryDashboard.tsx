@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { BatteryCharging, HeartPulse, Wrench } from "lucide-react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -110,8 +111,7 @@ export default function BatteryDashboard() {
 
   useEffect(() => {
     void fetchBatteries();
-    const interval = window.setInterval(() => void fetchBatteries(), 15000);
-    return () => window.clearInterval(interval);
+    return startOpsPoll(() => void fetchBatteries());
   }, []);
 
   const stats = useMemo(() => {

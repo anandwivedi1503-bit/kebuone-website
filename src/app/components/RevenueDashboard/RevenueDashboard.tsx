@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -71,9 +72,7 @@ useEffect(() => {
 
   fetchRevenue();
 
-  const interval = setInterval(fetchRevenue, 15000);
-
-  return () => clearInterval(interval);
+  return startOpsPoll(fetchRevenue);
 
 }, [listPages]);
 

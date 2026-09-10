@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { startOpsPoll } from "@/lib/opsPoll";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import DashboardCard from "../DashboardUI/DashboardCard";
@@ -17,6 +18,12 @@ export default function VehicleManagement() {
 const [hubs, setHubs] = useState<
   Array<{ hubCode: string; hubName: string; city?: string }>
 >([]);
+const [fleetStats, setFleetStats] = useState({
+  total: 0,
+  available: 0,
+  online: 0,
+  locked: 0,
+});
 
 useEffect(() => {
   const loadHubs = async () => {
@@ -32,7 +39,27 @@ useEffect(() => {
     }
   };
 
+  const loadFleetStats = async () => {
+    try {
+      const res = await fetch("/api/vehicles", { cache: "no-store" });
+      const data = await res.json();
+      const list = Array.isArray(data.data) ? data.data : [];
+      setFleetStats({
+        total: list.length,
+        available: list.filter((item: { vehicleStatus?: string }) => item.vehicleStatus === "Available").length,
+        online: list.filter((item: { gpsStatus?: string }) => String(item.gpsStatus || "").toUpperCase() === "ONLINE").length,
+        locked: list.filter((item: { lockStatus?: string }) => item.lockStatus === "Locked").length,
+      });
+    } catch {
+      /* keep last known stats */
+    }
+  };
+
   void loadHubs();
+  void loadFleetStats();
+  return startOpsPoll(() => {
+    void loadFleetStats();
+  });
 }, []);
 
 const [formData, setFormData] = useState({
@@ -223,11 +250,11 @@ subtitle="Register, configure and manage every vehicle across the EVUDDY mobilit
 
 <KPICard
 
-title="Vehicle Types"
+title="Vehicles"
 
-value="3"
+value={String(fleetStats.total)}
 
-subtitle="Scooter • Bike • Delivery"
+subtitle={`${fleetStats.available} available`}
 
 icon="🚲"
 
@@ -251,25 +278,11 @@ color="blue"
 
 <KPICard
 
-title="Battery"
+title="GPS online"
 
-value="100%"
+value={String(fleetStats.online)}
 
-subtitle="Default Charge"
-
-icon="🔋"
-
-color="green"
-
-/>
-
-<KPICard
-
-title="GPS"
-
-value="Online"
-
-subtitle="IoT Connected"
+subtitle="IoT connected"
 
 icon="📡"
 
@@ -279,15 +292,15 @@ color="purple"
 
 <KPICard
 
-title="Security"
+title="Locked"
 
-value="Locked"
+value={String(fleetStats.locked)}
 
-subtitle="Smart Lock"
+subtitle="Smart lock"
 
 icon="🔒"
 
-color="yellow"
+color="green"
 
 />
 

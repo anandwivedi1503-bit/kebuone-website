@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -41,8 +42,7 @@ export default function AuditLogsDashboard() {
     };
 
     void load();
-    const interval = window.setInterval(() => void load(), 30000);
-    return () => window.clearInterval(interval);
+    return startOpsPoll(() => void load());
   }, [listPages]);
 
   const rows = useMemo(() => {

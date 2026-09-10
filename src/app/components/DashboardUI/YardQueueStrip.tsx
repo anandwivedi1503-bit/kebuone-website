@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OPS_POLL_MS, startOpsPoll } from "@/lib/opsPoll";
 
 export type YardQueueCounts = {
   readyForPickup: number;
@@ -10,7 +11,7 @@ export type YardQueueCounts = {
   pendingRefunds: number;
 };
 
-export function useYardQueue(pollMs = 20000) {
+export function useYardQueue(pollMs = OPS_POLL_MS) {
   const [counts, setCounts] = useState<YardQueueCounts | null>(null);
   const [liveBookings, setLiveBookings] = useState<any[]>([]);
 
@@ -32,10 +33,12 @@ export function useYardQueue(pollMs = 20000) {
       }
     };
     void load();
-    const timer = window.setInterval(load, pollMs);
+    const stop = startOpsPoll(() => {
+      void load();
+    }, pollMs);
     return () => {
       cancelled = true;
-      window.clearInterval(timer);
+      stop();
     };
   }, [pollMs]);
 

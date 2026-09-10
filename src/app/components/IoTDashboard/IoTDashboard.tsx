@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 declare global {
   interface Window {
@@ -105,9 +106,9 @@ useEffect(() => {
   };
 
   loadIotData();
-  const timer = window.setInterval(loadIotData, 15000);
-
-  return () => window.clearInterval(timer);
+  return startOpsPoll(() => {
+    void loadIotData();
+  });
 }, []);
 
 useEffect(() => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Star } from "lucide-react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -53,8 +54,7 @@ export default function ReviewsDashboard() {
 
   useEffect(() => {
     void load();
-    const timer = setInterval(() => void load(), 15000);
-    return () => clearInterval(timer);
+    return startOpsPoll(() => void load());
   }, [pages, statusFilter]);
 
   const patch = async (id: string, body: Record<string, unknown>) => {

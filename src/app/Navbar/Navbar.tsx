@@ -129,14 +129,17 @@ function NavbarInner() {
       </div>
 
       <div className="relative mx-auto flex h-14 w-full max-w-[1650px] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-8">
-        <Link href="/" className="relative z-20 flex shrink-0 items-center">
+        <Link
+          href="/"
+          className="relative z-20 flex h-10 min-w-0 max-w-[calc(100%-3.5rem)] shrink items-center sm:h-11 sm:max-w-[200px] min-[1280px]:max-w-[184px]"
+        >
           <Image
             src="/Evuddy-logo-dark-E.png"
             alt="EVUDDY"
-            width={320}
-            height={95}
+            width={1256}
+            height={495}
             priority
-            className="h-9 w-auto max-w-[132px] object-contain object-left sm:h-10 sm:max-w-[168px] min-[1280px]:h-11 min-[1280px]:max-w-[184px]"
+            className="h-full w-auto max-h-full object-contain object-left"
           />
         </Link>
 
@@ -192,7 +195,7 @@ function NavbarInner() {
           {riderLoggedIn && <RiderAccountMenu />}
         </div>
 
-        <div className="nav-phone-toggle ml-auto shrink-0 items-center gap-2">
+        <div className="nav-phone-toggle relative z-[1200] ml-auto flex h-11 shrink-0 items-center justify-end">
           {riderLoggedIn && <RiderAccountMenu compact />}
           <input
             id="evuddy-nav-menu"

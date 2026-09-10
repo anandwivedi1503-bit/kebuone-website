@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -44,8 +45,7 @@ const loadHubs = () => {
 useEffect(()=>{
 
 loadHubs();
-const timer = window.setInterval(loadHubs, 15000);
-return () => window.clearInterval(timer);
+return startOpsPoll(loadHubs);
 
 },[]);
 

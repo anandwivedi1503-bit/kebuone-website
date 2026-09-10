@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, Fragment } from "react";
 import { Mail, Phone } from "lucide-react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 import { DEALER_TYPE, DISTRIBUTOR_TYPE } from "@/lib/dealerProgram";
 import PageContainer from "../DashboardUI/PageContainer";
@@ -37,8 +38,7 @@ export default function PartnerDashboard() {
 
   useEffect(() => {
     loadPartners();
-    const interval = setInterval(loadPartners, 10000);
-    return () => clearInterval(interval);
+    return startOpsPoll(loadPartners);
   }, []);
 
   const rows = useMemo(() => {

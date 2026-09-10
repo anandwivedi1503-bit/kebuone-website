@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -59,9 +60,7 @@ setRefunds(refundData.data || []);
 
 loadData();
 
-const timer = setInterval(loadData,10000);
-
-return ()=>clearInterval(timer);
+return startOpsPoll(loadData);
 
 },[ticketPages]);
 
