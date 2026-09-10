@@ -21,6 +21,8 @@ const partnerTypes = [
   "Smart Parking Partner",
   "EVUDDY Dealer",
   "EVUDDY Distributor",
+  "Flipkart Minutes Partner",
+  "Zomato Partner",
 ];
 
 const investmentCapacities = [

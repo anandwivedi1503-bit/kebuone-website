@@ -479,6 +479,8 @@ hover:border-[#22C55E]/40
               <option>EVUDDY Dealer</option>
               <option>EVUDDY Distributor</option>
               <option>Fleet Partner Investment</option>
+              <option>Flipkart Minutes Partner</option>
+              <option>Zomato Partner</option>
               <option>College Mobility Partner</option>
               <option>Bike Rental Franchise Partner</option>
               <option>EV Charging Partner</option>

@@ -31,6 +31,7 @@
 
 html {
   scroll-padding-top: 6rem;
+  color-scheme: light;
 }
 
 @media (min-width: 640px) {
@@ -44,6 +45,13 @@ body {
   color: #1c1917;
   font-family: var(--font-geist-sans), var(--font-noto-deva), ui-sans-serif, system-ui, sans-serif;
   overflow-x: hidden;
+}
+
+nav.fixed {
+  background: #ffffff !important;
+  isolation: isolate;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* Phone menu must not depend on Tailwind arbitrary variants (some WebViews skip them). */
@@ -229,16 +237,6 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
   }
 }
 
-body::after {
-  content: "";
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
-}
-
 @keyframes ev-ken {
   from { transform: scale(1); }
   to { transform: scale(1.06); }
@@ -280,6 +278,7 @@ html {
   scroll-behavior: smooth;
   overflow-x: hidden;
   scroll-padding-top: 7.5rem;
+  color-scheme: light;
 }
 
 @media (min-width: 640px) {
