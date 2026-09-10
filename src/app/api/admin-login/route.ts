@@ -1,21 +1,16 @@
 import crypto from "crypto";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import {
   ALL_DASHBOARDS,
 } from "@/lib/adminRoles";
 import {
   createAdminSessionToken,
-  createMfaPendingToken,
   getAdminSessionCookieOptions,
   hashStaffPassword,
-  MFA_COOKIE_NAME,
-  readMfaPendingUsername,
   SESSION_COOKIE_NAME,
 } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
-import { totpMatches } from "@/lib/totp";
 import { writeAudit } from "@/lib/writeAudit";
 import AdminStaff from "@/models/AdminStaff";
 
@@ -65,7 +60,6 @@ export async function POST(req: Request) {
     "Unknown";
   const userAgent = req.headers.get("user-agent") || "Unknown";
   const password = String(body.password || "");
-  const totp = String(body.totp || "").replace(/\s+/g, "");
   const username = String(body.username || "")
     .trim()
     .toLowerCase();
@@ -75,44 +69,6 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { success: false, message: "Admin auth is not configured." },
       { status: 500 }
-    );
-  }
-
-  const cookieStore = await cookies();
-  const pendingUser = readMfaPendingUsername(
-    cookieStore.get(MFA_COOKIE_NAME)?.value
-  );
-
-  if (totp && pendingUser) {
-    try {
-      await connectDB();
-      const staff = await AdminStaff.findOne({ username: pendingUser, isActive: true });
-      if (staff?.totpEnabled && totpMatches(String(staff.totpSecret || ""), totp)) {
-        const response = NextResponse.json({
-          success: true,
-          role: staff.staffRole === "super" ? "super" : "staff",
-        });
-        response.cookies.set(MFA_COOKIE_NAME, "", { ...getAdminSessionCookieOptions(), maxAge: 0 });
-        response.cookies.set(
-          SESSION_COOKIE_NAME,
-          sessionForStaff(staff),
-          getAdminSessionCookieOptions()
-        );
-        void writeAudit({
-          actor: staff.username,
-          action: "ADMIN_LOGIN",
-          entity: "AdminStaff",
-          entityId: staff.username,
-          detail: "Named login with 2FA",
-        });
-        return response;
-      }
-    } catch (error) {
-      console.warn("[ADMIN MFA ERROR]", error);
-    }
-    return NextResponse.json(
-      { success: false, message: "Invalid authenticator code." },
-      { status: 401 }
     );
   }
 
@@ -148,18 +104,6 @@ export async function POST(req: Request) {
       if (staff) {
         const { passwordHash } = hashStaffPassword(password, staff.passwordSalt);
         if (safeCompare(passwordHash, staff.passwordHash)) {
-          if (staff.totpEnabled) {
-            const response = NextResponse.json({
-              success: true,
-              needsTotp: true,
-            });
-            response.cookies.set(
-              MFA_COOKIE_NAME,
-              createMfaPendingToken(staff.username),
-              { ...getAdminSessionCookieOptions(), maxAge: 300 }
-            );
-            return response;
-          }
           const response = NextResponse.json({
             success: true,
             role: staff.staffRole === "super" ? "super" : "staff",

@@ -9,6 +9,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
 import { walletSpendable } from "@/lib/walletMoney";
@@ -463,7 +464,25 @@ Number(txn.gstAmount || 0)
 
 <SectionHeader
 title="Payment Transactions"
-subtitle="Live payment transactions from MongoDB."
+subtitle="Live payment transactions from MongoDB. Sheet uses the filtered list."
+rightContent={
+  <DashboardActions
+    filename="revenue-transactions"
+    rows={filteredTransactions.map((t) => ({
+      TransactionID: t.transactionId,
+      BookingID: t.bookingId,
+      Customer: t.userName,
+      Amount: t.amount,
+      GST: t.gstAmount,
+      PaymentMethod: t.paymentMethod,
+      Type: t.transactionType,
+      Status: t.status,
+      Refund: t.refundStatus,
+      Invoice: t.invoiceNumber,
+    }))}
+    onRefresh={() => void fetchRevenue()}
+  />
+}
 />
 
 <div className="mb-8">
@@ -642,76 +661,6 @@ dateFilter===filter
 title="Transactions"
 subtitle="Payment Gateway Records"
 >
-
-  <button
-
-onClick={() => {
-
-const headers = [
-"Transaction ID",
-"Booking ID",
-"Customer",
-"Amount",
-"GST",
-"Payment Method",
-"Status",
-];
-
-const rows = filteredTransactions.map((t)=>[
-t.transactionId,
-t.bookingId,
-t.userName,
-t.amount,
-t.gstAmount,
-t.paymentMethod,
-t.status,
-]);
-
-const csv = [
-headers,
-...rows,
-]
-.map((e)=>e.join(","))
-.join("\n");
-
-const blob = new Blob(
-[csv],
-{
-type:"text/csv",
-}
-);
-
-const url =
-window.URL.createObjectURL(blob);
-
-const a =
-document.createElement("a");
-
-a.href=url;
-
-a.download="RevenueReport.csv";
-
-a.click();
-
-}}
-
-className="
-mb-6
-rounded-xl
-bg-[#0A1134]
-px-6
-py-3
-font-bold
-text-white
-hover:bg-[#16204d]
-transition
-"
-
->
-
-Export CSV
-
-</button>
 
   <div className="overflow-x-auto rounded-3xl">
 

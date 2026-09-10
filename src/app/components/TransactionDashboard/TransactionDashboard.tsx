@@ -22,6 +22,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
 import { isRevenueTransaction, revenueAmount, revenueGst } from "@/lib/opsRevenue";
 import SectionHeader from "../DashboardUI/SectionHeader";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
@@ -259,95 +260,27 @@ color="red"
 
  <SectionHeader
  title="Payment Transactions"
-subtitle="Search and monitor all transaction records."
-/>
-
-<div className="mb-6 flex justify-end">
-
-<button
-
-onClick={() => {
-  if (transactions.length === 0) {
-
-alert("No transactions available to export.");
-
-return;
-
-}
-
-const rows = transactions.map((t:any)=>({
-
-TransactionID:t.transactionId,
-
-BookingID:t.bookingId,
-
-User:t.userName,
-
-Amount:t.amount,
-
-GST:t.gstAmount,
-
-Method:t.paymentMethod,
-
-Type:t.transactionType,
-
-Status:t.status,
-
-Refund:t.refundStatus,
-
-Invoice:t.invoiceNumber,
-
-Created:t.createdAt,
-
-}));
-
-const csv=[
-
-Object.keys(rows[0]||{}).join(","),
-
-...rows.map(Object.values).map(r=>r.join(","))
-
-].join("\n");
-
-const blob=new Blob([csv],{type:"text/csv"});
-
-const url=URL.createObjectURL(blob);
-
-const a=document.createElement("a");
-
-a.href=url;
-
-a.download="transactions.csv";
-
-a.click();
-
-URL.revokeObjectURL(url);
-
-}}
-
-className="
-rounded-2xl
-bg-gradient-to-r
-from-[#00C853]
-to-[#00E676]
-px-6
-py-3
-font-bold
-text-[#07111F]
-shadow-lg
-transition-all
-duration-300
-hover:scale-[1.03]
-hover:shadow-2xl
-"
-
->
-
-Export CSV
-
-</button>
-
-</div>
+subtitle="Search and monitor all transaction records. Sheet uses the filtered list."
+rightContent={
+  <DashboardActions
+    filename="transactions"
+    rows={filteredTransactions.map((t: any) => ({
+      TransactionID: t.transactionId,
+      BookingID: t.bookingId,
+      User: t.userName,
+      Amount: t.amount,
+      GST: t.gstAmount,
+      Method: t.paymentMethod,
+      Type: t.transactionType,
+      Status: t.status,
+      Refund: t.refundStatus,
+      Invoice: t.invoiceNumber,
+      Created: t.createdAt,
+    }))}
+    onRefresh={() => void fetchTransactions()}
+  />
+ }
+ />
 
 
 

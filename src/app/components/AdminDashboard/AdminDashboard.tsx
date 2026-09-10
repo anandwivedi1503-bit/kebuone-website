@@ -1,56 +1,17 @@
 "use client";
 
- import { useEffect, useState } from "react";
- import type { LucideIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+
 import { sessionCanOpen } from "@/lib/adminCan";
-import { clearRiderClientSession } from "@/lib/riderPlanGate";
 import { startOpsPoll } from "@/lib/opsPoll";
-import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import PageContainer from "../DashboardUI/PageContainer";
+import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
+import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
-import {
-  AlertTriangle,
-  BarChart3,
-  BatteryCharging,
-  Bell,
-  Bike,
-  BookOpen,
-  Building2,
-  BadgeCheck,
-  ChevronDown,
-  CircleDollarSign,
-  Cpu,
-  CreditCard,
-  Handshake,
-  Headphones,
-  IndianRupee,
-  KeyRound,
-  LifeBuoy,
-  MapPin,
-  Moon,
-  Radio,
-  Route,
-  Search,
-  Settings,
-  Sparkles,
-  Star,
-  Sun,
-  UserRound,
-  Users,
-  Wallet,
-  WifiOff,
-} from "lucide-react";
-
-type ActivityItem = { icon: LucideIcon; title: string; subtitle: string; time: string; at?: number; tone: string };
-
-const rupee = (value: number) => `\u20B9${value.toLocaleString("en-IN")}`;
-
-const formatActivityTime = (value: any) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "--:--";
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-};
+import SectionHeader from "../DashboardUI/SectionHeader";
+import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 
 type CommandCenterCounts = {
   riders: number;
@@ -60,21 +21,10 @@ type CommandCenterCounts = {
   availableVehicles: number;
   activeRides: number;
   openTickets: number;
-  pendingReviews: number;
   processingRefunds: number;
   onlineVehicles: number;
-  offlineVehicles: number;
-  lowBatteryVehicles: number;
-  geofenceAlerts: number;
-  readyBatteries: number;
-  chargingBatteries: number;
-  lowChargeBatteries: number;
-  pendingSwaps: number;
-  completedSwaps: number;
   pendingPartners: number;
-  approvedPartners: number;
   wallets: number;
-  blockedWallets: number;
   totalWalletBalance: number;
   totalRevenue: number;
 };
@@ -87,21 +37,10 @@ const EMPTY_COUNTS: CommandCenterCounts = {
   availableVehicles: 0,
   activeRides: 0,
   openTickets: 0,
-  pendingReviews: 0,
   processingRefunds: 0,
   onlineVehicles: 0,
-  offlineVehicles: 0,
-  lowBatteryVehicles: 0,
-  geofenceAlerts: 0,
-  readyBatteries: 0,
-  chargingBatteries: 0,
-  lowChargeBatteries: 0,
-  pendingSwaps: 0,
-  completedSwaps: 0,
   pendingPartners: 0,
-  approvedPartners: 0,
   wallets: 0,
-  blockedWallets: 0,
   totalWalletBalance: 0,
   totalRevenue: 0,
 };
@@ -110,81 +49,45 @@ type AdminDashboardProps = {
   setActiveDashboard?: (dashboard: string) => void;
 };
 
-export default function AdminDashboard({
-  setActiveDashboard,
-}: AdminDashboardProps) {
-  const [darkMode, setDarkMode] = useState(false);
+const rupee = (value: number) => `₹${Number(value || 0).toLocaleString("en-IN")}`;
+
+export default function AdminDashboard({ setActiveDashboard }: AdminDashboardProps) {
   const [search, setSearch] = useState("");
-
-
-  const [notificationOpen, setNotificationOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [adminSession, setAdminSession] = useState<{
     role: "super" | "staff";
     username: string;
     dashboards: string[];
   } | null>(null);
-
   const [counts, setCounts] = useState<CommandCenterCounts>(EMPTY_COUNTS);
   const [bookings, setBookings] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
-  const [refunds, setRefunds] = useState<any[]>([]);
-  const [batterySwaps, setBatterySwaps] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
   const [searchHits, setSearchHits] = useState<
     Array<{ id: string; title: string; subtitle: string; dashboard: string }>
   >([]);
+  const [loading, setLoading] = useState(true);
 
-const [loading, setLoading] = useState(true);
-const [lastUpdated, setLastUpdated] = useState("");
-const [refreshing, setRefreshing] = useState(false);
+  const canOpen = (dashboard: string) => sessionCanOpen(adminSession, dashboard);
+  const openDashboard = (dashboard: string) => {
+    if (!canOpen(dashboard)) return;
+    setActiveDashboard?.(dashboard);
+  };
 
-  
-
-   const [greeting, setGreeting] = useState("Welcome");
-  const [formattedDate, setFormattedDate] = useState("");
-
-  useEffect(() => {
-    const today = new Date();
-    const hour = today.getHours();
-
-    setGreeting(
-      hour < 12
-        ? "Good Morning"
-        : hour < 18
-        ? "Good Afternoon"
-        : "Good Evening"
-    );
-
-    setFormattedDate(
-      new Intl.DateTimeFormat("en-IN", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(today)
-    );
-  }, []);
-
-  useEffect(() => {
-    const closeMenus = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        !target.closest(".notification-menu") &&
-        !target.closest(".profile-menu") &&
-        !target.closest(".settings-menu")
-      ) {
-        setNotificationOpen(false);
-        setProfileOpen(false);
-        setSettingsOpen(false);
-      }
-    };
-
-    window.addEventListener("click", closeMenus);
-    return () => window.removeEventListener("click", closeMenus);
-  }, []);
+  const loadDashboard = async () => {
+    try {
+      const res = await fetch("/api/admin/command-center", { cache: "no-store" });
+      const data = await res.json();
+      if (!data.success) return;
+      setCounts({ ...EMPTY_COUNTS, ...(data.counts || {}) });
+      setBookings(data.recent?.bookings || []);
+      setTickets(data.recent?.tickets || []);
+      setPartners(data.recent?.partners || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadSession = async () => {
@@ -199,38 +102,11 @@ const [refreshing, setRefreshing] = useState(false);
     void loadSession();
   }, []);
 
-   const loadDashboard = async () => {
-    try {
-      const res = await fetch("/api/admin/command-center", { cache: "no-store" });
-      const data = await res.json();
-      if (!data.success) return;
-
-      setCounts({ ...EMPTY_COUNTS, ...(data.counts || {}) });
-      setBookings(data.recent?.bookings || []);
-      setTransactions(data.recent?.transactions || []);
-      setTickets(data.recent?.tickets || []);
-      setRefunds(data.recent?.refunds || []);
-      setBatterySwaps(data.recent?.batterySwaps || []);
-      setPartners(data.recent?.partners || []);
-
-      setLastUpdated(
-  new Date().toLocaleString("en-IN", {
-    dateStyle: "medium",
-    timeStyle: "medium",
-  })
-);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
     void loadDashboard();
     return startOpsPoll(() => {
       void loadDashboard();
-    }, 8_000);
+    });
   }, []);
 
   useEffect(() => {
@@ -263,1050 +139,279 @@ const [refreshing, setRefreshing] = useState(false);
     return () => window.clearTimeout(timer);
   }, [search]);
 
-  const totalRevenue = counts.totalRevenue;
-  const activeRides = counts.activeRides;
-  const onlineVehicles = counts.onlineVehicles;
-  const offlineVehicles = counts.offlineVehicles;
-  const availableVehicles = counts.availableVehicles;
-  const openTickets = counts.openTickets;
-  const pendingReviews = counts.pendingReviews || 0;
-  const processingRefunds = counts.processingRefunds;
-  const activeHubs = counts.activeHubs;
-  const lowBatteryVehicles = counts.lowBatteryVehicles;
-  const geofenceAlerts = counts.geofenceAlerts;
-  const criticalAlerts = lowBatteryVehicles + geofenceAlerts + offlineVehicles + processingRefunds;
-  const readyBatteries = counts.readyBatteries;
-  const chargingBatteries = counts.chargingBatteries;
-  const lowChargeBatteries = counts.lowChargeBatteries;
-  const pendingSwaps = counts.pendingSwaps;
-  const completedSwaps = counts.completedSwaps;
-  const pendingPartners = counts.pendingPartners;
-  const approvedPartners = counts.approvedPartners;
-  const blockedWallets = counts.blockedWallets;
-  const totalWalletBalance = counts.totalWalletBalance;
-  const riders = { length: counts.riders };
-  const vehicles = { length: counts.vehicles };
-  const hubs = { length: counts.hubs };
-  const wallets = { length: counts.wallets };
-
-const systemHealth =
-criticalAlerts === 0
-? {
-label:"System Healthy",
-bg:"bg-emerald-50",
-border:"border-emerald-200",
-text:"text-emerald-700",
-dot:"bg-emerald-500",
-}
-: criticalAlerts < 5
-? {
-label:"System Warning",
-bg:"bg-yellow-50",
-border:"border-yellow-200",
-text:"text-yellow-700",
-dot:"bg-yellow-500",
-}
-: {
-label:"System Critical",
-bg:"bg-red-50",
-border:"border-red-200",
-text:"text-red-700",
-dot:"bg-red-500",
-};
-
-  const recentActivities: ActivityItem[] = [
-  ...bookings.slice(0, 3).map((booking: any) => ({
-    icon: Bike,
-    title: `${booking.userName || booking.userPhone || "Rider"} · ${booking.bookingId || "Booking"} · ${booking.paymentStatus || "Pending"} ₹${Number(booking.receivedAmount || 0)}/${Number(booking.pendingAmount || 0)} pending`,
-    subtitle: `${booking.vehicleId || "Vehicle"} · ${booking.rideStatus || ""}`,
-    time: formatActivityTime(booking.createdAt),
-    at: new Date(booking.createdAt || 0).getTime(),
-    tone: "bg-sky-50 text-sky-600",
-  })),
-
-  ...transactions.slice(0, 3).map((txn: any) => ({
-    icon: IndianRupee,
-    title: `Payment Received ₹${txn.amount || 0}`,
-    subtitle: txn.transactionId || "Transaction",
-    time: formatActivityTime(txn.createdAt),
-    at: new Date(txn.createdAt || 0).getTime(),
-    tone: "bg-emerald-50 text-emerald-600",
-  })),
-
-  ...tickets.slice(0, 3).map((ticket: any) => ({
-    icon: Headphones,
-    title: `Support Ticket ${ticket.ticketId || ""}`,
-    subtitle: ticket.category || "Support",
-    time: formatActivityTime(ticket.createdAt),
-    at: new Date(ticket.createdAt || 0).getTime(),
-    tone: "bg-amber-50 text-amber-600",
-  })),
-
-  ...refunds.slice(0, 3).map((refund: any) => ({
-    icon: CreditCard,
-    title: `Refund ₹${refund.amount || 0}`,
-    subtitle: refund.refundStatus || "Processing",
-    time: formatActivityTime(refund.createdAt),
-    at: new Date(refund.createdAt || 0).getTime(),
-    tone: "bg-rose-50 text-rose-600",
-  })),
-]
-
-.sort((a, b) => (b.at || 0) - (a.at || 0))
-.slice(0, 8);
-
-const notifications = [
-  ...bookings.slice(0, 2).map((b: any) => ({
-    id: b._id,
-    title: `New Booking ${b.bookingId}`,
-    time: formatActivityTime(b.createdAt),
-    at: new Date(b.createdAt || 0).getTime(),
-    dashboard: "bookings",
-  })),
-  ...refunds.slice(0, 2).map((r: any) => ({
-    id: r._id,
-    title: `Refund ₹${r.amount}`,
-    time: formatActivityTime(r.createdAt),
-    at: new Date(r.createdAt || 0).getTime(),
-    dashboard: "refunds",
-  })),
-  ...tickets.slice(0, 2).map((t: any) => ({
-    id: t._id,
-    title: `Support Ticket ${t.ticketId || ""}`,
-    time: formatActivityTime(t.createdAt),
-    at: new Date(t.createdAt || 0).getTime(),
-    dashboard: "support",
-  })),
-  ...batterySwaps.slice(0, 2).map((s: any) => ({
-    id: s._id,
-    title: `Battery Swap ${s.status}`,
-    time: formatActivityTime(s.createdAt),
-    at: new Date(s.createdAt || 0).getTime(),
-    dashboard: "swap",
-  })),
-  ...partners.slice(0, 2).map((p: any) => ({
-    id: p._id,
-    title: `Partner Application ${p.applicationStatus}`,
-    time: formatActivityTime(p.createdAt),
-    at: new Date(p.createdAt || 0).getTime(),
-    dashboard: "partner",
-  })),
-]
-  .sort((a, b) => b.at - a.at)
-  .slice(0, 8);
-
-  const pageClass = darkMode
-    ? "min-h-0 rounded-2xl bg-[#080b12] text-slate-100"
-    : "min-h-0 text-slate-950";
-
-  const panelClass = darkMode
-    ? "border border-white/10 bg-[#101722] shadow-lg shadow-black/20"
-    : "border border-slate-200 bg-white/90 backdrop-blur-xl shadow-xl shadow-slate-200/80";
-
-  const softPanelClass = darkMode
-  ? "border border-white/10 bg-white/5 backdrop-blur-xl"
-  : "border border-slate-200 bg-slate-50/80";
-
-  const headingClass = darkMode ? "text-white" : "text-[#0A1134]";
-  const mutedClass = darkMode ? "text-slate-400" : "text-slate-500";
-  const dividerClass = darkMode ? "divide-white/10" : "divide-slate-100";
-  const borderClass = darkMode ? "border-white/10" : "border-slate-200";
-
-  const inputClass = darkMode
-    ? "border-white/10 bg-[#0b111a] text-white placeholder:text-slate-500 focus:border-rose-400 focus:ring-rose-400/20"
-    : "border-slate-200 bg-white/90 backdrop-blur-xl text-slate-950 placeholder:text-slate-400 focus:border-rose-400 focus:ring-rose-400/20";
-
-  const iconButtonClass = darkMode
-    ? "border-white/10 bg-white/[0.04] text-slate-100 hover:bg-white/[0.08]"
-    : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50";
-
-  const menuClass = darkMode
-    ? "border border-white/10 bg-[#101722] text-slate-100 shadow-2xl shadow-black/40"
-    : "border border-slate-200 bg-white/90 backdrop-blur-xl text-slate-950 shadow-2xl shadow-slate-300/40";
-
-  const operationCards = [
-    {
-      title: "Fleet Management",
-      dashboard: "fleet",
-      badge: `${vehicles.length} Fleet`,
-      icon: Bike,
-      tone: "bg-emerald-50 text-emerald-600",
-      badgeClass: "text-emerald-600",
-      lines: [
-`Online Vehicles : ${onlineVehicles}`,
-`Available Vehicles : ${availableVehicles}`
-],},
-    {
-      title: "Hub Network",
-      dashboard: "hub",
-      badge: activeHubs,
-      icon: MapPin,
-      tone: "bg-sky-50 text-sky-600",
-      badgeClass: "text-sky-600",
-      lines: ["Operational Hubs", `Total Hubs : ${hubs.length}`],
-    },
-    {
-      title: "Battery Network",
-      dashboard: "battery",
-      badge: `${readyBatteries} Ready`,
-      icon: BatteryCharging,
-      tone: "bg-amber-50 text-amber-600",
-      badgeClass: "text-amber-600",
-      lines: ["Battery Swapping System Active", "Charging Stations Online"],
-    },
-    {
-      title: "IoT Monitoring",
-      dashboard: "iot",
-      badge: onlineVehicles,
-      icon: Radio,
-      tone: "bg-violet-50 text-violet-600",
-      badgeClass: "text-violet-600",
-      lines: ["GPS Devices Connected", "Vehicle Tracking Active"],
-    },
-    {
-      title: "Revenue Engine",
-      dashboard: "revenue",
-      badge: rupee(totalRevenue),
-      icon: CircleDollarSign,
-      tone: "bg-pink-50 text-pink-600",
-      badgeClass: "text-pink-600",
-      lines: ["Today's Collection", "Live Transactions"],
-    },
-    {
-      title: "Support Center",
-      dashboard: "support",
-      badge: openTickets,
-      icon: Headphones,
-      tone: "bg-red-50 text-red-600",
-      badgeClass: "text-red-600",
-      lines: ["Open Support Tickets", "Customer Support Running"],
-    },
-  ];
-
-  const alertCards = [
-    {
-      title: "Low Battery",
-      dashboard: "iot",
-      status: "CRITICAL",
-      value: lowBatteryVehicles,
-      description: "Vehicles below 20% battery.",
-      icon: BatteryCharging,
-      tone: "bg-red-50 text-red-600",
-      statusClass: "text-red-600",
-      border: "border-l-red-500",
-    },
-    {
-      title: "Geofence Alerts",
-      dashboard: "iot",
-      status: "WARNING",
-      value: geofenceAlerts,
-      description: "Vehicles outside service zones.",
-      icon: MapPin,
-      tone: "bg-orange-50 text-orange-600",
-      statusClass: "text-orange-600",
-      border: "border-l-orange-500",
-    },
-    {
-      title: "Offline Vehicles",
-      dashboard: "iot",
-      status: "OFFLINE",
-      value: offlineVehicles,
-      description: "GPS disconnected vehicles.",
-      icon: WifiOff,
-      tone: "bg-yellow-50 text-yellow-700",
-      statusClass: "text-yellow-700",
-      border: "border-l-yellow-500",
-    },
-    {
-      title: "Refund Requests",
-      dashboard: "refunds",
-      status: "PENDING",
-      value: processingRefunds,
-      description: "Waiting for approval.",
-      icon: Wallet,
-      tone: "bg-sky-50 text-sky-600",
-      statusClass: "text-sky-600",
-      border: "border-l-sky-500",
-    },
-  ];
-  const searchKeyword = search.trim().toLowerCase();
-
-
-
-  const quickActions = [
-  { title: "Users", description: "Manage Riders", dashboard: "users", icon: UserRound, tone: "bg-rose-50 text-rose-600" },
-  { title: "Fleet", description: "Vehicle Management", dashboard: "fleet", icon: Bike, tone: "bg-emerald-50 text-emerald-600" },
-  { title: "Hubs", description: "Hub Operations", dashboard: "hub", icon: MapPin, tone: "bg-sky-50 text-sky-600" },
-  { title: "Batteries", description: "Battery Network", dashboard: "battery", icon: BatteryCharging, tone: "bg-amber-50 text-amber-600" },
-  { title: "Revenue", description: "Finance Dashboard", dashboard: "revenue", icon: IndianRupee, tone: "bg-pink-50 text-pink-600" },
-  { title: "Wallet", description: "Wallet Management", dashboard: "wallet", icon: Wallet, tone: "bg-green-50 text-green-600" },
-  { title: "Analytics", description: "Business Reports", dashboard: "analytics", icon: BarChart3, tone: "bg-violet-50 text-violet-600" },
-  { title: "Support", description: "Tickets & Refunds", dashboard: "support", icon: Headphones, tone: "bg-red-50 text-red-600" },
-  { title: "Reviews", description: "Rider ratings", dashboard: "reviews", icon: Star, tone: "bg-amber-50 text-amber-600" },
-  { title: "IoT", description: "Live Tracking", dashboard: "iot", icon: Cpu, tone: "bg-cyan-50 text-cyan-600" },
-  { title: "Bookings", description: "Ride Management", dashboard: "bookings", icon: BookOpen, tone: "bg-orange-50 text-orange-600" },
-  { title: "Rent to Own", description: "18-month ownership plans", dashboard: "renttoown", icon: KeyRound, tone: "bg-emerald-50 text-emerald-700" },
-  { title: "Partners", description: "Franchise Requests", dashboard: "partner", icon: Handshake, tone: "bg-indigo-50 text-indigo-600" },
-  { title: "KYC", description: "Verification Center", dashboard: "kyc", icon: BadgeCheck, tone: "bg-teal-50 text-teal-600" },
-  {
-  title: "Audit Logs",
-  description: "System Activity Logs",
-  dashboard: "audit",
-  icon: AlertTriangle,
-  tone: "bg-gray-100 text-gray-700",
-},
-  { title: "Settings", description: "Team access and configuration", dashboard: "team", icon: Settings, tone: "bg-[#0A1134] text-white", featured: true },
-];
-const filteredQuickActions = quickActions.filter((item) =>
-  item.title.toLowerCase().includes(searchKeyword) ||
-  item.description.toLowerCase().includes(searchKeyword)
-);
-
-const openDashboard = (dashboard: string) => {
-  setProfileOpen(false);
-  setSettingsOpen(false);
-  setNotificationOpen(false);
-  setActiveDashboard?.(dashboard);
-};
-
-const refreshDashboard = async () => {
-  setRefreshing(true);
-  await loadDashboard();
-  setRefreshing(false);
-};
-
-if (loading) {
-  return (
-    <div className="flex min-h-[320px] items-center justify-center">
-      <div className="text-center">
-        <div className="mx-auto h-10 w-10 rounded-full border-4 border-[#18B368] border-t-transparent animate-spin"></div>
-        <h2 className="mt-5 text-xl font-medium tracking-tight text-[#0A1134]">
-          Loading command center
-        </h2>
-        <p className="mt-2 text-sm text-slate-500">
-          Live riders, fleet, hubs and tickets from Mongo.
-        </p>
-      </div>
-    </div>
+  const sheetRows = useMemo(
+    () =>
+      bookings.map((booking) => ({
+        BookingID: booking.bookingId || "",
+        Rider: booking.userName || "",
+        Phone: booking.userPhone || "",
+        Vehicle: booking.vehicleId || "",
+        RideStatus: booking.rideStatus || "",
+        PaymentStatus: booking.paymentStatus || "",
+        Received: booking.receivedAmount ?? "",
+        Pending: booking.pendingAmount ?? "",
+        Hub: booking.pickupHubName || booking.startHub || "",
+      })),
+    [bookings]
   );
-}
+
+  if (loading) {
+    return (
+      <PageContainer>
+        <div className="flex h-96 items-center justify-center text-xl font-semibold">
+          Loading admin home...
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
-    <section className={`${pageClass} overflow-x-hidden transition-colors duration-300`}>
-      <div className="mx-auto flex w-full max-w-[1700px] flex-col gap-8 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-        <header className={`${panelClass} rounded-[28px] p-4 sm:p-5 lg:p-6`}>
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-rose-600">
-                  <Sparkles size={14} />
-                  {greeting}
-                </span>
-                <span className={`${softPanelClass} rounded-full px-3 py-1.5 text-xs font-semibold ${mutedClass}`}>
-                  {formattedDate}
-                </span>
-              </div>
+    <PageContainer>
+      <DashboardHeader
+        title="Admin home"
+        subtitle="Same live snapshot as the other desks. Open a count to jump to that desk. Sidebar already lists every module."
+      />
 
-              <h1 className={`mt-4 text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl ${headingClass}`}>
-                EVUDDY Enterprise Control Center
-              </h1>
+      <OpsMoneyStrip />
 
-              <p className={`mt-3 max-w-3xl text-sm leading-6 sm:text-base ${mutedClass}`}>
-                Monitor riders, fleet, hubs, batteries, IoT devices, finance, partners and customer operations from one intelligent enterprise command center.
-              </p>
-             <p className="mt-3 text-sm font-semibold text-pink-500">
-  Last Updated : {lastUpdated || "--"}
-</p>
-            </div>
+      <DashboardActions
+        filename="admin-live-bookings"
+        rows={sheetRows}
+        onRefresh={() => void loadDashboard()}
+      />
 
-            <div className="flex w-full flex-col gap-3 xl:w-auto">
-              <div className="relative min-w-0 w-full xl:w-[360px]">
-                <Search size={18} className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search riders, vehicles, bookings, tickets, wallets..."
-                  className={`h-12 w-full rounded-2xl border pl-11 pr-4 text-sm font-medium outline-none transition focus:ring-4 ${inputClass}`}
-                />
-                {searchKeyword && (
-                  <div className={`absolute left-0 right-0 top-full z-[90] mt-2 max-h-80 overflow-y-auto rounded-2xl ${menuClass}`}>
-                    {searchHits.length === 0 && filteredQuickActions.length === 0 ? (
-                      <p className={`px-4 py-4 text-sm ${mutedClass}`}>No matching riders, vehicles, bookings or modules.</p>
-                    ) : (
-                      <>
-                        {searchHits.map((hit) => (
-                          <button
-                            key={`${hit.dashboard}-${hit.id}`}
-                            type="button"
-                            onClick={() => {
-                              setSearch("");
-                              openDashboard(hit.dashboard);
-                            }}
-                            className="w-full px-4 py-3 text-left transition hover:bg-rose-50/70"
-                          >
-                            <p className={`text-sm font-semibold ${headingClass}`}>{hit.title}</p>
-                            <p className={`mt-0.5 text-xs ${mutedClass}`}>{hit.subtitle}</p>
-                          </button>
-                        ))}
-                        {filteredQuickActions.slice(0, 4).map((item) => (
-                          <button
-                            key={`mod-${item.title}`}
-                            type="button"
-                            onClick={() => {
-                              setSearch("");
-                              openDashboard(item.dashboard);
-                            }}
-                            className="w-full px-4 py-3 text-left transition hover:bg-rose-50/70"
-                          >
-                            <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
-                            <p className={`mt-0.5 text-xs ${mutedClass}`}>Open {item.description}</p>
-                          </button>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <div className="relative notification-menu">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNotificationOpen(!notificationOpen);
-                    }}
-                    title="Notifications"
-                    className={`relative flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
-                  >
-                    <Bell size={19} />
-                    {notifications.length > 0 && (
-  <span
-className="absolute -right-1 -top-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white"
->
-{notifications.length}
-</span>
-)}
-                  </button>
-
-                  {notificationOpen && (
-                    <div
-                      className={`fixed left-4 right-4 top-24 z-[80] max-h-[min(70vh,28rem)] overflow-y-auto rounded-[24px] sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-3 sm:w-80 ${menuClass}`}
-                    >
-                      <div className={`border-b px-5 py-4 ${borderClass}`}>
-                        <h3 className={`font-bold ${headingClass}`}>Notifications</h3>
-                        <p className={`mt-1 text-xs ${mutedClass}`}>Live bookings, tickets, refunds, swaps and partners</p>
-                      </div>
-
-                      <div className={`divide-y ${dividerClass}`}>
-                        {notifications.length === 0 ? (
-                          <p className={`px-5 py-6 text-sm ${mutedClass}`}>
-                            No new activity yet. New bookings and refunds will appear here.
-                          </p>
-                        ) : (
-                          notifications.map((item) => (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={() => openDashboard(item.dashboard || "bookings")}
-                            className="w-full px-5 py-4 text-left transition hover:bg-rose-50/70"
-                          >
-                            <p className={`text-sm font-semibold ${headingClass}`}>{item.title}</p>
-                            <p className={`mt-1 text-xs ${mutedClass}`}>{item.time}</p>
-                          </button>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  onClick={() => setDarkMode(!darkMode)}
-                  title="Toggle theme"
-                  className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
-                >
-                  {darkMode ? <Sun size={19} /> : <Moon size={19} />}
-                </button>
-
-                <div className="relative settings-menu">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSettingsOpen(!settingsOpen);
-                      setProfileOpen(false);
-                      setNotificationOpen(false);
-                    }}
-                    title="Settings"
-                    className={`flex h-11 w-11 items-center justify-center rounded-2xl border transition ${iconButtonClass}`}
-                  >
-                    <Settings size={19} />
-                  </button>
-                  {settingsOpen && (
-                    <div className={`absolute right-0 z-50 mt-3 w-64 overflow-hidden rounded-[28px] ${menuClass}`}>
-                      <div className={`border-b px-4 py-3 ${borderClass}`}>
-                        <p className={`text-sm font-bold ${headingClass}`}>Settings</p>
-                        <p className={`mt-1 text-xs ${mutedClass}`}>
-                          {adminSession?.username || "Administrator"} · {adminSession?.role === "staff" ? "Staff" : "Super admin"}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => openDashboard("admin")}
-                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
-                      >
-                        Control center
-                      </button>
-                      {sessionCanOpen(adminSession, "team") && (
-                        <button
-                          type="button"
-                          onClick={() => openDashboard("team")}
-                          className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
-                        >
-                          Team access
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => openDashboard("audit")}
-                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
-                      >
-                        Audit logs
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative profile-menu">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setProfileOpen(!profileOpen);
-                    }}
-                    className={`flex h-11 items-center gap-3 rounded-2xl border px-2.5 transition sm:h-12 sm:px-3 ${iconButtonClass}`}
-                  >
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#D6006E] to-[#FF5556] text-sm font-black text-white">
-                      A
-                    </div>
-
-                    <div className="hidden text-left md:block">
-                      <h4 className={`text-sm font-bold leading-4 ${headingClass}`}>
-                        {adminSession?.username || "Administrator"}
-                      </h4>
-                      <p className={`mt-0.5 text-xs ${mutedClass}`}>
-                        {adminSession?.role === "staff" ? "Staff access" : "Full system access"}
-                      </p>
-                    </div>
-
-                    <ChevronDown size={17} className={mutedClass} />
-                  </button>
-
-                  {profileOpen && (
-                    <div className={`absolute right-0 z-50 mt-3 w-56 overflow-hidden rounded-[28px] ${menuClass}`}>
-                      <div className={`border-b px-4 py-3 ${borderClass}`}>
-                        <p className={`text-sm font-bold ${headingClass}`}>
-                          {adminSession?.username || "Administrator"}
-                        </p>
-                        <p className={`mt-1 text-xs ${mutedClass}`}>
-                          {adminSession?.role === "staff" ? "Staff" : "Super admin"}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => openDashboard("users")}
-                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
-                      >
-                        Profile / riders
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setProfileOpen(false);
-                          setSettingsOpen(true);
-                        }}
-                        className="w-full px-4 py-3 text-left text-sm font-semibold transition hover:bg-rose-50/70"
-                      >
-                        Settings
-                      </button>
-                      <a
-  href="/api/admin-logout"
-  onClick={() => {
-    clearRiderClientSession();
-  }}
-  className="block w-full px-4 py-3 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50"
->
-  Logout
-</a>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <OpsMoneyStrip />
-
-        <DashboardActions
-          filename="admin-command-center"
-          rows={[
-            {
-              riders: counts.riders,
-              vehicles: counts.vehicles,
-              activeRides: counts.activeRides,
-              hubs: counts.activeHubs,
-              revenue: counts.totalRevenue,
-              tickets: counts.openTickets,
-            },
-          ]}
-          onRefresh={() => void refreshDashboard()}
+      <KPIGrid>
+        <KPICard
+          title="Riders"
+          value={counts.riders}
+          subtitle="Open users"
+          icon="👥"
+          color="pink"
+          onClick={() => openDashboard("users")}
         />
+        <KPICard
+          title="Fleet"
+          value={counts.vehicles}
+          subtitle={`${counts.onlineVehicles} online`}
+          icon="🚲"
+          color="green"
+          onClick={() => openDashboard("fleet")}
+        />
+        <KPICard
+          title="Active rides"
+          value={counts.activeRides}
+          subtitle="Live bookings"
+          icon="🛵"
+          color="blue"
+          onClick={() => openDashboard("bookings")}
+        />
+        <KPICard
+          title="Hubs"
+          value={counts.activeHubs}
+          subtitle={`${counts.hubs} registered`}
+          icon="📍"
+          color="yellow"
+          onClick={() => openDashboard("hub")}
+        />
+        <KPICard
+          title="Revenue"
+          value={rupee(counts.totalRevenue)}
+          subtitle="Rent + GST collected"
+          icon="₹"
+          color="purple"
+          onClick={() => openDashboard("revenue")}
+        />
+        <KPICard
+          title="Open tickets"
+          value={counts.openTickets}
+          subtitle={`${counts.processingRefunds} refunds pending`}
+          icon="🎧"
+          color="red"
+          onClick={() => openDashboard("support")}
+        />
+        <KPICard
+          title="Wallets"
+          value={counts.wallets}
+          subtitle={rupee(counts.totalWalletBalance)}
+          icon="👛"
+          color="green"
+          onClick={() => openDashboard("wallet")}
+        />
+        <KPICard
+          title="Partner forms"
+          value={counts.pendingPartners}
+          subtitle="Pending review"
+          icon="🤝"
+          color="blue"
+          onClick={() => openDashboard("partner")}
+        />
+      </KPIGrid>
 
-        <KPIGrid>
-          <KPICard title="Total Riders" value={counts.riders} subtitle="Live database" icon="👥" color="pink" />
-          <KPICard title="Fleet Vehicles" value={counts.vehicles} subtitle={`${onlineVehicles} online`} icon="🚲" color="green" />
-          <KPICard title="Active Rides" value={activeRides} subtitle="Live tracking" icon="🛵" color="blue" />
-          <KPICard title="Operational Hubs" value={activeHubs} subtitle="Running" icon="📍" color="yellow" />
-          <KPICard title="Total Revenue" value={rupee(totalRevenue)} subtitle="Rent + GST" icon="₹" color="purple" />
-          <KPICard title="Open Tickets" value={openTickets} subtitle={`${processingRefunds} refunds pending`} icon="🎧" color="red" />
-        </KPIGrid>
-
-        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
-          <div className={`${panelClass} rounded-[28px] p-4 sm:p-5`}>
-            <p className={`text-sm font-semibold ${mutedClass}`}>Today</p>
-            <h2 className={`mt-1 text-xl font-black sm:text-2xl ${headingClass}`}>{formattedDate}</h2>
+      <SectionHeader
+        title="Find a record"
+        subtitle="Search riders, bookings, tickets or wallets. Click a row to open that desk."
+      />
+      <input
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search rider, booking, ticket, vehicle..."
+        className="mb-6 h-14 w-full rounded-2xl border border-pink-100 bg-white px-5 outline-none focus:ring-2 focus:ring-pink-200"
+      />
+      {searchHits.length > 0 ? (
+        <DashboardCard title="Search results" subtitle="Opens the matching desk">
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-b border-pink-100 bg-pink-50">
+                  <th className="px-6 py-4 text-left font-bold">Record</th>
+                  <th className="px-6 py-4 text-left font-bold">Detail</th>
+                  <th className="px-6 py-4 text-left font-bold">Desk</th>
+                </tr>
+              </thead>
+              <tbody>
+                {searchHits.map((hit) => (
+                  <tr
+                    key={`${hit.dashboard}-${hit.id}`}
+                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    onClick={() => openDashboard(hit.dashboard)}
+                  >
+                    <td className="px-6 py-4 font-semibold">{hit.title}</td>
+                    <td className="px-6 py-4 text-sm text-slate-500">{hit.subtitle}</td>
+                    <td className="px-6 py-4 text-sm">{hit.dashboard}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-
-          <div className={`${panelClass} flex items-center gap-3 rounded-[28px] p-4 sm:p-5`}>
-            <span className="relative flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-emerald-500"></span>
-            </span>
-            <div>
-
-  <span className="font-bold text-emerald-600">
-    {onlineVehicles} Vehicles Online
-  </span>
-
-  <p className="text-xs text-gray-500">
-    {offlineVehicles} Offline
-  </p>
-
-</div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {["Live Operations", "Real-Time Tracking", "AI Monitoring", "Control Center"].map((item) => (
-            <span key={item} className="rounded-full border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-600">
-              {item}
-            </span>
-          ))}
-        </div>
-
-        <section className="space-y-5">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Operations Monitoring</h2>
-              <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Real-time operational health across the EVUDDY ecosystem.</p>
-            </div>
-
-            <div
-className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-bold
-${systemHealth.border}
-${systemHealth.bg}
-${systemHealth.text}`}
->
-              <span
-className={`h-2.5 w-2.5 rounded-full ${systemHealth.dot}`}
-/>
-              {systemHealth.label}
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {operationCards.map((card) => {
-              const Icon = card.icon;
-
-              return (
-                <div
-                  key={card.title}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openDashboard(card.dashboard)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") openDashboard(card.dashboard);
-                  }}
-                  className={`
-relative
-overflow-hidden
-rounded-[28px]
-${panelClass}
-p-6
-transition-all
-duration-500
-hover:-translate-y-2
-hover:scale-[1.02]
-hover:shadow-[0_25px_60px_rgba(0,0,0,0.15)]
-group
-cursor-pointer
-`}
->
-                  <div
-className="
-absolute
--right-12
--top-12
-h-36
-w-36
-rounded-full
-bg-gradient-to-br
-from-[#00E676]/10
-to-transparent
-blur-3xl
-group-hover:scale-125
-transition-all
-duration-700
-"
-/>
-
-<div className="flex items-start justify-between gap-6">
-                    <div
-className={`
-flex
-h-16
-w-16
-items-center
-justify-center
-rounded-2xl
-${card.tone}
-shadow-xl
-group-hover:rotate-6
-group-hover:scale-110
-transition-all
-duration-500
-`}
->
-                      <Icon size={23} />
-                    </div>
-                    <span
-className={`
-rounded-full
-bg-white/90 backdrop-blur-xl
-px-4
-py-2
-text-sm
-font-black
-shadow-lg
-${card.badgeClass}
-`}
->{card.badge}</span>
-                  </div>
-
-                  <h3
-className={`
-mt-7
-text-2xl
-font-black
-tracking-tight
-${headingClass}
-`}
->{card.title}</h3>
-                  <div className="mt-3 space-y-1">
-                    {card.lines.map((line) => (
-                      <div
-key={line}
-className="
-flex
-items-center
-gap-2
-"
->
-
-<div
-className="
-h-2
-w-2
-rounded-full
-bg-green-500
-"
-/>
-
-<p className={`text-sm ${mutedClass}`}>{line}</p></div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="space-y-5">
-
-<h2 className={`text-2xl font-black ${headingClass}`}>
-
-Enterprise Overview
-
-</h2>
-
-<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5">
-
-<div className={`${panelClass} rounded-[28px] p-5`}>
-
-<h3 className="font-bold">
-
-Battery Network
-
-</h3>
-
-<div className="mt-3 space-y-2">
-
-  <div className="flex justify-between">
-    <span>🟢 Ready</span>
-    <span>{readyBatteries}</span>
-  </div>
-
-  <div className="flex justify-between">
-    <span>🟡 Charging</span>
-    <span>{chargingBatteries}</span>
-  </div>
-
-  <div className="flex justify-between">
-    <span>🔴 Low Charge</span>
-    <span>{lowChargeBatteries}</span>
-  </div>
-
-</div>
-</div>
-
-<div className={`${panelClass} rounded-[28px] p-5`}>
-
-<h3 className="font-bold">
-
-Battery Swaps
-
-</h3>
-
-<p>
-
-Pending : {pendingSwaps}
-
-</p>
-
-<p>
-
-Completed : {completedSwaps}
-
-</p>
-
-</div>
-
-<div className={`${panelClass} rounded-[28px] p-5`}>
-
-<h3 className="font-bold">
-
-Partners
-
-</h3>
-
-<p>
-
-Pending : {pendingPartners}
-
-</p>
-
-<p>
-
-Approved : {approvedPartners}
-
-</p>
-
-</div>
-
-<div className={`${panelClass} rounded-[28px] p-5`}>
-
-<h3 className="font-bold">
-
-Wallet
-
-</h3>
-
-<div className="mt-3 space-y-2">
-
-  <div className="flex justify-between">
-    <span>Total Wallets</span>
-    <span>{wallets.length}</span>
-  </div>
-
-  <div className="flex justify-between">
-    <span>Blocked</span>
-    <span>{blockedWallets}</span>
-  </div>
-
-  <div className="flex justify-between font-bold text-green-600">
-    <span>Balance</span>
-    <span>{rupee(totalWalletBalance)}</span>
-  </div>
-
-</div>
-
-</div>
-
-<div className={`${panelClass} rounded-[28px] p-5`}>
-
-<h3 className="font-bold">
-
-IoT Network
-
-</h3>
-
-<div className="mt-3 space-y-2">
-
-  <div className="flex justify-between">
-    <span>🟢 Online</span>
-    <span>{onlineVehicles}</span>
-  </div>
-
-  <div className="flex justify-between">
-    <span>🔴 Offline</span>
-    <span>{offlineVehicles}</span>
-  </div>
-
-  <div className="flex justify-between">
-    <span>⚠ Alerts</span>
-    <span>{geofenceAlerts}</span>
-  </div>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-        <section className="space-y-5">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>System Alerts</h2>
-              <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Live alerts generated automatically from your MongoDB database.</p>
-            </div>
-
-            <div className="inline-flex w-fit items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2 text-sm font-bold text-red-600">
-              <AlertTriangle size={16} />
-              {criticalAlerts} Active Alerts
-            </div>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-            {alertCards.map((card) => {
-              const Icon = card.icon;
-
-              return (
-                <div
-                  key={card.title}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => openDashboard(card.dashboard)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === " ") openDashboard(card.dashboard);
-                  }}
-                  className={`${panelClass} ${card.border} cursor-pointer rounded-[28px] border-l-4 p-5 transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}
-                >
-                  <div className="flex items-start justify-between gap-6">
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone}`}>
-                      <Icon size={23} />
-                    </div>
-                    <span className={`text-xs font-black tracking-[0.12em] ${card.statusClass}`}>{card.status}</span>
-                  </div>
-
-                  <h3 className={`mt-6 text-lg font-black ${headingClass}`}>{card.title}</h3>
-                  <h1 className={`mt-3 text-4xl font-black ${card.statusClass}`}>{card.value}</h1>
-                  <p className={`mt-3 text-sm ${mutedClass}`}>{card.description}</p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <section className="space-y-5">
-          <div>
-            <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Recent Activity</h2>
-            <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>
-              Automatically updated from your live database
-              {refreshing ? " · refreshing…" : lastUpdated ? ` · ${lastUpdated}` : ""}.
-            </p>
-          </div>
-
-          <div className={`${panelClass} overflow-hidden rounded-[28px]`}>
-            <div className={`border-b px-4 py-4 sm:px-5 ${borderClass}`}>
-              <h3 className={`text-lg font-black ${headingClass}`}>Live Activity Feed</h3>
-              <p className={`mt-1 text-sm ${mutedClass}`}>Real-time updates across the complete EVUDDY Mobility Platform.</p>
-            </div>
-
-            <div className={`divide-y ${dividerClass}`}>
-              {recentActivities.length === 0 && (
-                <div className={`py-14 text-center text-sm font-medium ${mutedClass}`}>No Recent Activities</div>
+        </DashboardCard>
+      ) : null}
+
+      <SectionHeader title="Live bookings" subtitle="Latest rides from the same booking ledger." />
+      <DashboardCard title="Bookings" subtitle="Tap a row to open Booking Management">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-pink-100 bg-pink-50">
+                <th className="px-6 py-4 text-left font-bold">Booking</th>
+                <th className="px-6 py-4 text-left font-bold">Rider</th>
+                <th className="px-6 py-4 text-left font-bold">Vehicle</th>
+                <th className="px-6 py-4 text-left font-bold">Ride</th>
+                <th className="px-6 py-4 text-left font-bold">Payment</th>
+                <th className="px-6 py-4 text-right font-bold">Received</th>
+                <th className="px-6 py-4 text-right font-bold">Pending</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
+                    No live bookings yet.
+                  </td>
+                </tr>
+              ) : (
+                bookings.map((booking) => (
+                  <tr
+                    key={booking._id || booking.bookingId}
+                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    onClick={() => openDashboard("bookings")}
+                  >
+                    <td className="px-6 py-4 font-semibold">{booking.bookingId || "—"}</td>
+                    <td className="px-6 py-4">
+                      {booking.userName || "—"}
+                      <div className="text-xs text-slate-500">{booking.userPhone}</div>
+                    </td>
+                    <td className="px-6 py-4 text-sm">{booking.vehicleId || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{booking.rideStatus || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{booking.paymentStatus || "—"}</td>
+                    <td className="px-6 py-4 text-right font-semibold">
+                      {rupee(Number(booking.receivedAmount || 0))}
+                    </td>
+                    <td className="px-6 py-4 text-right font-semibold text-orange-600">
+                      {rupee(Number(booking.pendingAmount || 0))}
+                    </td>
+                  </tr>
+                ))
               )}
+            </tbody>
+          </table>
+        </div>
+      </DashboardCard>
 
-              {recentActivities.map((activity, index) => {
-                const Icon = activity.icon;
+      <SectionHeader title="Open tickets" subtitle="Same queue as Support." />
+      <DashboardCard title="Tickets" subtitle="Tap a row to open Support">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-pink-100 bg-pink-50">
+                <th className="px-6 py-4 text-left font-bold">Ticket</th>
+                <th className="px-6 py-4 text-left font-bold">Category</th>
+                <th className="px-6 py-4 text-left font-bold">Priority</th>
+                <th className="px-6 py-4 text-left font-bold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tickets.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-10 text-center text-slate-500">
+                    No tickets in this snapshot.
+                  </td>
+                </tr>
+              ) : (
+                tickets.map((ticket) => (
+                  <tr
+                    key={ticket._id || ticket.ticketId}
+                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    onClick={() => openDashboard("support")}
+                  >
+                    <td className="px-6 py-4 font-semibold">{ticket.ticketId || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{String(ticket.category || "").replace(/_/g, " ")}</td>
+                    <td className="px-6 py-4 text-sm">{ticket.priority || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{ticket.status || "—"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </DashboardCard>
 
-                return (
-                  <div key={index} className="flex items-start gap-3 px-4 py-4 transition hover:bg-rose-50/60 sm:gap-4 sm:px-5">
-                    <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${activity.tone}`}>
-                      <Icon size={21} />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <h4 className={`break-words text-sm font-bold sm:text-base ${headingClass}`}>{activity.title}</h4>
-                      <p className={`mt-1 break-words text-sm ${mutedClass}`}>{activity.subtitle}</p>
-                    </div>
-
-                    <span className={`shrink-0 text-xs font-semibold ${mutedClass}`}>{activity.time}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="space-y-5">
-          <div>
-            <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Quick Actions</h2>
-            <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Access every management module instantly.</p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6">
-            {filteredQuickActions.map((action) => {
-              const Icon = action.icon;
-
-              return (
-                <button
-                  key={action.title}
-                  onClick={() => {
-                    if (action.dashboard === "team" && !sessionCanOpen(adminSession, "team")) {
-                      setSettingsOpen(true);
-                      return;
-                    }
-                    setActiveDashboard?.(action.dashboard);
-                  }}
-                  className={`${panelClass} group rounded-[28px] p-5 text-left transition duration-200 hover:-translate-y-1 hover:shadow-[0_25px_60px_rgba(0,0,0,0.18)]`}
-                >
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl transition group-hover:scale-105 ${action.tone}`}>
-                    <Icon size={23} />
-                  </div>
-
-                  <h3 className={`mt-5 text-lg font-black ${action.featured ? "text-[#FF5556]" : headingClass}`}>
-                    {action.title}
-                  </h3>
-                  <p className={`mt-2 text-sm ${mutedClass}`}>{action.description}</p>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      </div>
-    </section>
+      <SectionHeader title="Partner applications" subtitle="Same forms as Partner Applications." />
+      <DashboardCard title="Partners" subtitle="Tap a row to open Partners">
+        <div className="overflow-x-auto">
+          <table className="min-w-full">
+            <thead>
+              <tr className="border-b border-pink-100 bg-pink-50">
+                <th className="px-6 py-4 text-left font-bold">Name</th>
+                <th className="px-6 py-4 text-left font-bold">Type</th>
+                <th className="px-6 py-4 text-left font-bold">City</th>
+                <th className="px-6 py-4 text-left font-bold">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {partners.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-10 text-center text-slate-500">
+                    No partner forms in this snapshot.
+                  </td>
+                </tr>
+              ) : (
+                partners.map((partner) => (
+                  <tr
+                    key={partner._id}
+                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    onClick={() => openDashboard("partner")}
+                  >
+                    <td className="px-6 py-4 font-semibold">{partner.fullName || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{partner.partnerType || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{partner.city || "—"}</td>
+                    <td className="px-6 py-4 text-sm">{partner.applicationStatus || "—"}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </DashboardCard>
+    </PageContainer>
   );
 }

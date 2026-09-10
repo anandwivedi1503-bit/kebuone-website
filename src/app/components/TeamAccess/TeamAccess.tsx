@@ -26,8 +26,6 @@ export default function TeamAccess() {
   const [dashboards, setDashboards] = useState<string[]>(["bookings"]);
   const [hubs, setHubs] = useState("");
   const [namedSuper, setNamedSuper] = useState(false);
-  const [totpUrl, setTotpUrl] = useState("");
-  const [totpCode, setTotpCode] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -96,7 +94,7 @@ export default function TeamAccess() {
     <PageContainer>
       <DashboardHeader
         title="Team access"
-        subtitle="Super admin only. Create dashboard logins that can add and update, but never delete."
+        subtitle="Super admin only. Assign which desks a login can open. Staff can add and update on those desks, never delete. Username + password is enough — no extra authenticator step."
       />
       <DashboardCard>
         <form onSubmit={submit} className="space-y-4">
@@ -158,67 +156,6 @@ export default function TeamAccess() {
         </form>
       </DashboardCard>
 
-      <DashboardCard>
-        <h3 className="text-lg font-bold">Authenticator 2FA for this login</h3>
-        <p className="mt-1 text-sm text-slate-500">
-          Does not apply to the shared env password. Create a named super first, log in as that user, then enroll.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button
-            type="button"
-            className="h-11 rounded-full bg-[#0A1134] px-5 font-bold text-white"
-            onClick={async () => {
-              const res = await fetch("/api/admin/totp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "start" }),
-              });
-              const data = await res.json();
-              if (!data.success) {
-                setError(data.message || "Could not start 2FA.");
-                return;
-              }
-              setTotpUrl(data.otpauthUrl || "");
-              setMessage(
-                data.secret
-                  ? `Manual key: ${data.secret}. Scan otpauth in Google Authenticator, then confirm.`
-                  : "Scan the otpauth URL in Google Authenticator, then confirm with a code."
-              );
-            }}
-          >
-            Start 2FA
-          </button>
-          {totpUrl ? <p className="break-all text-xs text-slate-600">{totpUrl}</p> : null}
-          <input
-            value={totpCode}
-            onChange={(e) => setTotpCode(e.target.value)}
-            placeholder="6-digit code"
-            className="h-11 rounded-2xl border border-slate-200 px-4"
-          />
-          <button
-            type="button"
-            className="h-11 rounded-full bg-[#18B368] px-5 font-bold text-white"
-            onClick={async () => {
-              const res = await fetch("/api/admin/totp", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "confirm", code: totpCode }),
-              });
-              const data = await res.json();
-              if (!data.success) {
-                setError(data.message || "Could not confirm 2FA.");
-                return;
-              }
-              setMessage("2FA is on for this named login.");
-              setTotpUrl("");
-              setTotpCode("");
-            }}
-          >
-            Confirm 2FA
-          </button>
-        </div>
-      </DashboardCard>
-
       <div className="mt-6 overflow-x-auto rounded-[24px] bg-white shadow-sm">
         <table className="min-w-full text-sm">
           <thead>
@@ -252,7 +189,6 @@ export default function TeamAccess() {
                   <td className="px-4 py-3">
                     {(row.hubs || []).length ? (row.hubs || []).join(", ") : "All yards"}
                     {row.staffRole === "super" ? " · named super" : ""}
-                    {row.totpEnabled ? " · 2FA on" : ""}
                   </td>
                   <td className="px-4 py-3">{row.isActive ? "Active" : "Off"}</td>
                   <td className="px-4 py-3">

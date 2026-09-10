@@ -8,8 +8,6 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [totp, setTotp] = useState("");
-  const [needsTotp, setNeedsTotp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -23,16 +21,10 @@ export default function AdminLoginPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ password, username, totp }),
+      body: JSON.stringify({ password, username }),
     });
 
     const data = await res.json();
-
-    if (data.needsTotp) {
-      setNeedsTotp(true);
-      setLoading(false);
-      return;
-    }
 
     if (!res.ok || !data.success) {
       setError(data.message || "Login failed.");
@@ -72,7 +64,7 @@ export default function AdminLoginPage() {
           </div>
 
           <p className="mt-4 text-sm leading-6 text-slate-500">
-            Named ops users: username + password (+ authenticator if enrolled). Shared env password remains emergency bootstrap only.
+            Named ops users: username + password. Shared env password remains emergency bootstrap only. Access is limited to the desks assigned in Team access.
           </p>
 
           <label className="mt-7 block text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
@@ -104,26 +96,6 @@ export default function AdminLoginPage() {
             placeholder="Admin password"
             className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-4 text-[#0A1134] outline-none transition focus:border-[#18B368] focus:shadow-[0_0_0_3px_rgba(24,179,104,0.18)]"
           />
-
-          {needsTotp ? (
-            <>
-              <label className="mt-5 block text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
-                Authenticator code
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                value={totp}
-                onChange={(e) => {
-                  setTotp(e.target.value);
-                  setError("");
-                }}
-                placeholder="6-digit code"
-                className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-4 text-[#0A1134] outline-none transition focus:border-[#18B368] focus:shadow-[0_0_0_3px_rgba(24,179,104,0.18)]"
-              />
-            </>
-          ) : null}
 
           {error ? (
             <p className="mt-3 text-sm font-medium text-rose-600">{error}</p>
