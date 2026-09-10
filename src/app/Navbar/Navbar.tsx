@@ -46,16 +46,9 @@ function isHandsetScreen() {
 
 function NavbarInner() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
   const [resumeHref, setResumeHref] = useState("/ride-options");
   const [compactNav, setCompactNav] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 30);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   useEffect(() => {
     const apply = () => {
@@ -119,16 +112,8 @@ function NavbarInner() {
   return (
     <nav
       data-compact-nav={compactNav ? "true" : "false"}
-      className={`fixed inset-x-0 top-0 z-[1102] pt-[env(safe-area-inset-top)] transition-colors duration-300 ${
-        isScrolled
-          ? "border-b border-[#E4DDD2] bg-[#F7F4EE]/95 backdrop-blur-md"
-          : "border-b border-transparent bg-[#F7F4EE]"
-      }`}
+      className="fixed inset-x-0 top-0 z-[1102] border-b border-[#E4DDD2] bg-white pt-[env(safe-area-inset-top)]"
     >
-      <div className="hidden bg-[#1C3A2E] px-4 py-1.5 text-center text-[10px] font-medium uppercase tracking-[0.18em] text-white/90 sm:block">
-        GST invoice on rent · KYC-verified riders · Hub OTP pickup
-      </div>
-
       <div className="nav-shell">
         <Link href="/" className="nav-logo">
           <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" />

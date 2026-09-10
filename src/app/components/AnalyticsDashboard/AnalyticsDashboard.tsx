@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 import {
@@ -32,13 +32,12 @@ const [period, setPeriod] = useState("all");
 
 const [loading, setLoading] = useState(true);
 const [error, setError] = useState("");
-
-
+const hasAnalyticsRef = useRef(false);
 
 useEffect(() => {
   const loadAnalytics = async () => {
   try {
-    setLoading(true);
+    if (!hasAnalyticsRef.current) setLoading(true);
     setError("");
 
     const res = await fetch(`/api/analytics?period=${period}`, {
@@ -53,6 +52,7 @@ useEffect(() => {
     }
 
     setAnalytics(data.data);
+    hasAnalyticsRef.current = true;
 
     setLastUpdated(
       new Date().toLocaleTimeString()

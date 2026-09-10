@@ -26,9 +26,9 @@ export default function PartnerDashboard() {
   const [openId, setOpenId] = useState("");
   const [remarks, setRemarks] = useState("");
 
-  const loadPartners = async () => {
+  const loadPartners = async (blankDesk = false) => {
     try {
-      setLoading(true);
+      if (blankDesk) setLoading(true);
       const res = await fetch("/api/partners?limit=120", { cache: "no-store" });
       const data = await res.json();
       setPartners(data.data || []);
@@ -38,8 +38,10 @@ export default function PartnerDashboard() {
   };
 
   useEffect(() => {
-    loadPartners();
-    return startOpsPoll(loadPartners);
+    void loadPartners(true);
+    return startOpsPoll(() => {
+      void loadPartners(false);
+    });
   }, []);
 
   const rows = useMemo(() => {
@@ -101,7 +103,7 @@ export default function PartnerDashboard() {
       <DashboardActions
         filename="partner-applications"
         rows={rows}
-        onRefresh={() => void loadPartners()}
+        onRefresh={() => void loadPartners(false)}
       />
 
       <KPIGrid>

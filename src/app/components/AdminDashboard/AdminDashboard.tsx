@@ -30,7 +30,6 @@ import {
   MapPin,
   Moon,
   Radio,
-  RefreshCw,
   Route,
   Search,
   Settings,
@@ -578,19 +577,15 @@ const refreshDashboard = async () => {
 
 if (loading) {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-white/90 backdrop-blur-xl">
+    <div className="flex min-h-[320px] items-center justify-center">
       <div className="text-center">
-
-        <div className="mx-auto h-12 w-12 rounded-full border-4 border-pink-500 border-t-transparent animate-spin"></div>
-
-        <h2 className="mt-6 text-2xl font-black">
-          Loading EVUDDY Operations Command Center...
+        <div className="mx-auto h-10 w-10 rounded-full border-4 border-[#18B368] border-t-transparent animate-spin"></div>
+        <h2 className="mt-5 text-xl font-medium tracking-tight text-[#0A1134]">
+          Loading command center
         </h2>
-
-        <p className="mt-2 text-gray-500">
-          Synchronizing live EVUDDY enterprise data...
+        <p className="mt-2 text-sm text-slate-500">
+          Live riders, fleet, hubs and tickets from Mongo.
         </p>
-
       </div>
     </div>
   );
@@ -1235,23 +1230,12 @@ IoT Network
         </section>
 
         <section className="space-y-5">
-          <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Recent Activity</h2>
-              <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>Automatically updated from your live database.</p>
-            </div>
-
-            <button
-  type="button"
-  onClick={() => void refreshDashboard()}
-  className="inline-flex h-12 w-fit items-center gap-2 rounded-2xl bg-gradient-to-r from-[#D6006E] to-[#FF5556] px-4 text-sm font-bold text-white shadow-lg shadow-rose-500/20 transition hover:-translate-y-0.5"
->
-              <RefreshCw
-size={16}
-className={refreshing ? "animate-spin" : ""}
-/>
-              Refresh Dashboard
-            </button>
+          <div>
+            <h2 className={`text-2xl font-black tracking-tight sm:text-3xl ${headingClass}`}>Recent Activity</h2>
+            <p className={`mt-2 text-sm sm:text-base ${mutedClass}`}>
+              Automatically updated from your live database
+              {refreshing ? " · refreshing…" : lastUpdated ? ` · ${lastUpdated}` : ""}.
+            </p>
           </div>
 
           <div className={`${panelClass} overflow-hidden rounded-[28px]`}>

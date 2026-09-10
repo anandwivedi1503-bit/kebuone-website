@@ -9,6 +9,7 @@ import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import DashboardActions from "../DashboardUI/DashboardActions";
 import ActionButton from "../DashboardUI/ActionButton";
 import VehicleRideOtpCell from "../YardRideDesk/VehicleRideOtpCell";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
@@ -145,6 +146,17 @@ subtitle="Same vehicles and booking money as Hub and Booking Management. Yard ca
 
 <OpsMoneyStrip />
 <YardQueueStrip />
+
+<DashboardActions
+  filename="fleet-vehicles"
+  rows={vehicles.map((vehicle) => ({
+    vehicleId: vehicle.vehicleId,
+    hubName: vehicle.hubName,
+    status: vehicle.vehicleStatus,
+    battery: vehicle.batteryPercentage,
+  }))}
+  onRefresh={() => loadFleet()}
+/>
 
 <KPIGrid>
 
