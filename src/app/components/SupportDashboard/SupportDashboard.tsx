@@ -25,6 +25,7 @@ const [editingTicket,setEditingTicket]=useState<any>(null);
 const [showEditModal,setShowEditModal]=useState(false);
 const [statusFilter,setStatusFilter]=useState("ALL");
 const [categoryFilter,setCategoryFilter]=useState("ALL");
+const [priorityFilter,setPriorityFilter]=useState<"ALL" | "CRITICAL">("ALL");
 const [search,setSearch]=useState(() => consumeOpsFocus());
 const [ticketQueue,setTicketQueue]=useState<"riders" | "website">("riders");
 
@@ -130,6 +131,23 @@ const closedTickets=queueTickets.filter(
 (ticket)=>ticket.status==="CLOSED"
 ).length;
 
+const ticketMatchesDesk = (ticket: any) => {
+  const keyword = search.toLowerCase();
+  const matchesSearch =
+    ticket.ticketId?.toLowerCase().includes(keyword) ||
+    ticket.userId?.toLowerCase().includes(keyword) ||
+    ticket.bookingId?.toLowerCase().includes(keyword) ||
+    ticket.vehicleId?.toLowerCase().includes(keyword) ||
+    ticket.category?.toLowerCase().includes(keyword);
+  const matchesStatus = statusFilter === "ALL" || ticket.status === statusFilter;
+  const matchesCategory = categoryFilter === "ALL" || ticket.category === categoryFilter;
+  const matchesPriority =
+    priorityFilter === "ALL" || ticket.priority === "Critical";
+  return matchesSearch && matchesStatus && matchesCategory && matchesPriority;
+};
+
+const visibleTickets = queueTickets.filter(ticketMatchesDesk);
+
 return(
 
 <PageContainer>
@@ -150,6 +168,11 @@ value={openTickets}
 subtitle="Needs Attention"
 icon="🎫"
 color="yellow"
+selected={statusFilter === "OPEN" && priorityFilter === "ALL"}
+onClick={() => {
+  setStatusFilter("OPEN");
+  setPriorityFilter("ALL");
+}}
 />
 
 <KPICard
@@ -158,6 +181,11 @@ value={inProgressTickets}
 subtitle="Being handled"
 icon="🛠️"
 color="blue"
+selected={statusFilter === "IN-PROGRESS" && priorityFilter === "ALL"}
+onClick={() => {
+  setStatusFilter("IN-PROGRESS");
+  setPriorityFilter("ALL");
+}}
 />
 
 <KPICard
@@ -166,6 +194,11 @@ value={criticalTickets}
 subtitle="Highest Priority"
 icon="🚨"
 color="red"
+selected={priorityFilter === "CRITICAL"}
+onClick={() => {
+  setStatusFilter("ALL");
+  setPriorityFilter("CRITICAL");
+}}
 />
 
 <KPICard
@@ -174,6 +207,11 @@ value={resolvedTickets}
 subtitle="Completed"
 icon="✅"
 color="green"
+selected={statusFilter === "RESOLVED" && priorityFilter === "ALL"}
+onClick={() => {
+  setStatusFilter("RESOLVED");
+  setPriorityFilter("ALL");
+}}
 />
 
 <KPICard
@@ -182,6 +220,11 @@ value={closedTickets}
 subtitle="Finished"
 icon="📦"
 color="blue"
+selected={statusFilter === "CLOSED" && priorityFilter === "ALL"}
+onClick={() => {
+  setStatusFilter("CLOSED");
+  setPriorityFilter("ALL");
+}}
 />
 
 <KPICard
@@ -212,7 +255,7 @@ rightContent={
   <DashboardActions
     filename="SupportTickets.csv"
     onRefresh={() => window.location.reload()}
-    rows={queueTickets.map((ticket) => ({
+    rows={visibleTickets.map((ticket) => ({
       TicketID: ticket.ticketId,
       Source: ticket.ticketSource || (ticket.bookingId ? "Booking" : "Website"),
       BookingID: ticket.bookingId || "",
@@ -298,7 +341,10 @@ focus:outline-none
 
 value={statusFilter}
 
-onChange={(e)=>setStatusFilter(e.target.value)}
+onChange={(e)=>{
+setStatusFilter(e.target.value);
+setPriorityFilter("ALL");
+}}
 
 className="
 rounded-2xl
@@ -419,29 +465,7 @@ Action
 
 <tbody>
 
-  {queueTickets
-.filter((ticket)=>{
-
-const keyword = search.toLowerCase();
-
-const matchesSearch =
-ticket.ticketId?.toLowerCase().includes(keyword) ||
-ticket.userId?.toLowerCase().includes(keyword) ||
-ticket.bookingId?.toLowerCase().includes(keyword) ||
-ticket.vehicleId?.toLowerCase().includes(keyword) ||
-ticket.category?.toLowerCase().includes(keyword);
-
-const matchesStatus =
-statusFilter==="ALL" ||
-ticket.status===statusFilter;
-
-const matchesCategory =
-categoryFilter==="ALL" ||
-ticket.category===categoryFilter;
-
-return matchesSearch && matchesStatus && matchesCategory;
-
-}).length===0 && (
+  {visibleTickets.length===0 && (
 
 <tr>
 
@@ -472,29 +496,7 @@ New customer issues will automatically appear here.
 
 )}
 
-{queueTickets
-.filter((ticket)=>{
-
-const keyword = search.toLowerCase();
-
-const matchesSearch =
-ticket.ticketId?.toLowerCase().includes(keyword) ||
-ticket.userId?.toLowerCase().includes(keyword) ||
-ticket.bookingId?.toLowerCase().includes(keyword) ||
-ticket.vehicleId?.toLowerCase().includes(keyword) ||
-ticket.category?.toLowerCase().includes(keyword);
-
-const matchesStatus =
-statusFilter==="ALL" ||
-ticket.status===statusFilter;
-
-const matchesCategory =
-categoryFilter==="ALL" ||
-ticket.category===categoryFilter;
-
-return matchesSearch && matchesStatus && matchesCategory;
-
-})
+{visibleTickets
 
 .map((ticket)=>(
 

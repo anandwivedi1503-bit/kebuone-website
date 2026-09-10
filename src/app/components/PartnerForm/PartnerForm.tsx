@@ -12,6 +12,7 @@ export default function PartnerForm() {
   city: "",
   territory: "",
   partnerType: "",
+  comingThrough: "Direct / EVUDDY",
   investmentCapacity: "",
   propertyAvailable: "",
   availableSpace: "",
@@ -76,6 +77,7 @@ const handleSubmit = async (
         city: "",
         territory: "",
         partnerType: "",
+        comingThrough: "Direct / EVUDDY",
         investmentCapacity: "",
         propertyAvailable: "",
         availableSpace: "",
@@ -479,8 +481,6 @@ hover:border-[#22C55E]/40
               <option>EVUDDY Dealer</option>
               <option>EVUDDY Distributor</option>
               <option>Fleet Partner Investment</option>
-              <option>Flipkart Minutes Partner</option>
-              <option>Zomato Partner</option>
               <option>College Mobility Partner</option>
               <option>Bike Rental Franchise Partner</option>
               <option>EV Charging Partner</option>
@@ -488,6 +488,42 @@ hover:border-[#22C55E]/40
               <option>Hub Operations Partner</option>
               <option>Delivery Operations Partner</option>
               <option>Smart Parking Partner</option>
+            </select>
+
+            <select
+  name="comingThrough"
+  value={formData.comingThrough}
+  onChange={handleChange}
+  className="
+h-16
+w-full
+rounded-2xl
+border
+border-slate-200
+bg-[#F8FAFC]
+px-5
+text-[15px]
+font-medium
+text-[#0F172A]
+outline-none
+transition-all
+duration-300
+shadow-sm
+focus:bg-white
+focus:border-[#22C55E]
+focus:ring-4
+focus:ring-[#22C55E]/10
+hover:border-[#22C55E]/40
+"
+>
+              <option value="Direct / EVUDDY">Coming through: Direct / EVUDDY *</option>
+              <option value="Flipkart Minutes">Coming through: Flipkart Minutes</option>
+              <option value="Zomato">Coming through: Zomato</option>
+              <option value="Swiggy">Coming through: Swiggy</option>
+              <option value="Instamart">Coming through: Instamart</option>
+              <option value="Blinkit">Coming through: Blinkit</option>
+              <option value="Zepto">Coming through: Zepto</option>
+              <option value="Other">Coming through: Other</option>
             </select>
 
             {/* Investment */}

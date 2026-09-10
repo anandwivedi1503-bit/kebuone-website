@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import Partner from "@/models/Partner";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { parseListQuery } from "@/lib/listQuery";
+import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -68,6 +69,8 @@ export async function POST(req: Request) {
     const city = clean(body.city, 80);
     const territory = clean(body.territory, 120);
     const partnerType = clean(body.partnerType, 120);
+    const comingThroughRaw = clean(body.comingThrough, 80);
+    const comingThrough = comingThroughRaw || DIRECT_THROUGH;
     const investmentCapacity = clean(body.investmentCapacity, 80);
     const propertyAvailable = clean(body.propertyAvailable, 20);
     const availableSpace = clean(body.availableSpace, 80);
@@ -86,6 +89,9 @@ export async function POST(req: Request) {
     if (city.length < 2) errors.push("City is required.");
     if (territory.length < 2) errors.push("Preferred territory is required.");
     if (!partnerTypes.includes(partnerType)) errors.push("Select a valid partnership type.");
+    if (!(COMING_THROUGH_OPTIONS as readonly string[]).includes(comingThrough)) {
+      errors.push("Select how this lead is coming in.");
+    }
     if (!investmentCapacities.includes(investmentCapacity)) errors.push("Select a valid investment capacity.");
     if (!propertyOptions.includes(propertyAvailable)) errors.push("Select property availability.");
     if (!spaceOptions.includes(availableSpace)) errors.push("Select available space.");
@@ -122,6 +128,7 @@ export async function POST(req: Request) {
       city,
       territory,
       partnerType,
+      comingThrough,
       investmentCapacity,
       propertyAvailable,
       availableSpace,
@@ -169,6 +176,7 @@ export async function GET(req: Request) {
         { city: { $regex: q, $options: "i" } },
         { organizationName: { $regex: q, $options: "i" } },
         { partnerType: { $regex: q, $options: "i" } },
+        { comingThrough: { $regex: q, $options: "i" } },
       ];
     }
 

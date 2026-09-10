@@ -30,6 +30,7 @@ const [search,setSearch]=useState(() => consumeOpsFocus());
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [paymentFilter, setPaymentFilter] = useState("ALL");
 const [modeFilter, setModeFilter] = useState("ALL");
+const [extraFilter, setExtraFilter] = useState<"NONE" | "ACTIVE" | "TODAY">("NONE");
 const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");
 const [generatedPickupOTP, setGeneratedPickupOTP] =
@@ -405,11 +406,29 @@ modeFilter === "ALL" ||
   ? booking.rentalMode === "Rent To Own"
   : booking.rentalMode !== "Rent To Own");
 
+const liveRide =
+  booking.rideStatus==="Booked" ||
+  booking.rideStatus==="Reserved" ||
+  booking.rideStatus==="Payment Pending" ||
+  booking.rideStatus==="Ready For Pickup" ||
+  booking.rideStatus==="In Ride";
+
+const createdToday = Boolean(
+  booking.createdAt &&
+  new Date(booking.createdAt).toDateString() === new Date().toDateString()
+);
+
+const matchesExtra =
+  extraFilter === "NONE" ||
+  (extraFilter === "ACTIVE" && liveRide) ||
+  (extraFilter === "TODAY" && createdToday);
+
 return (
 matchesSearch &&
 matchesStatus &&
 matchesPayment &&
-matchesMode
+matchesMode &&
+matchesExtra
 );
 });
 
@@ -515,6 +534,12 @@ value={totalBookings}
 subtitle="Total"
 icon="📋"
 color="pink"
+selected={statusFilter === "ALL" && paymentFilter === "ALL" && extraFilter === "NONE"}
+onClick={() => {
+  setStatusFilter("ALL");
+  setPaymentFilter("ALL");
+  setExtraFilter("NONE");
+}}
 />
 
 <KPICard
@@ -523,6 +548,12 @@ value={activeBookings}
 subtitle="In Progress"
 icon="🚲"
 color="green"
+selected={extraFilter === "ACTIVE"}
+onClick={() => {
+  setStatusFilter("ALL");
+  setPaymentFilter("ALL");
+  setExtraFilter("ACTIVE");
+}}
 />
 
 <KPICard
@@ -531,6 +562,12 @@ value={completedBookings}
 subtitle="Finished"
 icon="✅"
 color="blue"
+selected={statusFilter === "Completed" && extraFilter === "NONE"}
+onClick={() => {
+  setStatusFilter("Completed");
+  setPaymentFilter("ALL");
+  setExtraFilter("NONE");
+}}
 />
 
 <KPICard
@@ -547,6 +584,12 @@ value={cancelledBookings}
 subtitle="Bookings"
 icon="❌"
 color="red"
+selected={statusFilter === "Cancelled" && extraFilter === "NONE"}
+onClick={() => {
+  setStatusFilter("Cancelled");
+  setPaymentFilter("ALL");
+  setExtraFilter("NONE");
+}}
 />
 
 <KPICard
@@ -555,6 +598,12 @@ value={todaysBookings}
 subtitle="Created Today"
 icon="📅"
 color="blue"
+selected={extraFilter === "TODAY"}
+onClick={() => {
+  setStatusFilter("ALL");
+  setPaymentFilter("ALL");
+  setExtraFilter("TODAY");
+}}
 />
 
 <KPICard
@@ -563,6 +612,12 @@ value={readyForPickup}
 subtitle="Waiting"
 icon="🛵"
 color="yellow"
+selected={statusFilter === "Ready For Pickup" && extraFilter === "NONE"}
+onClick={() => {
+  setStatusFilter("Ready For Pickup");
+  setPaymentFilter("ALL");
+  setExtraFilter("NONE");
+}}
 />
 
 <KPICard
@@ -571,6 +626,12 @@ value={pendingPayments}
 subtitle="Awaiting"
 icon="💰"
 color="red"
+selected={paymentFilter === "Pending"}
+onClick={() => {
+  setStatusFilter("ALL");
+  setPaymentFilter("Pending");
+  setExtraFilter("NONE");
+}}
 />
 
 <KPICard
@@ -579,6 +640,12 @@ value={partialPayments}
 subtitle="Advance Paid"
 icon="🟣"
 color="pink"
+selected={paymentFilter === "Partial"}
+onClick={() => {
+  setStatusFilter("ALL");
+  setPaymentFilter("Partial");
+  setExtraFilter("NONE");
+}}
 />
 </KPIGrid>
 
@@ -746,7 +813,10 @@ focus:ring-pink-200
 
 key={status}
 
-onClick={()=>setStatusFilter(status)}
+onClick={()=>{
+setStatusFilter(status);
+setExtraFilter("NONE");
+}}
 
 className={`
 
@@ -790,7 +860,10 @@ statusFilter===status
 
 key={status}
 
-onClick={()=>setPaymentFilter(status)}
+onClick={()=>{
+setPaymentFilter(status);
+setExtraFilter("NONE");
+}}
 
 className={`
 rounded-xl

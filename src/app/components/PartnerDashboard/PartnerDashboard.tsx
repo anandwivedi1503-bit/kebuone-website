@@ -9,6 +9,7 @@ import {
   type PartnerSegmentId,
   partnerMatchesSegment,
   partnerSheetRows,
+  normalizeComingThrough,
 } from "@/lib/partnerSegments";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -58,7 +59,8 @@ export default function PartnerDashboard() {
         partner.email?.toLowerCase().includes(keyword) ||
         partner.city?.toLowerCase().includes(keyword) ||
         partner.organizationName?.toLowerCase().includes(keyword) ||
-        partner.partnerType?.toLowerCase().includes(keyword);
+        partner.partnerType?.toLowerCase().includes(keyword) ||
+        String(partner.comingThrough || "").toLowerCase().includes(keyword);
 
       const matchesStage = stageFilter === "ALL" || partner.applicationStage === stageFilter;
       const matchesChannel = partnerMatchesSegment(partner, channel);
@@ -180,6 +182,7 @@ export default function PartnerDashboard() {
               <tr className="border-b border-pink-100 bg-pink-50">
                 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">Applicant</th>
                 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">Channel</th>
+                <th className="px-6 py-5 text-left font-bold text-[#0A1134]">Coming through</th>
                 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">City</th>
                 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">Investment</th>
                 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">Status</th>
@@ -190,7 +193,7 @@ export default function PartnerDashboard() {
             <tbody>
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center font-medium text-gray-500">
+                    <td colSpan={8} className="py-12 text-center font-medium text-gray-500">
                     No partner applications found
                   </td>
                 </tr>
@@ -203,6 +206,7 @@ export default function PartnerDashboard() {
                       <p className="text-sm text-gray-500">{partner.organizationName}</p>
                     </td>
                     <td className="px-6 py-5 text-sm">{partner.partnerType}</td>
+                    <td className="px-6 py-5 text-sm">{normalizeComingThrough(partner)}</td>
                     <td className="px-6 py-5">
                       {partner.city}
                       {partner.state ? `, ${partner.state}` : ""}
@@ -274,7 +278,7 @@ export default function PartnerDashboard() {
                     </td>
                   </tr>
                   <tr key={`${partner._id}-detail`} className="border-b border-pink-50 bg-[#FBF9F5]">
-                    <td colSpan={7} className="px-6 py-4 text-sm text-gray-600">
+                    <td colSpan={8} className="px-6 py-4 text-sm text-gray-600">
                       <p>
                         {partner.phone} · {partner.email}
                         {partner.territory ? ` · ${partner.territory}` : ""}
