@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  Menu,
   X,
   ChevronRight,
   Building2,
@@ -33,16 +34,15 @@ const navLinks = [
 /** Physical handset, even if the browser is in “Desktop site” mode. */
 function isHandsetScreen() {
   if (typeof window === "undefined") return false;
+  const ua = navigator.userAgent || "";
+  if (/iPhone|iPod|Android.+Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+    return true;
+  }
+  const dpr = window.devicePixelRatio || 1;
   const shortest = Math.min(window.screen.width || 0, window.screen.height || 0);
-  const touch =
-    navigator.maxTouchPoints > 0 ||
-    window.matchMedia("(hover: none) and (pointer: coarse)").matches;
-  return touch && shortest > 0 && shortest <= 850;
-}
-
-function closeDetails(el: HTMLElement | null) {
-  const details = el?.closest("details");
-  if (details) details.open = false;
+  const shortestCss = shortest / dpr;
+  const touch = navigator.maxTouchPoints > 0;
+  return touch && (shortest <= 850 || shortestCss <= 480);
 }
 
 function NavbarInner() {
@@ -104,11 +104,14 @@ function NavbarInner() {
     };
   }, []);
 
-  const handleLogout = async () => {
-    document.querySelectorAll<HTMLDetailsElement>(".nav-phone-menu").forEach((el) => {
-      el.open = false;
-    });
+  const closeMenu = () => {
     setMenuOpen(false);
+    const checkbox = document.getElementById("evuddy-nav-menu");
+    if (checkbox instanceof HTMLInputElement) checkbox.checked = false;
+  };
+
+  const handleLogout = async () => {
+    closeMenu();
     await logoutRider();
   };
 
@@ -125,22 +128,16 @@ function NavbarInner() {
         GST invoice on rent · KYC-verified riders · Hub OTP pickup
       </div>
 
-      <div className="relative mx-auto flex h-16 w-full max-w-[1650px] items-center justify-between gap-3 overflow-hidden bg-[#F7F4EE] px-4 sm:h-[4.25rem] sm:px-6 lg:px-8">
-        <Link
-          href="/"
-          className="relative z-20 flex h-full max-h-full shrink-0 items-center gap-2 overflow-hidden py-1"
-        >
+      <div className="relative mx-auto flex h-14 w-full max-w-[1650px] items-center justify-between gap-3 px-4 sm:h-16 sm:px-6 lg:px-8">
+        <Link href="/" className="relative z-20 flex shrink-0 items-center">
           <Image
-            src="/Evuddy-logo-nav.png"
+            src="/Evuddy-logo-dark-E.png"
             alt="EVUDDY"
-            width={966}
-            height={230}
+            width={320}
+            height={95}
             priority
-            className="h-10 w-auto max-h-10 max-w-[148px] object-contain object-left sm:h-11 sm:max-h-11 sm:max-w-[184px] min-[1280px]:h-12 min-[1280px]:max-h-12 min-[1280px]:max-w-[210px]"
+            className="h-9 w-auto max-w-[132px] object-contain object-left sm:h-10 sm:max-w-[168px] min-[1280px]:h-11 min-[1280px]:max-w-[184px]"
           />
-          <span className="inline-flex shrink-0 items-center self-center bg-[#1C3A2E] px-1.5 py-1 text-[8px] font-semibold uppercase leading-none tracking-[0.12em] text-[#EC2A8C] sm:px-2 sm:text-[9px]">
-            By Kebu One
-          </span>
         </Link>
 
         <div className="nav-desktop-row shrink-0 items-center justify-center gap-[clamp(0.75rem,1.4vw,1.75rem)]">
@@ -195,123 +192,116 @@ function NavbarInner() {
           {riderLoggedIn && <RiderAccountMenu />}
         </div>
 
-        <div className="nav-phone-toggle shrink-0 items-center gap-2">
+        <div className="nav-phone-toggle ml-auto shrink-0 items-center gap-2">
           {riderLoggedIn && <RiderAccountMenu compact />}
-          <details
-            className="nav-phone-menu"
-            onToggle={(event) => {
-              setMenuOpen((event.currentTarget as HTMLDetailsElement).open);
-            }}
-          >
-            <summary className="nav-burger" aria-label="Open menu">
-              {menuOpen ? (
-                <X size={22} strokeWidth={2.25} />
-              ) : (
-                <>
-                  <span />
-                  <span />
-                  <span />
-                </>
-              )}
-            </summary>
-            <div className="nav-drawer-layer is-open">
-              <button
-                type="button"
-                className="nav-drawer-overlay"
-                aria-label="Close menu"
-                onClick={(event) => closeDetails(event.currentTarget)}
-              />
-              <div className="nav-drawer" role="dialog" aria-label="Site menu">
-          <div className="flex items-center justify-between border-b px-4 py-6">
-            <Image
-              src="/Evuddy-logo-nav.png"
-              alt="EVUDDY"
-              width={966}
-              height={230}
-              className="h-11 w-auto max-h-11 object-contain object-left"
-            />
-            <button
-              type="button"
-              onClick={(event) => closeDetails(event.currentTarget)}
-              className="rounded-full p-2 transition hover:bg-gray-100"
-              aria-label="Close menu"
-            >
-              <X size={28} className="text-gray-800" />
-            </button>
-          </div>
-          <div className="space-y-1 px-4 py-8">
-            {navLinks.map((item) => (
-              <Link
-                key={item.title}
-                href={item.href}
-                onClick={(event) => closeDetails(event.currentTarget)}
-                className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold text-gray-800 transition hover:bg-green-50 hover:text-green-600"
-              >
-                {item.title}
-                <ChevronRight size={18} />
-              </Link>
-            ))}
-          </div>
-          <div className="space-y-4 px-4 pb-10">
-            {riderLoggedIn ? (
-              <>
-                <Link
-                  href={resumeHref}
-                  onClick={(event) => closeDetails(event.currentTarget)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white"
-                >
-                  Continue my ride
-                  <ChevronRight size={18} />
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleLogout}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#EC2A8C]/30 bg-white font-semibold text-[#EC2A8C]"
-                >
-                  <LogOut size={18} />
-                  Log out
-                </button>
-              </>
+          <input
+            id="evuddy-nav-menu"
+            type="checkbox"
+            className="nav-menu-check"
+            onChange={(event) => setMenuOpen(event.target.checked)}
+          />
+          <label htmlFor="evuddy-nav-menu" className="nav-burger relative z-[1200]" aria-label="Open menu">
+            {menuOpen ? (
+              <X size={28} strokeWidth={2.25} />
             ) : (
-              <>
-                <Link
-                  href="/partners#dealer-network"
-                  onClick={(event) => closeDetails(event.currentTarget)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
-                >
-                  <Building2 size={20} />
-                  Become a dealer
-                </Link>
-                <Link
-                  href="/partners"
-                  onClick={(event) => closeDetails(event.currentTarget)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
-                >
-                  <Building2 size={20} />
-                  Fleet Partner
-                </Link>
-                <Link
-                  href="/partners#fleet-investment"
-                  onClick={(event) => closeDetails(event.currentTarget)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition hover:bg-[#18573c]"
-                >
-                  <Wallet size={20} />
-                  Invest
-                </Link>
-                <Link
-                  href="/ride-options"
-                  onClick={(event) => closeDetails(event.currentTarget)}
-                  className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white transition hover:bg-black"
-                >
-                  Book Ride
-                  <ChevronRight size={18} />
-                </Link>
-              </>
+              <Menu size={30} strokeWidth={2.25} />
             )}
-          </div>
+          </label>
+          <div className="nav-drawer-layer">
+            <label
+              htmlFor="evuddy-nav-menu"
+              className="nav-drawer-overlay"
+              aria-label="Close menu"
+            />
+            <div className="nav-drawer" role="dialog" aria-label="Site menu">
+              <div className="flex items-center justify-between border-b px-4 py-6">
+                <Image
+                  src="/Evuddy-logo-dark-E.png"
+                  alt="EVUDDY"
+                  width={180}
+                  height={55}
+                  className="h-11 w-auto"
+                />
+                <label
+                  htmlFor="evuddy-nav-menu"
+                  className="rounded-full p-2 transition hover:bg-gray-100"
+                  aria-label="Close menu"
+                >
+                  <X size={28} className="text-gray-800" />
+                </label>
+              </div>
+              <div className="space-y-1 px-4 py-8">
+                {navLinks.map((item) => (
+                  <Link
+                    key={item.title}
+                    href={item.href}
+                    onClick={closeMenu}
+                    className="flex items-center justify-between rounded-xl px-4 py-4 font-semibold text-gray-800 transition hover:bg-green-50 hover:text-green-600"
+                  >
+                    {item.title}
+                    <ChevronRight size={18} />
+                  </Link>
+                ))}
+              </div>
+              <div className="space-y-4 px-4 pb-10">
+                {riderLoggedIn ? (
+                  <>
+                    <Link
+                      href={resumeHref}
+                      onClick={closeMenu}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white"
+                    >
+                      Continue my ride
+                      <ChevronRight size={18} />
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#EC2A8C]/30 bg-white font-semibold text-[#EC2A8C]"
+                    >
+                      <LogOut size={18} />
+                      Log out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/partners#dealer-network"
+                      onClick={closeMenu}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
+                    >
+                      <Building2 size={20} />
+                      Become a dealer
+                    </Link>
+                    <Link
+                      href="/partners"
+                      onClick={closeMenu}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
+                    >
+                      <Building2 size={20} />
+                      Fleet Partner
+                    </Link>
+                    <Link
+                      href="/partners#fleet-investment"
+                      onClick={closeMenu}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] font-semibold text-white transition hover:bg-[#18573c]"
+                    >
+                      <Wallet size={20} />
+                      Invest
+                    </Link>
+                    <Link
+                      href="/ride-options"
+                      onClick={closeMenu}
+                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white transition hover:bg-black"
+                    >
+                      Book Ride
+                      <ChevronRight size={18} />
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
-          </details>
+          </div>
         </div>
       </div>
     </nav>

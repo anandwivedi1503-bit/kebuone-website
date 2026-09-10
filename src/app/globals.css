@@ -52,7 +52,9 @@ body {
 }
 
 .nav-phone-toggle {
-  display: flex;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 @media (min-width: 1280px) {
@@ -61,7 +63,7 @@ body {
   }
 
   .nav-phone-toggle {
-    display: none;
+    display: none !important;
   }
 }
 
@@ -71,39 +73,30 @@ nav[data-compact-nav="true"] .nav-desktop-row {
 
 nav[data-compact-nav="true"] .nav-phone-toggle {
   display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .nav-burger {
   display: inline-flex;
   width: 44px;
   height: 44px;
-  flex-direction: column;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  gap: 5px;
   border: 0;
   background: transparent;
   color: #0f172a;
   cursor: pointer;
-  list-style: none;
   -webkit-tap-highlight-color: transparent;
 }
 
-.nav-burger::-webkit-details-marker,
-.nav-burger::marker {
-  display: none;
-}
-
-.nav-phone-menu {
-  position: relative;
-}
-
-.nav-burger span {
-  display: block;
-  width: 22px;
-  height: 2px;
-  border-radius: 1px;
-  background: #0f172a;
+.nav-menu-check {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
 }
 
 .nav-drawer-layer {
@@ -135,14 +128,17 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
   padding-top: env(safe-area-inset-top);
 }
 
+.nav-menu-check:checked ~ .nav-drawer-layer,
 .nav-drawer-layer.is-open {
   pointer-events: auto;
 }
 
+.nav-menu-check:checked ~ .nav-drawer-layer .nav-drawer-overlay,
 .nav-drawer-layer.is-open .nav-drawer-overlay {
   opacity: 1;
 }
 
+.nav-menu-check:checked ~ .nav-drawer-layer .nav-drawer,
 .nav-drawer-layer.is-open .nav-drawer {
   transform: translateX(0);
 }
