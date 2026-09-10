@@ -185,11 +185,6 @@ function NavbarInner() {
             <span />
           </label>
           <div className="nav-drawer-layer">
-            <label
-              htmlFor="evuddy-nav-menu"
-              className="nav-drawer-overlay"
-              aria-label="Close menu"
-            />
             <div className="nav-drawer" role="dialog" aria-label="Site menu">
               <div className="flex items-center justify-between border-b px-4 py-6">
                 <Image

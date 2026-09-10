@@ -191,16 +191,6 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
   pointer-events: none;
 }
 
-.nav-drawer-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  border: 0;
-  background: rgb(0 0 0 / 0.6);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
 .nav-drawer {
   position: fixed;
   top: 0;
@@ -219,11 +209,6 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
 .nav-menu-check:checked ~ .nav-drawer-layer,
 .nav-drawer-layer.is-open {
   pointer-events: auto;
-}
-
-.nav-menu-check:checked ~ .nav-drawer-layer .nav-drawer-overlay,
-.nav-drawer-layer.is-open .nav-drawer-overlay {
-  opacity: 1;
 }
 
 .nav-menu-check:checked ~ .nav-drawer-layer .nav-drawer,
