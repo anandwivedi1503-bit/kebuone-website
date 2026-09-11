@@ -26,6 +26,7 @@ import {
   setChosenPlan,
   syncPlanFromActiveBooking,
 } from "@/lib/riderPlanGate";
+import { openStreetMapEmbedUrl } from "@/lib/hubMapEmbed";
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -95,6 +96,8 @@ type Hub = {
   longitude?: number;
   customerRating?: number;
   ratingsCount?: number;
+  availableBikes?: number;
+  totalVehicles?: number;
 };
 
 type CityRecord = {
@@ -730,6 +733,11 @@ const hubMapsQuery =
           .filter(Boolean)
           .join(", ")
       );
+const hubMapEmbed =
+  displayHub?.latitude && displayHub?.longitude
+    ? openStreetMapEmbedUrl(Number(displayHub.latitude), Number(displayHub.longitude))
+    : "";
+const hubAvailableNow = Number(displayHub?.availableBikes ?? NaN);
 const hubLabel = displayHub
   ? `${displayHub.hubName || displayHub.hubLocation || hub}${
       displayHub.hubCode ? ` (${displayHub.hubCode})` : ""
@@ -1970,9 +1978,26 @@ cursor-pointer
     {Number(item.ratingsCount || 0) > 0
       ? ` · ${Number(item.customerRating || 0).toFixed(1)}★`
       : ""}
+    {Number.isFinite(Number(item.availableBikes))
+      ? ` · ${Number(item.availableBikes)} available`
+      : ""}
   </option>
 ))}
 </select>
+                  {hub && Number.isFinite(hubAvailableNow) ? (
+                    <p className="mt-2 text-sm font-semibold text-[#16A34A]">
+                      {hubAvailableNow} scooter{hubAvailableNow === 1 ? "" : "s"} available at this hub now
+                    </p>
+                  ) : null}
+                  {hubMapEmbed ? (
+                    <iframe
+                      title="Pickup hub map"
+                      className="mt-3 h-48 w-full rounded-2xl border border-slate-200"
+                      src={hubMapEmbed}
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                    />
+                  ) : null}
                 </Field>
 
                 <Field label="Employee Reference">
@@ -3236,6 +3261,21 @@ className="mt-1 text-[#18B368]"
                     {displayHub.city ? (
                       <p className="mt-1 text-sm text-gray-500">{displayHub.city}</p>
                     ) : null}
+                    {Number.isFinite(hubAvailableNow) ? (
+                      <p className="mt-2 text-sm font-semibold text-[#16A34A]">
+                        {hubAvailableNow} available now
+                      </p>
+                    ) : null}
+
+{hubMapEmbed ? (
+  <iframe
+    title="Pickup hub map"
+    className="mt-4 h-40 w-full rounded-2xl border border-slate-200"
+    src={hubMapEmbed}
+    loading="lazy"
+    referrerPolicy="no-referrer-when-downgrade"
+  />
+) : null}
 
 {displayHub.latitude && displayHub.longitude ? (
   <a

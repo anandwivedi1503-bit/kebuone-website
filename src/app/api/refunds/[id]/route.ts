@@ -15,6 +15,10 @@ import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
 import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
+import {
+  refundApproveCapMessage,
+  refundExceedsApproveCap,
+} from "@/lib/refundApproveCap";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -255,10 +259,16 @@ if (!booking) {
 
 }
 
-if (
-  Number(refund.amount) >
-  Number(booking.securityDeposit || 0)
-) {
+const capRefund = {
+  amount:
+    updateData.amount !== undefined
+      ? Number(updateData.amount)
+      : Number(refund.amount),
+  refundSource: String(refund.refundSource || ""),
+  remarks: String(refund.remarks || ""),
+};
+
+if (refundExceedsApproveCap(capRefund, booking)) {
 
   await session.abortTransaction();
   session.endSession();
@@ -266,8 +276,7 @@ if (
   return NextResponse.json(
     {
       success: false,
-      message:
-        "Refund amount exceeds security deposit.",
+      message: refundApproveCapMessage(capRefund),
     },
     {
       status: 400,

@@ -26,9 +26,19 @@ const notoDeva = Noto_Sans_Devanagari({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.evuddy.com"),
   title: "EVUDDY | Electric Scooter Rentals",
   description:
-    "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own, with live tracking across Indian cities.",
+    "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own, with pickup hubs across Indian cities.",
+  openGraph: {
+    title: "EVUDDY | Electric Scooter Rentals",
+    description:
+      "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own.",
+    url: "https://www.evuddy.com",
+    siteName: "EVUDDY",
+    locale: "en_IN",
+    type: "website",
+  },
 };
 
 export const viewport: Viewport = {
