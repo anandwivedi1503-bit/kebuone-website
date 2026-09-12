@@ -20,6 +20,7 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 
 const registrationTypes = [
   "RTO",
@@ -598,7 +599,11 @@ export async function GET(req: Request) {
      * Public / rider-facing vehicle
      * availability. Optional city/hub keeps Book EV fast
      * when many cities are live. No params = same as before.
+     * Fire-and-forget unpaid sweep so holds release even if GitHub cron is off.
+     * Throttled inside maybeSweepUnpaidBookings; does not wait on the response.
      */
+    void maybeSweepUnpaidBookings();
+
     const { searchParams } = new URL(req.url);
     const cityFilter = clean(searchParams.get("city"));
     const hubFilter = clean(searchParams.get("hub") || searchParams.get("currentHub")).toUpperCase();

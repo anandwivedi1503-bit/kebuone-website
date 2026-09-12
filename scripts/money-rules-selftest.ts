@@ -16,6 +16,11 @@ import { providedSecretMatches } from "../src/lib/timingSafe";
 import { listResponse, listResponseFromPage, parseListQuery, encodeCreatedCursor, decodeCreatedCursor } from "../src/lib/listQuery";
 import { existingDepositRefundFilter } from "../src/lib/queueDepositRefund";
 import { existingCancellationRefundFilter } from "../src/lib/queueCancellationRefund";
+import {
+  refundApproveCapMessage,
+  refundExceedsApproveCap,
+} from "../src/lib/refundApproveCap";
+import { openStreetMapEmbedUrl } from "../src/lib/hubMapEmbed";
 import { clientIp } from "../src/lib/rateLimit";
 import {
   bookingEligibleForReview,
@@ -208,6 +213,41 @@ const cancelFilter = existingCancellationRefundFilter("BK-2") as {
 };
 assert.equal(cancelFilter.bookingId, "BK-2");
 assert.equal(cancelFilter.refundSource, "Booking Cancellation");
+
+assert.equal(
+  refundExceedsApproveCap(
+    { amount: 6900, refundSource: "Booking Cancellation" },
+    { receivedAmount: 6900, securityDeposit: 2500 }
+  ),
+  false
+);
+assert.equal(
+  refundExceedsApproveCap(
+    { amount: 6900, refundSource: "Booking Cancellation" },
+    { receivedAmount: 0, securityDeposit: 2500 }
+  ),
+  true
+);
+assert.equal(
+  refundExceedsApproveCap(
+    { amount: 2500, refundSource: "Security Deposit" },
+    { receivedAmount: 6900, securityDeposit: 2500 }
+  ),
+  false
+);
+assert.equal(
+  refundExceedsApproveCap(
+    { amount: 2501, refundSource: "Security Deposit" },
+    { receivedAmount: 6900, securityDeposit: 2500 }
+  ),
+  true
+);
+assert.equal(
+  refundApproveCapMessage({ refundSource: "Booking Cancellation" }),
+  "Refund amount exceeds rental paid on this booking."
+);
+assert.ok(openStreetMapEmbedUrl(26.85, 80.95).includes("openstreetmap.org"));
+assert.equal(openStreetMapEmbedUrl(Number.NaN, 80.95), "");
 
 assert.equal(
   clientIp(
