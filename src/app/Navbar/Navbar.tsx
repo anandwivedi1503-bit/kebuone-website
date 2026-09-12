@@ -30,7 +30,7 @@ const navLinks = [
   { title: "Contact", href: "/contact" },
 ];
 
-/** Physical handset, even if the browser is in “Desktop site” mode. */
+/** Physical handset only — not a Windows/macOS laptop, even with a touchscreen. */
 function isHandsetScreen() {
   if (typeof window === "undefined") return false;
   const ua = navigator.userAgent || "";
@@ -41,7 +41,7 @@ function isHandsetScreen() {
   const shortest = Math.min(window.screen.width || 0, window.screen.height || 0);
   const shortestCss = shortest / dpr;
   const touch = navigator.maxTouchPoints > 0;
-  return touch && (shortest <= 850 || shortestCss <= 480);
+  return touch && shortestCss <= 500 && window.innerWidth < 768;
 }
 
 function NavbarInner() {
@@ -52,7 +52,7 @@ function NavbarInner() {
 
   useEffect(() => {
     const apply = () => {
-      setCompactNav(window.innerWidth < 1280 || isHandsetScreen());
+      setCompactNav(window.innerWidth < 1024 || isHandsetScreen());
     };
     apply();
     window.addEventListener("resize", apply);
@@ -119,12 +119,12 @@ function NavbarInner() {
           <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" />
         </Link>
 
-        <div className="nav-desktop-row shrink-0 items-center justify-center gap-[clamp(0.75rem,1.4vw,1.75rem)]">
+        <div className="nav-desktop-row min-w-0 flex-1 items-center justify-center gap-[clamp(0.4rem,1vw,1.5rem)]">
           {navLinks.map((item) => (
             <Link
               key={item.title}
               href={item.href}
-              className="group relative inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap px-1 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.04em] text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]"
+              className="group relative inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap px-0.5 text-[clamp(12px,1.05vw,15px)] font-medium tracking-[0.04em] text-[#1C1917] transition-colors duration-300 hover:text-[#1F6B4A]"
             >
               <span>{item.title}</span>
               <span className="absolute -bottom-[4px] left-0 h-[2px] w-0 rounded-full bg-gradient-to-r from-[#18B368] via-[#45D98C] to-[#1F6B4A] transition-all duration-300 group-hover:w-full" />
@@ -132,10 +132,10 @@ function NavbarInner() {
           ))}
         </div>
 
-        <div className="nav-desktop-row shrink-0 items-center gap-[clamp(0.35rem,0.7vw,0.65rem)]">
+        <div className="nav-desktop-row shrink-0 items-center gap-[clamp(0.25rem,0.55vw,0.65rem)]">
           <Link
             href="/partners#dealer-network"
-            className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.5rem,0.9vw,0.9rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+            className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
           >
             <Building2 size={16} />
             Dealers
@@ -144,21 +144,21 @@ function NavbarInner() {
             <>
               <Link
                 href="/partners"
-                className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.5rem,0.9vw,0.9rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+                className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
               >
                 <Building2 size={16} />
                 Fleet Partner
               </Link>
               <Link
                 href="/partners#fleet-investment"
-                className="flex h-9 shrink-0 items-center gap-2 whitespace-nowrap px-[clamp(0.5rem,0.9vw,0.9rem)] text-[clamp(13px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+                className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
               >
                 <Wallet size={16} />
                 Invest
               </Link>
               <Link
                 href="/ride-options"
-                className="group flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-4 text-[clamp(13px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
+                className="group flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-3.5 text-[clamp(12px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
               >
                 Book EV
                 <ChevronRight

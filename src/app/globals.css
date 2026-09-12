@@ -64,22 +64,21 @@ nav.fixed {
   position: relative;
   z-index: 20;
   display: block;
-  flex: 1 1 auto;
-  min-width: 0;
-  max-width: calc(100% - 56px);
-  height: 5rem;
+  flex: 0 0 auto;
+  width: 200px;
+  max-width: min(200px, calc(100% - 64px));
+  height: 4.25rem;
   overflow: hidden;
 }
 
 .nav-logo img {
-  position: absolute;
-  inset: 0;
+  display: block;
   width: 100%;
   height: 100%;
   max-width: none;
   max-height: none;
   object-fit: cover;
-  object-position: center 58%;
+  object-position: left 58%;
 }
 
 .nav-desktop-row {
@@ -91,6 +90,7 @@ nav.fixed {
   z-index: 1200;
   display: flex !important;
   flex: 0 0 48px;
+  margin-left: auto;
   align-items: center;
   justify-content: center;
   width: 48px;
@@ -99,7 +99,7 @@ nav.fixed {
   opacity: 1 !important;
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 1023px) {
   .nav-desktop-row {
     display: none !important;
   }
@@ -109,17 +109,17 @@ nav.fixed {
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   .nav-shell {
     height: 5.25rem;
-    padding: 0 2rem;
+    padding: 0 1.5rem;
+    gap: 10px;
   }
 
   .nav-logo {
-    flex: 0 0 280px;
-    width: 280px;
-    max-width: 280px;
-    height: 5rem;
+    width: 230px;
+    max-width: 230px;
+    height: 4.5rem;
   }
 
   .nav-desktop-row {
@@ -128,6 +128,19 @@ nav.fixed {
 
   .nav-phone-toggle {
     display: none !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .nav-shell {
+    padding: 0 2rem;
+    gap: 12px;
+  }
+
+  .nav-logo {
+    width: 250px;
+    max-width: 250px;
+    height: 4.75rem;
   }
 }
 
@@ -136,13 +149,16 @@ nav[data-compact-nav="true"] .nav-desktop-row {
 }
 
 nav[data-compact-nav="true"] .nav-logo {
-  flex: 1 1 auto;
-  max-width: calc(100% - 56px);
+  flex: 0 0 auto;
+  width: 200px;
+  max-width: min(200px, calc(100% - 64px));
+  height: 4.25rem;
 }
 
 nav[data-compact-nav="true"] .nav-phone-toggle {
   display: flex !important;
   flex: 0 0 48px;
+  margin-left: auto;
   width: 48px;
   visibility: visible !important;
   opacity: 1 !important;
@@ -210,7 +226,7 @@ nav[data-compact-nav="true"] .nav-phone-toggle {
   transform: translateX(0);
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1024px) {
   nav:not([data-compact-nav="true"]) .nav-drawer-layer {
     display: none;
   }
