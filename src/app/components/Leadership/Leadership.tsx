@@ -47,18 +47,19 @@ export default function Leadership() {
 
   return (
     <div className="bg-[#F7F4EE] text-[#1C1917]">
-      <section className="relative overflow-hidden bg-[#1C1917]">
-        <Image
-          src="/new-vehicle.jpeg"
-          alt="EVUDDY electric scooters on city roads"
-          fill
-          priority
-          className="z-0 object-cover object-center"
-        />
-        <div className="absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(7,17,31,0.78)_0%,rgba(7,17,31,0.45)_48%,rgba(7,17,31,0.88)_100%)]" />
-        <div className="absolute inset-0 z-[1] bg-[radial-gradient(circle_at_82%_18%,rgba(24,179,104,0.28),transparent_34%)]" />
+      <section className="page-under-nav relative overflow-hidden bg-[#1C1917]">
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/new-vehicle.jpeg"
+            alt=""
+            fill
+            priority
+            className="object-contain object-center opacity-35"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(7,17,31,0.92)_0%,rgba(7,17,31,0.55)_48%,rgba(7,17,31,0.88)_100%)]" />
+        </div>
 
-        <div className="relative z-10 mx-auto flex min-h-[88vh] max-w-6xl flex-col justify-center px-4 pb-16 pt-40 sm:px-6 sm:pb-20 sm:pt-48 lg:px-10 lg:pt-52">
+        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-10 px-4 pb-14 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:px-10 lg:pb-16">
           <motion.div initial="hidden" animate="show" variants={fade} transition={{ duration: 0.7 }}>
             <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#C8E6D4]">
               Leadership
@@ -73,6 +74,19 @@ export default function Leadership() {
               safe electric ride.
             </p>
           </motion.div>
+
+          <div className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[24px] bg-[#0B1520] ring-1 ring-white/10 lg:max-w-none">
+            <div className="relative aspect-[16/10] w-full sm:aspect-[5/3]">
+              <Image
+                src="/new-vehicle.jpeg"
+                alt="EVUDDY electric scooters on city roads"
+                fill
+                priority
+                sizes="(min-width: 1024px) 520px, 90vw"
+                className="object-contain object-center"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -228,7 +242,6 @@ function posterSrc(src: string) {
 function PosterMedia({
   src,
   alt,
-  frame = "standard",
 }: {
   src: string;
   alt: string;
@@ -236,24 +249,11 @@ function PosterMedia({
   priority?: boolean;
 }) {
   return (
-    <div
-      className={`relative w-full overflow-hidden rounded-[20px] bg-[#E7EEE9] ${
-        frame === "tall" ? "aspect-[941/1672]" : "aspect-[1087/1447]"
-      }`}
-    >
+    <div className="relative w-full overflow-hidden rounded-[20px] bg-[#E7EEE9]">
       <img
         src={posterSrc(src)}
         alt={alt}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          maxWidth: "none",
-          maxHeight: "none",
-          objectFit: "contain",
-          objectPosition: "center",
-        }}
+        className="mx-auto block h-auto w-full object-contain object-center"
       />
     </div>
   );

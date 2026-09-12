@@ -197,53 +197,71 @@ export default function EvuddyNetwork() {
     <section
       id="network"
       ref={stageRef}
-      className="relative scroll-mt-28 overflow-x-hidden bg-[#F7F4EE] text-[#1C1917] sm:scroll-mt-40"
+      className="relative scroll-mt-28 overflow-x-hidden bg-[#07130F] text-white sm:scroll-mt-32"
     >
-      <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-20 sm:px-8 sm:pt-28 lg:px-12">
-        <div className="max-w-2xl">
-          <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
-            Live EVUDDY network
-          </p>
-          <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] sm:text-5xl">
-            Hubs across India.
-            <span className="mt-1 block italic text-[#1F6B4A]">Pickup at the yard.</span>
-          </h2>
-          <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
-            Choose a live city. Open Google Maps to the hub. Pay, show OTP, ride — return when remaining rent is ₹0.
-          </p>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(34,197,94,0.22),transparent_34%),radial-gradient(circle_at_88%_8%,rgba(200,91,45,0.16),transparent_28%)]" />
+      <div className="relative mx-auto max-w-[1440px] px-5 pb-12 pt-16 sm:px-8 sm:pt-20 lg:px-12">
+        <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#A8E6C3]">
+              Live EVUDDY network
+            </p>
+            <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] sm:text-6xl">
+              India, pin by pin.
+              <span className="mt-1 block italic text-[#7DDCB0]">Yard pickup. GPS ride.</span>
+            </h2>
+            <p className="mt-4 max-w-xl text-[15px] leading-8 text-white/70">
+              Tap a live city. Open Google Maps to the hub. Pay, show OTP, ride — return when remaining rent is ₹0.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-6 border-t border-white/10 pt-6 lg:min-w-[320px] lg:border-t-0 lg:pt-0">
+            {[
+              { label: "Cities live", value: String(marks.length) },
+              { label: "Pickup hubs", value: String(liveHubTotal) },
+              { label: "Yard GPS", value: "Maps" },
+            ].map((item) => (
+              <div key={item.label}>
+                <p className="font-display text-3xl font-medium tracking-tight sm:text-4xl">
+                  {item.value === String(marks.length) || item.value === String(liveHubTotal) ? (
+                    <CountUp value={Number(item.value)} />
+                  ) : (
+                    item.value
+                  )}
+                </p>
+                <p className="mt-2 text-[10px] font-medium uppercase tracking-[0.18em] text-white/50">
+                  {item.label}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-12 grid grid-cols-2 gap-8 border-y border-[#E4DDD2] py-8 sm:grid-cols-3">
-          {[
-            { label: "Cities live", value: marks.length, suffix: "" },
-            { label: "Pickup hubs", value: liveHubTotal, suffix: "" },
-            { label: "GPS to yard", value: 1, suffix: " Maps" },
-          ].map((item) => (
-            <div
-              key={item.label}
-              className={item.suffix === " Maps" ? "col-span-2 sm:col-span-1" : ""}
-            >
-              <p className="font-display text-4xl font-medium tracking-tight text-[#1C1917]">
-                {item.suffix === " Maps" ? (
-                  <>
-                    Google<span className="text-[#1F6B4A]"> Maps</span>
-                  </>
-                ) : (
-                  <CountUp value={item.value} />
-                )}
-              </p>
-              <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">{item.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
+        <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-stretch">
+          <div className="flex flex-col rounded-[28px] border border-white/10 bg-white/[0.04] p-5 sm:p-7">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#A8E6C3]">
               Live cities from ops
             </p>
-            <p className="mt-1 text-xs text-[#8A847A]">Only cities and hubs stored in the EVUDDY database.</p>
-            <div className="mt-3 max-h-[320px] overflow-y-auto border-t border-[#E4DDD2] sm:max-h-none">
+            <p className="mt-1 text-xs text-white/45">Only cities and hubs stored in the EVUDDY database.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {marks.map((city) => {
+                const on = selected.name === city.name;
+                return (
+                  <button
+                    key={`chip-${city.name}`}
+                    type="button"
+                    onClick={() => setActive(city)}
+                    className={`rounded-full px-3.5 py-1.5 text-[12px] font-medium tracking-[0.04em] transition ${
+                      on
+                        ? "bg-[#22C55E] text-[#06240F]"
+                        : "border border-white/15 bg-white/5 text-white/80 hover:border-[#22C55E]/50 hover:text-white"
+                    }`}
+                  >
+                    {city.name}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-5 max-h-[280px] overflow-y-auto pr-1">
               {marks.map((city) => {
                 const on = selected.name === city.name;
                 return (
@@ -251,15 +269,15 @@ export default function EvuddyNetwork() {
                     key={city.name}
                     type="button"
                     onClick={() => setActive(city)}
-                    className={`flex w-full items-center justify-between border-b border-[#E4DDD2] py-3.5 text-left transition ${
-                      on ? "text-[#1F6B4A]" : "text-[#1C1917] hover:text-[#1F6B4A]"
+                    className={`flex w-full items-center justify-between border-b border-white/10 py-3.5 text-left transition ${
+                      on ? "text-[#7DDCB0]" : "text-white/80 hover:text-white"
                     }`}
                   >
                     <span className="flex min-w-0 items-center gap-3">
-                      <MapPin size={16} strokeWidth={1.5} className="text-[#1F6B4A]" />
+                      <MapPin size={16} strokeWidth={1.5} className="text-[#22C55E]" />
                       <span className="break-words font-medium">{city.name}</span>
                     </span>
-                    <span className="shrink-0 text-xs text-[#8A847A]">
+                    <span className="shrink-0 text-xs text-white/45">
                       {city.hubCount} hub{city.hubCount === 1 ? "" : "s"}
                     </span>
                   </button>
@@ -267,15 +285,15 @@ export default function EvuddyNetwork() {
               })}
             </div>
 
-            <div className="mt-8 border-t border-[#E4DDD2] pt-6">
-              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#5F6B63]">Selected hub</p>
+            <div className="mt-auto border-t border-white/10 pt-6">
+              <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-white/45">Selected hub</p>
               <p className="font-display mt-2 text-3xl font-medium tracking-tight">{selected.name}</p>
-              <p className="mt-1 text-sm text-[#5C635E]">{selected.hubs}</p>
+              <p className="mt-1 text-sm text-white/65">{selected.hubs}</p>
               <a
                 href={googleMapsUrl(selected.lat, selected.lng, `EVUDDY ${selected.name}`)}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 bg-[#1F6B4A] text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c]"
+                className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#22C55E] text-[13px] font-medium tracking-[0.08em] text-[#06240F] transition hover:bg-[#4ADE80]"
               >
                 <Navigation size={15} />
                 Open in Google Maps
@@ -284,7 +302,7 @@ export default function EvuddyNetwork() {
           </div>
 
           <div
-            className="relative isolate border border-[#E4DDD2] bg-[#FBF9F5]"
+            className="relative isolate overflow-hidden rounded-[28px] border border-white/10 bg-[#0C1C16]"
             onMouseMove={(event) => {
               if (window.matchMedia("(pointer: coarse)").matches || window.innerWidth < 1024) return;
               onMapMove(event);
@@ -296,16 +314,17 @@ export default function EvuddyNetwork() {
               transition: "transform 220ms ease-out",
             }}
           >
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(34,197,94,0.16),transparent_58%)]" />
             <svg
               viewBox={INDIA_VIEWBOX}
-              className="relative mx-auto h-auto w-full max-w-[560px] px-2 pb-16 pt-6 sm:px-3 sm:py-10 sm:pb-16"
+              className="relative mx-auto h-auto w-full max-w-[640px] px-3 pb-20 pt-8 sm:px-6 sm:pt-10"
               role="img"
               aria-label="Map of India with EVUDDY hub cities"
             >
               <defs>
-                <linearGradient id="evuddy-land-light" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#F4F0E6" />
-                  <stop offset="100%" stopColor="#E4EDE6" />
+                <linearGradient id="evuddy-land-dark" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#143528" />
+                  <stop offset="100%" stopColor="#0E241C" />
                 </linearGradient>
                 <filter id="evuddy-glow" x="-20%" y="-20%" width="140%" height="140%">
                   <feGaussianBlur stdDeviation="2.4" result="blur" />
@@ -315,24 +334,24 @@ export default function EvuddyNetwork() {
                   </feMerge>
                 </filter>
               </defs>
-              <path d={INDIA_PATH} fill="url(#evuddy-land-light)" />
+              <path d={INDIA_PATH} fill="url(#evuddy-land-dark)" />
               <path
                 d={INDIA_PATH}
                 fill="none"
-                stroke="#1F6B4A"
-                strokeWidth="1.6"
+                stroke="#4ADE80"
+                strokeWidth="1.8"
                 strokeLinejoin="round"
-                opacity="0.85"
+                opacity="0.9"
               />
               {networkPath ? (
                 <>
                   <path
                     d={networkPath}
                     fill="none"
-                    stroke="#1F6B4A"
-                    strokeWidth="1.4"
+                    stroke="#86EFAC"
+                    strokeWidth="1.5"
                     strokeDasharray="4 8"
-                    opacity="0.55"
+                    opacity="0.7"
                     className="evuddy-net-dash"
                   />
                   <g>
@@ -349,8 +368,8 @@ export default function EvuddyNetwork() {
                   const pin = projectIndia(Number(hub.latitude), Number(hub.longitude));
                   return (
                     <g key={`hub-${hub.hubName || index}`}>
-                      <circle cx={pin.x} cy={pin.y} r="7" fill="#1F6B4A" opacity="0.16" />
-                      <circle cx={pin.x} cy={pin.y} r="2.8" fill="#1F6B4A" />
+                      <circle cx={pin.x} cy={pin.y} r="8" fill="#22C55E" opacity="0.2" />
+                      <circle cx={pin.x} cy={pin.y} r="2.8" fill="#86EFAC" />
                     </g>
                   );
                 })}
@@ -363,43 +382,46 @@ export default function EvuddyNetwork() {
                     onMouseEnter={() => setActive(city)}
                     onClick={() => selectCity(city, selected.name === city.name)}
                   >
-                    <circle cx={city.x} cy={city.y} r={on ? 18 : 10} fill="#1F6B4A" opacity={on ? 0.2 : 0.1} />
+                    <circle cx={city.x} cy={city.y} r={on ? 20 : 11} fill="#22C55E" opacity={on ? 0.28 : 0.14} />
                     <circle
                       cx={city.x}
                       cy={city.y}
-                      r={on ? 6 : 4}
-                      fill={on ? "#C45B2D" : "#1F6B4A"}
+                      r={on ? 6.5 : 4.2}
+                      fill={on ? "#F97316" : "#4ADE80"}
                     />
                     <text
-                      x={city.x + 8}
-                      y={city.y + (on ? -12 : 16)}
-                      fill="#1C1917"
-                      fontSize="10"
-                      fontWeight="500"
+                      x={city.x + 9}
+                      y={city.y + (on ? -14 : 16)}
+                      fill="#F7F4EE"
+                      fontSize="11"
+                      fontWeight="600"
                       className="hidden sm:inline"
                       pointerEvents="none"
                     >
                       {city.name}
                     </text>
                     {on ? (
-                      <circle cx={city.x} cy={city.y} r="11" fill="none" stroke="#C45B2D" strokeWidth="1.2" className="evuddy-net-ring" />
+                      <circle cx={city.x} cy={city.y} r="11" fill="none" stroke="#F97316" strokeWidth="1.4" className="evuddy-net-ring" />
                     ) : null}
                   </g>
                 );
               })}
             </svg>
-            <div className="flex items-center justify-between gap-2 border-t border-[#E4DDD2] px-4 py-3 text-xs text-[#5C635E] sm:px-6">
-              <span className="font-medium text-[#1C1917]">{selected.name}</span>
-              <span className="hidden sm:inline">{selected.hubs}</span>
+            <div className="absolute inset-x-4 bottom-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#07130F]/85 px-4 py-3 backdrop-blur-sm sm:inset-x-6">
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-[#A8E6C3]">Now selected</p>
+                <p className="truncate font-medium text-white">{selected.name}</p>
+              </div>
+              <p className="hidden max-w-[55%] truncate text-right text-xs text-white/55 sm:block">{selected.hubs}</p>
             </div>
           </div>
         </div>
 
-        <div className="relative mt-10 overflow-hidden border-y border-[#E4DDD2] py-3">
-          <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-6 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">
+        <div className="relative mt-10 overflow-hidden border-y border-white/10 py-3">
+          <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-6 text-[12px] font-medium uppercase tracking-[0.18em] text-white/45">
             {ticker.map((name, i) => (
               <span key={`${name}-${i}`} className="inline-flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-[#1F6B4A]" />
+                <span className="h-1 w-1 rounded-full bg-[#22C55E]" />
                 {name}
               </span>
             ))}
@@ -408,40 +430,40 @@ export default function EvuddyNetwork() {
 
         <div className="mt-14 grid gap-8 sm:grid-cols-3">
           {PROOFS.map((item) => (
-            <div key={item.title} className="border-t border-[#E4DDD2] pt-5">
-              <item.icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
+            <div key={item.title} className="border-t border-white/10 pt-5">
+              <item.icon size={18} strokeWidth={1.5} className="text-[#4ADE80]" />
               <p className="mt-3 text-sm font-medium">{item.title}</p>
-              <p className="mt-1.5 text-sm leading-6 text-[#5C635E]">{item.text}</p>
+              <p className="mt-1.5 text-sm leading-6 text-white/60">{item.text}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-16">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
+          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#A8E6C3]">
             How a hub ride works
           </p>
           <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step) => (
-              <div key={step.n} className="border-t border-[#E4DDD2] pt-5">
-                <p className="text-[11px] tracking-[0.16em] text-[#8A847A]">{step.n}</p>
+              <div key={step.n} className="border-t border-white/10 pt-5">
+                <p className="text-[11px] tracking-[0.16em] text-white/40">{step.n}</p>
                 <p className="font-display mt-3 text-xl font-medium">{step.title}</p>
-                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{step.text}</p>
+                <p className="mt-2 text-sm leading-6 text-white/60">{step.text}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="relative border-t border-[#E4DDD2] bg-[#FBF9F5]">
+      <div className="relative border-t border-white/10 bg-[#0B1914]">
         <div className="mx-auto max-w-[1440px] px-5 pt-12 sm:px-8 lg:px-12">
           <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-end">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">City operations</p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#A8E6C3]">City operations</p>
               <h3 className="font-display mt-2 text-3xl font-medium tracking-[-0.03em]">
                 Hub, ride, dealer desk.
               </h3>
             </div>
-            <p className="max-w-sm text-sm leading-7 text-[#5C635E]">
+            <p className="max-w-sm text-sm leading-7 text-white/60">
               Pickup at the yard, ride in the city, partner at the desk — scenes rotate on their own.
             </p>
           </div>
@@ -488,11 +510,11 @@ export default function EvuddyNetwork() {
                 text: "The yard OTP only appears after first payment. No pay, no scooter.",
               },
             ].map((item) => (
-              <div key={item.title} className="border-t border-[#E4DDD2] pt-5">
-                <item.icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
-                <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">{item.kicker}</p>
-                <p className="font-display mt-1 text-xl font-medium text-[#1C1917]">{item.title}</p>
-                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{item.text}</p>
+              <div key={item.title} className="border-t border-white/10 pt-5">
+                <item.icon size={18} strokeWidth={1.5} className="text-[#4ADE80]" />
+                <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.18em] text-white/45">{item.kicker}</p>
+                <p className="font-display mt-1 text-xl font-medium text-white">{item.title}</p>
+                <p className="mt-2 text-sm leading-6 text-white/60">{item.text}</p>
               </div>
             ))}
           </div>

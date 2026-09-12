@@ -18,7 +18,7 @@ export function LegalPage({
   return (
     <main>
       <Navbar />
-      <section className="bg-[#F7FBFA] px-4 pb-20 pt-28 sm:px-6 lg:px-10">
+      <section className="page-under-nav bg-[#F7FBFA] px-4 pb-20 sm:px-6 lg:px-10">
         <div className="mx-auto max-w-3xl rounded-[28px] bg-white p-6 shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:p-10">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#18B368]">EVUDDY</p>
           <h1 className="mt-3 text-3xl font-black text-[#0F172A] sm:text-4xl">{title}</h1>

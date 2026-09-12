@@ -12,8 +12,8 @@ export default function HomeMoment() {
             Live in city
           </p>
           <h2 className="font-display mt-4 text-[clamp(2rem,5vw,3.4rem)] font-medium leading-[1.25] text-white sm:text-5xl">
-            मिनटों में बुक करें.
-            <span className="mt-3 block italic leading-[1.3]">शहर घूमें. राइड अपना बनाएँ.</span>
+            Book in minutes.
+            <span className="mt-3 block italic leading-[1.3]">Ride the city. Own the journey.</span>
           </h2>
           <p className="mt-5 max-w-md text-sm leading-7 text-white/80 sm:text-[15px]">
             Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.

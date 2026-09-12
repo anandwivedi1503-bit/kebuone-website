@@ -11,7 +11,7 @@ export default function HowItWorks() {
   const cityLine =
     catalog.cities.length > 0
       ? catalog.cities.map((city) => city.cityName).join(" · ")
-      : "शहर · हब · स्कूटर";
+      : "City · hub · scooter";
   const hubLine =
     catalog.hubCount > 0
       ? `${catalog.hubCount} live hub${catalog.hubCount === 1 ? "" : "s"}`
@@ -21,7 +21,7 @@ export default function HowItWorks() {
     {
       n: "01",
       title: "Register once",
-      hi: "फोन OTP + KYC",
+      hi: "Phone OTP + KYC",
       text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
       icon: Smartphone,
       image: BRAND.register,
@@ -37,7 +37,7 @@ export default function HowItWorks() {
     {
       n: "03",
       title: "Pay on Book EV",
-      hi: "Razorpay / वॉलेट",
+      hi: "Razorpay / wallet",
       text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
       icon: Wallet,
       image: BRAND.pay,
@@ -45,7 +45,7 @@ export default function HowItWorks() {
     {
       n: "04",
       title: "Ride with OTP",
-      hi: "यार्ड पर दिखाएँ",
+      hi: "Show at the yard",
       text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
       icon: KeyRound,
       image: BRAND.yard,

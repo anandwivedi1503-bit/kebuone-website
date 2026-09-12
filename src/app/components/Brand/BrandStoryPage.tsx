@@ -178,7 +178,12 @@ export function BrandHero({
         </div>
 
         <MediaFrame fit="video">
-          <MediaImage src={posterSrc} alt={posterAlt} cover />
+          <img
+            src={posterSrc}
+            alt={posterAlt}
+            className="absolute inset-0 h-full w-full object-contain object-center"
+            style={{ maxWidth: "none", maxHeight: "none" }}
+          />
         </MediaFrame>
       </div>
     </section>

@@ -342,7 +342,7 @@ export default function RideOptionsPage() {
       {view === "boot" && <section className="min-h-[40vh]" />}
 
       {view === "otp" && (
-        <section className="bg-[#F6FAF8] px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-10">
+        <section className="page-under-nav bg-[#F6FAF8] px-4 pb-20 sm:px-6 lg:px-10">
           <div className="mx-auto max-w-lg rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">
               Verify to continue
@@ -422,7 +422,7 @@ export default function RideOptionsPage() {
       )}
 
       {view === "pending" && (
-        <section className="flex min-h-[70vh] flex-col justify-center px-4 pb-24 pt-40 text-center">
+        <section className="page-under-nav flex min-h-[70vh] flex-col justify-center px-4 pb-24 text-center">
           <h1 className="text-3xl font-black text-[#0F172A]">Waiting for admin approval</h1>
           <p className="mx-auto mt-3 max-w-xl text-slate-500">
             Your rider profile is under review. Ride options appear here as soon as an
@@ -439,7 +439,7 @@ export default function RideOptionsPage() {
       )}
 
       {view === "register" && (
-        <section className="px-4 pb-24 pt-40 text-center">
+        <section className="page-under-nav px-4 pb-24 text-center">
           <h1 className="text-3xl font-black text-[#0F172A]">Registration required</h1>
           <p className="mt-3 text-slate-500">
             This number is already verified. Complete registration — you will not get a second SMS.
@@ -454,7 +454,7 @@ export default function RideOptionsPage() {
       )}
 
       {view === "plans" && (
-        <section className="bg-[#F6FAF8] px-4 pb-20 pt-32 sm:px-6 sm:pt-40 lg:px-10">
+        <section className="page-under-nav bg-[#F6FAF8] px-4 pb-20 sm:px-6 lg:px-10">
           <RiderSessionBar />
           <div className="mx-auto max-w-5xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">

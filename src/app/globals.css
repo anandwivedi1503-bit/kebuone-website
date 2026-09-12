@@ -30,14 +30,8 @@
 }
 
 html {
-  scroll-padding-top: 6rem;
+  scroll-padding-top: calc(5.25rem + env(safe-area-inset-top, 0px) + 0.5rem);
   color-scheme: light;
-}
-
-@media (min-width: 640px) {
-  html {
-    scroll-padding-top: 8rem;
-  }
 }
 
 body {
@@ -262,13 +256,18 @@ select {
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
-  scroll-padding-top: 7.5rem;
+  scroll-padding-top: calc(5.25rem + env(safe-area-inset-top, 0px) + 0.5rem);
   color-scheme: light;
 }
 
-@media (min-width: 640px) {
-  html {
-    scroll-padding-top: 10rem;
+/* Sit content just under the fixed 5.25rem navbar — no extra empty band. */
+.page-under-nav {
+  padding-top: calc(5.25rem + env(safe-area-inset-top, 0px) + 0.5rem);
+}
+
+@media print {
+  .page-under-nav {
+    padding-top: 0;
   }
 }
 

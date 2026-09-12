@@ -125,7 +125,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#F7F4EE] pb-24 pt-32 sm:pt-40">
+    <section className="page-under-nav relative overflow-hidden bg-[#F7F4EE] pb-24">
       <img
         src={isDealer ? BRAND.dealer : BRAND.distributor}
         alt=""

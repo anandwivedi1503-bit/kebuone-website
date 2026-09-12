@@ -10,7 +10,7 @@ export default function PartnersPage() {
     <main>
       <AnchorScroll />
       <Navbar />
-      <div className="pt-32 sm:pt-40">
+      <div className="page-under-nav">
         <DealerNetwork />
         <FleetPartnerInvestment posterPriority />
         <PartnerForm />

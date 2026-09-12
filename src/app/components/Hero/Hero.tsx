@@ -77,7 +77,7 @@ export default function Hero() {
         }
       `}</style>
 
-      <div className="mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 pt-28 sm:px-8 sm:pt-40 lg:px-12 lg:pt-40 xl:grid-cols-[0.88fr_1.12fr]">
+      <div className="page-under-nav mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 sm:px-8 lg:px-12 xl:grid-cols-[0.88fr_1.12fr]">
         <div className="flex flex-col justify-center py-8 pr-0 lg:py-12 lg:pr-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
             India&apos;s smart EV rental
@@ -89,7 +89,7 @@ export default function Hero() {
           <p className="mt-6 max-w-md text-[15px] leading-7 text-[#5C635E] sm:text-base sm:leading-8">
             Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
             <span className="mt-2 block text-[#1F6B4A]">
-              मिनटों में बुक करें. शहर घूमें. राइड अपना बनाएँ.
+              Book in minutes. Ride the city. Make the ride yours.
             </span>
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

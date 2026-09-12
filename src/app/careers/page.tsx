@@ -14,7 +14,7 @@ export default function Page() {
   return (
     <main>
       <Navbar />
-      <div className="pt-32 sm:pt-40">
+      <div className="page-under-nav">
         <Careers />
       </div>
       <Footer />
