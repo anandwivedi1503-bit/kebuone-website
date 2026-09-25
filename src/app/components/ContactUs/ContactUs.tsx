@@ -6,7 +6,12 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
 import { HELPDESK_PHONE_DISPLAY, HELPDESK_TEL } from "@/lib/contact";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
+import {
+  PREMIUM_BTN,
+  SpeakAllButton,
+  VoiceArea,
+  VoiceField,
+} from "../FormVoice/FormVoiceDock";
 
 const initialForm = {
   fullName: "",
@@ -49,22 +54,11 @@ const directory = [
   },
 ];
 
-const fieldClass =
-  "h-12 w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]";
-
 export default function ContactUs() {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
-
-  const updateField = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
-    setError("");
-    setStatus("");
-  };
 
   const submitForm = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -190,7 +184,7 @@ export default function ContactUs() {
         <div className="mx-auto grid max-w-[1440px] items-start gap-10 lg:grid-cols-2 lg:gap-12">
           <form
             onSubmit={submitForm}
-            className="space-y-4 border-t border-[#E4DDD2] bg-[#FBF9F5] p-6 sm:p-10"
+            className="space-y-5 rounded-[32px] border border-[#E6EBE7] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10"
           >
             <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
               Message
@@ -198,63 +192,74 @@ export default function ContactUs() {
             <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
               Send us a message
             </h2>
-            <FormVoiceDock />
             <p className="text-[15px] leading-8 text-[#5C635E]">
-              We will get back to you about EVUDDY rentals, hubs or partnerships.
+              Tap the mic on any field. We will get back to you about rentals, hubs or partnerships.
             </p>
+            <SpeakAllButton
+              onParsed={(parts) => {
+                setForm((current) => ({
+                  ...current,
+                  fullName: parts.name || current.fullName,
+                  phone: parts.phone || current.phone,
+                  email: parts.email || current.email,
+                }));
+              }}
+            />
             <div className="grid gap-4 sm:grid-cols-2">
-              <input
-                name="fullName"
-                value={form.fullName}
-                onChange={updateField}
+              <VoiceField
+                label="Full name *"
                 required
-                placeholder="Full name"
-                className={fieldClass}
+                value={form.fullName}
+                onChange={(value) => setForm({ ...form, fullName: value })}
+                placeholder="As on Aadhaar · or tap the mic"
               />
-              <input
-                name="email"
+              <VoiceField
+                label="Email *"
+                required
                 type="email"
                 value={form.email}
-                onChange={updateField}
-                required
-                placeholder="Email"
-                className={fieldClass}
+                onChange={(value) => setForm({ ...form, email: value })}
+                placeholder='name@email.com · say "at" and "dot"'
               />
             </div>
-            <input
-              name="phone"
+            <VoiceField
+              label="Mobile number *"
+              required
               type="tel"
+              inputMode="numeric"
+              numeric
+              prefix={
+                <>
+                  <span>🇮🇳</span> +91
+                </>
+              }
               value={form.phone}
-              onChange={updateField}
-              required
-              placeholder="Phone number"
-              className={fieldClass}
+              onChange={(value) => setForm({ ...form, phone: value })}
+              placeholder="10-digit mobile"
             />
-            <input
-              name="subject"
+            <VoiceField
+              label="Subject *"
+              required
               value={form.subject}
-              onChange={updateField}
-              required
-              placeholder="Subject"
-              className={fieldClass}
+              onChange={(value) => setForm({ ...form, subject: value })}
+              placeholder="How can we help?"
             />
-            <textarea
-              name="message"
+            <VoiceArea
+              label="Message *"
+              required
               rows={5}
               value={form.message}
-              onChange={updateField}
-              required
+              onChange={(value) => setForm({ ...form, message: value })}
               placeholder="Your message"
-              className="w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 py-3 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]"
             />
             {error && <p className="text-sm font-medium text-red-700">{error}</p>}
             {status && <p className="text-sm font-medium text-[#1F6B4A]">{status}</p>}
             <button
               disabled={loading}
               type="submit"
-              className="inline-flex w-full items-center justify-center bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] disabled:opacity-60 sm:w-auto"
+              className={`${PREMIUM_BTN} sm:w-auto sm:min-w-[220px]`}
             >
-              {loading ? "Sending..." : "Submit enquiry"}
+              {loading ? "Sending..." : "Submit enquiry →"}
             </button>
           </form>
 

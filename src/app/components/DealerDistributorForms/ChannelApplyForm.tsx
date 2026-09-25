@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { ArrowLeft } from "lucide-react";
 
 import { BRAND } from "@/lib/brandMedia";
@@ -13,10 +13,14 @@ import {
   dealerProgram,
 } from "@/lib/dealerProgram";
 import { DIRECT_THROUGH } from "@/lib/partnerSegments";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
-
-const fieldClass =
-  "h-14 w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 text-[15px] text-[#1C1917] outline-none transition placeholder:text-[#8A847A] focus:border-[#1F6B4A] focus:bg-white";
+import {
+  PREMIUM_BTN,
+  SpeakAllButton,
+  VoiceArea,
+  VoiceField,
+  VoiceSelect,
+} from "../FormVoice/FormVoiceDock";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const empty = {
   fullName: "",
@@ -47,18 +51,8 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
   const [done, setDone] = useState("");
   const [error, setError] = useState("");
 
-  const set =
-    (name: string) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-      const target = event.target;
-      setForm((current) => ({
-        ...current,
-        [name]:
-          target instanceof HTMLInputElement && target.type === "checkbox"
-            ? target.checked
-            : target.value,
-      }));
-    };
+  const set = (name: string, value: string | boolean) =>
+    setForm((current) => ({ ...current, [name]: value }));
 
   const onSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -126,15 +120,8 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
   };
 
   return (
-    <section className="page-under-nav relative overflow-hidden bg-[#F7F4EE] pb-24">
-      <img
-        src={isDealer ? BRAND.dealer : BRAND.distributor}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.18]"
-      />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#F7F4EE] via-[#F7F4EE]/92 to-[#F7F4EE]" />
-
-      <div className="relative mx-auto grid max-w-[1200px] gap-10 px-5 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:px-12">
+    <section className="page-under-nav bg-[#F7F4EE] pb-24">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:px-12">
         <div>
           <Link
             href="/partners#dealer-network"
@@ -158,8 +145,8 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
             {isDealer ? dealerProgram.dealerMin : dealerProgram.distributorMin}
             <span className="ml-2 text-base font-sans font-normal text-[#8A847A]">minimum</span>
           </p>
-          <div className="relative mt-10 hidden overflow-hidden lg:block">
-            <img
+          <div className="relative mt-10 hidden overflow-hidden rounded-[28px] lg:block">
+            <HomeImg
               src={isDealer ? BRAND.dealer : BRAND.distributor}
               alt={
                 isDealer
@@ -180,129 +167,155 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
           </p>
         </div>
 
-        <div className="border border-[#E4DDD2] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10">
-          <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
-            <div className="sm:col-span-2">
-              <FormVoiceDock />
-            </div>
-            <input
+        <div className="rounded-[32px] border border-[#E6EBE7] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10">
+          <form onSubmit={onSubmit} className="grid gap-5 sm:grid-cols-2">
+            <p className="text-sm text-[#5C635E] sm:col-span-2">
+              Tap the mic on every field. We fill that box from your voice.
+            </p>
+            <SpeakAllButton
+              onParsed={(parts) => {
+                if (parts.name) set("fullName", parts.name);
+                if (parts.phone) set("phone", parts.phone);
+                if (parts.email) set("email", parts.email);
+              }}
+            />
+            <VoiceField
+              label="Full name *"
               required
               value={form.fullName}
-              onChange={set("fullName")}
-              placeholder="Full name *"
-              className={fieldClass}
+              onChange={(value) => set("fullName", value)}
+              placeholder="As on Aadhaar · or tap the mic"
             />
-            <input
+            <VoiceField
+              label="Mobile number *"
               required
-              value={form.phone}
-              onChange={set("phone")}
-              placeholder="Mobile (10 digits) *"
+              type="tel"
               inputMode="numeric"
-              className={fieldClass}
+              numeric
+              prefix={
+                <>
+                  <span>🇮🇳</span> +91
+                </>
+              }
+              value={form.phone}
+              onChange={(value) => set("phone", value)}
+              placeholder="10-digit mobile"
             />
-            <input
+            <VoiceField
+              label="Email *"
               required
               type="email"
+              className="sm:col-span-2"
               value={form.email}
-              onChange={set("email")}
-              placeholder="Email *"
-              className={`${fieldClass} sm:col-span-2`}
+              onChange={(value) => set("email", value)}
+              placeholder='name@email.com · say "at" and "dot"'
             />
-            <input
+            <VoiceField
+              label={isDealer ? "Showroom / firm *" : "Distribution firm *"}
               required
+              className="sm:col-span-2"
               value={form.organizationName}
-              onChange={set("organizationName")}
-              placeholder={isDealer ? "Showroom / firm name *" : "Distribution firm name *"}
-              className={`${fieldClass} sm:col-span-2`}
+              onChange={(value) => set("organizationName", value)}
+              placeholder={isDealer ? "Showroom / firm name" : "Distribution firm name"}
             />
-            <input value={form.gstin} onChange={set("gstin")} placeholder="GSTIN" className={fieldClass} />
-            <input
+            <VoiceField
+              label="GSTIN"
+              value={form.gstin}
+              onChange={(value) => set("gstin", value)}
+              placeholder="GSTIN"
+            />
+            <VoiceField
+              label="State *"
               required
               value={form.state}
-              onChange={set("state")}
-              placeholder="State *"
-              className={fieldClass}
+              onChange={(value) => set("state", value)}
+              placeholder="State"
             />
-            <input
+            <VoiceField
+              label={isDealer ? "Retail city *" : "Base city *"}
               required
               value={form.city}
-              onChange={set("city")}
-              placeholder={isDealer ? "Retail city *" : "Base city *"}
-              className={fieldClass}
+              onChange={(value) => set("city", value)}
+              placeholder="City"
             />
-            <input
+            <VoiceField
+              label={isDealer ? "Catchment *" : "Territory *"}
               required
               value={form.territory}
-              onChange={set("territory")}
-              placeholder={isDealer ? "Catchment / locality *" : "Territory (districts / states) *"}
-              className={fieldClass}
+              onChange={(value) => set("territory", value)}
+              placeholder={isDealer ? "Catchment / locality" : "Districts / states"}
             />
-            <input
+            <VoiceField
+              label={isDealer ? "Showroom address" : "Warehouse address"}
+              className="sm:col-span-2"
               value={form.siteAddress}
-              onChange={set("siteAddress")}
-              placeholder={isDealer ? "Showroom address" : "Warehouse address"}
-              className={`${fieldClass} sm:col-span-2`}
+              onChange={(value) => set("siteAddress", value)}
+              placeholder="Street, area, PIN"
             />
-            <select
+            <VoiceSelect
+              label="Site available *"
               required
               value={form.propertyAvailable}
-              onChange={set("propertyAvailable")}
-              className={fieldClass}
+              onChange={(e) => set("propertyAvailable", e.target.value)}
             >
               <option value="Yes">Site available — Yes</option>
               <option value="No">Site available — No (will arrange)</option>
-            </select>
-            <select required value={form.availableSpace} onChange={set("availableSpace")} className={fieldClass}>
+            </VoiceSelect>
+            <VoiceSelect
+              label="Space *"
+              required
+              value={form.availableSpace}
+              onChange={(e) => set("availableSpace", e.target.value)}
+            >
               <option value="Below 500 Sq Ft">Below 500 sq ft</option>
               <option value="500 - 1000 Sq Ft">500 – 1000 sq ft</option>
               <option value="1000 - 5000 Sq Ft">1000 – 5000 sq ft</option>
               <option value="5000+ Sq Ft">5000+ sq ft</option>
-            </select>
-            <select
+            </VoiceSelect>
+            <VoiceSelect
+              label="Experience *"
               required
               value={form.businessExperience}
-              onChange={set("businessExperience")}
-              className={fieldClass}
+              onChange={(e) => set("businessExperience", e.target.value)}
             >
-              <option value="">Retail / auto experience *</option>
+              <option value="">Retail / auto experience</option>
               <option value="Fresher">Fresher</option>
               <option value="1 - 3 Years">1 – 3 years</option>
               <option value="3 - 5 Years">3 – 5 years</option>
               <option value="5+ Years">5+ years</option>
-            </select>
-            <select
+            </VoiceSelect>
+            <VoiceSelect
+              label="Fleet *"
               required
               value={form.plannedFleetSize}
-              onChange={set("plannedFleetSize")}
-              className={fieldClass}
+              onChange={(e) => set("plannedFleetSize", e.target.value)}
             >
               <option value="1 - 10 Vehicles">
                 {isDealer ? "1 – 10 scooters on floor" : "Supply 1 – 10 scooters"}
               </option>
-              <option value="10 - 50 Vehicles">
-                {isDealer ? "10 – 50 scooters" : "Supply 10 – 50 scooters"}
-              </option>
+              <option value="10 - 50 Vehicles">{isDealer ? "10 – 50 scooters" : "Supply 10 – 50 scooters"}</option>
               <option value="50 - 100 Vehicles">
                 {isDealer ? "50 – 100 scooters" : "Supply 50 – 100 scooters"}
               </option>
               <option value="100+ Vehicles">{isDealer ? "100+ scooters" : "Supply 100+ scooters"}</option>
-            </select>
-            <textarea
-              value={form.message}
-              onChange={set("message")}
+            </VoiceSelect>
+            <VoiceArea
+              label="Notes"
+              className="sm:col-span-2"
               rows={4}
+              value={form.message}
+              onChange={(value) => set("message", value)}
               placeholder={
                 isDealer
                   ? "Retail plan — nearby demand, staff, why EVUDDY in this city"
                   : "Distribution plan — dealers you already know, logistics, why this territory"
               }
-              className={`${fieldClass} h-auto py-3 sm:col-span-2`}
             />
             <label className="flex items-start gap-3 text-sm leading-6 text-[#5C635E] sm:col-span-2">
               <input
                 type="checkbox"
                 checked={form.consentAccepted}
-                onChange={set("consentAccepted")}
+                onChange={(e) => set("consentAccepted", e.target.checked)}
                 className="mt-1"
                 required
               />
@@ -311,16 +324,12 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
             </label>
             {error ? <p className="text-sm font-medium text-red-700 sm:col-span-2">{error}</p> : null}
             {done ? <p className="text-sm font-medium text-[#1F6B4A] sm:col-span-2">{done}</p> : null}
-            <button
-              type="submit"
-              disabled={loading}
-              className="h-14 bg-[#1F6B4A] px-8 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] disabled:opacity-60 sm:col-span-2"
-            >
+            <button type="submit" disabled={loading} className={`${PREMIUM_BTN} sm:col-span-2`}>
               {loading
                 ? "Sending…"
                 : isDealer
-                  ? "Submit dealer application"
-                  : "Submit distributor application"}
+                  ? "Submit dealer application →"
+                  : "Submit distributor application →"}
             </button>
           </form>
         </div>

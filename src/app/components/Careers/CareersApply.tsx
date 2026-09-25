@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
+import { PREMIUM_BTN, SpeakAllButton, VoiceArea, VoiceField } from "../FormVoice/FormVoiceDock";
 
 export default function CareersApply() {
   const [name, setName] = useState("");
@@ -52,14 +52,11 @@ export default function CareersApply() {
     }
   };
 
-  const field =
-    "h-12 w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]";
-
   return (
     <section id="careers-apply" className="px-5 py-10 sm:px-8 lg:px-12">
       <form
         onSubmit={submit}
-        className="mx-auto max-w-[1440px] space-y-4 border-t border-[#E4DDD2] bg-[#FBF9F5] p-6 sm:p-10"
+        className="mx-auto max-w-[1440px] space-y-5 rounded-[32px] border border-[#E6EBE7] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10"
       >
         <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
           Apply
@@ -67,49 +64,51 @@ export default function CareersApply() {
         <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
           Apply to EVUDDY
         </h2>
-        <FormVoiceDock />
         <p className="max-w-2xl text-[15px] leading-8 text-[#5C635E]">
-          This creates a hiring ticket for the team. You can also email helpdesk@kebuone.in.
+          Tap the mic on every field. This creates a hiring ticket. You can also email helpdesk@kebuone.in.
         </p>
+        <SpeakAllButton
+          onParsed={(parts) => {
+            if (parts.name) setName(parts.name);
+            if (parts.email) setEmail(parts.email);
+          }}
+        />
         <div className="grid gap-4 sm:grid-cols-2">
-          <input
+          <VoiceField
+            label="Full name *"
             required
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Full name"
-            className={field}
+            onChange={setName}
+            placeholder="As on Aadhaar · or tap the mic"
           />
-          <input
+          <VoiceField
+            label="Email *"
             required
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className={field}
+            onChange={setEmail}
+            placeholder='name@email.com · say "at" and "dot"'
           />
         </div>
-        <input
+        <VoiceField
+          label="Role *"
           required
           value={role}
-          onChange={(e) => setRole(e.target.value)}
+          onChange={setRole}
           placeholder="Role you are applying for"
-          className={field}
         />
-        <textarea
+        <VoiceArea
+          label="Why EVUDDY *"
           required
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Tell us briefly why you want to join"
           rows={4}
-          className="w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 py-3 text-sm text-[#1C1917] outline-none focus:border-[#1F6B4A]"
+          value={message}
+          onChange={setMessage}
+          placeholder="Tell us briefly why you want to join"
         />
         {error && <p className="text-sm font-medium text-red-700">{error}</p>}
         {status && <p className="text-sm font-medium text-[#1F6B4A]">{status}</p>}
-        <button
-          disabled={loading}
-          className="inline-flex w-full items-center justify-center bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c] disabled:opacity-60 sm:w-auto"
-        >
-          {loading ? "Sending..." : "Submit application"}
+        <button disabled={loading} className={`${PREMIUM_BTN} sm:w-auto sm:min-w-[240px]`}>
+          {loading ? "Sending..." : "Submit application →"}
         </button>
       </form>
     </section>

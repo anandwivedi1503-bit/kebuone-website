@@ -15,7 +15,7 @@ import {
   rtoInstallment,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
+import { PREMIUM_BTN, PREMIUM_FIELD, VoiceArea, VoiceField } from "../FormVoice/FormVoiceDock";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
   loadRtoDraft,
@@ -105,8 +105,7 @@ const normalizeText = (value: unknown) =>
     .toLowerCase()
     .replace(/\s+/g, " ");
 
-const inputClass =
-  "h-14 w-full rounded-2xl border border-slate-200 px-4 outline-none focus:border-[#18B368]";
+const inputClass = PREMIUM_FIELD;
 
 export default function RentToOwnBooking() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(() => loadRtoDraft()?.step || 1);
@@ -645,8 +644,6 @@ export default function RentToOwnBooking() {
         {error ? <p className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-rose-600">{error}</p> : null}
         {message ? <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-700">{message}</p> : null}
 
-        {step <= 2 ? <FormVoiceDock hint="Select a field, then speak your name, address or phone." /> : null}
-
         {step === 1 && (
           <div className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8">
             <label className="block text-sm font-bold">City *</label>
@@ -713,7 +710,7 @@ export default function RentToOwnBooking() {
               type="button"
               disabled={!selectedBike || !city || !hub}
               onClick={() => setStep(2)}
-              className="h-14 w-full rounded-full bg-[#18B368] font-bold text-white disabled:bg-slate-300"
+              className={PREMIUM_BTN}
             >
               Continue to application
             </button>
@@ -723,39 +720,34 @@ export default function RentToOwnBooking() {
         {step === 2 && (
           <form className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8" onSubmit={goToReview}>
             <h2 className="text-2xl font-black">Ownership application</h2>
-            <p className="text-sm text-slate-500">
-              KYC is already on file. Complete the Rent to Own details required for the 18-month ownership contract.
+            <p className="text-sm text-[#5C635E]">
+              Tap the mic on every field. KYC is already on file — complete the Rent to Own details.
             </p>
-            <label className="block text-sm font-bold">Rider name</label>
-            <input className={inputClass} value={riderName} readOnly />
-            <label className="block text-sm font-bold">Registered mobile</label>
-            <input className={inputClass} value={riderPhone} readOnly />
-            <label className="block text-sm font-bold">Email *</label>
-            <input
-              className={inputClass}
+            <VoiceField label="Rider name" value={riderName} onChange={() => undefined} readOnly />
+            <VoiceField label="Registered mobile" value={riderPhone} onChange={() => undefined} readOnly mic={false} />
+            <VoiceField
+              label="Email *"
+              type="email"
               value={riderEmail}
-              onChange={(e) => setRiderEmail(e.target.value)}
+              onChange={setRiderEmail}
               placeholder="name@email.com"
             />
-            <label className="block text-sm font-bold">Occupation *</label>
-            <input
-              className={inputClass}
+            <VoiceField
+              label="Occupation *"
               value={occupation}
-              onChange={(e) => setOccupation(e.target.value)}
+              onChange={setOccupation}
               placeholder="e.g. Delivery partner, Student, Private job"
             />
-            <label className="block text-sm font-bold">Father / guardian name *</label>
-            <input
-              className={inputClass}
+            <VoiceField
+              label="Father / guardian name *"
               value={guardianName}
-              onChange={(e) => setGuardianName(e.target.value)}
+              onChange={setGuardianName}
               placeholder="Full name"
             />
-            <label className="block text-sm font-bold">Nominee full name *</label>
-            <input
-              className={inputClass}
+            <VoiceField
+              label="Nominee full name *"
               value={nomineeName}
-              onChange={(e) => setNomineeName(e.target.value)}
+              onChange={setNomineeName}
               placeholder="Person who receives ownership if required"
             />
             <label className="block text-sm font-bold">Nominee relation *</label>
@@ -771,20 +763,20 @@ export default function RentToOwnBooking() {
                 </option>
               ))}
             </select>
-            <label className="block text-sm font-bold">Emergency contact number *</label>
-            <input
-              className={inputClass}
-              value={emergencyPhone}
-              onChange={(e) => setEmergencyPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-              placeholder="10 digit mobile number"
+            <VoiceField
+              label="Emergency contact number *"
+              type="tel"
+              numeric
               inputMode="numeric"
+              value={emergencyPhone}
+              onChange={setEmergencyPhone}
+              placeholder="10 digit mobile number"
             />
-            <label className="block text-sm font-bold">Permanent address *</label>
-            <textarea
-              className="min-h-28 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-[#18B368]"
+            <VoiceArea
+              label="Permanent address *"
               placeholder="House / street, area, city, PIN"
               value={address}
-              onChange={(e) => setAddress(e.target.value)}
+              onChange={setAddress}
             />
             <label className="flex items-start gap-3 text-sm text-slate-600">
               <input
@@ -799,7 +791,7 @@ export default function RentToOwnBooking() {
               <button type="button" onClick={() => setStep(1)} className="h-14 flex-1 rounded-full border font-bold">
                 Back
               </button>
-              <button type="submit" className="h-14 flex-1 rounded-full bg-[#18B368] font-bold text-white">
+              <button type="submit" className={`${PREMIUM_BTN} flex-1`}>
                 Review agreement
               </button>
             </div>

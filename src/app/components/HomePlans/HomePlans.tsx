@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
+import { BRAND } from "@/lib/brandMedia";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const inr = (n: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -16,82 +17,73 @@ export default function HomePlans() {
   const { rates } = catalog;
 
   const plans = [
-    { name: "Hourly", price: inr(rates.hourly), unit: "/ hour", note: "GST included", featured: false },
-    { name: "Daily", price: inr(rates.daily), unit: "/ day", note: "Most booked · GST included", featured: true },
-    { name: "Weekly", price: inr(rates.weekly), unit: "/ week", note: "GST included", featured: false },
-    { name: "Monthly", price: inr(rates.monthly), unit: "/ month", note: "GST included", featured: false },
+    { name: "Hourly", price: inr(rates.hourly), unit: "/hr", note: "GST included", featured: false },
+    { name: "Daily", price: inr(rates.daily), unit: "/day", note: "Most booked", featured: true },
+    { name: "Weekly", price: inr(rates.weekly), unit: "/wk", note: "GST included", featured: false },
+    { name: "Monthly", price: inr(rates.monthly), unit: "/mo", note: "GST included", featured: false },
   ];
 
   return (
-    <section id="plans" className="relative scroll-mt-28 bg-[#FBF9F5] py-20 sm:scroll-mt-40 sm:py-28">
-      <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
-          <div className="max-w-2xl">
-            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
-              India-ready pricing
-            </p>
-            <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
-              Clear fares. <span className="italic text-[#1F6B4A]">No hidden extras.</span>
+    <section id="plans" className="scroll-mt-28 bg-[#F7F4EE] py-8 sm:scroll-mt-40 sm:py-12">
+      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">Plans</p>
+            <h2 className="font-display mt-2 text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-4xl">
+              GST included. <span className="italic text-[#1F6B4A]">No extras.</span>
             </h2>
-            <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
-              Starting fares from live EVUDDY scooters — GST included in the fare you see.
-              A refundable ₹2,500 security deposit applies on rentals and Rent to Own.
-            </p>
           </div>
-          <Link
-            href="/ride-options"
-            className="inline-flex h-12 items-center gap-2 bg-[#1F6B4A] px-6 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c]"
-          >
-            Book at your hub
-            <ArrowRight size={16} />
+          <Link href="/ride-options" className="hidden text-[13px] font-medium text-[#1F6B4A] sm:inline">
+            Book at your hub →
           </Link>
         </div>
 
-        <div className="mt-14 grid border-t border-[#E4DDD2] sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-6 flex gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {plans.map((plan) => (
             <Link
               key={plan.name}
               href="/ride-options"
-              className={`group border-b border-[#E4DDD2] px-1 py-8 xl:border-b-0 xl:px-8 first:xl:pl-0 last:xl:pr-0 ${
-                plan.featured ? "xl:border-x xl:border-[#E4DDD2]" : ""
+              className={`min-w-[176px] flex-1 overflow-hidden rounded-[24px] transition sm:min-w-0 ${
+                plan.featured
+                  ? "bg-[#E7F6EC] ring-1 ring-[#1F6B4A]/15"
+                  : "bg-white ring-1 ring-[#E6EBE7]"
               }`}
             >
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">
-                {plan.name}
-                {plan.featured ? " · most booked" : ""}
-              </p>
-              <p className="font-display mt-4 text-4xl font-medium tracking-tight text-[#1C1917]">
-                {plan.price}
-                <span className="ml-1 text-base font-normal text-[#8A847A]">{plan.unit}</span>
-              </p>
-              <p className="mt-2 text-sm text-[#5C635E]">{plan.note}</p>
-              <span className="mt-6 inline-flex items-center gap-1 text-[13px] font-medium text-[#1F6B4A]">
-                Choose plan
-                <ArrowRight size={14} className="transition group-hover:translate-x-0.5" />
-              </span>
+              <div className="relative h-20 overflow-hidden">
+                <HomeImg
+                  src={BRAND.cityCommute}
+                  alt=""
+                  className="h-full w-full object-cover object-center"
+                />
+              </div>
+              <div className="p-4">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
+                  {plan.name}
+                </p>
+                <p className="font-display mt-2 text-[1.75rem] font-medium tracking-tight text-[#1C1917]">
+                  {plan.price}
+                  <span className="ml-1 text-sm font-sans font-normal text-[#8A847A]">{plan.unit}</span>
+                </p>
+                <p className="mt-1 text-xs text-[#5C635E]">{plan.note}</p>
+              </div>
             </Link>
           ))}
         </div>
 
         <Link
           href="/ride-options"
-          className="mt-2 flex flex-col items-start justify-between gap-4 border-y border-[#E4DDD2] py-10 sm:flex-row sm:items-center"
+          className="mt-4 flex items-center justify-between rounded-[24px] bg-[#0B1B16] px-5 py-5 text-white"
         >
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">Rent to Own</p>
-            <p className="font-display mt-2 text-3xl font-medium text-[#1C1917]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">Rent to Own</p>
+            <p className="font-display mt-1 text-2xl font-medium">
               {inr(rates.rtoDaily)}
-              <span className="text-lg font-normal text-[#8A847A]"> / day</span>
-              {" · "}
-              {rates.rtoMonths} months
+              <span className="text-base font-sans font-normal text-white/60"> / day · {rates.rtoMonths} months</span>
             </p>
-            <p className="mt-1 text-sm text-[#5C635E]">
-              GST included. One-time refundable security deposit ₹2,500. Daily receipt. Ownership after a successful term.
-            </p>
+            <p className="mt-1 text-xs text-white/65">GST included · ₹2,500 refundable deposit</p>
           </div>
-          <span className="inline-flex h-12 items-center gap-2 bg-[#1F6B4A] px-6 text-[13px] font-medium tracking-[0.08em] text-white">
-            Start Rent to Own
-            <ArrowRight size={16} />
+          <span className="hidden rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-[#0B1B16] sm:inline">
+            Start →
           </span>
         </Link>
       </div>
