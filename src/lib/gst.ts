@@ -30,6 +30,26 @@ export function gstBreakdown(taxableAmount: unknown) {
   };
 }
 
+/** Split a GST-inclusive fare into taxable + CGST + SGST that still sum to the published price. */
+export function gstBreakdownInclusive(inclusiveAmount: unknown) {
+  const totalWithGst = money(inclusiveAmount);
+  const taxableAmount = money(totalWithGst / (1 + GST_RATE));
+  const gstAmount = money(totalWithGst - taxableAmount);
+  const cgstAmount = money(gstAmount / 2);
+  const sgstAmount = money(gstAmount - cgstAmount);
+
+  return {
+    taxableAmount,
+    cgstRate: CGST_RATE,
+    sgstRate: SGST_RATE,
+    gstRate: GST_RATE,
+    cgstAmount,
+    sgstAmount,
+    gstAmount,
+    totalWithGst,
+  };
+}
+
 type BookingPayableSource = {
   paymentDue?: unknown;
   pendingAmount?: unknown;

@@ -24,6 +24,7 @@ import {
   riderPublicDisplayName,
   sanitizeReviewComment,
 } from "../src/lib/reviews";
+import { gstBreakdownInclusive } from "../src/lib/gst";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -238,6 +239,14 @@ assert.equal(riderPublicDisplayName("Anand Dhar Dwivedi"), "Anand D.");
 assert.equal(sanitizeReviewComment("  nice ride http://spam.example  "), "nice ride");
 assert.equal(bookingEligibleForReview({ rideStatus: "Completed" }), true);
 assert.equal(bookingEligibleForReview({ rideStatus: "In Ride" }), false);
+
+const gstIncluded = gstBreakdownInclusive(250);
+assert.equal(gstIncluded.totalWithGst, 250);
+assert.equal(
+  Number((gstIncluded.taxableAmount + gstIncluded.gstAmount).toFixed(2)),
+  250
+);
+
 assert.equal(
   bookingEligibleForReview({
     rideStatus: "In Ride",

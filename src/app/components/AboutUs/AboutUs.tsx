@@ -13,9 +13,9 @@ import {
 
 const facts = [
   { label: "Hourly", value: "₹60" },
-  { label: "Daily", value: "₹230" },
-  { label: "Weekly", value: "₹1,610" },
-  { label: "Monthly", value: "₹6,900" },
+  { label: "Daily", value: "₹250" },
+  { label: "Weekly", value: "₹1,750" },
+  { label: "Monthly", value: "₹7,500" },
 ];
 
 const pillars = [
@@ -27,7 +27,7 @@ const pillars = [
   {
     icon: ShieldCheck,
     title: "Rent to Own",
-    text: "₹280 a day for 18 months. Pay ₹280 + 5% GST every day. No security deposit. Daily receipt. Then the scooter is yours.",
+    text: "₹300 a day GST included for 18 months, plus a one-time refundable security deposit of ₹2,500. Daily receipt. Then the scooter is yours.",
   },
   {
     icon: Building2,
@@ -74,7 +74,7 @@ export default function AboutUs() {
       <BrandSplit
         eyebrow="Riders"
         title="A scooter when you need it. An asset if you want it."
-        text="Hourly to monthly plans for daily riders. GST is 5% on rental only. Normal bookings include a refundable deposit. Rent to Own has no deposit."
+        text="Hourly to monthly plans for daily riders. Fares are GST included. Rentals and Rent to Own include a refundable ₹2,500 deposit."
         image={BRAND.cityCommute}
         alt="EVUDDY rental scooter on a city commute"
       />
@@ -110,9 +110,8 @@ export default function AboutUs() {
               Affordable. Accessible. <span className="italic text-[#1F6B4A]">Asset-building.</span>
             </h2>
             <p className="mt-5 max-w-xl text-[15px] leading-8 text-[#5C635E]">
-              GST is 5% on rental only (CGST 2.5% + SGST 2.5%). Security deposit
-              on normal rentals is refundable and not taxed. Rent to Own has no
-              deposit.
+              Published fares are GST included (CGST 2.5% + SGST 2.5% already in the price).
+              Security deposit of ₹2,500 on rentals and Rent to Own is refundable and not taxed.
             </p>
           </div>
           <div className="border-t border-[#E4DDD2] pt-6 lg:border-t-0 lg:border-l lg:pl-10 lg:pt-0">

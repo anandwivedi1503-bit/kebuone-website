@@ -66,8 +66,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
       "charges",
     ],
     href: "/book-bike?flow=rental",
-    en: "Listed rates (a scooter can differ): Hourly ₹60, Daily ₹230, Weekly ₹1,610, Monthly ₹6,900, plus 5% GST. Rentals also take a refundable security deposit (usually ₹2,500).",
-    hi: "किराया साफ़ है (स्कूटर के हिसाब से थोड़ा बदल सकता है):\n• घंटे का — ₹60\n• दिन का — ₹230\n• हफ़्ते का — ₹1,610\n• महीने का — ₹6,900\nइस पर 5% GST लगता है। सामान्य किराये पर आमतौर पर ₹2,500 जमा (वापस मिलने वाला) भी होता है। Book EV पर लाइव स्कूटर देख सकते हैं।",
+    en: "Listed rates (a scooter can differ): Hourly ₹60, Daily ₹250, Weekly ₹1,750, Monthly ₹7,500 — GST included. Rentals and Rent to Own also take a refundable security deposit of ₹2,500.",
+    hi: "किराया साफ़ है:\n• घंटे का — ₹60 (GST शामिल)\n• दिन का — ₹250 (GST शामिल)\n• हफ़्ते का — ₹1,750 (GST शामिल)\n• महीने का — ₹7,500 (GST शामिल)\nसामान्य किराये और Rent to Own पर ₹2,500 जमा (वापस मिलने वाला) भी होता है। Book EV पर लाइव स्कूटर देख सकते हैं।",
   },
   {
     keys: ["deposit", "wallet", "refund", "जमा", "वॉलेट", "रिफंड", "डिपॉजिट", "security"],
@@ -78,14 +78,14 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["own", "rto", "installment", "18", "रेंट टू ओन", "अपना", "ownership", "किस्त"],
     href: "/rent-to-own",
-    en: "Rent to Own is ₹280 + 5% GST every day for 18 months, no security deposit. You get a daily receipt. After successful days, ownership transfers.",
-    hi: "Rent to Own मतलब स्कूटर धीरे-धीरे अपना बनाना:\n• रोज़ ₹280 + 5% GST\n• 18 महीने\n• कोई सिक्योरिटी डिपॉजिट नहीं\n• रोज़ रसीद मिलती है\nपूरे सफल दिनों के बाद मालिकाना हक ट्रांसफर होता है। यह सामान्य किराये से अलग प्लान है — चाहें तो पेज खोल दूँ।",
+    en: "Rent to Own is ₹300 GST included every day for 18 months, plus a one-time refundable security deposit of ₹2,500. You get a daily receipt. After successful days, ownership transfers.",
+    hi: "Rent to Own मतलब स्कूटर धीरे-धीरे अपना बनाना:\n• रोज़ ₹300 (GST शामिल)\n• 18 महीने\n• एक बार ₹2,500 सिक्योरिटी डिपॉजिट (वापस मिलने वाला)\n• रोज़ रसीद मिलती है\nपूरे सफल दिनों के बाद मालिकाना हक ट्रांसफर होता है। यह सामान्य किराये से अलग प्लान है — चाहें तो पेज खोल दूँ।",
   },
   {
     keys: ["razorpay", "pay", "upi", "card", "पेमेंट", "भुगतान", "gst", "payment"],
     href: "/book-bike",
-    en: "UPI and cards go through Razorpay on the booking page. GST is 5% on rent (CGST 2.5% + SGST 2.5%). If your EVUDDY wallet has enough, you can pay from wallet there. I cannot collect payment or enter OTP for you.",
-    hi: "पेमेंट Book EV पेज पर होता है — UPI/कार्ड Razorpay से। किराये पर 5% GST (CGST 2.5% + SGST 2.5%)। वॉलेट में बैलेंस हो तो वहीं से भी पे कर सकते हैं। मैं चैट में भुगतान या OTP नहीं ले सकती — सुरक्षित बटन वहीँ यूज़ करें।",
+    en: "UPI and cards go through Razorpay on the booking page. Listed fares are GST included (CGST 2.5% + SGST 2.5% already in the price). If your EVUDDY wallet has enough, you can pay from wallet there. I cannot collect payment or enter OTP for you.",
+    hi: "पेमेंट Book EV पेज पर होता है — UPI/कार्ड Razorpay से। किराया GST शामिल है। वॉलेट में बैलेंस हो तो वहीं से भी पे कर सकते हैं। मैं चैट में भुगतान या OTP नहीं ले सकती — सुरक्षित बटन वहीँ यूज़ करें।",
   },
   {
     keys: ["hub", "city", "lucknow", "where", "हब", "शहर", "लखनऊ", "office", "address", "ऑफिस", "पता"],
@@ -110,8 +110,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
       "complaint",
     ],
     href: "/contact",
-    en: "Helpdesk: helpdesk@kebuone.in or +91 8726006512, or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues — that creates a support ticket staff see on Support.",
-    hi: "मदद के तीन आसान रास्ते:\n1) हेल्पडेस्क — helpdesk@kebuone.in या +91 8726006512\n2) संपर्क फॉर्म — /contact\n3) पेमेंट के बाद Book EV पर “Need help?” — बुकिंग वाला सपोर्ट टिकट बनता है (पिकअप, बैटरी, ब्रेकडाउन आदि)।",
+    en: "Helpdesk: helpdesk@kebuone.in or +91 8726006519, or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues — that creates a support ticket staff see on Support.",
+    hi: "मदद के तीन आसान रास्ते:\n1) हेल्पडेस्क — helpdesk@kebuone.in या +91 8726006519\n2) संपर्क फॉर्म — /contact\n3) पेमेंट के बाद Book EV पर “Need help?” — बुकिंग वाला सपोर्ट टिकट बनता है (पिकअप, बैटरी, ब्रेकडाउन आदि)।",
   },
   {
     keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक", "ride end", "ride started", "शुरू"],
@@ -182,7 +182,7 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["terms", "शर्त", "नियम", "कानून", "conditions", "t&c", "agreement"],
     href: "/terms-and-conditions",
-    en: "Terms (/terms-and-conditions): complete KYC, follow hub pickup, pay rental or RTO dues. Rates + 5% GST on rent; deposit on normal rentals; RTO is ₹280/day + GST for 18 months with no deposit. Misuse, damage or unpaid dues can block booking.",
+    en: "Terms (/terms-and-conditions): complete KYC, follow hub pickup, pay rental or RTO dues. Rates are GST included; ₹2,500 refundable deposit on rentals and Rent to Own; RTO is ₹300/day GST included for 18 months. Misuse, damage or unpaid dues can block booking.",
     hi: "नियम (/terms-and-conditions): KYC, हब पिकअप नियम, किराया/RTO भुगतान। किराये पर 5% GST; सामान्य किराये पर जमा; Rent to Own में डिपॉजिट नहीं। दुरुपयोग/नुकसान/बाकी बिल से बुकिंग ब्लॉक हो सकती है।",
   },
   {
@@ -228,8 +228,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["instagram", "youtube", "linkedin", "social", "hashtag", "saferide", "24x7", "24×7"],
     href: "/contact",
-    en: "Footer: 24×7 customer support, Instagram @evuddy_bike / @kebuone, LinkedIn Kebu One, YouTube @kebuone. Brand hashtag #safeRideWithEvuddy. Helpdesk +91 8726006512.",
-    hi: "फुटर: 24×7 सपोर्ट। Instagram @evuddy_bike व @kebuone, LinkedIn Kebu One, YouTube @kebuone। हैशटैग #safeRideWithEvuddy। फोन +91 8726006512।",
+    en: "Footer: 24×7 customer support, Instagram @evuddy_bike / @kebuone, LinkedIn Kebu One, YouTube @kebuone. Brand hashtag #safeRideWithEvuddy. Helpdesk +91 8726006519.",
+    hi: "फुटर: 24×7 सपोर्ट। Instagram @evuddy_bike व @kebuone, LinkedIn Kebu One, YouTube @kebuone। हैशटैग #safeRideWithEvuddy। फोन +91 8726006519।",
   },
   {
     keys: ["hours", "timing", "open", "समय", "खुला", "टाइमिंग", "office hours"],
@@ -272,7 +272,7 @@ export function publicAssistantIntent(question: string, language = "hi"): Assist
         language,
         question,
         "I cannot take payment, enter OTP, unlock a scooter, or issue a refund. Use the buttons on Book EV or ask hub staff / helpdesk@kebuone.in.",
-        "मैं भुगतान, OTP, अनलॉक या रिफंड नहीं कर सकती। Book EV पर बटन इस्तेमाल करें या helpdesk@kebuone.in / +91 8726006512 पर बात करें।"
+        "मैं भुगतान, OTP, अनलॉक या रिफंड नहीं कर सकती। Book EV पर बटन इस्तेमाल करें या helpdesk@kebuone.in / +91 8726006519 पर बात करें।"
       ),
     };
   }
@@ -317,7 +317,7 @@ export function publicAssistantIntent(question: string, language = "hi"): Assist
     (/\b(contact|support|help desk|helpdesk|email)\b/.test(q) || /संपर्क|मदद/.test(q))
   ) {
     return {
-      answer: "संपर्क पेज खोल रही हूँ — helpdesk@kebuone.in · +91 8726006512।",
+      answer: "संपर्क पेज खोल रही हूँ — helpdesk@kebuone.in · +91 8726006519।",
       href: "/contact",
       navigate: true,
     };
@@ -457,7 +457,7 @@ function directoryReply(session?: EvaRiderSession | null): AssistantReply {
   const prefix = session?.firstName ? `${session.firstName} जी, ` : "";
   return {
     answer:
-      `${prefix}पूरी साइट मैं संभालती हूँ। पूछ लीजिए:\n• स्कूटर कैसे बुक करें / KYC कहाँ तक है\n• किराया-GST, रेंज-स्पीड\n• Rent to Own ₹280/दिन\n• फ्लीट निवेश (60% आपका)\n• About, Vision, Leadership, Careers\n• संपर्क, 24×7 हेल्पडेस्क\nबोलिए “बुकिंग खोलो” या अपना हाल। helpdesk@kebuone.in · +91 8726006512।`,
+      `${prefix}पूरी साइट मैं संभालती हूँ। पूछ लीजिए:\n• स्कूटर कैसे बुक करें / KYC कहाँ तक है\n• किराया-GST, रेंज-स्पीड\n• Rent to Own ₹300/दिन GST शामिल\n• फ्लीट निवेश (PDF डाउनलोड)\n• About, Vision, Leadership, Careers\n• संपर्क, 24×7 हेल्पडेस्क\nबोलिए “बुकिंग खोलो” या अपना हाल। helpdesk@kebuone.in · +91 8726006519।`,
     href: session?.href || "/",
   };
 }
@@ -484,8 +484,8 @@ RULES
 - If the rider is new / KYC pending / rejected / blocked, say that clearly in Hindi and give the next real button. You cannot approve KYC.
 - If they have a live booking, explain ride/payment status and the next Book EV button. NEVER read or ask them to paste Pickup/Ride-end OTP here. NEVER take payment or unlock.
 - Do not invent hubs, live stock, secret prices, unnamed staff, or dashboard steps.
-- Fleet Partner Investment: official poster numbers only (60% investor / 40% company, ₹87 profit/scooter/day, plans ₹1L→₹2,15,316 · ₹5L→₹10,76,580 · ₹10L→₹21,53,160 over 42 months) and /partners#investment-poster.
-- You may suggest opening: / /ride-options /book-bike /rent-to-own /register /contact /partners#investment-poster /careers /vision /Leadership /about /refund-policy /terms-and-conditions /privacy-policy.
+- Fleet Partner Investment: send riders to /partners#fleet-investment to download the official PDF and apply on the form. Do not quote old share splits or calculator totals.
+- You may suggest opening: / /ride-options /book-bike /rent-to-own /register /contact /partners#fleet-investment /careers /vision /Leadership /about /refund-policy /terms-and-conditions /privacy-policy.
 - Keep answers under ~180 Hindi words.
 
 KNOWLEDGE:

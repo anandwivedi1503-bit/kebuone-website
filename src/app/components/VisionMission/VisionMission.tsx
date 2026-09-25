@@ -25,7 +25,7 @@ const pillars = [
   },
   {
     title: "Rent to Own",
-    text: "₹280 a day for 18 months. Pay ₹280 + 5% GST every day. No security deposit. Daily receipt. Then the scooter is yours.",
+    text: "₹300 a day GST included for 18 months, plus a one-time refundable security deposit of ₹2,500. Daily receipt. Then the scooter is yours.",
   },
 ];
 

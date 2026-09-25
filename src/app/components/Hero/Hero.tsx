@@ -101,7 +101,7 @@ export default function Hero() {
             </Link>
             <Link href="/ride-options">
               <span className="inline-flex min-h-12 w-full items-center justify-center border border-[#1C1917]/15 bg-transparent px-8 text-[13px] font-medium tracking-[0.06em] text-[#1C1917] transition hover:border-[#1F6B4A] sm:w-auto">
-                Rent to Own ₹280/day
+                Rent to Own ₹300/day
               </span>
             </Link>
           </div>
@@ -142,18 +142,7 @@ export default function Hero() {
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
-        <div className="grid border border-[#E4DDD2] xl:grid-cols-[0.42fr_0.58fr]">
-          <div className="relative aspect-[3/2] overflow-hidden bg-[#1C1917]">
-            <HomeImg
-              src={BRAND.cityCommute}
-              alt="GPS-enabled EVUDDY scooter on a city boulevard"
-              className="absolute inset-0 h-full w-full object-cover object-center"
-            />
-            <p className="absolute bottom-5 left-5 text-[11px] font-medium uppercase tracking-[0.2em] text-white">
-              GPS on scooter
-            </p>
-          </div>
-          <div className="bg-[#FBF9F5] px-5 py-5 sm:px-8 sm:py-6">
+        <div className="border border-[#E4DDD2] bg-[#FBF9F5] px-5 py-5 sm:px-8 sm:py-6">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#5F6B63]">
                 Live GPS tracking
@@ -219,7 +208,6 @@ export default function Hero() {
                 </g>
               </svg>
             </div>
-          </div>
         </div>
       </div>
     </section>

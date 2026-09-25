@@ -26,7 +26,7 @@ export async function POST(req: Request) {
         {
           success: false,
           message:
-            "Rent to Own has no ride-end OTP. Keep the scooter and pay ₹280 + 5% GST each day. After the last day, ownership transfers to you.",
+            "Rent to Own has no ride-end OTP. Keep the scooter and pay ₹300 GST included each day. After the last day, ownership transfers to you.",
         },
         { status: 400 }
       );

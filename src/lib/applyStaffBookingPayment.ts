@@ -121,7 +121,7 @@ export async function applyStaffBookingPayment(
       return {
         ok: false as const,
         status: 400,
-        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
+        message: "Rent to Own requires today’s full GST-included amount in one payment.",
       };
     }
 

@@ -1620,7 +1620,7 @@ Booking Details
     <p><b>RTO email :</b> {selectedBooking.rtoEmail || "-"}</p>
     <p><b>Occupation :</b> {selectedBooking.rtoOccupation || "-"}</p>
     <p><b>Permanent address :</b> {selectedBooking.rtoPermanentAddress || "-"}</p>
-    <p><b>Tenure :</b> {selectedBooking.rentToOwnMonths || 18} months @ ₹{selectedBooking.rentToOwnDailyRate || 280}/day</p>
+    <p><b>Tenure :</b> {selectedBooking.rentToOwnMonths || 18} months @ ₹{selectedBooking.rentToOwnDailyRate || 300}/day</p>
     <p><b>Installments paid :</b> {selectedBooking.rtoInstallmentsPaid || 0}</p>
     <p><b>Days remaining :</b> {selectedBooking.remainingRentToOwnDays || 0}</p>
     <p><b>Ownership :</b> {selectedBooking.ownershipTransferred ? "Transferred" : "In progress"}</p>

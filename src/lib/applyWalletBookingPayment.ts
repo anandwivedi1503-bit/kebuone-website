@@ -146,7 +146,7 @@ export async function applyWalletBookingPayment(
       return {
         ok: false as const,
         status: 400,
-        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
+        message: "Rent to Own requires today’s full GST-included amount in one payment.",
       };
     }
 
@@ -439,7 +439,7 @@ export async function applyWalletBookingPayment(
         isRto && Boolean(updatedBooking.ownershipTransferred)
           ? "Final daily payment received. This scooter is now yours. Thank you for riding with EVUDDY."
           : isRto
-          ? "Daily Rent to Own received from wallet. Tomorrow’s ₹280 + GST opens when due."
+          ? "Daily Rent to Own received from wallet. Tomorrow’s GST-included Rent to Own fare opens when due."
           : nextPaymentStatus === "Paid"
           ? nextRideStatus === "In Ride"
             ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV to get the ride-end OTP."

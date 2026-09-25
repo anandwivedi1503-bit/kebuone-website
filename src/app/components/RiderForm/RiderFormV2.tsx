@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { auth } from "@/lib/firebase";
 import { hasRiderPlanReady, markRiderPlanReady, riderResumeHref } from "@/lib/riderPlanGate";
 import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 
 import {
   RecaptchaVerifier,
@@ -1830,6 +1831,8 @@ before:via-[#22C55E]
 before:to-[#18B368]
 "
 >
+
+              <FormVoiceDock hint="Tap a field, then the mic — speak your name, phone or address." />
 
               {step === 1 && (
                 <>

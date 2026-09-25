@@ -86,7 +86,7 @@ async function sendEmail(input: BookingNotifyInput, text: string) {
 <tr><td style="padding:8px 0">GST (5%)</td><td style="text-align:right">INR ${input.gstAmount || 0}</td></tr>
 <tr><td style="padding:8px 0">Method</td><td style="text-align:right">${input.paymentMethod}</td></tr>
 </table>
-<p>Keep the scooter. Tomorrow’s ₹280 + 5% GST will open when due. This email is your copy of the receipt.</p>
+<p>Keep the scooter. Tomorrow’s GST-included Rent to Own fare will open when due. This email is your copy of the receipt.</p>
 <p>https://www.evuddy.com/rent-to-own</p>
 </div>`
           : undefined,

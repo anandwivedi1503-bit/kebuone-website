@@ -4,7 +4,6 @@ import City from "@/models/City";
 import Hub from "@/models/Hub";
 import Vehicle from "@/models/Vehicle";
 import {
-  catalogRate,
   CATALOG_RATES,
   rtoDailyRate,
   rtoTenureMonths,
@@ -15,14 +14,6 @@ import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 function clean(value: unknown) {
   return String(value ?? "").trim();
-}
-
-function minRate(
-  values: number[],
-  fallback: number
-) {
-  const positive = values.filter((n) => Number.isFinite(n) && n > 0);
-  return positive.length ? Math.min(...positive) : fallback;
 }
 
 function mostCommon(values: string[], fallback: string) {
@@ -92,6 +83,7 @@ export async function GET() {
         .filter(Boolean)
         .sort((a: string, b: string) => a.localeCompare(b));
     }
+    cityNames = cityNames.filter((name) => name.toLowerCase() !== "kanpur");
 
     const hubCountByCity = new Map<string, number>();
     let hubCount = 0;
@@ -112,22 +104,10 @@ export async function GET() {
       cities,
       hubCount,
       rates: {
-        hourly: minRate(
-          vehicles.map((row) => catalogRate("Hourly", row.hourlyRate)),
-          CATALOG_RATES.Hourly
-        ),
-        daily: minRate(
-          vehicles.map((row) => catalogRate("Daily", row.dailyRate)),
-          CATALOG_RATES.Daily
-        ),
-        weekly: minRate(
-          vehicles.map((row) => catalogRate("Weekly", row.weeklyRate)),
-          CATALOG_RATES.Weekly
-        ),
-        monthly: minRate(
-          vehicles.map((row) => catalogRate("Monthly", row.monthlyRate)),
-          CATALOG_RATES.Monthly
-        ),
+        hourly: CATALOG_RATES.Hourly,
+        daily: CATALOG_RATES.Daily,
+        weekly: CATALOG_RATES.Weekly,
+        monthly: CATALOG_RATES.Monthly,
         rtoDaily: rtoDailyRate(),
         rtoMonths: rtoTenureMonths(
           vehicles.find((row) => Number(row.rentToOwnMonths) > 0)?.rentToOwnMonths

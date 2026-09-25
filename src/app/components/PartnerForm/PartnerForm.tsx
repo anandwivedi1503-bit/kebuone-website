@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 
 export default function PartnerForm() {
   const [formData, setFormData] = useState({
@@ -232,6 +233,9 @@ md:grid-cols-2
 gap-6
 "
 >
+            <div className="md:col-span-2">
+              <FormVoiceDock />
+            </div>
 
             {/* Name */}
             <input

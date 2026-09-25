@@ -551,9 +551,9 @@ export default function RideOptionsPage() {
               </p>
               <div className="mt-5 rounded-2xl bg-white/8 p-4 text-sm">
                 <p>
-                  Pay now: <b>{formatINR(RTO_PLAN.dailyRate)}</b> + 5% GST
+                  Pay now: <b>{formatINR(RTO_PLAN.dailyRate)}</b> GST included + ₹2,500 deposit
                 </p>
-                <p className="mt-1 text-white/70">No security deposit. Own after {RTO_PLAN.tenureMonths} months.</p>
+                <p className="mt-1 text-white/70">Refundable deposit. Own after {RTO_PLAN.tenureMonths} months.</p>
               </div>
               <span className="mt-6 inline-flex items-center gap-2 font-bold text-[#6EE7A8]">
                 Start Rent to Own <ArrowRight size={16} />

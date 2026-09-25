@@ -38,7 +38,7 @@ export default function HowItWorks() {
       n: "03",
       title: "Pay on Book EV",
       hi: "Razorpay / wallet",
-      text: "Pay rent + 5% GST and deposit where it applies. First ₹1 issues pickup OTP.",
+      text: "Pay the GST-included fare and deposit where it applies. First ₹1 issues pickup OTP.",
       icon: Wallet,
       image: BRAND.pay,
     },

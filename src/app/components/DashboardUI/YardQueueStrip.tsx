@@ -53,7 +53,7 @@ export default function YardQueueStrip() {
     { label: "Ready for pickup", value: counts.readyForPickup, note: "OTP issued, at yard" },
     { label: "In ride", value: counts.inRide, note: "Scooters out" },
     { label: "Unpaid / partial", value: counts.unpaid, note: "OTP-on-partial still allowed" },
-    { label: "RTO due", value: counts.rtoDue, note: "Today’s ₹280 + GST" },
+    { label: "RTO due", value: counts.rtoDue, note: "Today’s GST-included fare" },
     { label: "Refunds", value: counts.pendingRefunds, note: "Waiting approval" },
   ];
 

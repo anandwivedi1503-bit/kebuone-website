@@ -98,7 +98,7 @@ export async function loadEvaRiderSession(
   }
 
   if (rider.blacklisted || account === "Blocked") {
-    const statusAnswer = `${hello} आपका अकाउंट अभी ब्लॉक है। चैट से नहीं खुलता। helpdesk@kebuone.in या +91 8726006512 पर बात कीजिए।`;
+    const statusAnswer = `${hello} आपका अकाउंट अभी ब्लॉक है। चैट से नहीं खुलता। helpdesk@kebuone.in या +91 8726006519 पर बात कीजिए।`;
     return {
       signedIn: true,
       stage: "blocked",

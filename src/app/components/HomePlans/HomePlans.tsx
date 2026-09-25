@@ -16,10 +16,10 @@ export default function HomePlans() {
   const { rates } = catalog;
 
   const plans = [
-    { name: "Hourly", price: inr(rates.hourly), unit: "/ hour", note: "+ 5% GST", featured: false },
-    { name: "Daily", price: inr(rates.daily), unit: "/ day", note: "Most booked · + 5% GST", featured: true },
-    { name: "Weekly", price: inr(rates.weekly), unit: "/ week", note: "+ 5% GST", featured: false },
-    { name: "Monthly", price: inr(rates.monthly), unit: "/ month", note: "+ 5% GST", featured: false },
+    { name: "Hourly", price: inr(rates.hourly), unit: "/ hour", note: "GST included", featured: false },
+    { name: "Daily", price: inr(rates.daily), unit: "/ day", note: "Most booked · GST included", featured: true },
+    { name: "Weekly", price: inr(rates.weekly), unit: "/ week", note: "GST included", featured: false },
+    { name: "Monthly", price: inr(rates.monthly), unit: "/ month", note: "GST included", featured: false },
   ];
 
   return (
@@ -34,8 +34,8 @@ export default function HomePlans() {
               Clear fares. <span className="italic text-[#1F6B4A]">No hidden extras.</span>
             </h2>
             <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
-              Starting fares from live EVUDDY scooters — same catalog as Book EV. GST 5% on rent only.
-              A scooter can override the list price at its hub.
+              Starting fares from live EVUDDY scooters — GST included in the fare you see.
+              A refundable ₹2,500 security deposit applies on rentals and Rent to Own.
             </p>
           </div>
           <Link
@@ -86,7 +86,7 @@ export default function HomePlans() {
               {rates.rtoMonths} months
             </p>
             <p className="mt-1 text-sm text-[#5C635E]">
-              No security deposit. Daily receipt. Ownership after a successful term.
+              GST included. One-time refundable security deposit ₹2,500. Daily receipt. Ownership after a successful term.
             </p>
           </div>
           <span className="inline-flex h-12 items-center gap-2 bg-[#1F6B4A] px-6 text-[13px] font-medium tracking-[0.08em] text-white">

@@ -10,6 +10,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import ActionButton from "../DashboardUI/ActionButton";
+import { CATALOG_RATES, COMPANY_SECURITY_DEPOSIT, RTO_PLAN } from "@/lib/rentalPlans";
 
 export default function VehicleManagement() {
 
@@ -77,14 +78,14 @@ vehicleModel: "",
 
 batteryType: "Chargeable",
 
-dailyRate: 230,
-hourlyRate: 60,
-weeklyRate: 1610,
-monthlyRate: 6900,
-rentToOwnDailyRate: 280,
+dailyRate: CATALOG_RATES.Daily,
+hourlyRate: CATALOG_RATES.Hourly,
+weeklyRate: CATALOG_RATES.Weekly,
+monthlyRate: CATALOG_RATES.Monthly,
+rentToOwnDailyRate: RTO_PLAN.dailyRate,
 rentToOwnMonths: 18,
 
-securityDeposit: 0,
+securityDeposit: COMPANY_SECURITY_DEPOSIT,
 
 batteryPercentage: 100,
 
@@ -147,7 +148,15 @@ headers: {
 "Content-Type": "application/json",
 },
 
-body: JSON.stringify(formData),
+body: JSON.stringify({
+  ...formData,
+  hourlyRate: CATALOG_RATES.Hourly,
+  dailyRate: CATALOG_RATES.Daily,
+  weeklyRate: CATALOG_RATES.Weekly,
+  monthlyRate: CATALOG_RATES.Monthly,
+  rentToOwnDailyRate: RTO_PLAN.dailyRate,
+  securityDeposit: formData.securityDeposit || COMPANY_SECURITY_DEPOSIT,
+}),
 
 });
 
@@ -179,19 +188,19 @@ vehicleModel:"",
 
 batteryType:"Chargeable",
 
-dailyRate:230,
+dailyRate: CATALOG_RATES.Daily,
 
-hourlyRate:60,
+hourlyRate: CATALOG_RATES.Hourly,
 
-weeklyRate:1610,
+weeklyRate: CATALOG_RATES.Weekly,
 
-monthlyRate:6900,
+monthlyRate: CATALOG_RATES.Monthly,
 
-rentToOwnDailyRate:280,
+rentToOwnDailyRate: RTO_PLAN.dailyRate,
 
 rentToOwnMonths:18,
 
-securityDeposit:0,
+securityDeposit: COMPANY_SECURITY_DEPOSIT,
 
 batteryPercentage:100,
 
@@ -621,13 +630,9 @@ Daily Rate (₹)
 
 <input
 type="number"
-value={formData.dailyRate}
-onChange={(e)=>
-setFormData({
-...formData,
-dailyRate: Math.max(0, Number(e.target.value)),
-})
-}
+value={CATALOG_RATES.Daily}
+disabled
+readOnly
 className="
 w-full
 h-14
@@ -654,13 +659,9 @@ Weekly Rate (₹)
 
 <input
 type="number"
-value={formData.weeklyRate}
-onChange={(e)=>
-setFormData({
-...formData,
-weeklyRate: Math.max(0, Number(e.target.value)),
-})
-}
+value={CATALOG_RATES.Weekly}
+disabled
+readOnly
 className="
 w-full
 h-14
@@ -687,13 +688,9 @@ Monthly Rate (₹)
 
 <input
 type="number"
-value={formData.monthlyRate}
-onChange={(e)=>
-setFormData({
-...formData,
-monthlyRate: Math.max(0, Number(e.target.value)),
-})
-}
+value={CATALOG_RATES.Monthly}
+disabled
+readOnly
 className="
 w-full
 h-14
@@ -720,13 +717,9 @@ Hourly Rate (₹)
 
 <input
 type="number"
-value={formData.hourlyRate}
-onChange={(e)=>
-setFormData({
-...formData,
-hourlyRate: Math.max(0, Number(e.target.value)),
-})
-}
+value={CATALOG_RATES.Hourly}
+disabled
+readOnly
 className="
 w-full
 h-14
@@ -753,7 +746,7 @@ Rent to Own Daily (₹)
 
 <input
 type="number"
-value={280}
+value={RTO_PLAN.dailyRate}
 disabled
 readOnly
 className="
@@ -772,7 +765,7 @@ transition
 "
 />
 <p className="mt-2 text-xs text-slate-500">
-  Locked company rate: ₹280/day. Booking always uses this amount plus 5% GST.
+  Locked company rate: ₹{RTO_PLAN.dailyRate}/day GST included. Booking always uses this fare.
 </p>
 
 </div>

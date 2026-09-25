@@ -84,7 +84,7 @@ export default function RentToOwnDashboard() {
     <PageContainer>
       <DashboardHeader
         title="Rent to Own"
-        subtitle="₹280 + 5% GST every day. Each payment is a receipt for the rider and a line on this ledger."
+        subtitle="₹300 GST included every day. Each payment is a receipt for the rider and a line on this ledger."
       />
       <OpsMoneyStrip />
 
@@ -112,7 +112,7 @@ export default function RentToOwnDashboard() {
         />
       </div>
 
-      <DashboardCard title="Today’s daily receipts" subtitle="Every ₹280 + GST payment recorded today">
+      <DashboardCard title="Today’s daily receipts" subtitle="Every GST-included daily payment recorded today">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -132,7 +132,7 @@ export default function RentToOwnDashboard() {
               ) : todayReceipts.length === 0 ? (
                 <tr>
                   <td className="px-4 py-8 text-slate-500" colSpan={7}>
-                    No daily receipts yet today. They appear when a rider or the yard pays ₹280 + GST.
+                    No daily receipts yet today. They appear when a rider or the yard pays the GST-included daily fare.
                   </td>
                 </tr>
               ) : (
