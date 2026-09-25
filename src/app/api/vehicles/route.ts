@@ -15,6 +15,8 @@ import Hub, {
   IHub,
 } from "@/models/Hub";
 import {
+  CATALOG_RATES,
+  COMPANY_SECURITY_DEPOSIT,
   catalogRate,
   rtoDailyRate,
   rtoTenureMonths,
@@ -205,37 +207,37 @@ export async function POST(req: Request) {
     const hourlyRate =
       numberOrDefault(
         body.hourlyRate,
-        60
+        CATALOG_RATES.Hourly
       );
 
     const dailyRate =
       numberOrDefault(
         body.dailyRate,
-        230
+        CATALOG_RATES.Daily
       );
 
     const weeklyRate =
       numberOrDefault(
         body.weeklyRate,
-        1610
+        CATALOG_RATES.Weekly
       );
 
     const monthlyRate =
       numberOrDefault(
         body.monthlyRate,
-        6900
+        CATALOG_RATES.Monthly
       );
 
     const securityDeposit =
       numberOrDefault(
         body.securityDeposit,
-        0
+        COMPANY_SECURITY_DEPOSIT
       );
 
     const rentToOwnDailyRate =
       numberOrDefault(
         body.rentToOwnDailyRate,
-        280
+        rtoDailyRate()
       );
 
     const rentToOwnMonths =

@@ -12,6 +12,8 @@ import {
   DISTRIBUTOR_TYPE,
   dealerProgram,
 } from "@/lib/dealerProgram";
+import { DIRECT_THROUGH } from "@/lib/partnerSegments";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 
 const fieldClass =
   "h-14 w-full border border-[#E4DDD2] bg-[#FBF9F5] px-4 text-[15px] text-[#1C1917] outline-none transition placeholder:text-[#8A847A] focus:border-[#1F6B4A] focus:bg-white";
@@ -30,7 +32,6 @@ const empty = {
   availableSpace: "",
   businessExperience: "",
   plannedFleetSize: "",
-  comingThrough: "Direct / EVUDDY",
   message: "",
   consentAccepted: false,
 };
@@ -95,7 +96,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
           availableSpace: form.availableSpace,
           businessExperience: form.businessExperience,
           plannedFleetSize: form.plannedFleetSize,
-          comingThrough: form.comingThrough || "Direct / EVUDDY",
+          comingThrough: DIRECT_THROUGH,
           message: notes,
           consentAccepted: form.consentAccepted,
         }),
@@ -181,6 +182,9 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
 
         <div className="border border-[#E4DDD2] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10">
           <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <FormVoiceDock />
+            </div>
             <input
               required
               value={form.fullName}
@@ -239,21 +243,6 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
               placeholder={isDealer ? "Showroom address" : "Warehouse address"}
               className={`${fieldClass} sm:col-span-2`}
             />
-            <select
-              required
-              value={form.comingThrough}
-              onChange={set("comingThrough")}
-              className={fieldClass}
-            >
-              <option value="Direct / EVUDDY">Coming through: Direct / EVUDDY</option>
-              <option value="Flipkart Minutes">Coming through: Flipkart Minutes</option>
-              <option value="Zomato">Coming through: Zomato</option>
-              <option value="Swiggy">Coming through: Swiggy</option>
-              <option value="Instamart">Coming through: Instamart</option>
-              <option value="Blinkit">Coming through: Blinkit</option>
-              <option value="Zepto">Coming through: Zepto</option>
-              <option value="Other">Coming through: Other</option>
-            </select>
             <select
               required
               value={form.propertyAvailable}

@@ -6,14 +6,16 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
 import { notifyBrowser } from "@/lib/notifyBrowser";
-import { gstBreakdown } from "@/lib/gst";
+import { gstBreakdownInclusive } from "@/lib/gst";
 import {
+  COMPANY_SECURITY_DEPOSIT,
   RTO_PLAN,
   rtoContractValue,
   rtoDailyRate,
   rtoInstallment,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
   loadRtoDraft,
@@ -155,8 +157,9 @@ export default function RentToOwnBooking() {
   const tenureMonths = rtoTenureMonths(currentBike?.rentToOwnMonths);
   const installment = rtoInstallment();
   const contractValue = rtoContractValue(undefined, tenureMonths);
-  const tax = gstBreakdown(installment);
-  const payableAmount = tax.totalWithGst;
+  const tax = gstBreakdownInclusive(installment);
+  const securityDeposit = COMPANY_SECURITY_DEPOSIT;
+  const payableAmount = tax.totalWithGst + securityDeposit;
 
   const filteredHubs = useMemo(() => {
     if (!city) return [];
@@ -447,7 +450,7 @@ export default function RentToOwnBooking() {
       setBookingMongoId(bookingData.data._id);
       setCertificateNumber(bookingData.data.rtoCertificateNumber || "");
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
-      setMessage("Agreement saved. Pay today’s ₹280 + 5% GST to activate Rent to Own.");
+      setMessage("Agreement saved. Pay today’s GST-included fare plus the refundable deposit to activate Rent to Own.");
       setStep(4);
     } catch {
       setError("Could not create the Rent to Own booking.");
@@ -606,8 +609,9 @@ export default function RentToOwnBooking() {
           Own your EVUDDY in {RTO_PLAN.tenureMonths} months
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-          Fixed plan: {formatINR(dailyRate)} per day for {tenureMonths} months.           Pay {formatINR(payableAmount)} now ({formatINR(dailyRate)} + 5% GST).
-          There is no security deposit. After {tenureMonths} months of successful daily payments, ownership of the scooter transfers to you.
+          Fixed plan: {formatINR(dailyRate)} per day (GST included) for {tenureMonths} months.
+          Pay {formatINR(payableAmount)} now — today’s fare plus a refundable security deposit of {formatINR(securityDeposit)}.
+          After {tenureMonths} months of successful daily payments, ownership of the scooter transfers to you.
         </p>
 
         <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -620,7 +624,7 @@ export default function RentToOwnBooking() {
             <p className="mt-1 text-xl font-black">{formatINR(payableAmount)}</p>
           </div>
           <div className="rounded-2xl bg-white p-4">
-            <p className="text-xs font-bold uppercase text-slate-400">GST 5%</p>
+            <p className="text-xs font-bold uppercase text-slate-400">GST included</p>
             <p className="mt-1 text-xl font-black">{formatINR(tax.gstAmount)}</p>
           </div>
         </div>
@@ -640,6 +644,8 @@ export default function RentToOwnBooking() {
 
         {error ? <p className="mt-4 rounded-2xl bg-rose-50 px-4 py-3 text-rose-600">{error}</p> : null}
         {message ? <p className="mt-4 rounded-2xl bg-emerald-50 px-4 py-3 text-emerald-700">{message}</p> : null}
+
+        {step <= 2 ? <FormVoiceDock hint="Select a field, then speak your name, address or phone." /> : null}
 
         {step === 1 && (
           <div className="mt-8 space-y-4 rounded-[28px] bg-white p-5 sm:p-8">
@@ -787,7 +793,7 @@ export default function RentToOwnBooking() {
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
-              I agree to pay {formatINR(dailyRate)} + 5% GST every day for {tenureMonths} months. Rent to Own has no security deposit. After successful daily payments, ownership of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
+              I agree to pay {formatINR(dailyRate)} GST included every day for {tenureMonths} months, plus a one-time refundable security deposit of {formatINR(securityDeposit)}. After successful daily payments, ownership of scooter {selectedBike} transfers to me, subject to EVUDDY terms.
             </label>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(1)} className="h-14 flex-1 rounded-full border font-bold">
@@ -816,9 +822,9 @@ export default function RentToOwnBooking() {
               <p>City / hub: {city} / {selectedHub?.hubName || hub}</p>
               <p>Daily rate: {formatINR(dailyRate)} | Tenure: {tenureMonths} months</p>
               <p>Contract rental value: {formatINR(contractValue)}</p>
-              <p>Amount now: {formatINR(installment)} + 5% GST</p>
-              <p>CGST 2.5%: {formatINR(tax.cgstAmount)} | SGST 2.5%: {formatINR(tax.sgstAmount)}</p>
-              <p>Security deposit: None for Rent to Own</p>
+              <p>Amount now: {formatINR(installment)} GST included + deposit {formatINR(securityDeposit)}</p>
+              <p>CGST 2.5% (included): {formatINR(tax.cgstAmount)} | SGST 2.5% (included): {formatINR(tax.sgstAmount)}</p>
+              <p>Security deposit (refundable): {formatINR(securityDeposit)}</p>
               <p>Payable now: {formatINR(payableAmount)}</p>
               <p>Nominee: {nomineeName} ({nomineeRelation})</p>
               <p>Emergency contact: {emergencyPhone}</p>
@@ -829,10 +835,10 @@ export default function RentToOwnBooking() {
               </p>
             </div>
             <div className="rounded-2xl bg-[#0B1B16] p-5 text-white">
-              <p>Payable now (today · {formatINR(dailyRate)} + GST)</p>
+              <p>Payable now (GST-included fare + deposit)</p>
               <p className="text-3xl font-black">{formatINR(payableAmount)}</p>
               <p className="mt-2 text-sm text-white/70">
-                {formatINR(installment)} + {formatINR(tax.gstAmount)} GST · no deposit
+                {formatINR(installment)} GST included + {formatINR(securityDeposit)} deposit
               </p>
             </div>
             <div className="flex gap-3">
@@ -856,10 +862,10 @@ export default function RentToOwnBooking() {
             <p>Booking ID: <b>{bookingId}</b></p>
             {certificateNumber ? <p>Certificate: <b>{certificateNumber}</b></p> : null}
             <div className="rounded-2xl bg-[#F7FBF8] p-4 text-sm">
-              <p>Rent to Own: {formatINR(dailyRate)} + 5% GST per day</p>
+              <p>Rent to Own: {formatINR(dailyRate)} GST included per day</p>
               <p>Today’s rent: {formatINR(installment)}</p>
-              <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)}</p>
-              <p>No security deposit on Rent to Own</p>
+              <p>CGST 2.5% {formatINR(tax.cgstAmount)} + SGST 2.5% {formatINR(tax.sgstAmount)} (included)</p>
+              <p>Refundable security deposit: {formatINR(securityDeposit)}</p>
               <p className="mt-2 font-semibold">Pay now: {formatINR(pendingAmount || payableAmount)}</p>
             </div>
             {!paymentSuccess ? (
@@ -899,7 +905,7 @@ export default function RentToOwnBooking() {
                   </p>
                 ) : null}
                 <p className="mt-2 text-sm text-emerald-800">
-                  Show this OTP at the hub, then open Book EV and swipe Ride started. Pay ₹280 + GST each day — a receipt is sent to you. Keep the certificate.
+                  Show this OTP at the hub, then open Book EV and swipe Ride started. Pay {formatINR(dailyRate)} GST included each day — a receipt is sent to you. Keep the certificate.
                 </p>
                 {firebaseIdToken && bookingId ? (
                   <div className="mt-4">

@@ -14,14 +14,16 @@ import {
   normalizeIndianPhone,
 } from "@/lib/requestAuth";
 import { ensureRiderWallet } from "@/lib/ensureRiderWallet";
-import { gstBreakdown, money } from "@/lib/gst";
+import { gstBreakdownInclusive, money } from "@/lib/gst";
 import {
+  COMPANY_SECURITY_DEPOSIT,
   catalogRate,
   rtoContractDays,
   rtoDailyRate,
   rtoInstallment,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
+import { rtoDailyPayable } from "@/lib/rtoInstallmentCycle";
 import { publicApiError } from "@/lib/publicError";
 import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, redactBookingOtps, withNextCursor } from "@/lib/listQuery";
 import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
@@ -733,11 +735,10 @@ switch (rentalMode) {
     );
 }
 
-const securityDeposit =
-  rentalMode === "Rent To Own"
-    ? 0
-    : money(vehicle.securityDeposit || 2500);
-const tax = gstBreakdown(rentalAmount);
+const securityDeposit = money(
+  vehicle.securityDeposit > 0 ? vehicle.securityDeposit : COMPANY_SECURITY_DEPOSIT
+);
+const tax = gstBreakdownInclusive(rentalAmount);
 const payableAmount = money(tax.totalWithGst + securityDeposit);
 
 if (
@@ -879,13 +880,13 @@ rtoCertificateNumber:
     : "",
 rtoInstallmentsPaid: 0,
 rtoNextInstallmentAmount:
-  rentalMode === "Rent To Own" ? payableAmount : 0,
+  rentalMode === "Rent To Own" ? rtoDailyPayable() : 0,
 
 rentalStartDate,
 
 rentalEndDate,
 
-rateApplied: rentalAmount,
+      rateApplied: tax.taxableAmount,
 
 startHub:
   startHub ||
@@ -913,7 +914,7 @@ pickupHubName:
       advancePaid: 0,
 
       totalAmount:
-        rentalAmount,
+        tax.taxableAmount,
 
       receivedAmount: 0,
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 
 export default function CareersApply() {
   const [name, setName] = useState("");
@@ -66,6 +67,7 @@ export default function CareersApply() {
         <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
           Apply to EVUDDY
         </h2>
+        <FormVoiceDock />
         <p className="max-w-2xl text-[15px] leading-8 text-[#5C635E]">
           This creates a hiring ticket for the team. You can also email helpdesk@kebuone.in.
         </p>

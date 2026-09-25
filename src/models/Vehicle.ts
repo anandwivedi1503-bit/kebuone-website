@@ -67,25 +67,25 @@ const VehicleSchema = new mongoose.Schema(
 
     dailyRate: {
       type: Number,
-      default: 230,
+      default: 250,
       min: 0,
     },
 
     weeklyRate: {
       type: Number,
-      default: 1610,
+      default: 1750,
       min: 0,
     },
 
     monthlyRate: {
       type: Number,
-      default: 6900,
+      default: 7500,
       min: 0,
     },
 
     rentToOwnDailyRate: {
       type: Number,
-      default: 280,
+      default: 300,
       min: 0,
     },
 
@@ -97,7 +97,7 @@ const VehicleSchema = new mongoose.Schema(
 
     securityDeposit: {
       type: Number,
-      default: 0,
+      default: 2500,
       min: 0,
     },
 

@@ -14,9 +14,7 @@ const HomeFilm = dynamic(() => import("./components/HomeFilm/HomeFilm"), {
 });
 
 const EvuddyNetwork = dynamic(() => import("./components/EvuddyNetwork/EvuddyNetwork"));
-const HomeMoment = dynamic(() => import("./components/HomeMoment/HomeMoment"));
 const Services = dynamic(() => import("./components/Services/Services"));
-const HomeStill = dynamic(() => import("./components/HomeStill/HomeStill"));
 const HomePlaces = dynamic(() => import("./components/HomePlaces/HomePlaces"));
 const WhyKebu = dynamic(() => import("./components/WhyKebu/WhyKebu"));
 const InvestHomeInvite = dynamic(() => import("./components/InvestHomeInvite/InvestHomeInvite"));
@@ -38,9 +36,7 @@ export default function Home() {
       <HomeFilm />
       <HomePlans />
       <EvuddyNetwork />
-      <HomeMoment />
       <Services />
-      <HomeStill />
       <HomePlaces />
       <WhyKebu />
       <InvestHomeInvite />

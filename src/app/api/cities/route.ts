@@ -73,6 +73,12 @@ export async function GET(req: Request) {
         }));
     }
 
+    if (!isAdmin) {
+      cities = cities.filter(
+        (city) => String(city.cityName || "").toLowerCase() !== "kanpur"
+      );
+    }
+
     return NextResponse.json({
       success: true,
       data: cities,

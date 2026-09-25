@@ -1,4 +1,4 @@
-import { gstBreakdown, gstShareForPayment, money } from "@/lib/gst";
+import { gstBreakdownInclusive, gstShareForPayment, money } from "@/lib/gst";
 import { RTO_PLAN, rtoInstallment } from "@/lib/rentalPlans";
 
 type RtoBooking = {
@@ -13,16 +13,16 @@ export function isRentToOwnBooking(booking: { rentalMode?: string }) {
 }
 
 export function rtoDailyPayable() {
-  return gstBreakdown(rtoInstallment()).totalWithGst;
+  return gstBreakdownInclusive(rtoInstallment()).totalWithGst;
 }
 
 export function rtoInstallmentPayable() {
   return rtoDailyPayable();
 }
 
-/** Each paid day is its own ₹280 + 5% GST bill — not GST on the original booking only. */
+/** Each paid day is its own GST-inclusive ₹300 bill — not GST on the original booking only. */
 export function gstOnRtoDailyPayment(paidNow: number) {
-  const day = gstBreakdown(rtoInstallment());
+  const day = gstBreakdownInclusive(rtoInstallment());
   return gstShareForPayment({
     rentalAmount: day.taxableAmount,
     gstAmount: day.gstAmount,

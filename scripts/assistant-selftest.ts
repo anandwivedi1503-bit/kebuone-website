@@ -25,7 +25,7 @@ assert.equal(blocked?.navigate, undefined);
 
 const rates = faqAnswer("What are the rental rates?", "en");
 assert.ok((rates.score || 0) >= 2);
-assert.match(rates.answer, /230/);
+assert.match(rates.answer, /250/);
 
 const hindiBook = faqAnswer("स्कूटर कैसे बुक करें?", "hi");
 assert.ok((hindiBook.score || 0) >= 2);

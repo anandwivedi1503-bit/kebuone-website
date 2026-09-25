@@ -44,13 +44,13 @@ const HELP_TOPICS = [
     label: "Rent to Own",
     ask: "Rent to Own क्या है?",
     icon: Sparkles,
-    blurb: "₹280 / दिन · 18 महीने",
+    blurb: "₹300 / दिन GST शामिल · 18 महीने",
   },
   {
     label: "निवेश",
     ask: "फ्लीट पार्टनर निवेश प्लान और पोस्टर बताओ",
     icon: PiggyBank,
-    blurb: "आपको 60% · पोस्टर देखें",
+    blurb: "PDF डाउनलोड · फॉर्म",
   },
   {
     label: "मेरा अकाउंट",
@@ -214,7 +214,7 @@ export default function EvuddyAssistant() {
       const answer =
         data.answer ||
         data.message ||
-        "अभी जवाब नहीं दे पाई। Book EV इस्तेमाल करें या हेल्पडेस्क helpdesk@kebuone.in / +91 8726006512 पर बात करें।";
+        "अभी जवाब नहीं दे पाई। Book EV इस्तेमाल करें या हेल्पडेस्क helpdesk@kebuone.in / +91 8726006519 पर बात करें।";
       const href = SAFE_HREF.test(String(data.href || "")) ? String(data.href) : "";
       setTurns([...nextTurns, { role: "assistant", content: answer, href }]);
       if (speakBack) voice.speak(answer, "hi");
@@ -224,7 +224,7 @@ export default function EvuddyAssistant() {
         ...nextTurns,
         {
           role: "assistant",
-          content: "नेटवर्क समस्या है। /ride-options पर बुक करें या हेल्पडेस्क +91 8726006512 पर कॉल करें।",
+          content: "नेटवर्क समस्या है। /ride-options पर बुक करें या हेल्पडेस्क +91 8726006519 पर कॉल करें।",
         },
       ]);
     } finally {

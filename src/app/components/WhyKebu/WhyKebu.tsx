@@ -19,12 +19,12 @@ const features = [
   {
     icon: Leaf,
     title: "Electric, GST-correct",
-    text: "5% GST on rent only. Deposit is refundable and not taxed.",
+    text: "Fares are GST included. Deposit is refundable and not taxed.",
   },
   {
     icon: HeartHandshake,
     title: "24×7 rider helpdesk",
-    text: "helpdesk@kebuone.in · +91 8726006512 · tickets on Book EV.",
+    text: "helpdesk@kebuone.in · +91 8726006519 · tickets on Book EV.",
   },
 ];
 

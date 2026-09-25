@@ -12,10 +12,11 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { gstBreakdown } from "@/lib/gst";
+import { gstBreakdownInclusive } from "@/lib/gst";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
 import { notifyBrowser } from "@/lib/notifyBrowser";
-import { CATALOG_RATES, catalogRate } from "@/lib/rentalPlans";
+import { CATALOG_RATES, COMPANY_SECURITY_DEPOSIT, catalogRate } from "@/lib/rentalPlans";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 import RideSwipeControl from "./RideSwipeControl";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
@@ -104,7 +105,6 @@ type CityRecord = {
   status?: string;
 };
 
-const COMPANY_SECURITY_DEPOSIT = 2500;
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 
@@ -703,7 +703,7 @@ const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
 };
 
 const rentalAmount = getPlanRate(currentBike, rentalMode);
-const tax = gstBreakdown(rentalAmount);
+const tax = gstBreakdownInclusive(rentalAmount);
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
 const payableAmount =
   bookingTotal > 0
@@ -1744,6 +1744,7 @@ step > index + 1
             onSubmit={createBooking}
             className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl print:hidden md:p-10"
           >
+            <FormVoiceDock hint="Select a booking field, then speak. GST is already included in the fare." />
             <div className="mb-6 rounded-[24px] border border-[#18B368]/15 bg-[#F7FBF8] p-4">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Rental prices</p>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -2395,7 +2396,7 @@ text-[#16A34A]
 
 <p className="mt-3 text-slate-500">
 
-Includes CGST 2.5% + SGST 2.5% on rental, plus a refundable security deposit of
+Includes GST in the fare (CGST 2.5% + SGST 2.5%), plus a refundable security deposit of
 
 <strong className="text-[#16A34A]">
 
@@ -2459,12 +2460,12 @@ text-[#0F172A]
     <Summary label="Rental Mode" value={rentalMode} />
 
     <Summary
-      label="Rental Amount"
-      value={formatINR(rentalAmount)}
+      label="Rental (GST included)"
+      value={formatINR(tax.totalWithGst)}
     />
 
     <Summary
-      label="CGST 2.5%"
+      label="CGST included"
       value={formatINR(tax.cgstAmount)}
     />
 
@@ -2474,7 +2475,7 @@ text-[#0F172A]
     />
 
     <Summary
-      label="GST Total (5%)"
+      label="GST included (5%)"
       value={formatINR(tax.gstAmount)}
     />
 
@@ -2729,7 +2730,7 @@ focus:ring-[#18B368]/10
                     {rideStatus === "In Ride" && pendingAmount > 0.009 ? (
                       <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
                         {isRentToOwn
-                          ? `Today’s Rent to Own ${formatINR(pendingAmount)} (₹280 + GST) is due. Pay here or as cash at the yard. Keep the scooter — no ride-end OTP.`
+                          ? `Today’s Rent to Own ${formatINR(pendingAmount)} (GST included) is due. Pay here or as cash at the yard. Keep the scooter — no ride-end OTP.`
                           : `Remaining ${formatINR(pendingAmount)} must be paid here or as cash at the yard before you can swipe Ride end. Paying remaining does not create the OTP yet.`}
                       </p>
                     ) : null}
@@ -2791,7 +2792,7 @@ focus:ring-[#18B368]/10
                       />
                     ) : rideStatus === "In Ride" && isRentToOwn && pendingAmount <= 0.009 ? (
                       <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm text-emerald-900">
-                        Today’s Rent to Own day is paid. Keep the scooter. Tomorrow’s ₹280 + GST will appear here when due. No ride-end OTP.
+                        Today’s Rent to Own day is paid. Keep the scooter. Tomorrow’s GST-included fare will appear here when due. No ride-end OTP.
                       </p>
                     ) : null}
                   </div>
@@ -3012,7 +3013,7 @@ Payment Status
     <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
       <p className="text-sm font-bold text-emerald-900">Your daily receipts</p>
       <p className="mt-1 text-xs text-emerald-800">
-        Each day’s ₹280 + 5% GST is recorded here and emailed/SMS’d to you as a receipt.
+        Each day’s GST-included Rent to Own fare is recorded here and emailed/SMS’d to you as a receipt.
       </p>
       {receipts.length ? (
       <ul className="mt-2 space-y-1 text-xs text-emerald-950">

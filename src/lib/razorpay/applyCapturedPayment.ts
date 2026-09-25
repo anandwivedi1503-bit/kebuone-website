@@ -185,7 +185,7 @@ export async function applyCapturedRazorpayPayment(
       return {
         ok: false,
         status: 400,
-        message: "Rent to Own requires today’s full amount (₹280 + 5% GST) in one payment.",
+        message: "Rent to Own requires today’s full GST-included amount in one payment.",
       };
     }
 
@@ -476,7 +476,7 @@ export async function applyCapturedRazorpayPayment(
         isRto && Boolean(updatedBooking.ownershipTransferred)
           ? "Final daily payment received. This scooter is now yours. Thank you for riding with EVUDDY."
           : isRto
-          ? "Daily Rent to Own received. Pickup OTP is ready if you have not collected yet. Tomorrow’s ₹280 + GST opens when due. Keep the scooter."
+          ? "Daily Rent to Own received. Pickup OTP is ready if you have not collected yet. Tomorrow’s GST-included Rent to Own fare opens when due. Keep the scooter."
           : nextPaymentStatus === "Paid"
           ? nextRideStatus === "In Ride"
             ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV — that generates the ride-end OTP the same way pickup OTP appeared after first payment."

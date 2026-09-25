@@ -1,332 +1,120 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  Bike,
-  CalendarDays,
-  Coins,
-  Expand,
-  HandCoins,
-  Leaf,
-  Settings,
-  ShieldCheck,
-  TrendingUp,
-  Users,
-  Wallet,
-  X,
-} from "lucide-react";
+import { ArrowRight, Download, Leaf, Radio, ShieldCheck, Sparkles } from "lucide-react";
 
-import {
-  FLEET_INVESTMENT,
-  FLEET_INVESTMENT_PLANS,
-  FLEET_INVESTMENT_STARTER,
-} from "@/lib/fleetInvestment";
+import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
 
 const FORM = "/partners#partner-form";
-const POSTER_SRC = FLEET_INVESTMENT.posterSrc;
-const POSTER_ALT =
-  "EVUDDY Fleet Partner Investment poster — 60% investor share, ₹1L / ₹5L / ₹10L plans and 42-month returns";
 
-const steps = [
+const highlights = [
   {
-    icon: HandCoins,
-    title: "You invest",
-    text: "We provide EV scooters. Transparent fixed model — invest today, earn monthly.",
+    icon: Sparkles,
+    title: "Your capital. Our fleet.",
+    text: "Fund yellow EVUDDY scooters. We place them on live hubs in the city.",
   },
   {
-    icon: Bike,
-    title: "We employ",
-    text: `${FLEET_INVESTMENT.scootersPerLakh} scooters per ₹1 lakh, rented at ₹${FLEET_INVESTMENT.rentalPerDay} / 24 hrs.`,
+    icon: Radio,
+    title: "We operate every kilometre",
+    text: "KYC, GPS, charging, pickup OTP and rider support stay on the EVUDDY platform.",
   },
   {
-    icon: TrendingUp,
-    title: "Our net profit",
-    text: `₹${FLEET_INVESTMENT.profitPerScooterPerDay} profit per scooter per day after operations.`,
+    icon: ShieldCheck,
+    title: "Transparent paperwork",
+    text: "The official brief is a download — not a calculator buried in the page.",
   },
   {
-    icon: Users,
-    title: "60% to you",
-    text: `You earn ${FLEET_INVESTMENT.investorSharePercent}% · we keep ${FLEET_INVESTMENT.companySharePercent}% — ₹${FLEET_INVESTMENT.investorSharePerScooterPerDay} per scooter, per day.`,
+    icon: Leaf,
+    title: "Clean mobility, real demand",
+    text: "Riders book hourly to monthly and Rent to Own. Partners grow the fleet behind them.",
   },
 ];
 
-const reasons = [
-  { icon: ShieldCheck, title: "Assured returns", text: "Transparent and fixed model, published up front." },
-  { icon: Bike, title: "Growing market", text: "High demand for EV rentals in Indian cities." },
-  { icon: Settings, title: "End-to-end management", text: "Operations, maintenance and marketing by EVUDDY." },
-  { icon: Leaf, title: "Sustainable impact", text: "Support clean, green mobility while you earn." },
-];
-
-type Props = {
-  posterPriority?: boolean;
-};
-
-export default function FleetPartnerInvestment({ posterPriority = false }: Props) {
-  const [posterOpen, setPosterOpen] = useState(false);
-  const dialogRef = useRef<HTMLDialogElement>(null);
-  const starter = FLEET_INVESTMENT_STARTER;
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (posterOpen && !dialog.open) dialog.showModal();
-    if (!posterOpen && dialog.open) dialog.close();
-  }, [posterOpen]);
-
+export default function FleetPartnerInvestment(_props?: { posterPriority?: boolean }) {
   return (
     <section
       id="fleet-investment"
-      className="relative scroll-mt-36 bg-[#F4FBF7] py-14 sm:py-20 lg:py-24"
+      className="relative scroll-mt-36 overflow-hidden bg-[#07130F] py-16 text-white sm:py-24"
     >
-      <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#18B368]/12 blur-[110px]" />
-      <div className="pointer-events-none absolute -right-16 bottom-20 h-64 w-64 rounded-full bg-[#EC2A8C]/8 blur-[100px]" />
+      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#1F6B4A]/40 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-[#F4C430]/20 blur-[110px]" />
 
-      <div className="relative mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-10">
-        <div className="mx-auto max-w-3xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[#18B368]/25 bg-white px-4 py-2 text-[11px] font-bold tracking-[0.16em] text-[#0F172A]">
-            <span className="h-2 w-2 rounded-full bg-[#18B368]" />
-            FLEET PARTNER INVESTMENT
-          </span>
-          <h2 className="mt-5 text-balance text-3xl font-black tracking-[-0.05em] text-[#0F172A] sm:text-5xl lg:text-[3.35rem] lg:leading-[1.05]">
-            Invest today. Earn monthly.{" "}
-            <span className="bg-gradient-to-r from-[#18B368] to-[#EC2A8C] bg-clip-text text-transparent">
-              Grow together.
-            </span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-7 text-slate-600 sm:text-lg">
-            Partner with {FLEET_INVESTMENT.company}. EVUDDY runs the fleet. You earn{" "}
-            {FLEET_INVESTMENT.investorSharePercent}% of net profit for {FLEET_INVESTMENT.tenureMonths}{" "}
-            months. Read the official poster, then apply on the partners form. No payment on this site.
-          </p>
-          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link
-              href={FORM}
-              className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 text-base font-bold text-white shadow-[0_12px_28px_rgba(24,179,104,0.28)] transition hover:bg-[#14a05c]"
+      <div className="relative mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#A8E6C3]">
+              Fleet partner
+            </p>
+            <h2
+              id="investment-poster"
+              className="font-display mt-4 text-4xl font-medium tracking-[-0.04em] sm:text-6xl"
             >
-              Apply on partners form
-              <ArrowRight size={18} />
-            </Link>
-            <a
-              href="#investment-plans"
-              className="inline-flex min-h-12 items-center justify-center rounded-full border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-700 transition hover:border-[#18B368] hover:text-[#18B368]"
-            >
-              See plans
-            </a>
-          </div>
-          <p className="mt-3 text-sm text-slate-500">
-            Choose Fleet Partner Investment on the form. We confirm payouts and paperwork.
-          </p>
-        </div>
-
-        <figure id="investment-poster" className="mx-auto mt-10 max-w-[820px] scroll-mt-36">
-          <button
-            type="button"
-            onClick={() => setPosterOpen(true)}
-            className="group relative block w-full rounded-[28px] border border-white bg-white p-2 text-left shadow-[0_28px_80px_rgba(15,23,42,0.12)] transition hover:-translate-y-0.5 hover:shadow-[0_32px_90px_rgba(24,179,104,0.18)] sm:p-3"
-          >
-            <span className="pointer-events-none absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[#0F172A] shadow-sm">
-              <Expand size={12} />
-              Expand
-            </span>
-            <img
-              src={POSTER_SRC}
-              alt={POSTER_ALT}
-              width={1024}
-              height={1536}
-              decoding="async"
-              fetchPriority={posterPriority ? "high" : "auto"}
-              className="h-auto w-full rounded-[22px] bg-white object-contain"
-            />
-          </button>
-          <figcaption className="mt-3 text-center text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">
-            Official EVUDDY investment poster · {FLEET_INVESTMENT.investorSharePercent}% to you
-          </figcaption>
-        </figure>
-
-        <div className="mt-12 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {steps.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <div
-                key={step.title}
-                className="rounded-[24px] border border-white bg-white p-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)]"
+              Put your capital on
+              <span className="mt-1 block italic text-[#F4C430]">India&apos;s yellow EV fleet.</span>
+            </h2>
+            <p className="mt-5 max-w-xl text-[15px] leading-8 text-white/70">
+              {FLEET_INVESTMENT.company} operates EVUDDY. You grow the fleet. We run the yards,
+              the riders, and the software. Download the official brief — then apply. No payment
+              on this website.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <a
+                href={FLEET_INVESTMENT.pdfHref}
+                download={FLEET_INVESTMENT.pdfFileName}
+                className="inline-flex min-h-14 items-center justify-center gap-2 bg-[#F4C430] px-8 text-[13px] font-medium tracking-[0.08em] text-[#07130F] transition hover:bg-[#ffe08a]"
               >
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#18B368] text-white">
-                  <Icon size={20} />
-                </div>
-                <p className="mt-4 text-[11px] font-bold tracking-[0.16em] text-[#EC2A8C]">0{index + 1}</p>
-                <h3 className="mt-1 text-lg font-bold text-[#0F172A]">{step.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-slate-500">{step.text}</p>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-8 overflow-hidden rounded-[24px] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)]">
-          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4 lg:items-stretch">
-            <p className="flex items-center justify-center px-4 py-4 text-center text-sm font-semibold text-[#0F172A] sm:text-left lg:justify-start lg:px-6">
-              {starter.scooters} scooters
-            </p>
-            <p className="flex items-center justify-center bg-[#F7FBF8] px-4 py-4 text-center text-sm font-semibold text-[#0F172A]">
-              × ₹{FLEET_INVESTMENT.investorSharePerScooterPerDay} share / scooter
-            </p>
-            <p className="flex items-center justify-center px-4 py-4 text-center text-sm font-semibold text-[#0F172A]">
-              × 30 days
-            </p>
-            <p className="flex items-center justify-center bg-[#EC2A8C] px-4 py-4 text-center text-sm font-black text-white sm:text-base">
-              = {starter.monthlyLabel} / month
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <div className="rounded-[22px] border border-white bg-white p-5 shadow-sm">
-            <CalendarDays className="text-[#18B368]" size={24} />
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">Tenure</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">{FLEET_INVESTMENT.tenureMonths} months</p>
-          </div>
-          <div className="rounded-[22px] border border-white bg-white p-5 shadow-sm">
-            <Coins className="text-[#18B368]" size={24} />
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
-              Scrap after {FLEET_INVESTMENT.tenureMonths} months
-            </p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">
-              ₹{FLEET_INVESTMENT.scrapPerScooter.toLocaleString("en-IN")} / scooter
-            </p>
-            <p className="mt-1 text-sm text-slate-500">
-              {starter.scooters} scooters = {starter.scrapLabel}
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-[#18B368]/20 bg-[#18B368] p-5 text-white shadow-sm">
-            <Wallet size={24} />
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.14em] text-white/80">
-              ₹1 lakh plan total returns
-            </p>
-            <p className="mt-1 text-2xl font-black">{starter.totalLabel}</p>
-          </div>
-        </div>
-
-        <div id="investment-plans" className="mt-12 scroll-mt-36 text-center">
-          <h3 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-3xl">
-            Choose a plan. Apply when you are ready.
-          </h3>
-          <p className="mt-2 text-slate-500">
-            Same {FLEET_INVESTMENT.investorSharePercent}/{FLEET_INVESTMENT.companySharePercent} model at
-            every scale. Figures match the official poster.
-          </p>
-        </div>
-        <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {FLEET_INVESTMENT_PLANS.map((plan) => (
-            <div
-              key={plan.amount}
-              className={`relative flex flex-col overflow-hidden rounded-[28px] border bg-white ${
-                plan.featured
-                  ? "border-[#18B368] shadow-[0_24px_60px_rgba(24,179,104,0.18)] lg:-translate-y-2"
-                  : "border-slate-100 shadow-[0_12px_32px_rgba(15,23,42,0.05)]"
-              }`}
-            >
-              {plan.featured ? (
-                <p className="absolute right-4 top-4 rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#18B368]">
-                  Most chosen
-                </p>
-              ) : null}
-              <div className={`px-6 py-5 ${plan.featured ? "bg-[#18B368] text-white" : "bg-[#0A1134] text-white"}`}>
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] opacity-80">{plan.label}</p>
-                <p className="mt-1 text-3xl font-black">{plan.amountLabel}</p>
-              </div>
-              <div className="flex flex-1 flex-col gap-2.5 px-6 py-5 text-sm text-slate-600">
-                <p>
-                  <span className="font-semibold text-[#0F172A]">Scooters:</span> {plan.scootersLabel}
-                </p>
-                <p>
-                  <span className="font-semibold text-[#0F172A]">Monthly share:</span> {plan.monthlyLabel}
-                </p>
-                <p>
-                  <span className="font-semibold text-[#0F172A]">Tenure:</span>{" "}
-                  {FLEET_INVESTMENT.tenureMonths} months
-                </p>
-                <p>
-                  <span className="font-semibold text-[#0F172A]">Scrap:</span> {plan.scrapLabel}
-                </p>
-                <p className="mt-1 rounded-2xl bg-[#18B368]/10 px-4 py-3 text-center font-black text-[#0A3D32]">
-                  Total returns ({FLEET_INVESTMENT.tenureMonths} months): {plan.totalLabel}
-                </p>
-                <Link
-                  href={FORM}
-                  className={`mt-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-5 font-bold text-white transition ${
-                    plan.featured ? "bg-[#18B368] hover:bg-[#14a05c]" : "bg-[#0A1134] hover:bg-[#151d4a]"
-                  }`}
-                >
-                  Apply on partners form
-                  <ArrowRight size={16} />
-                </Link>
-              </div>
+                <Download size={18} />
+                Download PDF
+              </a>
+              <Link
+                href={FORM}
+                className="inline-flex min-h-14 items-center justify-center gap-2 border border-white/20 px-8 text-[13px] font-medium tracking-[0.08em] text-white transition hover:border-[#F4C430] hover:text-[#F4C430]"
+              >
+                Apply as a partner
+                <ArrowRight size={16} />
+              </Link>
             </div>
-          ))}
+            <p className="mt-4 text-xs tracking-[0.04em] text-white/45">
+              Choose Fleet Partner Investment on the form. We confirm terms in writing.
+            </p>
+          </div>
+
+          <aside className="relative overflow-hidden border border-white/10 bg-white/[0.04] p-7 backdrop-blur-sm">
+            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#F4C430]">
+              Official brief
+            </p>
+            <p className="font-display mt-3 text-3xl font-medium leading-tight">
+              One file. The full partnership story.
+            </p>
+            <p className="mt-4 text-sm leading-7 text-white/65">
+              Structure, operations, and how we work with fleet partners — presented the way
+              modern EV brands share an investor deck. Open it on your phone or print it.
+            </p>
+            <a
+              href={FLEET_INVESTMENT.pdfHref}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-8 inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.08em] text-[#A8E6C3]"
+            >
+              View in browser
+              <ArrowRight size={14} />
+            </a>
+          </aside>
         </div>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {reasons.map((item) => {
+        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {highlights.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.title} className="rounded-[22px] border border-white bg-white p-5 shadow-sm">
-                <Icon className="text-[#18B368]" size={24} />
-                <h4 className="mt-3 font-bold text-[#0F172A]">{item.title}</h4>
-                <p className="mt-1 text-sm leading-6 text-slate-500">{item.text}</p>
+              <div key={item.title} className="border-t border-white/10 pt-5">
+                <Icon size={18} strokeWidth={1.5} className="text-[#F4C430]" />
+                <h3 className="mt-4 font-medium">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-white/60">{item.text}</p>
               </div>
             );
           })}
         </div>
-
-        <p className="mt-6 text-center text-xs leading-5 text-slate-400">
-          Note: all calculations are based on the current rental rate of ₹{FLEET_INVESTMENT.rentalPerDay}{" "}
-          per 24 hrs and are subject to operational performance.
-        </p>
-
-        <div className="mt-8 flex flex-col items-start justify-between gap-5 rounded-[28px] border border-[#18B368]/20 bg-white px-6 py-7 shadow-[0_12px_32px_rgba(15,23,42,0.05)] sm:flex-row sm:items-center sm:px-8">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#18B368]">
-              Invest today. Earn monthly. Grow together.
-            </p>
-            <h3 className="mt-1 text-xl font-black text-[#0F172A] sm:text-2xl">
-              Small investment. Biggest opportunity.
-            </h3>
-          </div>
-          <Link
-            href={FORM}
-            className="inline-flex min-h-14 shrink-0 items-center gap-2 rounded-full bg-[#18B368] px-8 font-bold text-white shadow-[0_12px_28px_rgba(24,179,104,0.28)] transition hover:bg-[#14a05c]"
-          >
-            Open partners form
-            <ArrowRight size={18} />
-          </Link>
-        </div>
       </div>
-
-      <dialog
-        ref={dialogRef}
-        onClose={() => setPosterOpen(false)}
-        className="fixed inset-0 z-[1000] m-0 h-full max-h-none w-full max-w-none bg-black/70 p-0 backdrop:bg-black/70 open:flex open:items-center open:justify-center"
-      >
-        <div className="relative mx-auto max-h-[96vh] w-[min(96vw,900px)] overflow-y-auto rounded-[24px] bg-white p-2 shadow-2xl sm:p-3">
-          <button
-            type="button"
-            onClick={() => setPosterOpen(false)}
-            className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#0F172A] text-white"
-            aria-label="Close poster"
-          >
-            <X size={18} />
-          </button>
-          <img
-            src={POSTER_SRC}
-            alt={POSTER_ALT}
-            width={1024}
-            height={1536}
-            className="h-auto w-full rounded-[18px] object-contain"
-          />
-        </div>
-      </dialog>
     </section>
   );
 }

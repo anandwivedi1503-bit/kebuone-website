@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
+import { HELPDESK_PHONE_DISPLAY, HELPDESK_TEL } from "@/lib/contact";
+import FormVoiceDock from "../FormVoice/FormVoiceDock";
 
 const initialForm = {
   fullName: "",
@@ -24,8 +26,8 @@ const directory = [
   {
     title: "Helpdesk phone",
     text: "Call EVUDDY helpdesk for booking and ride support.",
-    value: "+91 8726006512",
-    href: "tel:+918726006512",
+    value: HELPDESK_PHONE_DISPLAY,
+    href: HELPDESK_TEL,
   },
   {
     title: "Business Partnerships",
@@ -196,6 +198,7 @@ export default function ContactUs() {
             <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
               Send us a message
             </h2>
+            <FormVoiceDock />
             <p className="text-[15px] leading-8 text-[#5C635E]">
               We will get back to you about EVUDDY rentals, hubs or partnerships.
             </p>
@@ -278,10 +281,10 @@ export default function ContactUs() {
                 helpdesk@kebuone.in
               </a>
               <a
-                href="tel:+918726006512"
+                href={HELPDESK_TEL}
                 className="mt-2 block text-[15px] font-medium text-[#1F6B4A]"
               >
-                +91 8726006512
+                {HELPDESK_PHONE_DISPLAY}
               </a>
               <p className="mt-3 text-sm leading-7 text-[#5C635E]">
                 Summit Building, 7th Floor, Vibhuti Khand, Gomti Nagar, Lucknow,
