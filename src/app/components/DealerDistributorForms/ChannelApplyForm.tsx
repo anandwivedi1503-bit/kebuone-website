@@ -192,7 +192,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
               type="tel"
               inputMode="numeric"
               numeric
-              prefix={
+              leading={
                 <>
                   <span>🇮🇳</span> +91
                 </>

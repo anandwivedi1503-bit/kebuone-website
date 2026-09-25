@@ -126,7 +126,7 @@ export default function PartnerForm() {
               type="tel"
               inputMode="numeric"
               numeric
-              prefix={
+              leading={
                 <>
                   <span>🇮🇳</span> +91
                 </>

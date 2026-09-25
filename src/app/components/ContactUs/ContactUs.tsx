@@ -228,7 +228,7 @@ export default function ContactUs() {
               type="tel"
               inputMode="numeric"
               numeric
-              prefix={
+              leading={
                 <>
                   <span>🇮🇳</span> +91
                 </>

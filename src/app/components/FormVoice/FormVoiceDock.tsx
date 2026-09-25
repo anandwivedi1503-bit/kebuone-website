@@ -91,7 +91,7 @@ export function VoiceField({
   className = "",
   inputClassName = PREMIUM_FIELD,
   mic = true,
-  prefix,
+  leading,
   numeric,
   ...props
 }: {
@@ -101,7 +101,7 @@ export function VoiceField({
   className?: string;
   inputClassName?: string;
   mic?: boolean;
-  prefix?: ReactNode;
+  leading?: ReactNode;
   numeric?: boolean;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "className">) {
   const apply = (text: string) =>
@@ -111,16 +111,16 @@ export function VoiceField({
     <label className={`block ${className}`}>
       <span className={PREMIUM_LABEL}>{label}</span>
       <span className="relative block">
-        {prefix ? (
+        {leading ? (
           <span className="pointer-events-none absolute left-4 top-1/2 z-[1] flex -translate-y-1/2 items-center gap-1.5 text-[13px] font-medium text-[#5C635E]">
-            {prefix}
+            {leading}
           </span>
         ) : null}
         <input
           {...props}
           value={value}
           onChange={(event) => apply(event.target.value)}
-          className={`${inputClassName} ${prefix ? "pl-[4.6rem]" : ""}`}
+          className={`${inputClassName} ${leading ? "pl-[4.6rem]" : ""}`}
         />
         {mic ? (
           <FieldMic

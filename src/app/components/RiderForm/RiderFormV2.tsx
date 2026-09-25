@@ -1883,7 +1883,7 @@ before:to-[#18B368]
                       type="tel"
                       inputMode="numeric"
                       numeric
-                      prefix={
+                      leading={
                         <>
                           <span>🇮🇳</span> +91
                         </>
