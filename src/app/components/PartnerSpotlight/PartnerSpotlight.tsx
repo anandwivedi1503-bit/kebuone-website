@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Download } from "lucide-react";
 
 import { BRAND } from "@/lib/brandMedia";
@@ -8,10 +9,10 @@ import { dealerProgram } from "@/lib/dealerProgram";
 import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
 import HomeImg from "../HomeMedia/HomeImg";
 
-const cards = [
+const ads = [
   {
     kicker: "Dealer",
-    title: `Retail dealers from ${dealerProgram.dealerMin}`,
+    title: `Retail EVUDDY from ${dealerProgram.dealerMin}`,
     text: "City showroom or pickup point. Sell and rent yellow scooters to riders.",
     cta: "Apply as dealer",
     href: "/partners/dealer",
@@ -38,76 +39,87 @@ const cards = [
   },
 ] as const;
 
-export default function PartnerSpotlight({
-  compact = false,
-}: {
-  compact?: boolean;
-}) {
+export default function PartnerSpotlight() {
+  const [slide, setSlide] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = window.setInterval(() => {
+      setSlide((current) => (current + 1) % ads.length);
+    }, 4500);
+    return () => window.clearInterval(timer);
+  }, [paused]);
+
+  const ad = ads[slide];
+
+  const ctaClass =
+    "mt-6 inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2.5 text-[13px] font-semibold text-[#0B1B16]";
+
   return (
-    <section
-      id="dealer-network"
-      className={`scroll-mt-36 bg-[#F7F4EE] ${compact ? "py-8 sm:py-12" : "py-12 sm:py-16"}`}
-    >
-      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        {!compact ? (
-          <>
-            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
-              Grow with EVUDDY
-            </p>
-            <h2 className="font-display mt-3 max-w-2xl text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
-              Dealer, distributor, <span className="italic text-[#1F6B4A]">or fleet partner.</span>
-            </h2>
-          </>
-        ) : null}
+    <section id="dealer-network" className="scroll-mt-36 bg-[#F7F4EE] py-12 sm:py-16">
+      <div id="fleet-investment" className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+          Grow with EVUDDY
+        </p>
+        <h2 className="font-display mt-3 max-w-2xl text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
+          Dealer, distributor, <span className="italic text-[#1F6B4A]">or fleet partner.</span>
+        </h2>
+        <p className="mt-3 max-w-xl text-[15px] leading-7 text-[#5C635E]">
+          One advertisement. It changes on its own — dealer, distributor, then invest with Download PDF.
+        </p>
 
-        <div className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3 [-ms-overflow-style:none] [scrollbar-width:none] lg:mt-8 lg:grid lg:grid-cols-3 lg:overflow-visible [&::-webkit-scrollbar]:hidden">
-          {cards.map((card) => {
-            const inner = (
-              <>
-                <HomeImg
-                  src={card.image}
-                  alt=""
-                  className="absolute inset-0 h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.03]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B16] via-[#0B1B16]/50 to-transparent" />
-                <div className="relative flex h-full min-h-[240px] flex-col justify-end p-6 text-white sm:min-h-[300px] sm:p-7">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/75">
-                    {card.kicker}
-                  </p>
-                  <h3 className="font-display mt-2 text-2xl font-medium leading-snug sm:text-[1.7rem]">
-                    {card.title}
-                  </h3>
-                  <p className="mt-2 max-w-sm text-sm leading-6 text-white/80">{card.text}</p>
-                  <span className="mt-5 inline-flex items-center gap-2 text-[13px] font-medium">
-                    {card.download ? <Download size={15} /> : null}
-                    {card.cta} →
-                  </span>
-                </div>
-              </>
-            );
-
-            const cls =
-              "group relative isolate min-w-[min(100%,320px)] snap-center overflow-hidden rounded-[28px] lg:min-w-0";
-
-            if (card.download) {
-              return (
-                <a
-                  key={card.kicker}
-                  href={card.href}
-                  download={FLEET_INVESTMENT.pdfFileName}
-                  className={cls}
-                >
-                  {inner}
-                </a>
-              );
-            }
-
-            return (
-              <Link key={card.kicker} href={card.href} className={cls}>
-                {inner}
+        <div
+          className="relative mt-8 min-h-[320px] overflow-hidden rounded-[28px] sm:min-h-[400px]"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+        >
+          {ads.map((item, index) => (
+            <HomeImg
+              key={item.kicker}
+              src={item.image}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
+                index === slide ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B16] via-[#0B1B16]/50 to-transparent" />
+          <div className="relative z-[1] flex min-h-[320px] flex-col justify-end p-6 text-white sm:min-h-[400px] sm:p-8">
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/75">
+                {ad.kicker}
+              </p>
+              <p className="text-[11px] tracking-[0.12em] text-white/70">
+                {slide + 1} of {ads.length}
+              </p>
+            </div>
+            <h3 className="font-display max-w-lg text-3xl font-medium leading-snug sm:text-4xl">{ad.title}</h3>
+            <p className="mt-3 max-w-md text-sm leading-6 text-white/80">{ad.text}</p>
+            {ad.download ? (
+              <a href={ad.href} download={FLEET_INVESTMENT.pdfFileName} className={ctaClass}>
+                <Download size={15} />
+                {ad.cta}
+              </a>
+            ) : (
+              <Link href={ad.href} className={ctaClass}>
+                {ad.cta} →
               </Link>
-            );
-          })}
+            )}
+            <div className="mt-6 flex gap-2">
+              {ads.map((item, index) => (
+                <button
+                  key={item.kicker}
+                  type="button"
+                  aria-label={`Show ${item.kicker}`}
+                  onClick={() => setSlide(index)}
+                  className={`h-1.5 rounded-full transition ${
+                    index === slide ? "w-8 bg-white" : "w-4 bg-white/40"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
