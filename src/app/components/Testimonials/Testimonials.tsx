@@ -23,7 +23,7 @@ const cards = [
   {
     icon: KeyRound,
     title: "Ride to own",
-    text: "₹300 GST included a day for 18 months, plus a ₹2,500 refundable deposit. Daily receipt. Ownership after a successful term.",
+    text: "₹300 GST included a day for 20 months, plus a ₹2,500 refundable deposit. Daily receipt. Ownership after a successful term.",
     label: "Rent to Own",
     image: BRAND.houseParked,
   },

@@ -44,7 +44,7 @@ const HELP_TOPICS = [
     label: "Rent to Own",
     ask: "Rent to Own क्या है?",
     icon: Sparkles,
-    blurb: "₹300 / दिन GST शामिल · 18 महीने",
+    blurb: "₹300 / दिन GST शामिल · 20 महीने",
   },
   {
     label: "निवेश",

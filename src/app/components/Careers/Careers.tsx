@@ -3,9 +3,7 @@ import {
   BrandCard,
   BrandCardGrid,
   BrandCta,
-  BrandFilm,
   BrandHero,
-  BrandMosaic,
   BrandSplit,
   BrandStatement,
 } from "@/app/components/Brand/BrandStoryPage";
@@ -72,12 +70,6 @@ export default function Careers() {
         ]}
       />
 
-      <BrandFilm
-        src={BRAND.film}
-        eyebrow="Life at EVUDDY"
-        title="The work is on the street, in hubs, and in the product."
-      />
-
       <BrandSplit
         eyebrow="The work"
         title="You will see riders use what you ship."
@@ -86,39 +78,11 @@ export default function Careers() {
         alt="Rider on an EVUDDY electric scooter"
       />
 
-      <BrandSplit
-        eyebrow="The scooter"
-        title="Build the machine people actually ride."
-        text="Hubs, availability and Rent to Own all sit on the same EV. If you join, you work on that ride — not a side category."
-        image={BRAND.yard}
-        alt="EVUDDY flagship hub"
-        reverse
-      />
-
-      <BrandMosaic
-        title="Same brand. The scooter at the centre."
-        text="Engineering, hubs, support, growth and finance share one mission: smart, electric, dependable rides."
-        photos={[
-          { src: BRAND.cityCommute, alt: "EVUDDY scooters in the city" },
-          { src: BRAND.yard, alt: "EVUDDY flagship hub operations" },
-          { src: BRAND.dealer, alt: "EVUDDY dealer showroom" },
-        ]}
-      />
-
       <BrandCardGrid title="Why people join">
         {why.map((item) => (
           <BrandCard key={item.title} title={item.title} text={item.text} />
         ))}
       </BrandCardGrid>
-
-      <BrandSplit
-        eyebrow="Product in motion"
-        title="From garage energy to a city fleet."
-        text="If you like moving between design, code, hubs and rider conversations, this is the pace. We hire for ownership, not job titles that sit still."
-        image={BRAND.film}
-        alt="EVUDDY scooter ride"
-        video
-      />
 
       <BrandCardGrid title="Teams we hire for">
         {teams.map((item) => (

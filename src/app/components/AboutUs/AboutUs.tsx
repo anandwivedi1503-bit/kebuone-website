@@ -4,9 +4,7 @@ import { Building2, MapPinned, ShieldCheck, Zap } from "lucide-react";
 import {
   BrandCardGrid,
   BrandCta,
-  BrandFilm,
   BrandHero,
-  BrandMosaic,
   BrandSplit,
   BrandStatement,
 } from "@/app/components/Brand/BrandStoryPage";
@@ -27,7 +25,7 @@ const pillars = [
   {
     icon: ShieldCheck,
     title: "Rent to Own",
-    text: "₹300 a day GST included for 18 months, plus a one-time refundable security deposit of ₹2,500. Daily receipt. Then the scooter is yours.",
+    text: "₹300 a day GST included for 20 months, plus a one-time refundable security deposit of ₹2,500. Daily receipt. Then the scooter is yours.",
   },
   {
     icon: Building2,
@@ -65,28 +63,12 @@ export default function AboutUs() {
         ]}
       />
 
-      <BrandFilm
-        src={BRAND.film}
-        eyebrow="The company"
-        title="Smart electric mobility you can book, ride and own."
-      />
-
       <BrandSplit
         eyebrow="Riders"
         title="A scooter when you need it. An asset if you want it."
         text="Hourly to monthly plans for daily riders. Fares are GST included. Rentals and Rent to Own include a refundable ₹2,500 deposit."
         image={BRAND.cityCommute}
         alt="EVUDDY rental scooter on a city commute"
-      />
-
-      <BrandMosaic
-        title="One ecosystem. The scooter at the centre."
-        text="B2C rentals, hubs, fleets and Rent to Own sit on the same live platform."
-        photos={[
-          { src: BRAND.yard, alt: "EVUDDY flagship hub" },
-          { src: BRAND.dealer, alt: "EVUDDY dealer desk" },
-          { src: BRAND.cityCommute, alt: "EVUDDY scooter in the city" },
-        ]}
       />
 
       <section className="mx-auto grid max-w-[1440px] gap-8 px-5 py-12 sm:grid-cols-2 sm:px-8 lg:grid-cols-4 lg:px-12">

@@ -78,8 +78,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["own", "rto", "installment", "18", "रेंट टू ओन", "अपना", "ownership", "किस्त"],
     href: "/rent-to-own",
-    en: "Rent to Own is ₹300 GST included every day for 18 months, plus a one-time refundable security deposit of ₹2,500. You get a daily receipt. After successful days, ownership transfers.",
-    hi: "Rent to Own मतलब स्कूटर धीरे-धीरे अपना बनाना:\n• रोज़ ₹300 (GST शामिल)\n• 18 महीने\n• एक बार ₹2,500 सिक्योरिटी डिपॉजिट (वापस मिलने वाला)\n• रोज़ रसीद मिलती है\nपूरे सफल दिनों के बाद मालिकाना हक ट्रांसफर होता है। यह सामान्य किराये से अलग प्लान है — चाहें तो पेज खोल दूँ।",
+    en: "Rent to Own is ₹300 GST included every day for 20 months, plus a one-time refundable security deposit of ₹2,500. You get a daily receipt. After successful days, ownership transfers.",
+    hi: "Rent to Own मतलब स्कूटर धीरे-धीरे अपना बनाना:\n• रोज़ ₹300 (GST शामिल)\n• 20 महीने\n• एक बार ₹2,500 सिक्योरिटी डिपॉजिट (वापस मिलने वाला)\n• रोज़ रसीद मिलती है\nपूरे सफल दिनों के बाद मालिकाना हक ट्रांसफर होता है। यह सामान्य किराये से अलग प्लान है — चाहें तो पेज खोल दूँ।",
   },
   {
     keys: ["razorpay", "pay", "upi", "card", "पेमेंट", "भुगतान", "gst", "payment"],
@@ -182,7 +182,7 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["terms", "शर्त", "नियम", "कानून", "conditions", "t&c", "agreement"],
     href: "/terms-and-conditions",
-    en: "Terms (/terms-and-conditions): complete KYC, follow hub pickup, pay rental or RTO dues. Rates are GST included; ₹2,500 refundable deposit on rentals and Rent to Own; RTO is ₹300/day GST included for 18 months. Misuse, damage or unpaid dues can block booking.",
+    en: "Terms (/terms-and-conditions): complete KYC, follow hub pickup, pay rental or RTO dues. Rates are GST included; ₹2,500 refundable deposit on rentals and Rent to Own; RTO is ₹300/day GST included for 20 months. Misuse, damage or unpaid dues can block booking.",
     hi: "नियम (/terms-and-conditions): KYC, हब पिकअप नियम, किराया/RTO भुगतान। किराये पर 5% GST; सामान्य किराये पर जमा; Rent to Own में डिपॉजिट नहीं। दुरुपयोग/नुकसान/बाकी बिल से बुकिंग ब्लॉक हो सकती है।",
   },
   {

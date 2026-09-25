@@ -142,23 +142,6 @@ export default function ContactUs() {
         </figure>
       </section>
 
-      <section className="px-5 pb-6 sm:px-8 lg:px-12">
-        <div className="mx-auto max-w-[1440px] border-t border-[#E4DDD2] pt-12 text-center sm:pt-16">
-          <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
-            Contact
-          </p>
-          <p className="font-display mx-auto mt-6 max-w-3xl text-2xl font-medium leading-snug text-[#1C1917] sm:text-4xl">
-            Reach support, partnerships or hiring.
-          </p>
-          <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-8 text-[#5C635E]">
-            Every message is about getting riders onto EVUDDY electric scooters safely.
-          </p>
-          <p className="mt-8 text-[11px] font-medium tracking-[0.22em] text-[#1F6B4A]">
-            #safeRideWithEvuddy
-          </p>
-        </div>
-      </section>
-
       <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-16 lg:px-12">
         <h2 className="font-display text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-4xl">
           Get in touch
@@ -264,17 +247,6 @@ export default function ContactUs() {
           </form>
 
           <div className="space-y-5">
-            <figure className="relative w-full overflow-hidden rounded-[24px] bg-[#08112F] shadow-[0_24px_60px_rgba(8,17,47,0.18)]">
-              <video
-                src={BRAND.film}
-                autoPlay
-                muted
-                loop
-                playsInline
-                poster={BRAND.highway}
-                className="aspect-video h-auto w-full object-contain object-center"
-              />
-            </figure>
             <article className="border-t border-[#E4DDD2] pt-6">
               <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
                 Helpdesk

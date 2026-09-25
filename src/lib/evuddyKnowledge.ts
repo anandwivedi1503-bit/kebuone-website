@@ -25,7 +25,7 @@ STAFF ONLY (do not guide riders here, do not operate these): /admin-login and /d
 HOME PAGE (/):
 - Hero: smart electric mobility; Book an EV; homepage shows delivery-brand logos (Flipkart, Blinkit, Zepto, Swiggy) as a city-delivery ecosystem strip — do not invent contracts.
 - Evuddy Network: India map of live hubs from /api/hubs when available. Steps shown: choose city → Google Maps to yard → pickup OTP after pay → ride & return when remaining rent is ₹0. Proofs: IoT GPS/lock/battery; charge & swap at hub; yard-verified OTP. Never invent which city/hub has stock — send to Book EV.
-- Services: EVUDDY Electric Scooter — ~120 km range, ~45 km/h, ~4h charging, GPS live tracking, zero emissions. Catalog chips: Hourly ₹60, Daily ₹250, Weekly ₹1,750, Monthly ₹7,500 (GST included), Rent to Own ₹300/day · 18 months + ₹2,500 deposit.
+- Services: EVUDDY Electric Scooter — ~120 km range, ~45 km/h, ~4h charging, GPS live tracking, zero emissions. Catalog chips: Hourly ₹60, Daily ₹250, Weekly ₹1,750, Monthly ₹7,500 (GST included), Rent to Own ₹300/day · 20 months + ₹2,500 deposit.
 - Why choose: trusted ops, smart tracking, electric-first, customer-first; sustainable by design.
 - Invest invite: Fleet Partner Investment campaign on /partners — download the official PDF, then apply. No on-page calculators.
 - How it works: (1) Register + KYC (2) Pick hub and plan (3) Pay GST-included fare + deposit via Razorpay (4) Ride with pickup OTP.
@@ -53,7 +53,7 @@ BOOK EV (normal rental):
 Catalog rates (GST included, company list): Hourly ₹60, Daily ₹250, Weekly ₹1,750, Monthly ₹7,500. Refundable deposit ₹2,500.
 
 RENT TO OWN:
-- ₹300 GST included every day for 18 months. One-time refundable security deposit ₹2,500.
+- ₹300 GST included every day for 20 months. One-time refundable security deposit ₹2,500.
 - Daily receipt. Keep the scooter. Ownership only after successful term + EVUDDY verification.
 - Start amount is today’s GST-included fare plus the refundable deposit. Later days are the daily fare only.
 - Do not confuse with monthly return rental.
@@ -74,7 +74,7 @@ ABOUT (/about):
 - India's next-generation EV mobility ecosystem through B2B, B2C, and Rent-to-Own.
 - Mission: affordable, accessible, asset-building electric mobility for every rider.
 - Vision: empower gig workers and businesses with sustainable transport so every ride can lead to ownership.
-- Pillars: flexible EV rentals; Rent to Own ₹300/day GST included 18 months with ₹2,500 deposit; partners/fleets on one live platform; live ops (KYC, OTP pickup, GPS, support).
+- Pillars: flexible EV rentals; Rent to Own ₹300/day GST included 20 months with ₹2,500 deposit; partners/fleets on one live platform; live ops (KYC, OTP pickup, GPS, support).
 - Operates: B2C rentals; B2B fleets/hubs/delivery partners; Rent to Own; OTP, KYC, Razorpay, live hub pickup.
 - CTA: Book an EV / Meet leadership.
 
@@ -103,7 +103,7 @@ CITIES AND HUBS:
 - Pickup/return follow the chosen hub's operating time.
 
 POLICIES (high level — send user to full pages):
-- Terms: register/KYC/hub rules; GST-included catalog rates + ₹2,500 deposit; RTO ₹300/day GST included 18 months with deposit; ownership after successful term; misuse/damage/unpaid can block booking.
+- Terms: register/KYC/hub rules; GST-included catalog rates + ₹2,500 deposit; RTO ₹300/day GST included 20 months with deposit; ownership after successful term; misuse/damage/unpaid can block booking.
 - Refund: rental deposits refundable after return (minus damage/unpaid); GST not on deposit; RTO start payment is installment not deposit (not refunded once activated except law/admin-approved ticket); partial payments stay pending until balance paid.
 - Privacy: name, mobile, email, KYC, booking/payment records; Firebase phone verify; Razorpay payments; cloud document upload; we do not sell rider data; staff use records to run ops; correction requests info@evuddy.com.
 
