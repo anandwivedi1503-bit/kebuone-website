@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { ArrowRight, Download, Leaf, Radio, ShieldCheck, Sparkles } from "lucide-react";
 
+import { BRAND } from "@/lib/brandMedia";
 import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
+import HomeImg from "../HomeMedia/HomeImg";
 
 const FORM = "/partners#partner-form";
 
@@ -79,26 +81,30 @@ export default function FleetPartnerInvestment(_props?: { posterPriority?: boole
             </p>
           </div>
 
-          <aside className="relative overflow-hidden border border-white/10 bg-white/[0.04] p-7 backdrop-blur-sm">
-            <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#F4C430]">
-              Official brief
-            </p>
-            <p className="font-display mt-3 text-3xl font-medium leading-tight">
-              One file. The full partnership story.
-            </p>
-            <p className="mt-4 text-sm leading-7 text-white/65">
-              Structure, operations, and how we work with fleet partners — presented the way
-              modern EV brands share an investor deck. Open it on your phone or print it.
-            </p>
-            <a
-              href={FLEET_INVESTMENT.pdfHref}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.08em] text-[#A8E6C3]"
-            >
-              View in browser
-              <ArrowRight size={14} />
-            </a>
+          <aside className="relative isolate min-h-[280px] overflow-hidden rounded-[28px]">
+            <HomeImg
+              src={BRAND.yard}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B16] via-[#0B1B16]/55 to-transparent" />
+            <div className="relative flex h-full min-h-[280px] flex-col justify-end p-7">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">Invest</p>
+              <p className="font-display mt-2 text-3xl font-medium leading-tight">
+                Put your capital on India&apos;s yellow EV fleet
+              </p>
+              <p className="mt-3 text-sm leading-6 text-white/75">
+                One PDF. The full partnership story. Then apply on the form below.
+              </p>
+              <a
+                href={FLEET_INVESTMENT.pdfHref}
+                download={FLEET_INVESTMENT.pdfFileName}
+                className="mt-6 inline-flex min-h-12 w-fit items-center gap-2 rounded-full bg-white px-5 text-[13px] font-semibold text-[#0B1B16]"
+              >
+                <Download size={16} />
+                Download PDF
+              </a>
+            </div>
           </aside>
         </div>
 

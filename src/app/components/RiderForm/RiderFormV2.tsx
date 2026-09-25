@@ -4,8 +4,14 @@ import { useEffect, useRef, useState } from "react";
 
 import { auth } from "@/lib/firebase";
 import { hasRiderPlanReady, markRiderPlanReady, riderResumeHref } from "@/lib/riderPlanGate";
-import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
+import { DIRECT_THROUGH } from "@/lib/partnerSegments";
+import {
+  ComingThroughChips,
+  PREMIUM_BTN,
+  PREMIUM_FIELD,
+  SpeakAllButton,
+  VoiceField,
+} from "../FormVoice/FormVoiceDock";
 
 import {
   RecaptchaVerifier,
@@ -1832,172 +1838,97 @@ before:to-[#18B368]
 "
 >
 
-              <FormVoiceDock hint="Tap a field, then the mic — speak your name, phone or address." />
-
               {step === 1 && (
                 <>
-                  <h3
-className="
-text-[36px]
-font-black
-tracking-tight
-text-[#0F172A]
-mb-3
-"
->
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#1F6B4A]">
+                    Personal · Step 1 of 4
+                  </p>
+                  <h3 className="font-display mt-2 text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-4xl">
                     Personal Information
                   </h3>
-
-                  <p className="text-gray-500 mt-2 mb-8">
-Step 1 of 4
-</p>
-
-                  <p className="text-sm text-gray-500 mb-6">
-  Fields marked <span className="text-red-500">*</span> are required
-</p>
-
-                  <div className="space-y-6">
-
-                    <input
-  type="text"
-  placeholder="Full Name *"
-  value={fullName}
-  onChange={(e) => {
-  setFullName(e.target.value);
-  setError("");
-}}
- className="
-w-full
-h-14
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-                    <input
-  type="tel"
-  placeholder="Phone Number *"
-  value={phone}
-  onChange={(e) => {
-  const next = e.target.value;
-  setPhone(next);
-  const digits = indianMobile(next);
-  const sessionPhone = indianMobile(auth.currentUser?.phoneNumber || "");
-  if (sessionPhone && digits === sessionPhone && phoneRegex.test(sessionPhone)) {
-    void applyExistingFirebaseSession(digits);
-    return;
-  }
-  setOtp("");
-  setOtpSent(false);
-  setOtpVerified(false);
-  setConfirmationResult(null);
-  setOtpMessage("");
-  setError("");
-  setOtpSendCount(0);
-setOtpVerifyAttempts(0);
-
-  if (recaptchaVerifierRef.current) {
-    recaptchaVerifierRef.current.clear();
-    recaptchaVerifierRef.current = null;
-  }
-}}
-  className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
- transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-                    <input
-  type="email"
-  placeholder="Email Address *"
-  value={email}
-  onChange={(e) => {
-  setEmail(e.target.value);
-  setError("");
-}}
-  className="
-w-full
-h-14
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-                    <select
-                      value={comingThrough}
-                      onChange={(e) => {
-                        setComingThrough(e.target.value);
+                  <p className="mt-3 mb-6 text-sm leading-6 text-[#5C635E]">
+                    Tap the mic to speak. We&apos;ll send an OTP to this number.
+                  </p>
+                  <div className="mb-6 rounded-full bg-[#EAF7EF] px-4 py-3 text-[13px] font-medium text-[#146C3A]">
+                    Connected to evuddy.com — rider records use the live API.
+                  </div>
+                  <div className="space-y-5">
+                    <SpeakAllButton
+                      onParsed={(parts) => {
+                        if (parts.name) {
+                          setFullName(parts.name);
+                          setError("");
+                        }
+                        if (parts.phone) {
+                          setPhone(parts.phone);
+                          setError("");
+                        }
+                        if (parts.email) {
+                          setEmail(parts.email);
+                          setError("");
+                        }
+                      }}
+                    />
+                    <VoiceField
+                      label="Full name *"
+                      value={fullName}
+                      onChange={(value) => {
+                        setFullName(value);
                         setError("");
                       }}
-                      className="
-w-full
-h-14
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-                    >
-                      {COMING_THROUGH_OPTIONS.map((option) => (
-                        <option key={option} value={option}>
-                          {option === DIRECT_THROUGH
-                            ? "Coming through: Direct / EVUDDY (normal rider)"
-                            : `Coming through: ${option}`}
-                        </option>
-                      ))}
-                    </select>
-
+                      placeholder="As on Aadhaar · or tap the mic"
+                    />
+                    <VoiceField
+                      label="Mobile number *"
+                      type="tel"
+                      inputMode="numeric"
+                      numeric
+                      leading={
+                        <>
+                          <span>🇮🇳</span> +91
+                        </>
+                      }
+                      value={phone}
+                      onChange={(next) => {
+                        setPhone(next);
+                        const digits = indianMobile(next);
+                        const sessionPhone = indianMobile(auth.currentUser?.phoneNumber || "");
+                        if (sessionPhone && digits === sessionPhone && phoneRegex.test(sessionPhone)) {
+                          void applyExistingFirebaseSession(digits);
+                          return;
+                        }
+                        setOtp("");
+                        setOtpSent(false);
+                        setOtpVerified(false);
+                        setConfirmationResult(null);
+                        setOtpMessage("");
+                        setError("");
+                        setOtpSendCount(0);
+                        setOtpVerifyAttempts(0);
+                        if (recaptchaVerifierRef.current) {
+                          recaptchaVerifierRef.current.clear();
+                          recaptchaVerifierRef.current = null;
+                        }
+                      }}
+                      placeholder="10-digit mobile · or speak"
+                    />
+                    <VoiceField
+                      label="Email *"
+                      type="email"
+                      value={email}
+                      onChange={(value) => {
+                        setEmail(value);
+                        setError("");
+                      }}
+                      placeholder='name@email.com · say "at" and "dot"'
+                    />
+                    <ComingThroughChips
+                      value={comingThrough}
+                      onChange={(value) => {
+                        setComingThrough(value);
+                        setError("");
+                      }}
+                    />
                   </div>
                 </>
               )}
@@ -2041,32 +1972,14 @@ Step 2 of 4
           setError("");
           setOtpMessage("");
         }}
-        className="
-        w-full
-        h-16
-        px-5
-        rounded-2xl
-        border
-        border-gray-200
-        disabled:bg-green-50
-        disabled:text-green-700
-        disabled:cursor-not-allowed
-        "
+        className={PREMIUM_FIELD}
       />
 
       <button
         type="button"
         onClick={sendOtp}
         disabled={otpLoading || otpVerified || otpCooldown > 0 || otpSendCount >= MAX_OTP_SENDS_PER_PHONE}
-        className="
-        w-full
-        h-14
-        rounded-2xl
-        bg-blue-600
-        text-white
-        font-bold
-        shadow-lg
-        "
+        className={PREMIUM_BTN}
       >
         {otpLoading
   ? "Sending OTP..."
@@ -2137,227 +2050,75 @@ Step 2 of 4
 
               {step === 3 && (
                 <>
-                  <h3
-className="
-text-[36px]
-font-black
-tracking-tight
-text-[#0F172A]
-mb-3
-"
->
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#1F6B4A]">
+                    KYC · Step 3 of 4
+                  </p>
+                  <h3 className="font-display mt-2 mb-6 text-3xl font-medium tracking-[-0.03em] text-[#1C1917]">
                     KYC Details
                   </h3>
 
-                  <p
-className="
-text-[16px]
-text-slate-500
-mb-8
-leading-7
-"
->
-                    Step 3 of 4
-                  </p>
-
-                  <div className="space-y-6">
-
-                    <input
-  type="text"
-  placeholder="Aadhaar Number *"
-  value={aadhaar}
-  onChange={(e) => {
-    setAadhaar(e.target.value);
-    setError("");
-  }}
-  className="w-full h-16 px-5 rounded-2xl border border-gray-200 bg-white text-[#0A1134] placeholder:text-gray-500 placeholder:opacity-100 shadow-sm"
-/>
-
-                    <input
-  type="text"
-  placeholder="Driving License Number (Optional)"
-  value={license}
-  onChange={(e) => {
-    setLicense(e.target.value);
-    setError("");
-  }}
-  className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-<input
-  type="text"
-  placeholder="Instagram ID (Optional)"
-  value={instagramId}
-  onChange={(e) => setInstagramId(e.target.value)}
-  className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-<input
-  type="text"
-  placeholder="Facebook ID (Optional)"
-  value={facebookId}
-  onChange={(e) => setFacebookId(e.target.value)}
-  className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-<input
-  type="text"
-  placeholder="Reference Person 1 Name (Optional)"
-  value={reference1Name}
-  onChange={(e) => setReference1Name(e.target.value)}
-  className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-<input
-  type="tel"
-  placeholder="Reference Person 1 Phone (Optional)"
-  value={reference1Phone}
-  onChange={(e) => setReference1Phone(e.target.value)}
- className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-<input
-  type="text"
-  placeholder="Reference Person 2 Name (Optional)"
-  value={reference2Name}
-  onChange={(e) => setReference2Name(e.target.value)}
-  className="
-w-full
-h-16
-px-5
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-sm
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
-<input
-  type="tel"
-  placeholder="Reference Person 2 Phone (Optional)"
-  value={reference2Phone}
-  onChange={(e) => setReference2Phone(e.target.value)}
-  className="
-w-full
-h-16
-px-5
-rounded-3xl
-border
-border-slate-200
-bg-[#F8FAFC]
-text-[#0F172A]
-placeholder:text-slate-500
-shadow-md
-transition-all
-duration-300
-outline-none
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/20
-"
-/>
-
+                  <div className="space-y-5">
+                    <VoiceField
+                      label="Aadhaar number *"
+                      inputMode="numeric"
+                      value={aadhaar}
+                      onChange={(value) => {
+                        setAadhaar(value.replace(/\D/g, "").slice(0, 12));
+                        setError("");
+                      }}
+                      placeholder="12-digit Aadhaar · or tap the mic"
+                    />
+                    <VoiceField
+                      label="Driving licence (optional)"
+                      value={license}
+                      onChange={(value) => {
+                        setLicense(value);
+                        setError("");
+                      }}
+                      placeholder="Licence number"
+                    />
+                    <VoiceField
+                      label="Instagram (optional)"
+                      value={instagramId}
+                      onChange={setInstagramId}
+                      placeholder="Instagram ID"
+                    />
+                    <VoiceField
+                      label="Facebook (optional)"
+                      value={facebookId}
+                      onChange={setFacebookId}
+                      placeholder="Facebook ID"
+                    />
+                    <VoiceField
+                      label="Reference 1 name (optional)"
+                      value={reference1Name}
+                      onChange={setReference1Name}
+                      placeholder="Full name"
+                    />
+                    <VoiceField
+                      label="Reference 1 phone (optional)"
+                      type="tel"
+                      numeric
+                      inputMode="numeric"
+                      value={reference1Phone}
+                      onChange={setReference1Phone}
+                      placeholder="10-digit mobile"
+                    />
+                    <VoiceField
+                      label="Reference 2 name (optional)"
+                      value={reference2Name}
+                      onChange={setReference2Name}
+                      placeholder="Full name"
+                    />
+                    <VoiceField
+                      label="Reference 2 phone (optional)"
+                      type="tel"
+                      numeric
+                      inputMode="numeric"
+                      value={reference2Phone}
+                      onChange={setReference2Phone}
+                      placeholder="10-digit mobile"
+                    />
                   </div>
                 </>
               )}
@@ -2806,19 +2567,7 @@ Maximum Size: 5 MB
                 {step > 1 ? (
                   <button
                     onClick={() => setStep(step - 1)}
-                   className="
-px-6
-py-3
-rounded-xl
-border
-border-gray-300
-bg-white
-text-[#0A1134]
-font-semibold
-shadow-sm
-hover:bg-gray-50
-transition
-"
+                    className="inline-flex min-h-12 items-center rounded-full border border-[#E6EBE7] px-6 text-[14px] font-medium text-[#1C1917]"
                   >
                     Back
                   </button>
@@ -2840,24 +2589,12 @@ transition
       setStep(step + 1);
     }
   }}
-  className={`
-    px-8
-    py-3
-    rounded-xl
-    text-white
-    font-bold
-    shadow-lg
-    transition-all
-    duration-300
-    ${
-      isContinueDisabled
-        ? "bg-gray-300 cursor-not-allowed shadow-none"
-        : "bg-gradient-to-r from-[#16A34A] via-[#22C55E] to-[#18B368] hover:scale-[1.03] hover:shadow-[0_18px_45px_rgba(34,197,94,.35)]"
-    }
-  `}
+  className={`${PREMIUM_BTN} w-auto min-w-[200px] px-8 ${
+    isContinueDisabled ? "opacity-50" : ""
+  }`}
 >
   {step === 1
-    ? "Continue to Verification →"
+    ? "Send OTP →"
     : step === 2
     ? "Continue to KYC →"
     : "Continue to Documents →"}

@@ -1,487 +1,186 @@
 "use client";
 
 import { useState } from "react";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
+import {
+  ComingThroughChips,
+  PREMIUM_BTN,
+  PREMIUM_SELECT,
+  SpeakAllButton,
+  VoiceArea,
+  VoiceField,
+  VoiceSelect,
+} from "../FormVoice/FormVoiceDock";
+
+const selectClass = PREMIUM_SELECT;
 
 export default function PartnerForm() {
   const [formData, setFormData] = useState({
-  fullName: "",
-  phone: "",
-  email: "",
-  organizationName: "",
-  state: "",
-  city: "",
-  territory: "",
-  partnerType: "",
-  comingThrough: "Direct / EVUDDY",
-  investmentCapacity: "",
-  propertyAvailable: "",
-  availableSpace: "",
-  businessExperience: "",
-  plannedFleetSize: "",
-  message: "",
-consentAccepted: false,
-});
-
-const [loading, setLoading] = useState(false);
-
-const handleChange = (
-  e: React.ChangeEvent<
-    HTMLInputElement |
-    HTMLSelectElement |
-    HTMLTextAreaElement
-  >
-) => {
-  const target = e.target;
-
-  setFormData({
-    ...formData,
-    [target.name]:
-      target instanceof HTMLInputElement && target.type === "checkbox"
-        ? target.checked
-        : target.value,
+    fullName: "",
+    phone: "",
+    email: "",
+    organizationName: "",
+    state: "",
+    city: "",
+    territory: "",
+    partnerType: "",
+    comingThrough: "Direct / EVUDDY",
+    investmentCapacity: "",
+    propertyAvailable: "",
+    availableSpace: "",
+    businessExperience: "",
+    plannedFleetSize: "",
+    message: "",
+    consentAccepted: false,
   });
-};
+  const [loading, setLoading] = useState(false);
 
-const handleSubmit = async (
-  e: React.FormEvent
-) => {
+  const set = (name: string, value: string | boolean) =>
+    setFormData((current) => ({ ...current, [name]: value }));
 
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      const res = await fetch("/api/partners", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert("Partner Application Submitted Successfully");
+        setFormData({
+          fullName: "",
+          phone: "",
+          email: "",
+          organizationName: "",
+          state: "",
+          city: "",
+          territory: "",
+          partnerType: "",
+          comingThrough: "Direct / EVUDDY",
+          investmentCapacity: "",
+          propertyAvailable: "",
+          availableSpace: "",
+          businessExperience: "",
+          plannedFleetSize: "",
+          message: "",
+          consentAccepted: false,
+        });
+      } else {
+        alert(data.errors?.join("\n") || data.message || "Submission Failed");
+      }
+    } catch (error) {
+      console.log(error);
+      alert("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  try {
-
-    setLoading(true);
-
-    const res = await fetch("/api/partners", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
-    });
-
-    const data = await res.json();
-
-    if (data.success) {
-
-      alert(
-        "Partner Application Submitted Successfully"
-      );
-
-      setFormData({
-        fullName: "",
-        phone: "",
-        email: "",
-        organizationName: "",
-        state: "",
-        city: "",
-        territory: "",
-        partnerType: "",
-        comingThrough: "Direct / EVUDDY",
-        investmentCapacity: "",
-        propertyAvailable: "",
-        availableSpace: "",
-        businessExperience: "",
-        plannedFleetSize: "",
-       message: "",
-consentAccepted: false,
-});
-
-    } else {
-  alert(data.errors?.join("\n") || data.message || "Submission Failed");
-}
-
-  } catch (error) {
-
-    console.log(error);
-
-    alert("Something went wrong");
-
-  } finally {
-
-    setLoading(false);
-
-  }
-};
   return (
-    <section
-      id="partner-form"
-      className="scroll-mt-36 py-16 md:py-32 bg-[#F7F4EE]"
-    >
-      <div className="max-w-6xl mx-auto px-4 md:px-6">
+    <section id="partner-form" className="scroll-mt-36 bg-[#F7F4EE] py-16 md:py-28">
+      <div className="mx-auto max-w-4xl px-4 md:px-6">
+        <p className="text-center text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+          Partnership programme
+        </p>
+        <h2 className="font-display mt-4 text-center text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
+          Apply with EVUDDY
+        </h2>
+        <p className="mx-auto mt-4 max-w-2xl text-center text-[15px] leading-8 text-[#5C635E]">
+          Dealers, distributors and fleet partners use this form. Looking at fleet investment first?{" "}
+          <a href="#fleet-investment" className="font-medium text-[#1F6B4A]">
+            Download the PDF
+          </a>
+          .
+        </p>
 
-        {/* ================= Premium EVUDDY Header ================= */}
-
-<div className="text-center mb-10 sm:mb-20">
-
-  {/* Premium Badge */}
-
-  <div className="inline-flex max-w-full items-center gap-3 rounded-full border border-[#18B368]/20 bg-white px-4 py-3 shadow-[0_15px_40px_rgba(15,23,42,0.08)] sm:px-7">
-
-    <div className="w-3 h-3 rounded-full bg-[#18B368] animate-pulse" />
-
-    <span className="text-[12px] font-semibold tracking-wide text-[#18B368] uppercase sm:text-[15px]">
-      EVUDDY PARTNERSHIP PROGRAM
-    </span>
-
-  </div>
-
-  {/* Heading */}
-
-  <h2 className="mt-8 text-3xl md:text-6xl xl:text-7xl font-black leading-[1.05] tracking-[-0.04em]">
-
-    <span className="text-[#0F172A]">
-      Build the Future
-    </span>
-
-    <br />
-
-    <span className="bg-gradient-to-r from-[#1F6B4A] via-[#18B368] to-[#6EE7A8] bg-clip-text text-transparent">
-      With EVUDDY
-    </span>
-
-  </h2>
-
-  {/* Description */}
-
-  <p className="mt-8 max-w-3xl mx-auto text-[16px] leading-8 text-slate-600 sm:text-[19px] sm:leading-9">
-
-    Join India's next-generation electric mobility ecosystem.
-
-    Launch an EVUDDY franchise and build a sustainable business across
-
-    EV rentals, smart charging, fleet operations, mobility hubs,
-
-    delivery services and campus transportation.
-
-  </p>
-
-  <p className="mt-5 text-sm font-medium text-slate-500">
-    Looking at Fleet Partner Investment?{" "}
-    <a href="#fleet-investment" className="font-bold text-[#18B368] underline-offset-4 hover:underline">
-      Review the plans and poster first
-    </a>
-    .
-  </p>
-
-  {/* Trust Pills */}
-
-  <div className="mt-10 flex flex-wrap justify-center gap-4">
-
-    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
-      ✓ Fast Approval
-    </div>
-
-    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
-      ✓ Dedicated Support
-    </div>
-
-    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
-      ✓ PAN India Expansion
-    </div>
-
-    <div className="rounded-full border border-[#18B368]/15 bg-white px-6 py-3 text-sm font-semibold text-[#18B368] shadow-sm">
-      ✓ Trusted EV Platform
-    </div>
-
-  </div>
-
-</div>
-
-        {/* Form */}
-<div
-className="
-relative
-overflow-hidden
-bg-white/95
-backdrop-blur-xl
-rounded-[36px]
-md:rounded-[40px]
-p-6
-md:p-12
-border
-border-white
-shadow-[0_35px_90px_rgba(15,23,42,0.10)]
-transition-all
-duration-500
-"
->
-
-  {/* Premium Top Border */}
-
-<div
-className="
-absolute
-top-0
-left-0
-w-full
-h-1
-bg-gradient-to-r
-from-[#18B368]
-via-[#22C55E]
-to-[#1F6B4A]
-"
-/>
-
-          <form
-  onSubmit={handleSubmit}
-  className="
-grid
-grid-cols-1
-md:grid-cols-2
-gap-6
-"
->
+        <div className="mt-10 rounded-[32px] border border-[#E6EBE7] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            <p className="text-sm text-[#5C635E] md:col-span-2">
+              Tap the mic on any field to speak. We&apos;ll fill that box from your voice.
+            </p>
+            <SpeakAllButton
+              onParsed={(parts) => {
+                if (parts.name) set("fullName", parts.name);
+                if (parts.phone) set("phone", parts.phone);
+                if (parts.email) set("email", parts.email);
+              }}
+            />
             <div className="md:col-span-2">
-              <FormVoiceDock />
+              <ComingThroughChips
+                value={formData.comingThrough}
+                onChange={(value) => set("comingThrough", value)}
+              />
             </div>
-
-            {/* Name */}
-            <input
-  type="text"
-  name="fullName"
-  value={formData.fullName}
-  onChange={handleChange}
-  placeholder="Full Name *"
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
-/>
-
-            {/* Mobile */}
-            <input
-  type="tel"
-  name="phone"
-  value={formData.phone}
-  onChange={handleChange}
-  placeholder="Mobile Number *"
-              className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
+            <VoiceField
+              label="Full name *"
+              required
+              value={formData.fullName}
+              onChange={(value) => set("fullName", value)}
+              placeholder="As on Aadhaar · or tap the mic"
             />
-
-            {/* Email */}
-            <input
-  type="email"
-  name="email"
-  value={formData.email}
-  onChange={handleChange}
-  placeholder="Email Address *"
-              className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
+            <VoiceField
+              label="Mobile number *"
+              required
+              type="tel"
+              inputMode="numeric"
+              numeric
+              leading={
+                <>
+                  <span>🇮🇳</span> +91
+                </>
+              }
+              value={formData.phone}
+              onChange={(value) => set("phone", value)}
+              placeholder="10-digit mobile"
             />
-
-            {/* Organization */}
-            <input
-  type="text"
-  name="organizationName"
-  value={formData.organizationName}
-  onChange={handleChange}
-  placeholder="Organization / Business Name *"
-              className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
+            <VoiceField
+              label="Email *"
+              required
+              type="email"
+              className="md:col-span-2"
+              value={formData.email}
+              onChange={(value) => set("email", value)}
+              placeholder='name@email.com · say "at" and "dot"'
             />
-
-            {/* State */}
-            <input
-  type="text"
-  name="state"
-  value={formData.state}
-  onChange={handleChange}
-  placeholder="State *"
-              className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
+            <VoiceField
+              label="Organization / firm *"
+              required
+              className="md:col-span-2"
+              value={formData.organizationName}
+              onChange={(value) => set("organizationName", value)}
+              placeholder="Showroom, warehouse or company name"
             />
-
-            {/* City */}
-            <input
-  type="text"
-  name="city"
-  value={formData.city}
-  onChange={handleChange}
-  placeholder="City *"
-              className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
+            <VoiceField
+              label="State *"
+              required
+              value={formData.state}
+              onChange={(value) => set("state", value)}
+              placeholder="State"
             />
-
-            <input
-  type="text"
-  name="territory"
-  value={formData.territory}
-  onChange={handleChange}
-  placeholder="Preferred Franchise Territory *"
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
-/>
-
-            {/* Partner Type */}
-            <select
-  name="partnerType"
-  value={formData.partnerType}
-  onChange={handleChange}
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-              <option value="">Select Partnership Type *</option>
+            <VoiceField
+              label="City *"
+              required
+              value={formData.city}
+              onChange={(value) => set("city", value)}
+              placeholder="City"
+            />
+            <VoiceField
+              label="Territory *"
+              required
+              className="md:col-span-2"
+              value={formData.territory}
+              onChange={(value) => set("territory", value)}
+              placeholder="Catchment, districts or states"
+            />
+            <VoiceSelect
+              label="Partnership type *"
+              required
+              value={formData.partnerType}
+              onChange={(e) => set("partnerType", e.target.value)}
+            >
+              <option value="">Select partnership type</option>
               <option>EVUDDY Dealer</option>
               <option>EVUDDY Distributor</option>
               <option>Fleet Partner Investment</option>
@@ -492,331 +191,117 @@ hover:border-[#22C55E]/40
               <option>Hub Operations Partner</option>
               <option>Delivery Operations Partner</option>
               <option>Smart Parking Partner</option>
-            </select>
-
-            <select
-  name="comingThrough"
-  value={formData.comingThrough}
-  onChange={handleChange}
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-              <option value="Direct / EVUDDY">Coming through: Direct / EVUDDY *</option>
-              <option value="Flipkart Minutes">Coming through: Flipkart Minutes</option>
-              <option value="Zomato">Coming through: Zomato</option>
-              <option value="Swiggy">Coming through: Swiggy</option>
-              <option value="Instamart">Coming through: Instamart</option>
-              <option value="Blinkit">Coming through: Blinkit</option>
-              <option value="Zepto">Coming through: Zepto</option>
-              <option value="Other">Coming through: Other</option>
-            </select>
-
-            {/* Investment */}
-            <select
-  name="investmentCapacity"
-  value={formData.investmentCapacity}
-  onChange={handleChange}
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-              <option value="">Investment Capacity *</option>
-              <option>₹5 Lakhs · Dealer (retail)</option>
-              <option>₹10 Lakhs · Distributor</option>
-              <option>₹1 Lakh · 3 scooters</option>
-              <option>₹5 Lakh · 15 scooters</option>
-              <option>₹10 Lakh · 30 scooters</option>
-              <option>Below ₹5 Lakhs</option>
-              <option>₹5 – ₹10 Lakhs</option>
-              <option>₹10 – ₹25 Lakhs</option>
-              <option>₹25 – ₹50 Lakhs</option>
-              <option>₹50 Lakhs+</option>
-            </select>
-
-            {/* Property */}
-            <select
-  name="propertyAvailable"
-  value={formData.propertyAvailable}
-  onChange={handleChange}
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-              <option>Property Available? *</option>
-              <option>Yes</option>
-              <option>No</option>
-            </select>
-
-            {/* Space */}
-            <select
-  name="availableSpace"
-  value={formData.availableSpace}
-  onChange={handleChange}
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-              <option>Available Space *</option>
-              <option>Below 500 Sq Ft</option>
-              <option>500 - 1000 Sq Ft</option>
-              <option>1000 - 5000 Sq Ft</option>
-              <option>5000+ Sq Ft</option>
-            </select>
-
-            {/* Experience */}
-            <select
-  name="businessExperience"
-  value={formData.businessExperience}
-  onChange={handleChange}
- className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-              <option>Business Experience *</option>
-              <option>Fresher</option>
-              <option>1 - 3 Years</option>
-              <option>3 - 5 Years</option>
-              <option>5+ Years</option>
-            </select>
-
-            <select
-  name="plannedFleetSize"
-  value={formData.plannedFleetSize}
-  onChange={handleChange}
-  className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-"
->
-  <option>Planned Fleet Size *</option>
-  <option>1 - 10 Vehicles</option>
-  <option>10 - 50 Vehicles</option>
-  <option>50 - 100 Vehicles</option>
-  <option>100+ Vehicles</option>
-</select>
-
-            {/* Message */}
-            <textarea
-  name="message"
-  value={formData.message}
-  onChange={handleChange}
-  rows={6}
-  placeholder="Tell us about your business, organization, college, property, or partnership interest..."
-              className="
-md:col-span-2
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-p-5
-text-[15px]
-leading-7
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-hover:border-[#22C55E]/40
-resize-none
-"
+            </VoiceSelect>
+            <label className="block">
+              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
+                Investment capacity *
+              </span>
+              <select
+                required
+                value={formData.investmentCapacity}
+                onChange={(e) => set("investmentCapacity", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Investment capacity</option>
+                <option>₹5 Lakhs · Dealer (retail)</option>
+                <option>₹10 Lakhs · Distributor</option>
+                <option>₹1 Lakh · 3 scooters</option>
+                <option>₹5 Lakh · 15 scooters</option>
+                <option>₹10 Lakh · 30 scooters</option>
+                <option>Below ₹5 Lakhs</option>
+                <option>₹5 – ₹10 Lakhs</option>
+                <option>₹10 – ₹25 Lakhs</option>
+                <option>₹25 – ₹50 Lakhs</option>
+                <option>₹50 Lakhs+</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
+                Property available *
+              </span>
+              <select
+                required
+                value={formData.propertyAvailable}
+                onChange={(e) => set("propertyAvailable", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Property available?</option>
+                <option>Yes</option>
+                <option>No</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
+                Available space *
+              </span>
+              <select
+                required
+                value={formData.availableSpace}
+                onChange={(e) => set("availableSpace", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Available space</option>
+                <option>Below 500 Sq Ft</option>
+                <option>500 - 1000 Sq Ft</option>
+                <option>1000 - 5000 Sq Ft</option>
+                <option>5000+ Sq Ft</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
+                Business experience *
+              </span>
+              <select
+                required
+                value={formData.businessExperience}
+                onChange={(e) => set("businessExperience", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Business experience</option>
+                <option>Fresher</option>
+                <option>1 - 3 Years</option>
+                <option>3 - 5 Years</option>
+                <option>5+ Years</option>
+              </select>
+            </label>
+            <label className="block">
+              <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
+                Planned fleet size *
+              </span>
+              <select
+                required
+                value={formData.plannedFleetSize}
+                onChange={(e) => set("plannedFleetSize", e.target.value)}
+                className={selectClass}
+              >
+                <option value="">Planned fleet size</option>
+                <option>1 - 10 Vehicles</option>
+                <option>10 - 50 Vehicles</option>
+                <option>50 - 100 Vehicles</option>
+                <option>100+ Vehicles</option>
+              </select>
+            </label>
+            <VoiceArea
+              label="Message"
+              className="md:col-span-2"
+              rows={5}
+              value={formData.message}
+              onChange={(value) => set("message", value)}
+              placeholder="Tell us about your business, property or partnership interest"
             />
-
-            <label
-className="
-md:col-span-2
-flex
-items-center
-gap-4
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-py-4
-text-[15px]
-text-slate-600
-"
->
-  <input
-type="checkbox"
-className="
-h-5
-w-5
-rounded
-border-slate-300
-text-[#16A34A]
-focus:ring-[#22C55E]
-"
-    name="consentAccepted"
-    checked={formData.consentAccepted}
-    onChange={handleChange}
-  />
-  I agree to be contacted by EVUDDY regarding partnership and franchise opportunities.
-</label>
-
-<div className="md:col-span-2 flex flex-wrap gap-3 mb-2">
-
-<div className="px-5 py-2 rounded-full bg-[#F4FFF8] border border-[#18B368]/20 text-[#16A34A] text-sm font-semibold">
-✓ Fast Verification
-</div>
-
-<div className="px-5 py-2 rounded-full bg-[#F4FFF8] border border-[#18B368]/20 text-[#16A34A] text-sm font-semibold">
-✓ Dedicated Support
-</div>
-
-<div className="px-5 py-2 rounded-full bg-[#F4FFF8] border border-[#18B368]/20 text-[#16A34A] text-sm font-semibold">
-✓ PAN India Network
-</div>
-
-</div>
-
-            {/* Submit */}
-            <button
-              type="submit"
-              className="
-md:col-span-2
-h-16
-rounded-2xl
-bg-gradient-to-r
-from-[#16A34A]
-via-[#22C55E]
-to-[#18B368]
-text-white
-font-bold
-text-lg
-shadow-[0_18px_45px_rgba(24,179,104,.35)]
-transition-all
-duration-300
-hover:scale-[1.02]
-hover:shadow-[0_24px_60px_rgba(24,179,104,.45)]
-active:scale-[0.98]
-"
-            >
-              {
-  loading
-    ? "Submitting..."
-    : "Apply for EVUDDY Partnership →"
-}
+            <label className="flex items-start gap-3 text-sm leading-6 text-[#5C635E] md:col-span-2">
+              <input
+                type="checkbox"
+                className="mt-1"
+                checked={formData.consentAccepted}
+                onChange={(e) => set("consentAccepted", e.target.checked)}
+                required
+              />
+              I agree to be contacted by EVUDDY regarding partnership opportunities.
+            </label>
+            <button type="submit" disabled={loading} className={`${PREMIUM_BTN} md:col-span-2`}>
+              {loading ? "Submitting..." : "Apply for EVUDDY partnership →"}
             </button>
-
           </form>
         </div>
       </div>

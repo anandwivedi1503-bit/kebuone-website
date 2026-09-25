@@ -16,7 +16,7 @@ import { gstBreakdownInclusive } from "@/lib/gst";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
 import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, COMPANY_SECURITY_DEPOSIT, catalogRate } from "@/lib/rentalPlans";
-import FormVoiceDock from "../FormVoice/FormVoiceDock";
+import { MicSlot, PREMIUM_BTN, PREMIUM_FIELD } from "../FormVoice/FormVoiceDock";
 import RideSwipeControl from "./RideSwipeControl";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
@@ -1744,118 +1744,69 @@ step > index + 1
             onSubmit={createBooking}
             className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl print:hidden md:p-10"
           >
-            <FormVoiceDock hint="Select a booking field, then speak. GST is already included in the fare." />
-            <div className="mb-6 rounded-[24px] border border-[#18B368]/15 bg-[#F7FBF8] p-4">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Rental prices</p>
+            <div className="mb-6 rounded-[24px] border border-[#E6EBE7] bg-white p-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">Plans · GST included</p>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Hourly {formatINR(CATALOG_RATES.Hourly)}</span>
-                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Daily {formatINR(CATALOG_RATES.Daily)}</span>
-                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Weekly {formatINR(CATALOG_RATES.Weekly)}</span>
-                <span className="rounded-xl bg-white px-3 py-2 text-sm font-semibold">Monthly {formatINR(CATALOG_RATES.Monthly)}</span>
+                {[
+                  ["Hourly", CATALOG_RATES.Hourly, "/hr"],
+                  ["Daily", CATALOG_RATES.Daily, "/day"],
+                  ["Weekly", CATALOG_RATES.Weekly, "/wk"],
+                  ["Monthly", CATALOG_RATES.Monthly, "/mo"],
+                ].map(([name, price, unit]) => (
+                  <span key={String(name)} className="rounded-[18px] bg-[#F7F4EE] px-3 py-3">
+                    <span className="block text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B736E]">
+                      {name}
+                    </span>
+                    <span className="mt-1 block text-lg font-semibold text-[#1C1917]">
+                      {formatINR(Number(price))}
+                      <span className="text-xs font-normal text-[#8A847A]"> {unit}</span>
+                    </span>
+                  </span>
+                ))}
               </div>
-              <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+              <div className="mt-3 rounded-2xl bg-[#F4F6F4] px-4 py-3 text-sm text-[#5C635E]">
                 Rent to Own is frozen for this normal booking. Logout if you need to switch plans.
               </div>
             </div>
             {step === 1 && (
               <div className="grid gap-5 md:grid-cols-2">
                 <Field label="Rider Name *">
-                  <input
+                  <MicSlot
+                    label="Rider name"
+                    disabled={!!riderName}
+                    onText={(text) => !riderName && setRiderName(text)}
+                  >
+                    <input
 disabled={!!riderName}
                     value={riderName}
                     onChange={(e) => setRiderName(e.target.value)}
-                    className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#22C55E]/40
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-disabled:bg-slate-100
-disabled:text-slate-500
-disabled:cursor-not-allowed
-"
+                    className={PREMIUM_FIELD}
                     placeholder="Full name"
                   />
+                  </MicSlot>
                 </Field>
 
                 <Field label="Phone Number *">
-                  <input
+                  <MicSlot
+                    label="Phone"
+                    disabled={!!riderPhone}
+                    onText={(text) => !riderPhone && setRiderPhone(cleanDigits(text).slice(0, 10))}
+                  >
+                    <input
 disabled={!!riderPhone}
                     value={riderPhone}
                     onChange={(e) => setRiderPhone(cleanDigits(e.target.value).slice(0, 10))}
-                    className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#22C55E]/40
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-disabled:bg-slate-100
-disabled:text-slate-500
-disabled:cursor-not-allowed
-"
+                    className={PREMIUM_FIELD}
                     placeholder="10 digit mobile"
                   />
+                  </MicSlot>
                 </Field>
 
                 <Field label="Email">
   <input
     value={riderEmail}
     disabled
-    className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#22C55E]/40
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-disabled:bg-slate-100
-disabled:text-slate-500
-disabled:cursor-not-allowed
-"
+    className={PREMIUM_FIELD}
   />
 </Field>
 
@@ -1863,31 +1814,7 @@ disabled:cursor-not-allowed
   <input
     value={riderId}
     disabled
-    className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#22C55E]/40
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-disabled:bg-slate-100
-disabled:text-slate-500
-disabled:cursor-not-allowed
-"
+    className={PREMIUM_FIELD}
   />
 </Field>
 
@@ -1977,62 +1904,20 @@ cursor-pointer
                 </Field>
 
                 <Field label="Employee Reference">
-                  <input
-                    value={referenceBy}
-                    onChange={(e) => setReferenceBy(e.target.value)}
-                   className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#22C55E]/40
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-"
-                    placeholder="Optional"
-                  />
+                  <MicSlot label="Employee reference" onText={setReferenceBy}>
+                    <input
+                      value={referenceBy}
+                      onChange={(e) => setReferenceBy(e.target.value)}
+                      className={PREMIUM_FIELD}
+                      placeholder="Optional"
+                    />
+                  </MicSlot>
                 </Field>
 
-                
-
                 <div className="flex items-end">
-                  <button
-  type="button"
-  onClick={goToBikeStep}
-  className="
-w-full
-h-16
-rounded-2xl
-bg-gradient-to-r
-from-[#16A34A]
-via-[#22C55E]
-to-[#18B368]
-font-bold
-tracking-wide
-text-white
-shadow-[0_18px_45px_rgba(24,179,104,.35)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:shadow-[0_26px_60px_rgba(24,179,104,.45)]
-active:scale-[0.98]
-"
->
-  Continue →
-</button>
+                  <button type="button" onClick={goToBikeStep} className={PREMIUM_BTN}>
+                    Continue →
+                  </button>
                 </div>
               </div>
             )}
@@ -2040,34 +1925,15 @@ active:scale-[0.98]
             {step === 2 && (
               <div>
                <div className="mt-6 mb-6">
-  <input
-    type="text"
-    placeholder="Search by Vehicle ID or Registration Number..."
-    value={bikeSearch}
-    onChange={(e) => setBikeSearch(e.target.value)}
-    className="
-h-16
-w-full
-rounded-2xl
-border
-border-slate-200
-bg-[#F8FAFC]
-px-5
-text-[15px]
-font-medium
-text-[#0F172A]
-placeholder:text-slate-400
-outline-none
-transition-all
-duration-300
-shadow-sm
-hover:border-[#22C55E]/40
-focus:bg-white
-focus:border-[#22C55E]
-focus:ring-4
-focus:ring-[#22C55E]/10
-"
-  />
+  <MicSlot label="Search scooter" onText={setBikeSearch}>
+    <input
+      type="text"
+      placeholder="Search by Vehicle ID or Registration Number..."
+      value={bikeSearch}
+      onChange={(e) => setBikeSearch(e.target.value)}
+      className={PREMIUM_FIELD}
+    />
+  </MicSlot>
 </div>
 
                 <div className="mb-5 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -2076,10 +1942,10 @@ focus:ring-[#22C55E]/10
                       key={item}
                       type="button"
                       onClick={() => setRentalMode(item)}
-                      className={`min-h-16 rounded-2xl border px-2 py-2 font-bold ${
+                      className={`min-h-16 rounded-[22px] border px-2 py-2 text-sm font-semibold ${
                         rentalMode === item
-? "border-[#18B368] bg-gradient-to-r from-[#16A34A] to-[#18B368] text-white shadow-lg"
-: "border-slate-200 bg-white text-slate-700 hover:border-[#22C55E]/40"
+? "border-[#1F6B4A]/20 bg-[#E7F6EC] text-[#146C3A]"
+: "border-[#E6EBE7] bg-white text-[#3F4A44]"
                       }`}
                     >
                       <span className="block text-sm sm:text-base">{item}</span>
