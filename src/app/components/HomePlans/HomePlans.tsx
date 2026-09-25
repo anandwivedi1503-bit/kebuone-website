@@ -18,52 +18,93 @@ export default function HomePlans() {
   const { rates } = catalog;
 
   const plans = [
-    { name: "Hourly", price: inr(rates.hourly), unit: "/hr", note: "GST included", emoji: "⚡", featured: false },
-    { name: "Daily", price: inr(rates.daily), unit: "/day", note: "Most booked", emoji: "🛵", featured: true },
-    { name: "Weekly", price: inr(rates.weekly), unit: "/wk", note: "GST included", emoji: "📅", featured: false },
-    { name: "Monthly", price: inr(rates.monthly), unit: "/mo", note: "GST included", emoji: "🏡", featured: false },
+    {
+      name: "Hourly",
+      price: inr(rates.hourly),
+      unit: "/ hour",
+      note: "GST included",
+      image: BRAND.cityCommute,
+      featured: false,
+    },
+    {
+      name: "Daily",
+      price: inr(rates.daily),
+      unit: "/ day",
+      note: "Most booked",
+      image: BRAND.afterWork,
+      featured: true,
+    },
+    {
+      name: "Weekly",
+      price: inr(rates.weekly),
+      unit: "/ week",
+      note: "GST included",
+      image: BRAND.highway,
+      featured: false,
+    },
+    {
+      name: "Monthly",
+      price: inr(rates.monthly),
+      unit: "/ month",
+      note: "GST included",
+      image: BRAND.houseParked,
+      featured: false,
+    },
   ];
 
   return (
-    <section id="plans" className="relative scroll-mt-28 bg-[#F7F4EE] py-16 sm:scroll-mt-40 sm:py-24">
+    <section id="plans" className="relative scroll-mt-28 bg-[#FBF9F5] py-20 sm:scroll-mt-40 sm:py-28">
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-          <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">Plans</p>
-            <h2 className="font-display mt-3 text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
-              GST included. <span className="italic text-[#1F6B4A]">No extras.</span>
+        <div className="flex flex-col items-start justify-between gap-6 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+              India-ready pricing
+            </p>
+            <h2 className="font-display mt-4 text-4xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
+              Clear fares. <span className="italic text-[#1F6B4A]">No hidden extras.</span>
             </h2>
+            <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
+              Starting fares from live EVUDDY scooters — GST included. Refundable ₹2,500 deposit on
+              rentals and Rent to Own.
+            </p>
           </div>
-          <Link href="/ride-options" className="text-[13px] font-medium text-[#1F6B4A]">
-            Book at your hub →
+          <Link
+            href="/ride-options"
+            className="inline-flex h-12 items-center gap-2 bg-[#1F6B4A] px-6 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c]"
+          >
+            Book at your hub
+            <ArrowRight size={16} />
           </Link>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {plans.map((plan) => (
             <Link
               key={plan.name}
               href="/ride-options"
-              className={`overflow-hidden rounded-[24px] transition ${
-                plan.featured ? "bg-[#E7F6EC] ring-1 ring-[#1F6B4A]/20" : "bg-white ring-1 ring-[#E6EBE7]"
+              className={`group overflow-hidden bg-white ring-1 transition hover:-translate-y-0.5 ${
+                plan.featured ? "ring-[#1F6B4A]/30" : "ring-[#E4DDD2]"
               }`}
             >
-              <div className="relative h-28 overflow-hidden">
-                <HomeImg src={BRAND.cityCommute} alt="" className="h-full w-full object-cover object-center" />
-                <span className="absolute left-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white text-lg shadow-sm">
-                  {plan.emoji}
-                </span>
+              <div className="relative h-40 overflow-hidden bg-[#1C1917]">
+                <HomeImg
+                  src={plan.image}
+                  alt={`${plan.name} EVUDDY ride`}
+                  className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]"
+                />
+                {plan.featured ? (
+                  <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1F6B4A]">
+                    Most booked
+                  </span>
+                ) : null}
               </div>
               <div className="p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">
-                  {plan.name}
-                  {plan.featured ? " · most booked" : ""}
-                </p>
-                <p className="font-display mt-2 text-[1.85rem] font-medium tracking-tight text-[#1C1917]">
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#5F6B63]">{plan.name}</p>
+                <p className="font-display mt-3 text-3xl font-medium tracking-tight text-[#1C1917]">
                   {plan.price}
-                  <span className="ml-1 text-sm font-sans font-normal text-[#8A847A]">{plan.unit}</span>
+                  <span className="ml-1 text-base font-normal text-[#8A847A]">{plan.unit}</span>
                 </p>
-                <p className="mt-1 text-xs text-[#5C635E]">{plan.note}</p>
+                <p className="mt-1 text-sm text-[#5C635E]">{plan.note}</p>
               </div>
             </Link>
           ))}
@@ -71,24 +112,24 @@ export default function HomePlans() {
 
         <Link
           href="/ride-options"
-          className="mt-4 flex flex-col items-start justify-between gap-4 overflow-hidden rounded-[24px] bg-[#0B1B16] sm:flex-row sm:items-center"
+          className="mt-4 grid overflow-hidden bg-[#0B1B16] text-white sm:grid-cols-[220px_1fr_auto] sm:items-center"
         >
-          <div className="relative hidden h-28 w-44 shrink-0 sm:block">
-            <HomeImg src={BRAND.cityCommute} alt="" className="h-full w-full object-cover object-center" />
+          <div className="relative hidden h-full min-h-[140px] sm:block">
+            <HomeImg src={BRAND.range} alt="Rent to Own EVUDDY scooter" className="h-full w-full object-cover" />
           </div>
-          <div className="px-5 py-5 sm:px-2">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-white/60">
-              🔑 Rent to Own · {rates.rtoMonths} months
+          <div className="px-6 py-7">
+            <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/55">
+              Rent to Own · {rates.rtoMonths} months
             </p>
-            <p className="font-display mt-1 text-2xl font-medium text-white">
+            <p className="font-display mt-2 text-3xl font-medium">
               {inr(rates.rtoDaily)}
-              <span className="text-base font-sans font-normal text-white/60"> / day</span>
+              <span className="text-lg font-normal text-white/55"> / day</span>
             </p>
-            <p className="mt-1 text-xs text-white/65">GST included · ₹2,500 refundable deposit</p>
+            <p className="mt-1 text-sm text-white/65">GST included · ₹2,500 refundable deposit</p>
           </div>
-          <span className="mb-5 ml-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 text-[13px] font-semibold text-[#0B1B16] sm:mb-0 sm:mr-5 sm:ml-0">
-            Start
-            <ArrowRight size={14} />
+          <span className="m-6 inline-flex h-12 items-center justify-center bg-white px-6 text-[13px] font-medium tracking-[0.08em] text-[#0B1B16]">
+            Start Rent to Own
+            <ArrowRight size={16} className="ml-2" />
           </span>
         </Link>
       </div>

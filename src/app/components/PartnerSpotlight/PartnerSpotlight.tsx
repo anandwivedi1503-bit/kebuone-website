@@ -11,42 +11,33 @@ import HomeImg from "../HomeMedia/HomeImg";
 
 const ads = [
   {
-    kicker: "Become a dealer",
+    kicker: "Dealer",
     title: `Retail EVUDDY from ${dealerProgram.dealerMin}`,
-    text: "City showroom. Sell and rent yellow scooters. KYC and OTP stay on our platform.",
-    cta: "Apply now",
+    text: "City showroom or pickup point. Sell and rent yellow scooters to riders.",
+    cta: "Apply as dealer",
     href: "/partners/dealer",
     image: BRAND.dealer,
     download: false,
-    theme: "yellow",
   },
   {
-    kicker: "Become a distributor",
+    kicker: "Distributor",
     title: `Supply dealers from ${dealerProgram.distributorMin}`,
     text: "Territory warehouse and brand standards for authorised dealers.",
-    cta: "Apply now",
+    cta: "Apply as distributor",
     href: "/partners/distributor",
     image: BRAND.distributor,
     download: false,
-    theme: "green",
   },
   {
-    kicker: "Fleet partner",
+    kicker: "Invest",
     title: "Put your capital on the yellow fleet",
-    text: "We operate every kilometre. You grow the fleet. Numbers live in the official brief.",
+    text: "EVUDDY operates every kilometre. Download the brief, then apply.",
     cta: "Download PDF",
     href: FLEET_INVESTMENT.pdfHref,
-    image: BRAND.yard,
+    image: BRAND.franchise,
     download: true,
-    theme: "dark",
   },
 ] as const;
-
-const themes = {
-  yellow: "bg-[#F4C430] text-[#1C1917]",
-  green: "bg-[#146C3A] text-white",
-  dark: "bg-[#0B1B16] text-white",
-} as const;
 
 export default function PartnerSpotlight() {
   const [slide, setSlide] = useState(0);
@@ -56,46 +47,55 @@ export default function PartnerSpotlight() {
     if (paused) return;
     const timer = window.setInterval(() => {
       setSlide((current) => (current + 1) % ads.length);
-    }, 5000);
+    }, 2400);
     return () => window.clearInterval(timer);
   }, [paused]);
 
   const ad = ads[slide];
-  const onDark = ad.theme !== "yellow";
 
   return (
-    <section id="dealer-network" className="scroll-mt-36 bg-[#F7F4EE] py-10 sm:py-14">
+    <section id="dealer-network" className="scroll-mt-36 bg-[#F7F4EE] py-16 sm:py-20">
       <div id="fleet-investment" className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <p className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
+          Partner with EVUDDY
+        </p>
+        <h2 className="font-display mt-3 max-w-2xl text-3xl font-medium tracking-[-0.03em] text-[#1C1917] sm:text-5xl">
+          Dealer. Distributor. <span className="italic text-[#1F6B4A]">Fleet partner.</span>
+        </h2>
+
         <div
-          className={`grid overflow-hidden rounded-[28px] lg:grid-cols-[1.15fr_0.85fr] ${themes[ad.theme]}`}
+          className="relative mt-8 min-h-[340px] overflow-hidden sm:min-h-[420px]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          <div className="flex flex-col justify-between p-6 sm:p-10">
-            <div>
-              <p
-                className={`text-[11px] font-semibold uppercase tracking-[0.22em] ${
-                  onDark ? "text-white/70" : "text-[#1C1917]/70"
-                }`}
-              >
-                Advertisement · {slide + 1} of {ads.length}
+          {ads.map((item, index) => (
+            <HomeImg
+              key={item.kicker}
+              src={item.image}
+              alt=""
+              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${
+                index === slide ? "opacity-100" : "opacity-0"
+              }`}
+            />
+          ))}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B16] via-[#0B1B16]/55 to-[#0B1B16]/10" />
+          <div className="relative z-[1] flex min-h-[340px] flex-col justify-end p-6 text-white sm:min-h-[420px] sm:p-10">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F4C430]">
+                {ad.kicker}
               </p>
-              <p className="mt-3 text-[13px] font-semibold uppercase tracking-[0.14em]">{ad.kicker}</p>
-              <h2 className="font-display mt-3 max-w-xl text-3xl font-medium leading-[1.1] tracking-[-0.03em] sm:text-5xl">
-                {ad.title}
-              </h2>
-              <p className={`mt-4 max-w-lg text-[15px] leading-7 ${onDark ? "text-white/80" : "text-[#1C1917]/80"}`}>
-                {ad.text}
+              <p className="text-[11px] tracking-[0.14em] text-white/70">
+                {slide + 1} / {ads.length}
               </p>
             </div>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            <h3 className="font-display max-w-xl text-3xl font-medium leading-tight sm:text-5xl">{ad.title}</h3>
+            <p className="mt-3 max-w-lg text-sm leading-6 text-white/80 sm:text-base">{ad.text}</p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
               {ad.download ? (
                 <a
                   href={ad.href}
                   download={FLEET_INVESTMENT.pdfFileName}
-                  className={`inline-flex min-h-12 items-center gap-2 rounded-full px-6 text-[13px] font-semibold ${
-                    onDark ? "bg-white text-[#0B1B16]" : "bg-[#1C1917] text-white"
-                  }`}
+                  className="inline-flex min-h-12 items-center gap-2 bg-[#F4C430] px-6 text-[13px] font-semibold tracking-[0.06em] text-[#0B1B16]"
                 >
                   <Download size={16} />
                   Download PDF
@@ -103,45 +103,25 @@ export default function PartnerSpotlight() {
               ) : (
                 <Link
                   href={ad.href}
-                  className={`inline-flex min-h-12 items-center rounded-full px-6 text-[13px] font-semibold ${
-                    onDark ? "bg-white text-[#0B1B16]" : "bg-[#1C1917] text-white"
-                  }`}
+                  className="inline-flex min-h-12 items-center bg-white px-6 text-[13px] font-semibold tracking-[0.06em] text-[#0B1B16]"
                 >
                   {ad.cta} →
                 </Link>
               )}
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 {ads.map((item, index) => (
                   <button
                     key={item.kicker}
                     type="button"
                     aria-label={item.kicker}
                     onClick={() => setSlide(index)}
-                    className={`h-2 rounded-full transition ${
-                      index === slide
-                        ? onDark
-                          ? "w-8 bg-white"
-                          : "w-8 bg-[#1C1917]"
-                        : onDark
-                          ? "w-2 bg-white/40"
-                          : "w-2 bg-[#1C1917]/30"
+                    className={`h-1.5 rounded-full transition-all duration-200 ${
+                      index === slide ? "w-8 bg-[#F4C430]" : "w-3 bg-white/40"
                     }`}
                   />
                 ))}
               </div>
             </div>
-          </div>
-          <div className="relative min-h-[220px] lg:min-h-[360px]">
-            {ads.map((item, index) => (
-              <HomeImg
-                key={item.kicker}
-                src={item.image}
-                alt=""
-                className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-700 ${
-                  index === slide ? "opacity-100" : "opacity-0"
-                }`}
-              />
-            ))}
           </div>
         </div>
       </div>
