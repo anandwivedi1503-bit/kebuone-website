@@ -7,7 +7,6 @@ import { ArrowRight } from "lucide-react";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 import HomeImg from "../HomeMedia/HomeImg";
-import { GpsScooterMark } from "./GpsScooter";
 
 const SLIDES = [
   { src: BRAND.cityCommute, kicker: "City commute", title: "Ride the city" },
@@ -78,37 +77,37 @@ export default function Hero() {
         }
       `}</style>
 
-      <div className="page-under-nav mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 sm:px-8 lg:px-12 xl:grid-cols-[0.88fr_1.12fr]">
-        <div className="flex flex-col justify-center py-8 pr-0 lg:py-12 lg:pr-12">
+      <div className="page-under-nav mx-auto grid max-w-[1440px] items-center gap-8 px-5 pb-6 sm:px-8 lg:grid-cols-2 lg:gap-10 lg:px-12">
+        <div className="flex min-w-0 flex-col justify-center py-4 lg:py-8">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
             India&apos;s smart EV rental
           </p>
-          <h1 className="font-display mt-5 text-[clamp(2.6rem,7vw,4.6rem)] font-medium leading-[1.02] tracking-[-0.03em] text-[#1C1917]">
+          <h1 className="font-display mt-5 text-[clamp(2.4rem,6vw,4.4rem)] font-medium leading-[1.04] tracking-[-0.03em] text-[#1C1917]">
             Ride the city.
             <span className="mt-1 block italic text-[#1F6B4A]">Own the journey.</span>
           </h1>
-          <p className="mt-6 max-w-md text-[15px] leading-7 text-[#5C635E] sm:text-base sm:leading-8">
+          <p className="mt-5 max-w-md text-[15px] leading-7 text-[#5C635E] sm:text-base sm:leading-8">
             Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
             <span className="mt-2 block text-[#1F6B4A]">
               Book in minutes. Ride the city. Make the ride yours.
             </span>
           </p>
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link href="/ride-options">
-              <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c] sm:w-auto">
+          <div className="mt-8 flex w-full flex-col gap-3 sm:flex-row sm:items-center">
+            <Link href="/ride-options" className="w-full sm:w-auto">
+              <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] px-8 text-[13px] font-semibold tracking-[0.06em] text-white transition hover:bg-[#18573c]">
                 Book an EV
                 <ArrowRight className="h-4 w-4" />
               </span>
             </Link>
-            <Link href="/ride-options">
-              <span className="inline-flex min-h-12 w-full items-center justify-center border border-[#1C1917]/15 bg-transparent px-8 text-[13px] font-medium tracking-[0.06em] text-[#1C1917] transition hover:border-[#1F6B4A] sm:w-auto">
+            <Link href="/ride-options" className="w-full sm:w-auto">
+              <span className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-[#1C1917]/15 px-8 text-[13px] font-medium text-[#1C1917]">
                 Rent to Own ₹300/day
               </span>
             </Link>
           </div>
         </div>
 
-        <div className="relative aspect-[3/2] overflow-hidden bg-[#1C1917]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[28px] bg-[#1C1917] sm:aspect-[3/2]">
           {SLIDES.map((item, index) => {
             const prev = (slide + SLIDES.length - 1) % SLIDES.length;
             const visible = index === slide || (slide !== 0 && index === prev);
@@ -125,26 +124,33 @@ export default function Hero() {
               />
             );
           })}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between bg-gradient-to-t from-[#1C1917]/70 to-transparent px-5 py-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-white">{active.kicker}</p>
-            <div className="flex gap-2">
-              {SLIDES.map((item, index) => (
-                <button
-                  key={item.src}
-                  type="button"
-                  aria-label={item.title}
-                  onClick={() => setSlide(index)}
-                  className={`h-1.5 w-6 transition ${index === slide ? "bg-white" : "bg-white/35"}`}
-                />
-              ))}
-            </div>
+          <Link
+            href="/ride-options"
+            className="absolute bottom-4 left-4 inline-flex min-h-11 items-center gap-2 rounded-full bg-white px-5 text-[13px] font-semibold text-[#0B1B16] shadow-[0_10px_24px_rgba(0,0,0,0.25)]"
+          >
+            Book EV
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <div className="absolute bottom-4 right-4 flex items-center gap-2 rounded-full bg-black/35 px-3 py-1.5 backdrop-blur-sm">
+            <p className="hidden text-[10px] font-medium uppercase tracking-[0.16em] text-white sm:block">
+              {active.kicker}
+            </p>
+            {SLIDES.map((item, index) => (
+              <button
+                key={item.src}
+                type="button"
+                aria-label={item.title}
+                onClick={() => setSlide(index)}
+                className={`h-1.5 rounded-full transition ${index === slide ? "w-5 bg-white" : "w-2 bg-white/40"}`}
+              />
+            ))}
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-[1440px] px-5 pb-10 sm:px-8 lg:px-12">
-        <div className="border border-[#E4DDD2] bg-[#FBF9F5] px-5 py-5 sm:px-8 sm:py-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white">
+          <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-6">
             <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#5F6B63]">
               Live GPS tracking
             </p>
@@ -152,12 +158,15 @@ export default function Hero() {
               {cityLine} · In ride
             </p>
           </div>
-          <div className="relative h-[220px] overflow-hidden bg-[#F4F0E6] sm:h-[260px]">
-            <svg viewBox="0 0 960 260" className="h-full w-full" fill="none" aria-label="Scooter moving from hub to yard">
+          <div className="relative h-[220px] bg-[#F4F0E6] sm:h-[280px]">
+            <svg viewBox="0 0 960 260" className="h-full w-full" fill="none" aria-label="EVUDDY rider moving from hub to yard">
               <defs>
                 <pattern id="gps-grid" width="40" height="40" patternUnits="userSpaceOnUse">
                   <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E4DDD2" strokeWidth="1" />
                 </pattern>
+                <clipPath id="rider-clip">
+                  <circle cx="0" cy="0" r="30" />
+                </clipPath>
               </defs>
               <rect width="960" height="260" fill="url(#gps-grid)" />
               <path
@@ -195,10 +204,21 @@ export default function Hero() {
                 </text>
               </a>
               <g>
-                <animateMotion dur="12s" repeatCount="indefinite" rotate="auto">
+                <animateMotion dur="12s" repeatCount="indefinite" rotate="0">
                   <mpath href="#evuddy-route" />
                 </animateMotion>
-                <GpsScooterMark />
+                <circle r="34" fill="#F4C430" opacity="0.35" />
+                <g clipPath="url(#rider-clip)">
+                  <image
+                    href={BRAND.cityCommute}
+                    x="-32"
+                    y="-32"
+                    width="64"
+                    height="64"
+                    preserveAspectRatio="xMidYMid slice"
+                  />
+                </g>
+                <circle r="30" fill="none" stroke="#F4C430" strokeWidth="3" />
               </g>
             </svg>
           </div>

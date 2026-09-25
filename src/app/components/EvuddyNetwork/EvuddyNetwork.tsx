@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
-import { GpsScooterMark } from "../Hero/GpsScooter";
+import { BRAND } from "@/lib/brandMedia";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { googleMapsUrl, openGoogleMaps } from "./maps";
 
@@ -343,10 +343,17 @@ export default function EvuddyNetwork() {
                     className="evuddy-net-dash"
                   />
                   <g>
-                    <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={networkPath} />
-                    <g transform="scale(0.85)">
-                      <GpsScooterMark />
-                    </g>
+                    <animateMotion dur="8s" repeatCount="indefinite" rotate="0" path={networkPath} />
+                    <circle r="14" fill="#F4C430" opacity="0.35" />
+                    <image
+                      href={BRAND.cityCommute}
+                      x="-11"
+                      y="-11"
+                      width="22"
+                      height="22"
+                      preserveAspectRatio="xMidYMid slice"
+                    />
+                    <circle r="12" fill="none" stroke="#F4C430" strokeWidth="1.6" />
                   </g>
                 </>
               ) : null}

@@ -13,7 +13,7 @@ export default function TermsPage() {
         ₹2,500. GST is not charged on the deposit.
       </p>
       <p>
-        Rent to Own is ₹300 per day GST included for 18 months, plus a one-time refundable security
+        Rent to Own is ₹300 per day GST included for 20 months, plus a one-time refundable security
         deposit of ₹2,500. Ownership transfers only after successful completion of the plan, subject to
         EVUDDY verification.
       </p>

@@ -3,9 +3,7 @@ import {
   BrandCard,
   BrandCardGrid,
   BrandCta,
-  BrandFilm,
   BrandHero,
-  BrandMosaic,
   BrandSplit,
   BrandStatement,
 } from "@/app/components/Brand/BrandStoryPage";
@@ -25,7 +23,7 @@ const pillars = [
   },
   {
     title: "Rent to Own",
-    text: "₹300 a day GST included for 18 months, plus a one-time refundable security deposit of ₹2,500. Daily receipt. Then the scooter is yours.",
+    text: "₹300 a day GST included for 20 months, plus a one-time refundable security deposit of ₹2,500. Daily receipt. Then the scooter is yours.",
   },
 ];
 
@@ -60,12 +58,6 @@ export default function VisionMission() {
         ]}
       />
 
-      <BrandFilm
-        src={BRAND.film}
-        eyebrow="The future we are riding toward"
-        title="Every ride can lead to ownership."
-      />
-
       <BrandSplit
         eyebrow="Mission"
         title="Affordable. Accessible. Asset-building."
@@ -74,38 +66,11 @@ export default function VisionMission() {
         alt="EVUDDY electric scooter on the open road"
       />
 
-      <BrandSplit
-        eyebrow="Cities"
-        title="Quiet streets. Live operations."
-        text="Hubs, OTP pickup, GPS and support keep electric scooters working in real Indian cities for daily riders."
-        image={BRAND.cityCommute}
-        alt="EVUDDY fleet on city roads"
-        reverse
-      />
-
-      <BrandMosaic
-        title="The scooter is the story."
-        text="The vision is not a slogan. It is the ride people take tomorrow morning."
-        photos={[
-          { src: BRAND.yard, alt: "EVUDDY flagship hub" },
-          { src: BRAND.afterWork, alt: "After-work ride on EVUDDY" },
-          { src: BRAND.dealer, alt: "EVUDDY dealer showroom" },
-        ]}
-      />
-
       <BrandCardGrid title="What we are building toward">
         {pillars.map((item) => (
           <BrandCard key={item.title} title={item.title} text={item.text} />
         ))}
       </BrandCardGrid>
-
-      <BrandSplit
-        eyebrow="The ride"
-        title="One scooter. One standard."
-        text="Partners and fleets share the same platform as riders: one booking engine, one hub network, one standard of #safeRideWithEvuddy."
-        image={BRAND.yard}
-        alt="EVUDDY flagship hub"
-      />
 
       <BrandCardGrid title="SMART · ELECTRIC · MOBILITY">
         {values.map((item) => (

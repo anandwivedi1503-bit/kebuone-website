@@ -464,7 +464,7 @@ export default function RideOptionsPage() {
               How do you want to ride?
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
-              Pick a flexible rental, or own the scooter after 18 months of Rent to Own payments.
+              Pick a flexible rental, or own the scooter after 20 months of Rent to Own payments.
               Your choice stays locked until you logout, so refresh keeps you on the same path.
             </p>
             <button
@@ -539,7 +539,7 @@ export default function RideOptionsPage() {
               className="group rounded-[28px] border border-[#18B368]/20 bg-[#0B1B16] p-6 text-white shadow-[0_20px_50px_rgba(15,23,42,0.12)] transition hover:-translate-y-1 sm:p-8"
             >
               <span className="inline-flex rounded-full bg-[#18B368] px-3 py-1 text-xs font-bold">
-                OWN AFTER 18 MONTHS
+                OWN AFTER 20 MONTHS
               </span>
               <div className="mt-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#18B368]">
                 <KeyRound size={22} />

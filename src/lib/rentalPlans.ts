@@ -10,7 +10,7 @@ export const COMPANY_SECURITY_DEPOSIT = 2500;
 
 export const RTO_PLAN = {
   dailyRate: 300,
-  tenureMonths: 18,
+  tenureMonths: 20,
   billingDays: 1,
   securityDeposit: COMPANY_SECURITY_DEPOSIT,
 } as const;
@@ -32,11 +32,8 @@ export function rtoDailyRate(_vehicleRate?: unknown) {
   return RTO_PLAN.dailyRate;
 }
 
-export function rtoTenureMonths(vehicleMonths?: unknown) {
-  const months = Number(vehicleMonths);
-  return Number.isInteger(months) && months > 0
-    ? months
-    : RTO_PLAN.tenureMonths;
+export function rtoTenureMonths(_vehicleMonths?: unknown) {
+  return RTO_PLAN.tenureMonths;
 }
 
 export function rtoInstallment(_vehicleDailyRate?: unknown) {

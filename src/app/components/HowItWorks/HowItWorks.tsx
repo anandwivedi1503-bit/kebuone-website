@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, KeyRound, MapPinned, Smartphone, Wallet } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
-import { BRAND } from "@/lib/brandMedia";
-import HomeImg from "../HomeMedia/HomeImg";
 
 export default function HowItWorks() {
   const { catalog } = useHomeCatalog();
@@ -23,37 +21,29 @@ export default function HowItWorks() {
       title: "Register once",
       hi: "Phone OTP + KYC",
       text: "Sign up with your mobile. Finish KYC. Staff enable booking — Eva cannot approve.",
-      icon: Smartphone,
-      image: BRAND.register,
     },
     {
       n: "02",
       title: "Pick hub & plan",
       hi: cityLine,
-      text: `${hubLine}. Choose city, hub and hourly, daily, weekly, monthly — or Rent to Own.`,
-      icon: MapPinned,
-      image: BRAND.cityCommute,
+      text: `${hubLine}. Choose hourly, daily, weekly, monthly — or Rent to Own.`,
     },
     {
       n: "03",
       title: "Pay on Book EV",
       hi: "Razorpay / wallet",
-      text: "Pay the GST-included fare and deposit where it applies. First ₹1 issues pickup OTP.",
-      icon: Wallet,
-      image: BRAND.pay,
+      text: "Pay the GST-included fare. First ₹1 issues pickup OTP.",
     },
     {
       n: "04",
       title: "Ride with OTP",
       hi: "Show at the yard",
-      text: "Show pickup OTP at the hub. They unlock. Swipe Ride started. Return when remaining is ₹0.",
-      icon: KeyRound,
-      image: BRAND.yard,
+      text: "Show OTP. They unlock. Swipe Ride started. Return when remaining is ₹0.",
     },
   ];
 
   return (
-    <section id="how-it-works" className="relative scroll-mt-28 bg-[#F7F4EE] py-20 sm:scroll-mt-40 sm:py-28">
+    <section id="how-it-works" className="relative scroll-mt-28 bg-[#FBF9F5] py-16 sm:scroll-mt-40 sm:py-24">
       <div className="relative mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <div className="max-w-2xl">
           <span className="text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
@@ -70,48 +60,36 @@ export default function HowItWorks() {
           </p>
         </div>
 
-        <div className="mt-16 grid gap-10 sm:grid-cols-2 xl:grid-cols-4 xl:gap-8">
-          {steps.map((step) => {
-            const Icon = step.icon;
-            return (
-              <div key={step.n} className="overflow-hidden border-t border-[#E4DDD2] pt-6">
-                <div className="mb-5 aspect-[3/2] overflow-hidden bg-[#F4F0E6]">
-                  <HomeImg src={step.image} alt={step.title} className="h-full w-full object-cover object-center" />
-                </div>
-                <p className="text-[11px] tracking-[0.2em] text-[#8A847A]">{step.n}</p>
-                <Icon size={18} strokeWidth={1.5} className="mt-5 text-[#1F6B4A]" />
-                <h3 className="font-display mt-4 text-2xl font-medium text-[#1C1917]">{step.title}</h3>
-                <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[#1F6B4A]">
-                  {step.hi}
-                </p>
-                <p className="mt-3 text-sm leading-7 text-[#5C635E]">{step.text}</p>
+        <ol className="relative mt-12 grid gap-0 sm:grid-cols-2 xl:grid-cols-4">
+          {steps.map((step, index) => (
+            <li
+              key={step.n}
+              className="relative border-t border-[#E4DDD2] px-0 py-8 sm:px-6 sm:first:pl-0 xl:border-t-0 xl:border-l xl:first:border-l-0 xl:first:pl-0"
+            >
+              <div className="flex items-baseline gap-3">
+                <span className="font-display text-4xl font-medium text-[#1F6B4A]">{step.n}</span>
+                {index < steps.length - 1 ? (
+                  <span className="hidden h-px flex-1 bg-[#E4DDD2] xl:block" aria-hidden />
+                ) : null}
               </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-16 grid overflow-hidden sm:grid-cols-[0.48fr_0.52fr]">
-          <HomeImg
-            src={BRAND.yard}
-            alt="EVUDDY hub ready for OTP pickup"
-            className="h-auto w-full object-cover object-center sm:h-full sm:min-h-[320px]"
-          />
-          <div className="flex flex-col justify-center gap-6 bg-[#FBF9F5] px-6 py-10 sm:px-12">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#5F6B63]">
-                Ready to get started?
+              <h3 className="font-display mt-5 text-2xl font-medium text-[#1C1917]">{step.title}</h3>
+              <p className="mt-2 text-[11px] font-medium uppercase tracking-[0.14em] text-[#1F6B4A]">
+                {step.hi}
               </p>
-              <h3 className="font-display mt-3 text-3xl font-medium text-[#1C1917] sm:text-4xl">
-                Experience smarter urban mobility
-              </h3>
-            </div>
-            <Link href="/ride-options" className="w-full sm:w-auto">
-              <span className="inline-flex w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white sm:w-auto">
-                Book an EV
-                <ArrowRight size={16} />
-              </span>
-            </Link>
-          </div>
+              <p className="mt-3 text-sm leading-7 text-[#5C635E]">{step.text}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-6 flex flex-col items-start justify-between gap-4 rounded-[24px] bg-[#0B1B16] px-6 py-6 text-white sm:flex-row sm:items-center sm:px-8">
+          <p className="font-display text-2xl font-medium">Ready when you are.</p>
+          <Link
+            href="/ride-options"
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-7 text-[13px] font-semibold text-[#0B1B16]"
+          >
+            Book an EV
+            <ArrowRight size={16} />
+          </Link>
         </div>
       </div>
     </section>
