@@ -10,8 +10,12 @@ import HomePlans from "./components/HomePlans/HomePlans";
 import PartnerSpotlight from "./components/PartnerSpotlight/PartnerSpotlight";
 import Footer from "./components/Footer/Footer";
 
+const HomeFilm = dynamic(() => import("./components/HomeFilm/HomeFilm"), {
+  loading: () => <section className="h-[min(72svh,560px)] bg-[#1C1917]" aria-hidden />,
+});
 const EvuddyNetwork = dynamic(() => import("./components/EvuddyNetwork/EvuddyNetwork"));
 const Services = dynamic(() => import("./components/Services/Services"));
+const WhyKebu = dynamic(() => import("./components/WhyKebu/WhyKebu"));
 const HowItWorks = dynamic(() => import("./components/HowItWorks/HowItWorks"));
 const RiderReviews = dynamic(() => import("./components/RiderReviews/RiderReviews"));
 
@@ -24,9 +28,11 @@ export default function Home() {
       <Hero />
       <HomePartners />
       <HomeTrustBar />
+      <HomeFilm />
       <HomePlans />
       <EvuddyNetwork />
       <Services />
+      <WhyKebu />
       <PartnerSpotlight />
       <HowItWorks />
       <RiderReviews />
