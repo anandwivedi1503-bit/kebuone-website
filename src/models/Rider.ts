@@ -79,7 +79,7 @@ const RiderSchema = new mongoose.Schema(
   validate: {
     validator: function (value: string | undefined) {
       if (!value) return true;
-      return /^[A-Z]{2}\d{2}\d{11}$/.test(value);
+      return /^[A-Z]{2}\d{13}$/.test(value);
     },
     message: "Invalid driving license number.",
   },
@@ -487,7 +487,14 @@ RiderSchema.pre("save", function (next) {
   }
 
   if (this.drivingLicense) {
-    this.drivingLicense = this.drivingLicense.trim().toUpperCase();
+    this.drivingLicense = this.drivingLicense
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+  }
+
+  if (this.aadhaarNumber) {
+    this.aadhaarNumber = String(this.aadhaarNumber).replace(/\D/g, "");
   }
 
   next();

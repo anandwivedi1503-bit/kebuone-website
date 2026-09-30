@@ -220,9 +220,12 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
             />
             <VoiceField
               label="GSTIN"
+              autoComplete="off"
+              autoCapitalize="characters"
+              maxLength={15}
               value={form.gstin}
-              onChange={(value) => set("gstin", value)}
-              placeholder="GSTIN"
+              onChange={(value) => set("gstin", value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 15))}
+              placeholder="15-character GSTIN"
             />
             <VoiceField
               label="State *"
