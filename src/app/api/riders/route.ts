@@ -47,7 +47,7 @@ const EMAIL_REGEX =
 const AADHAAR_REGEX = /^\d{12}$/;
 
 const DRIVING_LICENSE_REGEX =
-  /^[A-Z]{2}\d{2}\d{11}$/;
+  /^[A-Z]{2}\d{13}$/;
 
 /* =========================================================
    TYPES
@@ -182,7 +182,13 @@ function normalizeLicense(
 ): string {
   return clean(value)
     .toUpperCase()
-    .replace(/\s/g, "");
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+function normalizeAadhaar(
+  value: unknown
+): string {
+  return clean(value).replace(/\D/g, "");
 }
 
 function optionalString(
@@ -323,7 +329,7 @@ export async function POST(req: Request) {
       clean(body.email).toLowerCase();
 
     const aadhaarNumber =
-      clean(body.aadhaarNumber);
+      normalizeAadhaar(body.aadhaarNumber);
 
     const drivingLicense =
       normalizeLicense(

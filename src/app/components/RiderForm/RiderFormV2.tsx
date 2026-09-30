@@ -175,11 +175,11 @@ useEffect(() => {
   return () => clearInterval(interval);
 
 }, [submitted]);
-const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const aadhaarRegex = /^\d{12}$/;
-const drivingLicenseRegex = /^[A-Z]{2}\d{2}\d{11}$/;
+const drivingLicenseRegex = /^[A-Z]{2}\d{13}$/;
 
 const allowedDocumentTypes = [
   "application/pdf",
@@ -205,7 +205,7 @@ const indianMobile = (value: string) => {
 };
 const cleanName = (value: string) => value.trim().replace(/\s+/g, " ");
 const cleanLicense = (value: string) =>
-  value.toUpperCase().replace(/\s/g, "");
+  value.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
 const OTP_COOLDOWN_SECONDS = 60;
 const MAX_OTP_SENDS_PER_PHONE = 3;
@@ -1964,11 +1964,14 @@ Step 2 of 4
 
       <input
         type="text"
+        inputMode="numeric"
+        autoComplete="one-time-code"
+        maxLength={6}
         disabled={otpVerified}
         placeholder="Enter 6 Digit OTP"
         value={otp}
         onChange={(e) => {
-          setOtp(e.target.value);
+          setOtp(e.target.value.replace(/\D/g, "").slice(0, 6));
           setError("");
           setOtpMessage("");
         }}
@@ -2061,6 +2064,9 @@ Step 2 of 4
                     <VoiceField
                       label="Aadhaar number *"
                       inputMode="numeric"
+                      autoComplete="off"
+                      maxDigits={12}
+                      maxLength={12}
                       value={aadhaar}
                       onChange={(value) => {
                         setAadhaar(value.replace(/\D/g, "").slice(0, 12));
@@ -2070,12 +2076,15 @@ Step 2 of 4
                     />
                     <VoiceField
                       label="Driving licence (optional)"
+                      autoComplete="off"
+                      autoCapitalize="characters"
+                      maxLength={16}
                       value={license}
                       onChange={(value) => {
-                        setLicense(value);
+                        setLicense(value.toUpperCase());
                         setError("");
                       }}
-                      placeholder="Licence number"
+                      placeholder="e.g. MH1420110062821"
                     />
                     <VoiceField
                       label="Instagram (optional)"

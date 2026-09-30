@@ -9,6 +9,11 @@ import {
 } from "react";
 import { Mic, Square } from "lucide-react";
 
+import {
+  digitFieldCap,
+  digitFieldValue,
+  isDigitInputField,
+} from "@/lib/digitField";
 import { COMING_THROUGH_OPTIONS } from "@/lib/partnerSegments";
 import { useVoiceAssistant } from "../Assistant/useVoiceAssistant";
 
@@ -26,10 +31,6 @@ export const PREMIUM_BTN =
 
 export const PREMIUM_LABEL =
   "mb-2 block text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]";
-
-function digitsOnly(text: string, max = 10) {
-  return text.replace(/\D/g, "").slice(0, max);
-}
 
 export function FieldMic({
   onText,
@@ -93,6 +94,7 @@ export function VoiceField({
   mic = true,
   leading,
   numeric,
+  maxDigits,
   ...props
 }: {
   label: string;
@@ -103,9 +105,23 @@ export function VoiceField({
   mic?: boolean;
   leading?: ReactNode;
   numeric?: boolean;
+  maxDigits?: number;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "className">) {
+  const digitCap = digitFieldCap({
+    numeric,
+    type: typeof props.type === "string" ? props.type : undefined,
+    maxDigits,
+  });
   const apply = (text: string) =>
-    onChange(numeric || props.type === "tel" || props.inputMode === "numeric" ? digitsOnly(text) : text);
+    onChange(
+      isDigitInputField({
+        numeric,
+        type: typeof props.type === "string" ? props.type : undefined,
+        inputMode: typeof props.inputMode === "string" ? props.inputMode : undefined,
+      })
+        ? digitFieldValue(text, digitCap)
+        : text
+    );
 
   return (
     <label className={`block ${className}`}>
@@ -119,6 +135,7 @@ export function VoiceField({
         <input
           {...props}
           value={value}
+          maxLength={props.maxLength ?? digitCap}
           onChange={(event) => apply(event.target.value)}
           className={`${inputClassName} ${leading ? "pl-[4.6rem]" : ""}`}
         />
