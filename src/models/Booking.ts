@@ -459,7 +459,7 @@ dropLongitude: {
     // Payment
     paymentMode: {
   type: String,
-  enum: ["Cash", "UPI", "Card", "Bank Transfer", "Razorpay"],
+  enum: ["Cash", "UPI", "Card", "Bank Transfer", "Razorpay", "Wallet"],
   default: "Razorpay",
 },
     paymentDate: Date,

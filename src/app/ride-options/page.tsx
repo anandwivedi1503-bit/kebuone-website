@@ -77,11 +77,13 @@ function isRiderApproved(rider?: RiderApprovalFields | null) {
   if (!rider) return false;
   const status = String(rider.status || "");
   const approval = String(rider.approvalStatus || "");
+  const kyc = String(rider.kycStatus || "");
   if (status === "Blocked" || status === "Suspended") return false;
-  if (approval === "Rejected") return false;
+  if (approval === "Rejected" || kyc === "Rejected") return false;
   return (
-    Boolean(rider.bookingEnabled) ||
-    (approval === "Approved" && status === "Active")
+    Boolean(rider.bookingEnabled) &&
+    approval === "Approved" &&
+    status === "Active"
   );
 }
 

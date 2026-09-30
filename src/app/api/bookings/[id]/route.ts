@@ -31,6 +31,7 @@ const allowedPaymentModes = [
   "Card",
   "Bank Transfer",
   "Razorpay",
+  "Wallet",
 ];
 
 const allowedPaymentStatuses = [

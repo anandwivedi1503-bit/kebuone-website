@@ -927,12 +927,12 @@ referenceBy,
       const createdId = String(
         bookingData.data?.bookingId || bookingData.bookingId || ""
       );
-      if (!createdId) {
+      if (!createdId || !bookingData.data?._id) {
         setError("Booking was created but no booking ID was returned.");
         return;
       }
       setBookingId(createdId);
-      setBookingMongoId(bookingData.data._id);
+      setBookingMongoId(String(bookingData.data?._id || ""));
       const reservedTotal = Number(
         bookingData.data.paymentDue ||
           bookingData.data.pendingAmount ||

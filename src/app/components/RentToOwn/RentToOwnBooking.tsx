@@ -6,7 +6,7 @@ import { CheckCircle2, FileText, ShieldCheck } from "lucide-react";
 
 import { auth } from "@/lib/firebase";
 import { notifyBrowser } from "@/lib/notifyBrowser";
-import { gstBreakdownInclusive } from "@/lib/gst";
+import { gstBreakdownInclusive, money } from "@/lib/gst";
 import {
   COMPANY_SECURITY_DEPOSIT,
   RTO_PLAN,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/rentalPlans";
 import { PREMIUM_BTN, PREMIUM_FIELD, VoiceArea, VoiceField } from "../FormVoice/FormVoiceDock";
 import RideReviewCard from "../RideReview/RideReviewCard";
+import RideSwipeControl from "../BikeBooking/RideSwipeControl";
 import {
   loadRtoDraft,
   markRiderBookingLock,
@@ -78,7 +79,7 @@ type Hub = {
   city?: string;
 };
 
-const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const NOMINEE_RELATIONS = [
@@ -142,6 +143,9 @@ export default function RentToOwnBooking() {
   const [pickupOtp, setPickupOtp] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [rideStatus, setRideStatus] = useState("");
+  const [pickupOtpVerified, setPickupOtpVerified] = useState(false);
+  const [rideSwipeBusy, setRideSwipeBusy] = useState(false);
   const [rtoReview, setRtoReview] = useState<{
     reviewId?: string;
     stars?: number;
@@ -157,7 +161,11 @@ export default function RentToOwnBooking() {
   const installment = rtoInstallment();
   const contractValue = rtoContractValue(undefined, tenureMonths);
   const tax = gstBreakdownInclusive(installment);
-  const securityDeposit = COMPANY_SECURITY_DEPOSIT;
+  const securityDeposit = money(
+    Number(currentBike?.securityDeposit || 0) > 0
+      ? currentBike?.securityDeposit
+      : COMPANY_SECURITY_DEPOSIT
+  );
   const payableAmount = tax.totalWithGst + securityDeposit;
 
   const filteredHubs = useMemo(() => {
@@ -307,6 +315,31 @@ export default function RentToOwnBooking() {
   }, [city, step]);
 
   useEffect(() => {
+    if (step !== 4 || !firebaseIdToken) return;
+    const tick = async () => {
+      try {
+        const mineRes = await fetch("/api/bookings/mine", {
+          headers: { Authorization: `Bearer ${firebaseIdToken}` },
+          cache: "no-store",
+        });
+        const mineData = await mineRes.json();
+        const active = mineData.data;
+        if (!mineData.success || !active?._id) return;
+        setRideStatus(String(active.rideStatus || ""));
+        setPickupOtpVerified(Boolean(active.pickupOTPVerified));
+        if (active.pickupOTP) setPickupOtp(String(active.pickupOTP));
+        setPendingAmount(Number(active.pendingAmount || 0));
+        setPaymentSuccess(Number(active.pendingAmount || 0) <= 0.009);
+      } catch {
+        // Keep the current payment screen if refresh fails.
+      }
+    };
+    void tick();
+    const interval = window.setInterval(() => void tick(), 8000);
+    return () => window.clearInterval(interval);
+  }, [step, firebaseIdToken]);
+
+  useEffect(() => {
     if (!auth?.app) return;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user?.phoneNumber) return;
@@ -348,6 +381,8 @@ export default function RentToOwnBooking() {
           setCertificateNumber(String(active.rtoCertificateNumber || ""));
           setPendingAmount(Number(active.pendingAmount || 0));
           setPickupOtp(String(active.pickupOTP || ""));
+          setRideStatus(String(active.rideStatus || ""));
+          setPickupOtpVerified(Boolean(active.pickupOTPVerified));
           setPaymentSuccess(Number(active.pendingAmount || 0) <= 0.009);
           setCity(String(active.pickupCity || city || ""));
           setHub(String(active.startHub || active.pickupHubName || ""));
@@ -441,12 +476,12 @@ export default function RentToOwnBooking() {
       const createdId = String(
         bookingData.data?.bookingId || bookingData.bookingId || ""
       );
-      if (!createdId) {
+      if (!createdId || !bookingData.data?._id) {
         setError("Booking was created but no booking ID was returned.");
         return;
       }
       setBookingId(createdId);
-      setBookingMongoId(bookingData.data._id);
+      setBookingMongoId(String(bookingData.data?._id || ""));
       setCertificateNumber(bookingData.data.rtoCertificateNumber || "");
       setPendingAmount(Number(bookingData.data.pendingAmount || payableAmount));
       setMessage("Agreement saved. Pay today’s GST-included fare plus the refundable deposit to activate Rent to Own.");
@@ -597,6 +632,39 @@ export default function RentToOwnBooking() {
       setError("Wallet payment could not be started.");
     } finally {
       setPaymentLoading(false);
+    }
+  };
+
+  const swipeRideStart = async () => {
+    setRideSwipeBusy(true);
+    setError("");
+    try {
+      const token = await auth.currentUser?.getIdToken(true);
+      if (!token) {
+        setError("Please sign in again with your registered mobile.");
+        return;
+      }
+      setFirebaseIdToken(token);
+      const res = await fetch("/api/rides/rider-start", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.message || "Unable to start ride.");
+        return;
+      }
+      setRideStatus(String(data.rideStatus || "In Ride"));
+      setPickupOtpVerified(true);
+      setPickupOtp("");
+      setMessage("Ride started. Pay each day’s GST-included fare when it is due.");
+    } catch {
+      setError("Unable to start ride. Try again.");
+    } finally {
+      setRideSwipeBusy(false);
     }
   };
 
@@ -897,8 +965,23 @@ export default function RentToOwnBooking() {
                   </p>
                 ) : null}
                 <p className="mt-2 text-sm text-emerald-800">
-                  Show this OTP at the hub, then open Book EV and swipe Ride started. Pay {formatINR(dailyRate)} GST included each day — a receipt is sent to you. Keep the certificate.
+                  Show this OTP at the hub. After the yard unlocks the scooter, swipe below to start the ride. Pay {formatINR(dailyRate)} GST included each day — a receipt is sent to you. Keep the certificate.
                 </p>
+                {pickupOtpVerified && rideStatus !== "In Ride" && rideStatus !== "Completed" ? (
+                  <div className="mt-4">
+                    <RideSwipeControl
+                      label="Slide to start ride"
+                      hint="Yard has confirmed pickup. Slide to mark the ride as started."
+                      busy={rideSwipeBusy}
+                      onConfirm={() => swipeRideStart()}
+                    />
+                  </div>
+                ) : null}
+                {rideStatus === "In Ride" ? (
+                  <p className="mt-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-semibold text-emerald-900">
+                    Ride started. Stay on this page for daily payments when they are due.
+                  </p>
+                ) : null}
                 {firebaseIdToken && bookingId ? (
                   <div className="mt-4">
                     <RideReviewCard
