@@ -326,7 +326,7 @@ export async function POST(req: Request) {
       normalizePhone(body.phone);
 
     const email =
-      clean(body.email).toLowerCase();
+      clean(body.email).toLowerCase().slice(0, 120);
 
     const aadhaarNumber =
       normalizeAadhaar(body.aadhaarNumber);
@@ -376,12 +376,12 @@ export async function POST(req: Request) {
     const instagramId =
       optionalString(
         body.instagramId
-      );
+      )?.slice(0, 100);
 
     const facebookId =
       optionalString(
         body.facebookId
-      );
+      )?.slice(0, 100);
 
     const comingThroughRaw = clean(body.comingThrough);
     const comingThrough =
@@ -933,17 +933,55 @@ if (drivingLicense) {
         continue;
       }
 
-      /*
-       * This means the unique field belongs
-       * to another Firebase account.
-       *
-       * Never let a different Firebase account
-       * take over an existing rider.
-       */
+      const samePhone =
+        normalizePhone(duplicate.phone) === phone;
+      const sameFirebase =
+        String(duplicate.firebaseUid || "").trim() ===
+        decodedToken.uid;
 
-      return buildExistingRiderResponse(
-        duplicate,
-        check.field
+      if (samePhone && !sameFirebase) {
+        try {
+          await Rider.updateOne(
+            { _id: duplicate._id },
+            { $set: { firebaseUid: decodedToken.uid } }
+          );
+        } catch (linkError) {
+          console.error(
+            "FAILED TO LINK FIREBASE UID TO EXISTING RIDER:",
+            linkError
+          );
+        }
+      }
+
+      if (samePhone || sameFirebase) {
+        return buildExistingRiderResponse(
+          duplicate,
+          check.field
+        );
+      }
+
+      const fieldMessages: Record<string, string> = {
+        email:
+          "This email is already registered with another rider. Use a different email or sign in with the original mobile number.",
+        aadhaarNumber:
+          "This Aadhaar number is already registered with another rider.",
+        drivingLicense:
+          "This driving licence is already registered with another rider.",
+        phone:
+          "This mobile number is already registered with another rider.",
+      };
+
+      return NextResponse.json(
+        {
+          success: false,
+          riderExists: false,
+          errorCode: "FIELD_ALREADY_REGISTERED",
+          field: check.field,
+          message:
+            fieldMessages[check.field] ||
+            "A rider with these details already exists.",
+        },
+        { status: 409 }
       );
     }
 
@@ -1404,45 +1442,67 @@ function buildExistingRiderResponse(
   rider: ExistingRiderRecord,
   field: string
 ) {
-  /* =======================================================
-     FULLY APPROVED
-  ======================================================= */
+  if (
+    rider.blacklisted ||
+    rider.status === "Blocked" ||
+    rider.status === "Suspended" ||
+    rider.approvalStatus === "Suspended"
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        riderExists: true,
+        riderId: rider.riderId,
+        riderStatus: rider.approvalStatus,
+        bookingEnabled: false,
+        errorCode: "RIDER_RESTRICTED",
+        field,
+        message:
+          "Your rider account already exists but is currently restricted. Please contact support.",
+      },
+      { status: 409 }
+    );
+  }
+
+  if (
+    rider.approvalStatus === "Rejected" ||
+    rider.kycStatus === "Rejected"
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        riderExists: true,
+        riderStatus: "Rejected",
+        riderId: rider.riderId,
+        bookingEnabled: false,
+        errorCode: "RIDER_REJECTED",
+        field,
+        message:
+          clean(rider.rejectedReason) ||
+          "Your previous registration was rejected. Please contact support.",
+      },
+      { status: 409 }
+    );
+  }
 
   const fullyApproved =
-    rider.approvalStatus ===
-      "Approved" &&
-    rider.kycStatus ===
-      "Approved" &&
-    rider.status ===
-      "Active" &&
-    rider.bookingEnabled ===
-      true &&
-    rider.blacklisted !== true;
+    rider.approvalStatus === "Approved" &&
+    rider.kycStatus === "Approved" &&
+    rider.status === "Active" &&
+    Boolean(rider.bookingEnabled) &&
+    !rider.blacklisted;
 
   if (fullyApproved) {
     return NextResponse.json(
       {
         success: false,
-
         riderExists: true,
-
-        riderStatus:
-          "Approved",
-
-        riderId:
-          rider.riderId,
-
-        bookingEnabled:
-          true,
-
-        redirectTo:
-          "/ride-options",
-
-        errorCode:
-          "RIDER_ALREADY_APPROVED",
-
+        riderStatus: "Approved",
+        riderId: rider.riderId,
+        bookingEnabled: true,
+        redirectTo: "/ride-options",
+        errorCode: "RIDER_ALREADY_APPROVED",
         field,
-
         message:
           "Your account is already approved. Continue to Book Bike.",
       },
@@ -1450,109 +1510,16 @@ function buildExistingRiderResponse(
     );
   }
 
-  /* =======================================================
-     UNDER REVIEW
-  ======================================================= */
-
-  if (
-    rider.approvalStatus ===
-      "Under Review" ||
-    rider.kycStatus ===
-      "Pending"
-  ) {
-    return NextResponse.json(
-      {
-        success: false,
-
-        riderExists: true,
-
-        riderStatus:
-          "Under Review",
-
-        riderId:
-          rider.riderId,
-
-        bookingEnabled:
-          false,
-
-        errorCode:
-          "RIDER_UNDER_REVIEW",
-
-        field,
-
-        message:
-          "Your KYC verification is under review.",
-      },
-      { status: 409 }
-    );
-  }
-
-  /* =======================================================
-     REJECTED
-  ======================================================= */
-
-  if (
-    rider.approvalStatus ===
-      "Rejected" ||
-    rider.kycStatus ===
-      "Rejected"
-  ) {
-    return NextResponse.json(
-      {
-        success: false,
-
-        riderExists: true,
-
-        riderStatus:
-          "Rejected",
-
-        riderId:
-          rider.riderId,
-
-        bookingEnabled:
-          false,
-
-        errorCode:
-          "RIDER_REJECTED",
-
-        field,
-
-        message:
-          clean(
-            rider.rejectedReason
-          ) ||
-          "Your previous registration was rejected. Please contact support.",
-      },
-      { status: 409 }
-    );
-  }
-
-  /* =======================================================
-     SUSPENDED / BLOCKED / OTHER RESTRICTED STATE
-  ======================================================= */
-
   return NextResponse.json(
     {
       success: false,
-
       riderExists: true,
-
-      riderId:
-        rider.riderId,
-
-      riderStatus:
-        rider.approvalStatus,
-
-      bookingEnabled:
-        false,
-
-      errorCode:
-        "RIDER_RESTRICTED",
-
+      riderStatus: "Under Review",
+      riderId: rider.riderId,
+      bookingEnabled: false,
+      errorCode: "RIDER_UNDER_REVIEW",
       field,
-
-      message:
-        "Your rider account already exists but is currently restricted. Please contact support.",
+      message: "Your KYC verification is under review.",
     },
     { status: 409 }
   );

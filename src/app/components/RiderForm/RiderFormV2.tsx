@@ -270,6 +270,22 @@ const showOtpMessage = (
 };
 
 
+const fileTypeAllowed = (file: File, allowedTypes: string[]) => {
+  const mime = (file.type || "").toLowerCase();
+  if (mime === "image/jpg") {
+    return allowedTypes.includes("image/jpeg") || allowedTypes.includes("image/jpg");
+  }
+  if (mime && allowedTypes.includes(mime)) return true;
+  const name = file.name.toLowerCase();
+  if (/\.(jpe?g)$/.test(name)) {
+    return allowedTypes.includes("image/jpeg") || allowedTypes.includes("image/jpg");
+  }
+  if (name.endsWith(".png")) return allowedTypes.includes("image/png");
+  if (name.endsWith(".webp")) return allowedTypes.includes("image/webp");
+  if (name.endsWith(".pdf")) return allowedTypes.includes("application/pdf");
+  return !mime;
+};
+
 const validateSelectedFile = (
   file: File | null,
   allowedTypes: string[],
@@ -277,7 +293,7 @@ const validateSelectedFile = (
 ) => {
   if (!file) return false;
 
-  if (!allowedTypes.includes(file.type)) {
+  if (!fileTypeAllowed(file, allowedTypes)) {
     setError(`${label} must be PDF, JPG, PNG, or WEBP only`);
     return false;
   }
@@ -570,6 +586,18 @@ if (!response.ok) {
     result.riderExists &&
     result.riderStatus === "Under Review"
   ) {
+
+    if (result.riderId) {
+      localStorage.setItem(
+        "kebu_rider_id",
+        result.riderId
+      );
+    }
+
+    localStorage.setItem(
+      "kebu_rider_phone",
+      phone
+    );
 
     setRegisteredRiderId(result.riderId || "");
 
@@ -2088,14 +2116,16 @@ Step 2 of 4
                     />
                     <VoiceField
                       label="Instagram (optional)"
+                      maxLength={100}
                       value={instagramId}
-                      onChange={setInstagramId}
+                      onChange={(value) => setInstagramId(value.slice(0, 100))}
                       placeholder="Instagram ID"
                     />
                     <VoiceField
                       label="Facebook (optional)"
+                      maxLength={100}
                       value={facebookId}
-                      onChange={setFacebookId}
+                      onChange={(value) => setFacebookId(value.slice(0, 100))}
                       placeholder="Facebook ID"
                     />
                     <VoiceField

@@ -73,8 +73,9 @@ export default function ContactUs() {
         body: JSON.stringify({
           ticketId: `CT-${Date.now()}`,
           userId: form.email || form.phone || form.fullName,
+          riderPhone: form.phone.replace(/\D/g, "").slice(-10),
           category: "OTHER",
-          description: `${form.subject}: ${form.message}`.slice(0, 500),
+          description: `${form.fullName} | ${form.phone} | ${form.subject}: ${form.message}`.slice(0, 500),
           status: "OPEN",
           assignedTo: "Admin",
         }),

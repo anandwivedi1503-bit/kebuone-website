@@ -23,6 +23,7 @@ import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
+const phoneRegex = /^[6-9]\d{9}$/;
 
 const allowedCategories = [
   "UNLOCK_ISSUE",
@@ -107,6 +108,7 @@ export async function POST(req: Request) {
 
     const ticketId = clean(body.ticketId).toUpperCase();
     const userId = clean(body.userId).slice(0, 120);
+    const riderPhone = clean(body.riderPhone).replace(/\D/g, "").slice(-10);
     const tripId = clean(body.tripId);
     const bookingId = clean(body.bookingId).toUpperCase();
     let description = clean(body.description);
@@ -135,6 +137,10 @@ export async function POST(req: Request) {
 
     if (!allowedCategories.includes(category)) {
       errors.push("Invalid ticket category.");
+    }
+
+    if (description.length < 10) {
+      description = `${description} — website enquiry`.slice(0, 500);
     }
 
     if (description.length < 10 || description.length > 500) {
@@ -191,7 +197,7 @@ export async function POST(req: Request) {
         userId,
         tripId,
         vehicleId: "",
-        riderPhone: "",
+        riderPhone: phoneRegex.test(riderPhone) ? riderPhone : "",
         category,
         description,
         priority,

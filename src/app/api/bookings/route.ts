@@ -32,7 +32,7 @@ import { nextBookingId } from "@/lib/nextBookingId";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 
 
-const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const idRegex = /^[A-Za-z0-9_-]{3,60}$/;
@@ -56,6 +56,38 @@ const rentalModes = [
 ];
  function clean(value: unknown) {
   return String(value || "").trim();
+}
+
+function bookingClientPayload(booking: {
+  _id?: unknown;
+  bookingId?: string;
+  paymentDue?: number;
+  pendingAmount?: number;
+  receivedAmount?: number;
+  paymentStatus?: string;
+  vehicleId?: string;
+  vehicleModel?: string;
+  rtoCertificateNumber?: string;
+  pickupOTP?: string;
+  rentalMode?: string;
+  rideStatus?: string;
+  pickupOTPVerified?: boolean;
+}) {
+  return {
+    _id: booking._id,
+    bookingId: booking.bookingId,
+    paymentDue: booking.paymentDue,
+    pendingAmount: booking.pendingAmount,
+    receivedAmount: booking.receivedAmount,
+    paymentStatus: booking.paymentStatus,
+    vehicleId: booking.vehicleId,
+    vehicleModel: booking.vehicleModel,
+    rtoCertificateNumber: booking.rtoCertificateNumber,
+    pickupOTP: booking.pickupOTP,
+    rentalMode: booking.rentalMode,
+    rideStatus: booking.rideStatus,
+    pickupOTPVerified: booking.pickupOTPVerified,
+  };
 }
 
 const NOT_DELETED_FILTER = {
@@ -545,6 +577,7 @@ if (body.bookingRequestId) {
                 success: true,
                 duplicate: true,
                 bookingId: duplicateRequest.bookingId,
+                data: bookingClientPayload(duplicateRequest),
                 message: "Booking request already processed.",
             },
             {
