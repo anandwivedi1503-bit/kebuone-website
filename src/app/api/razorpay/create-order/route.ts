@@ -12,7 +12,9 @@ import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import {
   getBookingPayableAmount,
+  getBookingRemainingAmount,
 } from "@/lib/gst";
+import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
@@ -67,6 +69,7 @@ export async function POST(req: Request) {
     }
 
     await connectDB();
+    void maybeSweepUnpaidBookings();
 
     const booking = await Booking.findById(bookingMongoId);
 
@@ -197,11 +200,7 @@ export async function POST(req: Request) {
     await openDueRtoInstallment(booking);
 
     const payableAmount = getBookingPayableAmount(booking);
-
-    const receivedAmount = Number(booking.receivedAmount || 0);
-    const remainingAmount = Number(
-      (payableAmount - receivedAmount).toFixed(2)
-    );
+    const remainingAmount = getBookingRemainingAmount(booking);
 
     if (remainingAmount <= 0) {
       return NextResponse.json(
@@ -359,6 +358,18 @@ export async function POST(req: Request) {
             payableAmount,
             remainingAmount,
           });
+        }
+        if (status === "created" || status === "attempted") {
+          try {
+            const orders = razorpay.orders as typeof razorpay.orders & {
+              cancel?: (id: string) => Promise<unknown>;
+            };
+            if (typeof orders.cancel === "function") {
+              await orders.cancel(existingOrderId);
+            }
+          } catch (cancelError) {
+            console.error("RAZORPAY CANCEL SUPERSEDED ORDER:", cancelError);
+          }
         }
       } catch (existingOrderError) {
         console.error("RAZORPAY EXISTING ORDER LOOKUP:", existingOrderError);

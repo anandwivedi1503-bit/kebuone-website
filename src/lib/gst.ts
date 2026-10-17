@@ -81,6 +81,27 @@ export function getBookingPayableAmount(booking: BookingPayableSource) {
   );
 }
 
+/** Live remaining to collect now (RTO daily due, partial rental, etc.). */
+export function getBookingRemainingAmount(booking: BookingPayableSource) {
+  const fromDue = money(
+    getBookingPayableAmount(booking) - money(booking.receivedAmount)
+  );
+
+  if (
+    booking.pendingAmount !== undefined &&
+    booking.pendingAmount !== null &&
+    booking.pendingAmount !== ""
+  ) {
+    const pending = money(booking.pendingAmount);
+    if (fromDue > 0 && pending > fromDue) {
+      return fromDue;
+    }
+    return pending;
+  }
+
+  return fromDue;
+}
+
 export function gstShareForPayment(params: {
   rentalAmount: unknown;
   gstAmount: unknown;

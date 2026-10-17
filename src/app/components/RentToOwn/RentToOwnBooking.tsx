@@ -517,6 +517,29 @@ export default function RentToOwnBooking() {
         return;
       }
 
+      const applyRtoPaid = (data: {
+        pendingAmount?: number;
+        pickupOTP?: string;
+        message?: string;
+        data?: { pickupOTP?: string; pendingAmount?: number };
+      }) => {
+        setPaymentSuccess(true);
+        setPendingAmount(Number(data.pendingAmount ?? data.data?.pendingAmount ?? 0));
+        setPickupOtp(data.data?.pickupOTP || data.pickupOTP || "");
+        setMessage(
+          data.message || "Rent to Own activated. Collect the scooter with your pickup OTP."
+        );
+        notifyBrowser(
+          "EVUDDY Rent to Own",
+          "Payment successful. Collect the scooter with your pickup OTP."
+        );
+      };
+
+      if (orderData.alreadyCaptured || orderData.paidWithWallet || !orderData.orderId) {
+        applyRtoPaid(orderData);
+        return;
+      }
+
       const keyId = orderData.keyId || orderData.data?.keyId;
       const orderId = orderData.orderId || orderData.data?.orderId;
       const orderAmount = orderData.amount || orderData.data?.amount;
@@ -534,33 +557,61 @@ export default function RentToOwnBooking() {
           notes: { bookingMongoId },
           theme: { color: "#18B368" },
           handler: async (response: RazorpayResponse) => {
-            const verifyRes = await fetch("/api/razorpay/verify-payment", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                bookingMongoId,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                firebaseIdToken: token,
-              }),
-            });
-            const verifyData = await verifyRes.json();
-            if (!verifyData.success) {
-              setError(verifyData.message || "Payment verification failed.");
+            const verifyBody = {
+              bookingMongoId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              firebaseIdToken: token,
+            };
+            let verifyData: {
+              success?: boolean;
+              message?: string;
+              pendingAmount?: number;
+              pickupOTP?: string;
+              data?: { pickupOTP?: string; pendingAmount?: number };
+            } | null = null;
+            try {
+              for (let attempt = 0; attempt < 3; attempt += 1) {
+                const verifyRes = await fetch("/api/razorpay/verify-payment", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify(verifyBody),
+                });
+                verifyData = await verifyRes.json();
+                if (verifyData?.success) break;
+                await new Promise((resolve) => window.setTimeout(resolve, 1200));
+              }
+              if (!verifyData?.success) {
+                const recoverRes = await fetch("/api/razorpay/verify-payment", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                  },
+                  body: JSON.stringify({
+                    bookingMongoId,
+                    recover: true,
+                    razorpay_order_id: response.razorpay_order_id,
+                    firebaseIdToken: token,
+                  }),
+                });
+                verifyData = await recoverRes.json();
+              }
+            } catch {
+              verifyData = { success: false, message: "Payment verification failed." };
+            }
+            if (!verifyData?.success) {
+              setError(
+                verifyData?.message ||
+                  "Razorpay received the payment. Refresh this page and it will attach to your booking."
+              );
               return;
             }
-            setPaymentSuccess(true);
-            setPendingAmount(0);
-            setPickupOtp(verifyData.data?.pickupOTP || verifyData.pickupOTP || "");
-            setMessage("Rent to Own activated. Collect the scooter with your pickup OTP.");
-            notifyBrowser(
-              "EVUDDY Rent to Own",
-              "Payment successful. Collect the scooter with your pickup OTP."
-            );
+            applyRtoPaid(verifyData);
           },
           modal: {
             ondismiss: () => {

@@ -335,4 +335,21 @@ export async function ensureScaleIndexes() {
       ),
     "review status created"
   );
+  await createIndexSafe(
+    () =>
+      Refund.collection.createIndex(
+        { bookingId: 1, refundSource: 1 },
+        {
+          unique: true,
+          name: "unique_open_refund_source",
+          partialFilterExpression: {
+            bookingId: { $type: "string", $gt: "" },
+            refundSource: { $type: "string", $gt: "" },
+            refundStatus: { $in: ["PENDING", "APPROVED", "PROCESSING"] },
+          },
+          background: true,
+        }
+      ),
+    "refund booking source unique"
+  );
 }

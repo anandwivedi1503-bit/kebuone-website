@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 
 import {
   bookingPaymentApplyFilter,
+  isBookingStillPayable,
   nextPaymentProgress,
 } from "../src/lib/bookingPaymentProgress";
 import {
@@ -24,7 +25,7 @@ import {
   riderPublicDisplayName,
   sanitizeReviewComment,
 } from "../src/lib/reviews";
-import { gstBreakdownInclusive } from "../src/lib/gst";
+import { getBookingRemainingAmount, gstBreakdownInclusive } from "../src/lib/gst";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -57,8 +58,22 @@ assert.equal(inRide.pickupOTP, undefined);
 
 const filter = bookingPaymentApplyFilter("abc", 500, 200) as {
   $and?: Array<{ receivedAmount?: number }>;
+  rideStatus?: { $nin?: string[] };
 };
 assert.equal(filter.$and?.[0]?.receivedAmount, 500);
+assert.ok(filter.rideStatus?.$nin?.includes("Cancelled"));
+assert.ok(filter.rideStatus?.$nin?.includes("Completed"));
+assert.equal(isBookingStillPayable({ rideStatus: "Cancelled", pendingAmount: 100 }), false);
+assert.equal(isBookingStillPayable({ rideStatus: "Completed", pendingAmount: 100 }), false);
+assert.equal(isBookingStillPayable({ rideStatus: "Booked", pendingAmount: 100 }), true);
+assert.equal(
+  getBookingRemainingAmount({ paymentDue: 2800, receivedAmount: 500, pendingAmount: 2300 }),
+  2300
+);
+assert.equal(
+  getBookingRemainingAmount({ paymentDue: 500, receivedAmount: 500, pendingAmount: 0 }),
+  0
+);
 
 const rtoOpen = rtoCycleAfterInstallment(
   {
@@ -85,6 +100,7 @@ const rtoDone = rtoCycleAfterInstallment(
 );
 assert.equal(rtoDone.ownershipTransferred, true);
 assert.equal(rtoDone.paymentStatus, "Paid");
+assert.equal(rtoDone.rideStatus, "Completed");
 
 assert.equal(
   sessionHubScope({ role: "super", username: "superadmin", dashboards: [] }),

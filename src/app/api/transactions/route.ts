@@ -206,6 +206,22 @@ if (!booking) {
 
 }
 
+    if (
+      (paymentMethod === "Razorpay" || paymentMethod === "Razorpay Payment Link") &&
+      transactionType === "Booking Payment" &&
+      status === "Success"
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          errors: [
+            "Razorpay booking payments must be captured via verify-payment or webhook. Do not create them manually.",
+          ],
+        },
+        { status: 400 }
+      );
+    }
+
     if (body.razorpayPaymentId) {
 
 const existingPayment =

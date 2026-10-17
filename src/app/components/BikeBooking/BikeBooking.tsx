@@ -1035,6 +1035,11 @@ setStep(4);
       return;
     }
 
+    if (orderData.alreadyCaptured || orderData.paidWithWallet || !orderData.orderId) {
+      applyPaidResult(payNow, orderData);
+      return;
+    }
+
     const razorpay = new window.Razorpay({
       key: orderData.keyId,
       amount: orderData.amount,

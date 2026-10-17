@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
+import { queueOrphanRazorpayRefund } from "@/lib/queueOrphanRazorpayRefund";
 import Booking from "@/models/Booking";
 
 export const runtime = "nodejs";
@@ -126,14 +127,39 @@ export async function POST(req: Request) {
     paidAmount: Number(live.amount || 0) / 100,
   });
 
-  if (!result.ok && result.status >= 500) {
-    const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
-    void notifyOpsAlert(
-      "Razorpay capture failed",
-      `Webhook could not apply ${razorpayPaymentId} on booking ${booking.bookingId}.`
-    );
-    return NextResponse.json({ success: false }, { status: 500 });
+  if (result.ok) {
+    return NextResponse.json({ success: true });
   }
 
-  return NextResponse.json({ success: true });
+  const orphanCapture =
+    /order mismatch|fully paid|no longer payable|amount does not match|Rent to Own requires|already has another booking|not active|disabled for this rider/i.test(
+      result.message
+    );
+
+  if (orphanCapture) {
+    try {
+      await queueOrphanRazorpayRefund({
+        booking: { bookingId: booking.bookingId, riderId: booking.riderId },
+        amount: Number(live.amount || 0) / 100,
+        razorpayPaymentId,
+        reason: result.message,
+      });
+    } catch (orphanError) {
+      console.error("ORPHAN RAZORPAY REFUND QUEUE:", orphanError);
+      return NextResponse.json({ success: false }, { status: 500 });
+    }
+    const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
+    void notifyOpsAlert(
+      "Razorpay capture not applied",
+      `${razorpayPaymentId} on booking ${booking.bookingId}: ${result.message}. Refund ticket queued.`
+    );
+    return NextResponse.json({ success: true, queuedRefund: true });
+  }
+
+  const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
+  void notifyOpsAlert(
+    "Razorpay capture failed",
+    `Webhook could not apply ${razorpayPaymentId} on booking ${booking.bookingId}.`
+  );
+  return NextResponse.json({ success: false }, { status: 500 });
 }

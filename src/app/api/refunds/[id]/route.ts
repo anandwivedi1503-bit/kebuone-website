@@ -10,7 +10,8 @@ import WalletTransaction from "@/models/WalletTransaction";
 import Transaction from "@/models/Transaction";
 import Rider from "@/models/Rider";
 import mongoose from "mongoose";
-import { refundRazorpayPayment } from "@/lib/razorpay/refundRazorpayPayment";
+import { money } from "@/lib/gst";
+import { refundRazorpayAmountForBooking } from "@/lib/razorpay/refundRazorpayPayment";
 import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
 import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
@@ -255,25 +256,40 @@ if (!booking) {
 
 }
 
-if (
-  Number(refund.amount) >
-  Number(booking.securityDeposit || 0)
-) {
+const refundSource = String(refund.refundSource || "");
+const isDepositRefund =
+  refundSource === "Security Deposit" ||
+  /security deposit/i.test(String(refund.remarks || ""));
 
+const priorRefunded = money(
+  (
+    await Refund.find({
+      bookingId: refund.bookingId,
+      refundStatus: "REFUNDED",
+      _id: { $ne: refund._id },
+    }).session(session)
+  ).reduce((sum, row) => sum + Number(row.amount || 0), 0)
+);
+
+const refundCap = isDepositRefund
+  ? money(booking.securityDeposit)
+  : money(Number(booking.receivedAmount || 0) - priorRefunded);
+
+if (Number(refund.amount) > refundCap + 0.009) {
   await session.abortTransaction();
   session.endSession();
 
   return NextResponse.json(
     {
       success: false,
-      message:
-        "Refund amount exceeds security deposit.",
+      message: isDepositRefund
+        ? "Refund amount exceeds security deposit."
+        : "Refund amount exceeds the amount received on this booking.",
     },
     {
       status: 400,
     }
   );
-
 }
 
 const rider = await Rider.findOne({
@@ -302,6 +318,10 @@ const sendToRazorpay = body.sendToRazorpay === true;
 if (sendToRazorpay) {
   const paymentId = String(booking.razorpayPaymentId || "");
   let gatewayId = String(refund.razorpayRefundId || "").trim();
+  const gatewayIds = String(refund.gatewayTxnId || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
 
   await session.abortTransaction();
   session.endSession();
@@ -334,32 +354,44 @@ if (sendToRazorpay) {
     }
   }
 
-  if (!paymentId && !gatewayId) {
-    return NextResponse.json(
-      {
-        success: false,
-        message: "This booking has no Razorpay payment. Use the wallet refund.",
-      },
-      { status: 400 }
-    );
+  if (!paymentId && !gatewayId && gatewayIds.length === 0) {
+    const hasRazorpayTxn = await Transaction.exists({
+      bookingId: refund.bookingId,
+      paymentMethod: "Razorpay",
+      transactionType: "Booking Payment",
+      status: "Success",
+    });
+    if (!hasRazorpayTxn) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "This booking has no Razorpay payment. Use the wallet refund.",
+        },
+        { status: 400 }
+      );
+    }
   }
 
   try {
     if (!gatewayId) {
-      const razorpayRefund = await refundRazorpayPayment(
-        paymentId,
-        Number(refund.amount)
+      const razorpayRefund = await refundRazorpayAmountForBooking(
+        String(refund.bookingId),
+        Number(refund.amount),
+        paymentId
       );
-      gatewayId = String((razorpayRefund as { id?: string }).id || "");
+      if (razorpayRefund.refunded <= 0.009) {
+        throw new Error("No Razorpay payment left to refund.");
+      }
+      gatewayId = razorpayRefund.ids[0] || razorpayRefund.lastPaymentId;
       updateData.razorpayRefundId = gatewayId;
-      updateData.gatewayTxnId = gatewayId || paymentId;
+      updateData.gatewayTxnId = (razorpayRefund.ids.join(",") || gatewayId).slice(0, 100);
       updateData.paymentGateway = "Razorpay";
       await Refund.updateOne(
         { _id: id },
         {
           $set: {
             razorpayRefundId: gatewayId,
-            gatewayTxnId: gatewayId || paymentId,
+            gatewayTxnId: updateData.gatewayTxnId,
             paymentGateway: "Razorpay",
             refundStatus: "PROCESSING",
           },
@@ -416,19 +448,25 @@ if (sendToRazorpay) {
     );
   }
 
-  liveBooking.refundAmount = Number(liveRefund.amount);
-  liveBooking.securityDepositRefunded = true;
+  liveBooking.refundAmount = money(
+    Number(liveBooking.refundAmount || 0) + Number(liveRefund.amount)
+  );
+  if (isDepositRefund) {
+    liveBooking.securityDepositRefunded = true;
+  }
   liveBooking.remarks = appendBoundedText(
     liveBooking.remarks,
     `Refund Completed via Razorpay\nRefund ID : ${liveRefund.refundId}\nAmount : ₹${liveRefund.amount}`
   );
   await liveBooking.save({ session });
 
-  await Rider.findOneAndUpdate(
-    { riderId: liveBooking.riderId },
-    { securityDeposit: 0 },
-    { session }
-  );
+  if (isDepositRefund) {
+    await Rider.findOneAndUpdate(
+      { riderId: liveBooking.riderId },
+      { securityDeposit: 0 },
+      { session }
+    );
+  }
 
   const razorpayWallet = await Wallet.findOne({
     riderId: liveBooking.riderId,
@@ -442,15 +480,14 @@ if (sendToRazorpay) {
   }
 
   const existingRefundTransaction = await Transaction.findOne({
-    bookingId: liveBooking.bookingId,
-    transactionType: "Refund",
+    transactionId: `RF-${liveRefund.refundId}`,
   }).session(session);
 
   if (!existingRefundTransaction) {
     await Transaction.create(
       [
         {
-          transactionId: "RF-" + Date.now(),
+          transactionId: `RF-${liveRefund.refundId}`,
           bookingId: liveBooking.bookingId,
           userId: String(liveBooking.userId),
           userName: liveBooking.userName,
@@ -466,9 +503,13 @@ if (sendToRazorpay) {
   }
 } else {
 
-booking.refundAmount = Number(refund.amount);
+booking.refundAmount = money(
+  Number(booking.refundAmount || 0) + Number(refund.amount)
+);
 
-booking.securityDepositRefunded = true;
+if (isDepositRefund) {
+  booking.securityDepositRefunded = true;
+}
 
 booking.remarks = appendBoundedText(
   booking.remarks,
@@ -479,17 +520,19 @@ await booking.save({
   session,
 });
 
-await Rider.findOneAndUpdate(
-  {
-    riderId: booking.riderId,
-  },
-  {
-    securityDeposit: 0,
-  },
-  {
-    session,
-  }
-);
+if (isDepositRefund) {
+  await Rider.findOneAndUpdate(
+    {
+      riderId: booking.riderId,
+    },
+    {
+      securityDeposit: 0,
+    },
+    {
+      session,
+    }
+  );
+}
 
 await releaseSecurityDepositHoldOnce(
   booking,
@@ -518,26 +561,22 @@ if (!wallet) {
 
 }
 
-      wallet.balance += Number(refund.amount);
-
-wallet.totalRefund += Number(refund.amount);
-
-await wallet.save({
-  session,
-});
-
 const existingWalletRefund =
   await WalletTransaction.findOne({
-    bookingId: booking.bookingId,
-    transactionType: "Refund",
+    transactionId: `WR-${refund.refundId}`,
   }).session(session);
 
 if (!existingWalletRefund) {
+  wallet.balance += Number(refund.amount);
+  wallet.totalRefund += Number(refund.amount);
+  await wallet.save({
+    session,
+  });
 
   await WalletTransaction.create(
     [
       {
-        transactionId: "WR-" + Date.now(),
+        transactionId: `WR-${refund.refundId}`,
 
         riderId: booking.riderId,
 
@@ -555,7 +594,9 @@ if (!existingWalletRefund) {
 
         balanceAfter: wallet.balance,
 
-        remarks: "Security Deposit Refunded",
+        remarks: isDepositRefund
+          ? "Security Deposit Refunded"
+          : "Booking cancellation refund",
 
         status: "Success",
       },
@@ -564,13 +605,11 @@ if (!existingWalletRefund) {
       session,
     }
   );
-
 }
 
 const existingRefundTransaction =
   await Transaction.findOne({
-    bookingId: booking.bookingId,
-    transactionType: "Refund",
+    transactionId: `RF-${refund.refundId}`,
   }).session(session);
 
 if (!existingRefundTransaction) {
@@ -578,8 +617,7 @@ if (!existingRefundTransaction) {
   await Transaction.create(
     [
       {
-        transactionId:
-          "RF-" + Date.now(),
+        transactionId: `RF-${refund.refundId}`,
 
         bookingId: booking.bookingId,
 

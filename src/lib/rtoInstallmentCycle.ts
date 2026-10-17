@@ -65,6 +65,7 @@ export function rtoCycleAfterInstallment(
     patch.ownershipTransferredAt = new Date();
     patch.paymentStatus = "Paid";
     patch.pendingAmount = 0;
+    patch.rideStatus = "Completed";
   }
 
   return patch;

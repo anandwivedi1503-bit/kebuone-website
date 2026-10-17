@@ -1,4 +1,4 @@
-import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
+import { CGST_RATE, SGST_RATE, getBookingRemainingAmount, gstShareForPayment } from "@/lib/gst";
 import { appendBoundedText } from "@/lib/listQuery";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
@@ -21,6 +21,7 @@ import {
   rtoCycleAfterInstallment,
 } from "@/lib/rtoInstallmentCycle";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
+import { retireOwnedRtoAssets } from "@/lib/rtoOwnership";
 import { normalizeIndianPhone } from "@/lib/requestAuth";
 import { nextSeqId } from "@/lib/nextSeqId";
 import {
@@ -94,13 +95,7 @@ export async function applyCapturedRazorpayPayment(
     }
 
     if (booking.razorpayOrderId && booking.razorpayOrderId !== razorpayOrderId) {
-      const otherBooking = await Booking.findOne({
-        razorpayOrderId,
-        _id: { $ne: booking._id },
-      }).select("_id");
-      if (otherBooking) {
-        return { ok: false, status: 400, message: "Booking payment order mismatch." };
-      }
+      return { ok: false, status: 400, message: "Booking payment order mismatch." };
     }
 
     const rider = await findBookingRider(booking);
@@ -127,6 +122,19 @@ export async function applyCapturedRazorpayPayment(
     }
 
     const existingTransaction = await findExistingRazorpayTransaction(razorpayPaymentId);
+    if (existingTransaction) {
+      return {
+        ok: true,
+        alreadyVerified: true,
+        booking: booking.toObject(),
+        paidAmount: Number(existingTransaction.amount || paidAmount),
+        pendingAmount: Number(booking.pendingAmount || 0),
+        paymentStatus: String(booking.paymentStatus || "Paid"),
+        pickupOTP: String(booking.pickupOTP || "") || undefined,
+        rideEndOTP: String(booking.rideEndOTP || "") || undefined,
+        message: "Payment already verified.",
+      };
+    }
 
     if (rider.currentBookingId) {
       const current = String(rider.currentBookingId).trim().toUpperCase();
@@ -150,25 +158,12 @@ export async function applyCapturedRazorpayPayment(
 
     await openDueRtoInstallment(booking);
 
-    if (!isBookingStillPayable(booking) && existingTransaction) {
-      return {
-        ok: true,
-        alreadyVerified: true,
-        booking: booking.toObject(),
-        paidAmount: Number(existingTransaction.amount || paidAmount),
-        pendingAmount: Number(booking.pendingAmount || 0),
-        paymentStatus: String(booking.paymentStatus || "Paid"),
-        message: "Payment already verified.",
-      };
-    }
-
     if (!isBookingStillPayable(booking)) {
       return { ok: false, status: 400, message: "This booking has already been fully paid." };
     }
 
-    const payableAmount = getBookingPayableAmount(booking);
     const oldReceivedAmount = Number(booking.receivedAmount || 0);
-    const remainingAmount = Math.max(Number((payableAmount - oldReceivedAmount).toFixed(2)), 0);
+    const remainingAmount = getBookingRemainingAmount(booking);
 
     if (paidAmount < 1 || paidAmount > remainingAmount) {
       return {
@@ -190,7 +185,7 @@ export async function applyCapturedRazorpayPayment(
     }
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
-    const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
+    const pendingAmount = Math.max(Number((remainingAmount - paidAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, rideStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-${paymentIds[0].slice(-8)}`;
@@ -208,8 +203,7 @@ export async function applyCapturedRazorpayPayment(
     try {
       updatedBooking = await runMongoTransaction(async (mongoSession) => {
         const sessionOpt = { session: mongoSession };
-        if (!existingTransaction) {
-          try {
+        try {
             const row = {
               transactionId: razorpayPaymentId,
               bookingId: booking.bookingId,
@@ -236,8 +230,13 @@ export async function applyCapturedRazorpayPayment(
             await Transaction.create([row], { session: mongoSession });
           } catch (error) {
             if (!isDuplicateKeyError(error)) throw error;
+            const conflict = new Error("BOOKING_PAYMENT_CONFLICT");
+            (conflict as Error & { code?: string }).code = "BOOKING_PAYMENT_CONFLICT";
+            throw conflict;
           }
-        }
+
+        const rtoPatch = rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount);
+        const ownershipDone = Boolean(rtoPatch.ownershipTransferred);
 
         const nextBooking = await Booking.findOneAndUpdate(
           bookingPaymentApplyFilter(bookingMongoId, oldReceivedAmount, paidAmount),
@@ -256,7 +255,7 @@ export async function applyCapturedRazorpayPayment(
                 `Payment verified INR ${paidAmount} ${razorpayPaymentId}`,
                 500
               ),
-              ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
+              ...rtoPatch,
             },
           },
           { new: true, ...sessionOpt }
@@ -268,45 +267,57 @@ export async function applyCapturedRazorpayPayment(
           throw conflict;
         }
 
-        if (progress.updateVehicle && progress.vehicleStatus) {
-          const updatedVehicle = await Vehicle.findOneAndUpdate(
+        if (ownershipDone) {
+          await retireOwnedRtoAssets(
             {
+              bookingId: booking.bookingId,
+              riderId: booking.riderId,
               vehicleId: booking.vehicleId,
-              $or: [
-                { currentBookingId: "" },
-                { currentBookingId: booking.bookingId },
-                { currentBookingId: null },
-              ],
+              ownershipTransferred: true,
             },
-            {
-              $set: {
-                vehicleStatus: progress.vehicleStatus,
-                currentBookingId: booking.bookingId,
-                currentRiderId: booking.riderId,
-                assignedRider: booking.riderId,
-                lockStatus: progress.vehicleLockStatus,
-              },
-            },
-            sessionOpt
+            mongoSession
           );
-          if (!updatedVehicle) {
-            const conflict = new Error("BOOKING_PAYMENT_CONFLICT");
-            (conflict as Error & { code?: string }).code = "BOOKING_PAYMENT_CONFLICT";
-            throw conflict;
+        } else {
+          if (progress.updateVehicle && progress.vehicleStatus) {
+            const updatedVehicle = await Vehicle.findOneAndUpdate(
+              {
+                vehicleId: booking.vehicleId,
+                $or: [
+                  { currentBookingId: "" },
+                  { currentBookingId: booking.bookingId },
+                  { currentBookingId: null },
+                ],
+              },
+              {
+                $set: {
+                  vehicleStatus: progress.vehicleStatus,
+                  currentBookingId: booking.bookingId,
+                  currentRiderId: booking.riderId,
+                  assignedRider: booking.riderId,
+                  lockStatus: progress.vehicleLockStatus,
+                },
+              },
+              sessionOpt
+            );
+            if (!updatedVehicle) {
+              const conflict = new Error("BOOKING_PAYMENT_CONFLICT");
+              (conflict as Error & { code?: string }).code = "BOOKING_PAYMENT_CONFLICT";
+              throw conflict;
+            }
           }
-        }
 
-        if (progress.updateRiderLock) {
-          await Rider.findOneAndUpdate(
-            { riderId: booking.riderId },
-            {
-              $set: {
-                activeRide: false,
-                currentBookingId: booking.bookingId,
+          if (progress.updateRiderLock) {
+            await Rider.findOneAndUpdate(
+              { riderId: booking.riderId },
+              {
+                $set: {
+                  activeRide: false,
+                  currentBookingId: booking.bookingId,
+                },
               },
-            },
-            sessionOpt
-          );
+              sessionOpt
+            );
+          }
         }
 
         return nextBooking as typeof booking;
