@@ -13,7 +13,8 @@ type BookingLike = {
 };
 
 export function isBookingStillPayable(booking: BookingLike) {
-  if (String(booking.rideStatus || "") === "Cancelled") {
+  const ride = String(booking.rideStatus || "");
+  if (ride === "Cancelled" || ride === "Completed") {
     return false;
   }
   if (booking.paymentStatus === "Paid" || Number(booking.pendingAmount) <= 0) {
@@ -100,6 +101,7 @@ export function bookingPaymentApplyFilter(
   return {
     _id: bookingId,
     paymentStatus: { $ne: "Paid" },
+    rideStatus: { $nin: ["Cancelled", "Completed"] },
     $and: [
       receivedMatch,
       {

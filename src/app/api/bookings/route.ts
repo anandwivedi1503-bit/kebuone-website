@@ -30,6 +30,7 @@ import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
+import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
@@ -197,6 +198,7 @@ export async function POST(req: Request) {
 
    try {
     await connectDB();
+    void maybeSweepUnpaidBookings();
 
     session = await mongoose.startSession();
     session.startTransaction();
@@ -633,6 +635,7 @@ const vehicle = await Vehicle.findOneAndUpdate(
     currentBookingId: "",
     assignedRider: "",
     batteryPercentage: { $gte: 20 },
+    ...NOT_DELETED_FILTER,
   },
   {
     $set: {
@@ -792,37 +795,6 @@ if (
     { status: 400 }
   );
 }
-
-    if (rentalAmount <= 0 || payableAmount <= 0) {
-      await Vehicle.findByIdAndUpdate(
-  lockedVehicleId,
-  {
-    vehicleStatus: "Available",
-    assignedRider: "",
-    currentBookingId: "",
-    currentRiderId: "",
-    lockStatus: "Unlocked",
-  },
-  {
-    session,
-  }
-);
-
-await session.abortTransaction();
-await session.endSession();
-
-return NextResponse.json(
-  {
-    success: false,
-    errors: [
-      "Selected rental plan does not have a valid server price.",
-    ],
-  },
-  {
-    status: 400,
-  }
-);
-    }
 
     const bookingArray = await Booking.create(
   [

@@ -255,7 +255,7 @@ lastBookingId: {
     "Blocked",
     "Suspended",
   ],
-      default: "Active",
+      default: "Blocked",
     },
 
     blacklisted: {

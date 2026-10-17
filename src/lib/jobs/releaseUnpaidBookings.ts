@@ -7,25 +7,39 @@ import {
   startOptionalTransaction,
 } from "@/lib/mongoTransaction";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
+import { queueCancellationRefundIfPaid } from "@/lib/queueCancellationRefund";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
 
 const UNPAID_TTL_MS = 30 * 60 * 1000;
+const ABANDONED_PARTIAL_TTL_MS = 24 * 60 * 60 * 1000;
+const HELD_PRE_RIDE = ["Booked", "Reserved", "Payment Pending", "Ready For Pickup"];
 
 const NOT_DELETED = {
   $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
 };
 
 export async function releaseUnpaidBookings(limit = 50) {
-  const cutoff = new Date(Date.now() - UNPAID_TTL_MS);
+  const unpaidCutoff = new Date(Date.now() - UNPAID_TTL_MS);
+  const partialCutoff = new Date(Date.now() - ABANDONED_PARTIAL_TTL_MS);
 
   const stale = await Booking.find({
     ...NOT_DELETED,
-    paymentStatus: "Pending",
-    receivedAmount: { $lte: 0 },
-    rideStatus: { $in: ["Booked", "Reserved", "Payment Pending"] },
-    createdAt: { $lte: cutoff },
+    rideStatus: { $in: HELD_PRE_RIDE },
+    pickupOTPVerified: { $ne: true },
+    $or: [
+      {
+        paymentStatus: "Pending",
+        receivedAmount: { $lte: 0 },
+        createdAt: { $lte: unpaidCutoff },
+      },
+      {
+        receivedAmount: { $gt: 0 },
+        pendingAmount: { $gt: 0.009 },
+        createdAt: { $lte: partialCutoff },
+      },
+    ],
   })
     .sort({ createdAt: 1 })
     .limit(limit)
@@ -40,9 +54,8 @@ export async function releaseUnpaidBookings(limit = 50) {
     try {
       const bookingQuery = Booking.findOne({
         bookingId: row.bookingId,
-        paymentStatus: "Pending",
-        receivedAmount: { $lte: 0 },
-        rideStatus: { $in: ["Booked", "Reserved", "Payment Pending"] },
+        rideStatus: { $in: HELD_PRE_RIDE },
+        pickupOTPVerified: { $ne: true },
         ...NOT_DELETED,
       });
       const booking = session ? await bookingQuery.session(session) : await bookingQuery;
@@ -92,13 +105,19 @@ export async function releaseUnpaidBookings(limit = 50) {
         sessionOpts(session)
       );
 
+      const hadPayment = Number(booking.receivedAmount || 0) > 0.009;
       booking.rideStatus = "Cancelled";
       booking.cancelledBy = "System";
-      booking.cancellationReason = "Unpaid reservation expired";
+      booking.cancellationReason = hadPayment
+        ? "Abandoned partial payment expired"
+        : "Unpaid reservation expired";
       booking.pickupOTP = "";
       booking.pickupOTPExpiry = null;
       booking.updatedBy = "System";
       await booking.save(sessionOpts(session));
+      if (hadPayment) {
+        await queueCancellationRefundIfPaid(booking, session);
+      }
 
       await commitOptionalTransaction(session);
       released += 1;

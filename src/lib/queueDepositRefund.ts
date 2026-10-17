@@ -33,6 +33,12 @@ export async function queueDepositRefundIfEligible(
   if (String(booking.rideStatus || "") !== "Completed") {
     return false;
   }
+  if (String((booking as { rentalMode?: string }).rentalMode || "") === "Rent To Own") {
+    return false;
+  }
+  if ((booking as { ownershipTransferred?: boolean }).ownershipTransferred) {
+    return false;
+  }
   if (Number(booking.pendingAmount || 0) > 0) {
     return false;
   }
@@ -51,31 +57,43 @@ export async function queueDepositRefundIfEligible(
 
   const refundId = await nextSeqId("RF", "refundSequence", 8, session);
 
-  if (session) {
-    await Refund.create(
-      [
-        {
-          refundId,
-          bookingId: booking.bookingId,
-          riderId: booking.riderId,
-          amount: booking.securityDeposit,
-          refundStatus: "PENDING",
-          refundSource: "Security Deposit",
-          remarks: "Security deposit refund pending admin approval",
-        },
-      ],
-      { session }
-    );
-  } else {
-    await Refund.create({
-      refundId,
-      bookingId: booking.bookingId,
-      riderId: booking.riderId,
-      amount: booking.securityDeposit,
-      refundStatus: "PENDING",
-      refundSource: "Security Deposit",
-      remarks: "Security deposit refund pending admin approval",
-    });
+  try {
+    if (session) {
+      await Refund.create(
+        [
+          {
+            refundId,
+            bookingId: booking.bookingId,
+            riderId: booking.riderId,
+            amount: booking.securityDeposit,
+            refundStatus: "PENDING",
+            refundSource: "Security Deposit",
+            remarks: "Security deposit refund pending admin approval",
+          },
+        ],
+        { session }
+      );
+    } else {
+      await Refund.create({
+        refundId,
+        bookingId: booking.bookingId,
+        riderId: booking.riderId,
+        amount: booking.securityDeposit,
+        refundStatus: "PENDING",
+        refundSource: "Security Deposit",
+        remarks: "Security deposit refund pending admin approval",
+      });
+    }
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error &&
+      "code" in error &&
+      Number((error as { code?: unknown }).code) === 11000
+    ) {
+      return false;
+    }
+    throw error;
   }
   booking.refundAmount = Number(booking.securityDeposit || 0);
   booking.securityDepositRefunded = false;

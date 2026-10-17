@@ -1444,7 +1444,6 @@ function buildExistingRiderResponse(
 ) {
   if (
     rider.blacklisted ||
-    rider.status === "Blocked" ||
     rider.status === "Suspended" ||
     rider.approvalStatus === "Suspended"
   ) {
@@ -1505,6 +1504,27 @@ function buildExistingRiderResponse(
         field,
         message:
           "Your account is already approved. Continue to Book Bike.",
+      },
+      { status: 409 }
+    );
+  }
+
+  if (
+    rider.status === "Blocked" &&
+    rider.approvalStatus === "Approved" &&
+    rider.kycStatus === "Approved"
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        riderExists: true,
+        riderId: rider.riderId,
+        riderStatus: rider.approvalStatus,
+        bookingEnabled: false,
+        errorCode: "RIDER_RESTRICTED",
+        field,
+        message:
+          "Your rider account already exists but is currently restricted. Please contact support.",
       },
       { status: 409 }
     );

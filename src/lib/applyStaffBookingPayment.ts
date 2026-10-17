@@ -2,7 +2,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { isMongoTransactionUnsupported } from "@/lib/mongoTransaction";
 
-import { CGST_RATE, SGST_RATE, getBookingPayableAmount, gstShareForPayment } from "@/lib/gst";
+import { CGST_RATE, SGST_RATE, getBookingRemainingAmount, gstShareForPayment } from "@/lib/gst";
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
 import { findBookingRider, syncBookingRiderId } from "@/lib/findBookingRider";
@@ -18,6 +18,7 @@ import {
   openDueRtoInstallment,
   rtoCycleAfterInstallment,
 } from "@/lib/rtoInstallmentCycle";
+import { retireOwnedRtoAssets } from "@/lib/rtoOwnership";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Transaction from "@/models/Transaction";
@@ -100,9 +101,8 @@ export async function applyStaffBookingPayment(
       return { ok: false as const, status: 400, message: "This booking has already been fully paid." };
     }
 
-    const payableAmount = getBookingPayableAmount(booking);
     const oldReceivedAmount = Number(booking.receivedAmount || 0);
-    const remainingAmount = Math.max(Number((payableAmount - oldReceivedAmount).toFixed(2)), 0);
+    const remainingAmount = getBookingRemainingAmount(booking);
 
     if (paidAmount > remainingAmount) {
       await rollback(session);
@@ -126,7 +126,7 @@ export async function applyStaffBookingPayment(
     }
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
-    const pendingAmount = Math.max(Number((payableAmount - newReceivedAmount).toFixed(2)), 0);
+    const pendingAmount = Math.max(Number((remainingAmount - paidAmount).toFixed(2)), 0);
     const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
     const { paymentStatus, pickupOTP } = progress;
     const transactionId = generateCashTransactionId();
@@ -214,6 +214,9 @@ export async function applyStaffBookingPayment(
       }
     }
 
+    const rtoPatch = rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount);
+    const ownershipDone = Boolean(rtoPatch.ownershipTransferred);
+
     const updatedBooking = await Booking.findOneAndUpdate(
       bookingPaymentApplyFilter(booking._id, oldReceivedAmount, paidAmount),
       {
@@ -224,7 +227,7 @@ export async function applyStaffBookingPayment(
           paymentVerifiedAt: new Date(),
           invoiceNumber,
           invoiceGenerated: true,
-          ...rtoCycleAfterInstallment(booking, pendingAmount, newReceivedAmount),
+          ...rtoPatch,
         },
       },
       { new: true, ...(session ? { session } : {}) }
@@ -235,49 +238,61 @@ export async function applyStaffBookingPayment(
       return { ok: false as const, status: 409, message: "Booking was already paid or updated." };
     }
 
-    if (progress.updateVehicle && progress.vehicleStatus) {
-      const updatedVehicle = await Vehicle.findOneAndUpdate(
+    if (ownershipDone) {
+      await retireOwnedRtoAssets(
         {
+          bookingId: booking.bookingId,
+          riderId: booking.riderId,
           vehicleId: booking.vehicleId,
-          $or: [
-            { currentBookingId: "" },
-            { currentBookingId: booking.bookingId },
-            { currentBookingId: null },
-          ],
+          ownershipTransferred: true,
         },
-        {
-          $set: {
-            vehicleStatus: progress.vehicleStatus,
-            currentBookingId: booking.bookingId,
-            currentRiderId: booking.riderId,
-            assignedRider: booking.riderId,
-            lockStatus: progress.vehicleLockStatus,
-          },
-        },
-        session ? { session } : {}
+        session
       );
+    } else {
+      if (progress.updateVehicle && progress.vehicleStatus) {
+        const updatedVehicle = await Vehicle.findOneAndUpdate(
+          {
+            vehicleId: booking.vehicleId,
+            $or: [
+              { currentBookingId: "" },
+              { currentBookingId: booking.bookingId },
+              { currentBookingId: null },
+            ],
+          },
+          {
+            $set: {
+              vehicleStatus: progress.vehicleStatus,
+              currentBookingId: booking.bookingId,
+              currentRiderId: booking.riderId,
+              assignedRider: booking.riderId,
+              lockStatus: progress.vehicleLockStatus,
+            },
+          },
+          session ? { session } : {}
+        );
 
-      if (!updatedVehicle) {
-        await rollback(session);
-        return {
-          ok: false as const,
-          status: 409,
-          message: "Vehicle has already been assigned to another booking.",
-        };
+        if (!updatedVehicle) {
+          await rollback(session);
+          return {
+            ok: false as const,
+            status: 409,
+            message: "Vehicle has already been assigned to another booking.",
+          };
+        }
       }
-    }
 
-    if (progress.updateRiderLock) {
-      await Rider.findOneAndUpdate(
-        { riderId: booking.riderId },
-        {
-          $set: {
-            activeRide: false,
-            currentBookingId: booking.bookingId,
+      if (progress.updateRiderLock) {
+        await Rider.findOneAndUpdate(
+          { riderId: booking.riderId },
+          {
+            $set: {
+              activeRide: false,
+              currentBookingId: booking.bookingId,
+            },
           },
-        },
-        session ? { session } : {}
-      );
+          session ? { session } : {}
+        );
+      }
     }
 
     await queueDepositRefundIfEligible(updatedBooking, session);

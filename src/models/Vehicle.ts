@@ -91,7 +91,7 @@ const VehicleSchema = new mongoose.Schema(
 
     rentToOwnMonths: {
       type: Number,
-      default: 18,
+      default: 20,
       min: 1,
     },
 

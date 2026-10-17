@@ -44,10 +44,22 @@ export async function queueCancellationRefundIfPaid(
     remarks: "Rental payment refund pending admin approval after cancellation",
   };
 
-  if (session) {
-    await Refund.create([row], { session });
-  } else {
-    await Refund.create(row);
+  try {
+    if (session) {
+      await Refund.create([row], { session });
+    } else {
+      await Refund.create(row);
+    }
+  } catch (error) {
+    if (
+      typeof error === "object" &&
+      error &&
+      "code" in error &&
+      Number((error as { code?: unknown }).code) === 11000
+    ) {
+      return false;
+    }
+    throw error;
   }
 
   booking.refundAmount = amount;
