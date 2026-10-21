@@ -24,6 +24,8 @@ type CommandCenterCounts = {
   processingRefunds: number;
   onlineVehicles: number;
   pendingPartners: number;
+  pendingKyc: number;
+  depositHolds: number;
   wallets: number;
   totalWalletBalance: number;
   totalRevenue: number;
@@ -40,6 +42,8 @@ const EMPTY_COUNTS: CommandCenterCounts = {
   processingRefunds: 0,
   onlineVehicles: 0,
   pendingPartners: 0,
+  pendingKyc: 0,
+  depositHolds: 0,
   wallets: 0,
   totalWalletBalance: 0,
   totalRevenue: 0,
@@ -169,7 +173,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
     <PageContainer>
       <DashboardHeader
         title="Admin home"
-        subtitle="Same live snapshot as the other desks. Open a count to jump to that desk. Sidebar already lists every module."
+        subtitle="Live investor and ops snapshot. Counts jump to the same desks that own the records — KYC with Users, refunds with Wallet deposits, fleet with Hub."
       />
 
       <OpsMoneyStrip />
@@ -192,10 +196,18 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
         <KPICard
           title="Fleet"
           value={counts.vehicles}
-          subtitle={`${counts.onlineVehicles} online`}
+          subtitle={`${counts.availableVehicles} available · ${counts.onlineVehicles} online`}
           icon="🚲"
           color="green"
           onClick={() => openDashboard("fleet")}
+        />
+        <KPICard
+          title="Pending KYC"
+          value={counts.pendingKyc}
+          subtitle="Same queue as KYC desk"
+          icon="🪪"
+          color="yellow"
+          onClick={() => openDashboard("kyc")}
         />
         <KPICard
           title="Active rides"
@@ -230,12 +242,20 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
           onClick={() => openDashboard("support")}
         />
         <KPICard
-          title="Wallets"
-          value={counts.wallets}
-          subtitle={rupee(counts.totalWalletBalance)}
-          icon="👛"
+          title="Deposit holds"
+          value={counts.depositHolds}
+          subtitle={`${rupee(counts.totalWalletBalance)} · ${counts.processingRefunds} refunds`}
+          icon="🔒"
           color="green"
           onClick={() => openDashboard("wallet")}
+        />
+        <KPICard
+          title="Refunds"
+          value={counts.processingRefunds}
+          subtitle="Deposit + cancel/fail"
+          icon="↩️"
+          color="red"
+          onClick={() => openDashboard("refunds")}
         />
         <KPICard
           title="Partner forms"

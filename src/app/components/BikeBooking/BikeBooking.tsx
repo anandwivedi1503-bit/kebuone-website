@@ -947,10 +947,11 @@ setStep(4);
     setError("");
     setPaymentMessage("");
     setPaymentLoading(true);
+    let checkoutOpened = false;
 
+    try {
     if (!bookingMongoId) {
       setError("Reserve Scooter first.");
-      setPaymentLoading(false);
       return;
     }
 
@@ -960,7 +961,6 @@ setStep(4);
 
     if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
       setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
-      setPaymentLoading(false);
       return;
     }
 
@@ -968,7 +968,6 @@ setStep(4);
 
     if (!loaded || !window.Razorpay) {
       setError("Razorpay failed to load. Check internet connection.");
-      setPaymentLoading(false);
       return;
     }
 
@@ -977,7 +976,6 @@ setStep(4);
 
     if (!token) {
       setError("Please verify your phone number before payment.");
-      setPaymentLoading(false);
       return;
     }
 
@@ -985,25 +983,32 @@ setStep(4);
 
     setPaymentMessage("Creating Razorpay order...");
 
-    const orderRes = await fetch("/api/razorpay/create-order", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        bookingMongoId,
-        amount: payNow,
-        firebaseIdToken: token,
-      }),
-    });
+    const controller = new AbortController();
+    const lookupTimer = window.setTimeout(() => controller.abort(), 25000);
+    let orderRes: Response;
+    try {
+      orderRes = await fetch("/api/razorpay/create-order", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          bookingMongoId,
+          amount: payNow,
+          firebaseIdToken: token,
+        }),
+        signal: controller.signal,
+      });
+    } finally {
+      window.clearTimeout(lookupTimer);
+    }
 
     const orderData = await orderRes.json();
 
     if (!orderData.success) {
       setPaymentMessage("");
       setError(orderData.message || "Unable to create Razorpay order.");
-      setPaymentLoading(false);
       return;
     }
 
@@ -1113,7 +1118,16 @@ setStep(4);
       setError(response.error?.description || "Payment failed. Please try again.");
     });
 
+    setPaymentMessage("Opening Razorpay...");
+    checkoutOpened = true;
     razorpay.open();
+    } catch (error) {
+      console.error("RAZORPAY CHECKOUT:", error);
+      setPaymentMessage("");
+      setError("Could not open Razorpay. Please try again.");
+    } finally {
+      if (!checkoutOpened) setPaymentLoading(false);
+    }
   };
 
   const applyPaidResult = (payNow: number, data: {

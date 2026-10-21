@@ -313,7 +313,7 @@ if (!rider) {
 
 }
 
-const sendToRazorpay = body.sendToRazorpay === true;
+const sendToRazorpay = body.sendToRazorpay !== false;
 
 if (sendToRazorpay) {
   const paymentId = String(booking.razorpayPaymentId || "");
