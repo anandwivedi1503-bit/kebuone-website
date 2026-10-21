@@ -11,6 +11,7 @@ const BOOKING_LOCK_KEY = "kebu_rider_booking_lock";
 const RIDE_OPTIONS_VIEW_KEY = "kebu_ride_options_view";
 const RENTAL_DRAFT_KEY = "kebu_rider_rental_draft";
 const RTO_DRAFT_KEY = "kebu_rider_rto_draft";
+const REGISTRATION_DRAFT_KEY = "kebu_rider_registration_draft";
 
 export type RiderChosenPlan = "rental" | "rto";
 export type RideOptionsView = "otp" | "pending" | "plans" | "register";
@@ -24,6 +25,15 @@ export type RentalWizardDraft = {
   rentalMode: RentalModeDraft;
   bikeSearch: string;
   referenceBy: string;
+};
+
+export type RegistrationDraft = {
+  step: 1 | 2 | 3 | 4;
+  fullName: string;
+  phone: string;
+  email: string;
+  comingThrough: string;
+  savedAt: number;
 };
 
 export type RtoWizardDraft = {
@@ -138,11 +148,32 @@ export function setRideOptionsView(view: RideOptionsView) {
 }
 
 export function riderResumeHref() {
-  if (!hasRiderPlanReady()) return "/ride-options";
   const plan = getChosenPlan();
-  if (plan === "rto") return "/rent-to-own";
-  if (plan === "rental") return "/book-bike?flow=rental";
+  const rentalDraft = loadRentalDraft();
+  const rtoDraft = loadRtoDraft();
+  if (plan === "rto" || rtoDraft) {
+    if (!plan) setChosenPlan("rto");
+    return "/rent-to-own";
+  }
+  if (plan === "rental" || rentalDraft) {
+    if (!plan) setChosenPlan("rental");
+    return "/book-bike?flow=rental";
+  }
   return "/ride-options";
+}
+
+export function loadRegistrationDraft(): RegistrationDraft | null {
+  const draft = readJson<RegistrationDraft>(REGISTRATION_DRAFT_KEY);
+  if (!draft || ![1, 2, 3, 4].includes(Number(draft.step))) return null;
+  return draft;
+}
+
+export function saveRegistrationDraft(draft: RegistrationDraft) {
+  writeKey(REGISTRATION_DRAFT_KEY, JSON.stringify(draft), false);
+}
+
+export function clearRegistrationDraft() {
+  removeKey(REGISTRATION_DRAFT_KEY);
 }
 
 export function isRiderLoggedIn() {
@@ -254,24 +285,23 @@ export function clearRiderClientSession() {
   if (typeof window === "undefined") return;
 
   removeKey(PLAN_READY_KEY);
-  removeKey(CHOSEN_PLAN_KEY);
   removeKey(BOOKING_LOCK_KEY);
   removeKey(RIDE_OPTIONS_VIEW_KEY);
-  removeKey(RENTAL_DRAFT_KEY);
-  removeKey(RTO_DRAFT_KEY);
-  storageRemove(window.localStorage, "kebu_rider_id");
-  storageRemove(window.localStorage, "kebu_rider_phone");
-  storageRemove(window.localStorage, "kebu_rider_name");
-  storageRemove(window.sessionStorage, "kebu_rider_id");
-  storageRemove(window.sessionStorage, "kebu_rider_phone");
-  storageRemove(window.sessionStorage, "kebu_rider_name");
   emitRiderSession();
+}
+
+export function leaveToWebsite() {
+  if (typeof window === "undefined") return;
+  window.location.href = "/";
 }
 
 export async function logoutRider() {
   if (typeof window === "undefined") return;
 
-  clearRiderClientSession();
+  removeKey(PLAN_READY_KEY);
+  removeKey(BOOKING_LOCK_KEY);
+  removeKey(RIDE_OPTIONS_VIEW_KEY);
+  emitRiderSession();
 
   try {
     if (firebaseAuth) await signOut(firebaseAuth);

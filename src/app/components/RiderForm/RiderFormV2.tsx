@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 
 import { auth } from "@/lib/firebase";
-import { hasRiderPlanReady, markRiderPlanReady, riderResumeHref } from "@/lib/riderPlanGate";
+import {
+  clearRegistrationDraft,
+  hasRiderPlanReady,
+  loadRegistrationDraft,
+  markRiderPlanReady,
+  riderResumeHref,
+  saveRegistrationDraft,
+} from "@/lib/riderPlanGate";
 import { DIRECT_THROUGH } from "@/lib/partnerSegments";
 import {
   ComingThroughChips,
@@ -47,6 +54,7 @@ const [confirmationResult, setConfirmationResult] =
 
   const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 const otpMessageTimeout = useRef<NodeJS.Timeout | null>(null);
+const registrationDraftReady = useRef(false);
 const uploadedFileUrls = useRef(new Map<string, string>());
 
 const [aadhaar, setAadhaar] = useState("");
@@ -109,6 +117,36 @@ useEffect(() => {
     window.location.replace(riderResumeHref());
   }
 }, []);
+
+useEffect(() => {
+  const draft = loadRegistrationDraft();
+  if (!draft) return;
+  if (draft.fullName) setFullName(draft.fullName);
+  if (draft.phone) setPhone(draft.phone);
+  if (draft.email) setEmail(draft.email);
+  if (draft.comingThrough) setComingThrough(draft.comingThrough);
+  if (draft.step) setStep(draft.step);
+}, []);
+
+useEffect(() => {
+  if (submitted) return;
+  if (!registrationDraftReady.current) {
+    registrationDraftReady.current = true;
+    return;
+  }
+  saveRegistrationDraft({
+    step: (step === 1 || step === 2 || step === 3 || step === 4 ? step : 1) as 1 | 2 | 3 | 4,
+    fullName,
+    phone,
+    email,
+    comingThrough,
+    savedAt: Date.now(),
+  });
+}, [step, fullName, phone, email, comingThrough, submitted]);
+
+useEffect(() => {
+  if (submitted) clearRegistrationDraft();
+}, [submitted]);
 
 useEffect(() => {
   if (!auth?.app) return;
@@ -1653,7 +1691,7 @@ leading-8
 text-slate-600
 "
 >
-Complete your registration, verify your identity and unlock secure electric mobility powered by EVUDDY's intelligent rider platform.
+Complete steps 1–4. There is no timeout if you go back or close the tab — we keep this form until you submit. Staff then finish KYC on the live desk.
 </p>
 
             <div

@@ -6,17 +6,16 @@ import {
   X,
   ChevronRight,
   Building2,
-  LogOut,
   Wallet,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
 import { firebaseAuth } from "@/lib/firebase";
 import {
   isRiderLoggedIn,
-  logoutRider,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
 import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
+import SessionExit from "@/app/components/SessionExit/SessionExit";
 import NavbarErrorBoundary from "./NavbarErrorBoundary";
 import { useEffect, useState } from "react";
 
@@ -99,11 +98,6 @@ function NavbarInner() {
     setMenuOpen(false);
     const checkbox = document.getElementById("evuddy-nav-menu");
     if (checkbox instanceof HTMLInputElement) checkbox.checked = false;
-  };
-
-  const handleLogout = async () => {
-    closeMenu();
-    await logoutRider();
   };
 
   return (
@@ -223,14 +217,7 @@ function NavbarInner() {
                       Book EV
                       <ChevronRight size={18} />
                     </Link>
-                    <button
-                      type="button"
-                      onClick={handleLogout}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#EC2A8C]/30 bg-white font-semibold text-[#EC2A8C]"
-                    >
-                      <LogOut size={18} />
-                      Log out
-                    </button>
+                    <SessionExit compact onPicked={closeMenu} />
                   </>
                 ) : (
                   <>

@@ -7,7 +7,7 @@ import {
   useState,
 } from "react";
 
-import { consumeOpsFocus } from "@/lib/opsFocus";
+import { consumeOpsFocus, openOpsDesk } from "@/lib/opsFocus";
 import { startOpsPoll } from "@/lib/opsPoll";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -728,7 +728,7 @@ export default function KYCDashboard() {
     <PageContainer>
       <DashboardHeader
         title="KYC Verification Dashboard"
-        subtitle="Tap Direct / EVUDDY or a tied-up network to split normal riders from Zomato, Flipkart Minutes and the rest. Approve and reject stay the same."
+        subtitle="Live KYC from the same rider records as Users. Incomplete registrations never time out — they stay here until you approve or reject. Tap a count to filter; Open user jumps to Users."
       />
       <input
         value={search}
@@ -924,6 +924,10 @@ export default function KYCDashboard() {
                 </th>
 
                 <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
+                  User
+                </th>
+
+                <th className="px-6 py-5 text-center font-bold text-[#0A1134]">
                   Approve
                 </th>
 
@@ -943,7 +947,7 @@ export default function KYCDashboard() {
                 <tr>
                   <td
                     colSpan={
-                      13
+                      14
                     }
                     className="py-12 text-center text-gray-500"
                   >
@@ -1155,6 +1159,18 @@ export default function KYCDashboard() {
                               }
                             </div>
                           )}
+                      </td>
+
+                      <td className="px-6 py-5 text-center">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openOpsDesk("users", rider.phone || rider.riderId)
+                          }
+                          className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                        >
+                          Open user
+                        </button>
                       </td>
 
                       {/* ================================

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import DashboardSidebar from "../DashboardSidebar/DashboardSidebar";
 import "../DashboardUI/ops-shell.css";
 import { ALL_DASHBOARDS } from "@/lib/adminRoles";
+import { OPEN_OPS_DESK_EVENT } from "@/lib/opsFocus";
 
 const deskFallback = (
   <p className="rounded-3xl bg-white p-8 text-slate-600">Loading desk…</p>
@@ -126,6 +127,17 @@ export default function DashboardContainer() {
       setSessionReady(true);
     };
     void load();
+  }, []);
+
+  useEffect(() => {
+    const onOpen = (event: Event) => {
+      const dashboard = String(
+        (event as CustomEvent<{ dashboard?: string }>).detail?.dashboard || ""
+      );
+      if (dashboard) setActiveDashboard(dashboard);
+    };
+    window.addEventListener(OPEN_OPS_DESK_EVENT, onOpen);
+    return () => window.removeEventListener(OPEN_OPS_DESK_EVENT, onOpen);
   }, []);
 
   const isSuper = session?.role === "super";

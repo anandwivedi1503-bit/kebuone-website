@@ -21,3 +21,13 @@ export function consumeOpsFocus(): string {
     return "";
   }
 }
+
+export const OPEN_OPS_DESK_EVENT = "evuddy-open-ops-desk";
+
+export function openOpsDesk(dashboard: string, query?: string) {
+  if (typeof window === "undefined") return;
+  if (query) writeOpsFocus(query);
+  window.dispatchEvent(
+    new CustomEvent(OPEN_OPS_DESK_EVENT, { detail: { dashboard } })
+  );
+}
