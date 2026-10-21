@@ -147,3 +147,24 @@ export function idInScopeFilter(field: string, ids: string[] | null) {
   if (!ids) return {};
   return { [field]: { $in: ids.length ? ids : ["__none__"] } };
 }
+
+/** Hub staff still see website/contact tickets that have no booking. */
+export function idInScopeOrWebsiteFilter(field: string, ids: string[] | null) {
+  if (!ids) return {};
+  return {
+    $or: [
+      { [field]: { $in: ids.length ? ids : ["__none__"] } },
+      { [field]: { $in: ["", null] } },
+      { ticketSource: "Website" },
+    ],
+  };
+}
+
+export function mergeFilters(...parts: Array<Record<string, unknown> | undefined | null>) {
+  const nonempty = parts.filter((part): part is Record<string, unknown> =>
+    Boolean(part && Object.keys(part).length)
+  );
+  if (!nonempty.length) return {};
+  if (nonempty.length === 1) return nonempty[0];
+  return { $and: nonempty };
+}

@@ -17,6 +17,13 @@ export default function SupportDashboard(){
 
 const [tickets,setTickets]=useState<any[]>([]);
 const [ticketPages,setTicketPages]=useState(1);
+const [ticketCounts,setTicketCounts]=useState({
+  open: 0,
+  inProgress: 0,
+  resolved: 0,
+  closed: 0,
+  critical: 0,
+});
 const [hasMoreTickets,setHasMoreTickets]=useState(false);
 const [refunds,setRefunds]=useState<any[]>([]);
 const [selectedTicket,setSelectedTicket]=useState<any>(null);
@@ -44,6 +51,15 @@ const fetchTickets = async (pages = ticketPages) => {
   const ticketData = await ticketRes.json();
   setTickets(ticketData.data || []);
   setHasMoreTickets(Boolean(ticketData.pagination?.hasMore));
+  if (ticketData.counts) {
+    setTicketCounts({
+      open: Number(ticketData.counts.open || 0),
+      inProgress: Number(ticketData.counts.inProgress || 0),
+      resolved: Number(ticketData.counts.resolved || 0),
+      closed: Number(ticketData.counts.closed || 0),
+      critical: Number(ticketData.counts.critical || 0),
+    });
+  }
   return ticketData.data || [];
 };
 
@@ -96,25 +112,20 @@ if (data.success) {
 
 };
 
-const openTickets=queueTickets.filter(
-(ticket)=>ticket.status==="OPEN"
-).length;
+const openTickets=ticketCounts.open;
 
-const inProgressTickets=queueTickets.filter(
-(ticket)=>ticket.status==="IN-PROGRESS"
-).length;
+const inProgressTickets=ticketCounts.inProgress;
 
-const resolvedTickets=queueTickets.filter(
-(ticket)=>ticket.status==="RESOLVED"
-).length;
+const resolvedTickets=ticketCounts.resolved;
 
 const pendingRefunds=refunds.filter(
-(refund)=>refund.refundStatus==="PROCESSING"
+(refund)=> {
+  const status = String(refund.refundStatus||"").toUpperCase();
+  return status === "PROCESSING" || status === "PENDING";
+}
 ).length;
 
-const criticalTickets=queueTickets.filter(
-(ticket)=>ticket.priority==="Critical"
-).length;
+const criticalTickets=ticketCounts.critical;
 
 const totalRefundAmount=refunds
 .filter((refund)=>String(refund.refundStatus||"").toUpperCase()==="REFUNDED")
@@ -123,9 +134,7 @@ const totalRefundAmount=refunds
 0
 );
 
-const closedTickets=queueTickets.filter(
-(ticket)=>ticket.status==="CLOSED"
-).length;
+const closedTickets=ticketCounts.closed;
 
 const ticketMatchesDesk = (ticket: any) => {
   const keyword = search.toLowerCase();

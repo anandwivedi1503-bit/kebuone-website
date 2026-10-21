@@ -2633,7 +2633,7 @@ Maximum Size: 5 MB
   }`}
 >
   {step === 1
-    ? "Send OTP →"
+    ? "Continue →"
     : step === 2
     ? "Continue to KYC →"
     : "Continue to Documents →"}

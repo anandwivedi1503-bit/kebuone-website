@@ -456,8 +456,14 @@ if (
   );
 }
 
-await Ticket.findByIdAndDelete(
+await Ticket.findByIdAndUpdate(
   id,
+  {
+    $set: {
+      isDeleted: true,
+      deletedAt: new Date(),
+    },
+  },
   {
     session,
   }

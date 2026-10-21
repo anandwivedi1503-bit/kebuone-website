@@ -223,12 +223,8 @@ export async function GET(req: Request) {
     }
 
     const refunds = await Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
-    const data = (
-      await attachBookingSnapshotsToRefunds(refunds as Array<Record<string, unknown>>)
-    ).filter(
-      (row) =>
-        Boolean(row.bookingSnapshot) ||
-        Boolean(String((row as { ticketId?: unknown }).ticketId || "").trim())
+    const data = await attachBookingSnapshotsToRefunds(
+      refunds as Array<Record<string, unknown>>
     );
 
     return NextResponse.json(listResponseFromPage(data, page, limit));

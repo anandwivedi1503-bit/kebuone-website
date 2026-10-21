@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 
+import { consumeOpsFocus } from "@/lib/opsFocus";
 import { startOpsPoll } from "@/lib/opsPoll";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -280,6 +281,9 @@ export default function KYCDashboard() {
   const [channel, setChannel] =
     useState<PartnerSegmentId>("ALL");
 
+  const [search, setSearch] =
+    useState(() => consumeOpsFocus());
+
   /* =======================================================
      LOAD RIDERS
   ======================================================= */
@@ -446,9 +450,16 @@ export default function KYCDashboard() {
             kycView === "ALL" ||
             rider.kycStatus === kycView;
           const matchesChannel = riderMatchesNetwork(rider, channel);
-          return matchesKyc && matchesChannel;
+          const keyword = search.trim().toLowerCase();
+          const matchesSearch =
+            !keyword ||
+            rider.riderId?.toLowerCase().includes(keyword) ||
+            rider.fullName?.toLowerCase().includes(keyword) ||
+            rider.phone?.toLowerCase().includes(keyword) ||
+            rider.email?.toLowerCase().includes(keyword);
+          return matchesKyc && matchesChannel && matchesSearch;
         }),
-      [riders, kycView, channel]
+      [riders, kycView, channel, search]
     );
 
   const selectedNetwork =
@@ -718,6 +729,12 @@ export default function KYCDashboard() {
       <DashboardHeader
         title="KYC Verification Dashboard"
         subtitle="Tap Direct / EVUDDY or a tied-up network to split normal riders from Zomato, Flipkart Minutes and the rest. Approve and reject stay the same."
+      />
+      <input
+        value={search}
+        onChange={(event) => setSearch(event.target.value)}
+        placeholder="Search rider ID, name or phone (Ops Eva can jump here)"
+        className="mb-6 h-12 w-full max-w-xl rounded-2xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-[#18B368]"
       />
 
       {/* ===================================================

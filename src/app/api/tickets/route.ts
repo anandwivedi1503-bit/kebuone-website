@@ -15,12 +15,18 @@ import {
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
-import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
+import { nextSeqId } from "@/lib/nextSeqId";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import { OPEN_TICKET_STATUSES } from "@/lib/opsTruth";
+import {
+  idInScopeOrWebsiteFilter,
+  mergeFilters,
+  scopedBookingIds,
+} from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import Booking from "@/models/Booking";
 import { findBookingRider } from "@/lib/findBookingRider";
 import Ticket from "@/models/Ticket";
-import Vehicle from "@/models/Vehicle";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -106,7 +112,9 @@ export async function POST(req: Request) {
     const body = await req.json();
     const isAdminRequest = await isAdminAuthenticated();
 
-    const ticketId = clean(body.ticketId).toUpperCase();
+    let ticketId = clean(body.ticketId).toUpperCase();
+    const mintTicketId =
+      !ticketId || !idRegex.test(ticketId) || /^(BK|CT|CR)-\d+$/.test(ticketId);
     const userId = clean(body.userId).slice(0, 120);
     const riderPhone = clean(body.riderPhone).replace(/\D/g, "").slice(-10);
     const tripId = clean(body.tripId);
@@ -123,7 +131,7 @@ export async function POST(req: Request) {
 
     const errors: string[] = [];
 
-    if (!idRegex.test(ticketId)) {
+    if (!mintTicketId && !idRegex.test(ticketId)) {
       errors.push("Valid ticket ID is required.");
     }
 
@@ -167,6 +175,10 @@ export async function POST(req: Request) {
         },
         { status: 400 }
       );
+    }
+
+    if (mintTicketId) {
+      ticketId = await nextSeqId("TKT", "ticketSequence");
     }
 
     const existingTicket = await Ticket.findOne({
@@ -318,23 +330,6 @@ export async function POST(req: Request) {
       }
     }
 
-    const vehicle = await Vehicle.findOne({
-      vehicleId: booking.vehicleId,
-    }).session(session);
-
-    if (!vehicle) {
-      await rollback(session);
-      session = null;
-
-      return NextResponse.json(
-        {
-          success: false,
-          errors: ["Vehicle not found."],
-        },
-        { status: 404 }
-      );
-    }
-
     const [ticket] = await Ticket.create(
       [
         {
@@ -343,7 +338,7 @@ export async function POST(req: Request) {
           riderId: booking.riderId,
           userId: String(booking.userId),
           tripId,
-          vehicleId: booking.vehicleId,
+          vehicleId: String(booking.vehicleId || ""),
           riderPhone: booking.userPhone,
           category,
           description,
@@ -406,35 +401,63 @@ export async function GET(req: Request) {
 
     const parsed = parseListQuery(req);
     const { page, limit, skip, cursor, q } = parsed;
-    const filter: Record<string, unknown> = {};
+    const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
     applyOpsListFilters(filter, parsed);
     const bookingIds = await scopedBookingIds(gate.session);
-    Object.assign(filter, idInScopeFilter("bookingId", bookingIds));
+    let scoped = mergeFilters(
+      filter,
+      idInScopeOrWebsiteFilter("bookingId", bookingIds)
+    );
 
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const rx = new RegExp(escaped, "i");
-      filter.$or = [
-        { ticketId: rx },
-        { bookingId: rx },
-        { riderId: rx },
-        { userId: rx },
-        { category: rx },
-        { description: rx },
-      ];
+      scoped = mergeFilters(scoped, {
+        $or: [
+          { ticketId: rx },
+          { bookingId: rx },
+          { riderId: rx },
+          { userId: rx },
+          { category: rx },
+          { description: rx },
+        ],
+      });
     }
 
-    applyCreatedCursor(filter, cursor);
-    const tickets = await Ticket.find(filter)
+    applyCreatedCursor(scoped, cursor);
+    const tickets = await Ticket.find(scoped)
       .sort({ createdAt: -1, _id: -1 })
       .skip(cursor ? 0 : skip)
       .limit(limit + 1)
       .lean();
 
     const payload = listResponseFromPage(tickets, cursor ? 1 : page, limit);
-    return NextResponse.json(
-      withNextCursor(payload, payload.data[payload.data.length - 1])
+    const countBase = mergeFilters(
+      NOT_DELETED_FILTER,
+      idInScopeOrWebsiteFilter("bookingId", bookingIds)
     );
+    const [openCount, inProgressCount, resolvedCount, closedCount, criticalCount] =
+      await Promise.all([
+        Ticket.countDocuments(mergeFilters(countBase, { status: "OPEN" })).maxTimeMS(2000),
+        Ticket.countDocuments(
+          mergeFilters(countBase, { status: "IN-PROGRESS" })
+        ).maxTimeMS(2000),
+        Ticket.countDocuments(mergeFilters(countBase, { status: "RESOLVED" })).maxTimeMS(2000),
+        Ticket.countDocuments(mergeFilters(countBase, { status: "CLOSED" })).maxTimeMS(2000),
+        Ticket.countDocuments(
+          mergeFilters(countBase, { priority: "Critical", status: { $in: [...OPEN_TICKET_STATUSES] } })
+        ).maxTimeMS(2000),
+      ]);
+    return NextResponse.json({
+      ...withNextCursor(payload, payload.data[payload.data.length - 1]),
+      counts: {
+        open: openCount,
+        inProgress: inProgressCount,
+        resolved: resolvedCount,
+        closed: closedCount,
+        critical: criticalCount,
+      },
+    });
   } catch (error) {
     return NextResponse.json(
       {

@@ -110,8 +110,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
       "complaint",
     ],
     href: "/contact",
-    en: "Helpdesk: helpdesk@kebuone.in or +91 8726006519, or use the contact page. After you pay, Book EV has Need help? for pickup or mid-ride issues — that creates a support ticket staff see on Support.",
-    hi: "मदद के तीन आसान रास्ते:\n1) हेल्पडेस्क — helpdesk@kebuone.in या +91 8726006519\n2) संपर्क फॉर्म — /contact\n3) पेमेंट के बाद Book EV पर “Need help?” — बुकिंग वाला सपोर्ट टिकट बनता है (पिकअप, बैटरी, ब्रेकडाउन आदि)।",
+    en: "Helpdesk: helpdesk@kebuone.in or +91 8726006519, or use the contact page. On Book EV / Rent to Own payment step, Rider complaint ticket sits under payment — even before first rupee. That ticket lands on Support. Signed-in riders can also ask Eva to file it.",
+    hi: "मदद के चार आसान रास्ते:\n1) हेल्पडेस्क — helpdesk@kebuone.in या +91 8726006519\n2) संपर्क फॉर्म — /contact\n3) Book EV / Rent to Own पेमेंट स्टेप के नीचे “Rider complaint ticket” — पेमेंट से पहले भी खुला रहता है।\n4) लॉगिन हों तो Eva से बोलें “शिकायत दर्ज करो” — टिकट तभी बनता है जब API सफल हो। स्टाफ Support पर देखते हैं।",
   },
   {
     keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक", "ride end", "ride started", "शुरू"],
@@ -440,6 +440,7 @@ function asRiderSession(
     briefing: reply.answer,
     href: reply.href || "/book-bike",
     statusAnswer: reply.answer,
+    bookingId: "bookingId" in value ? value.bookingId : undefined,
   };
 }
 

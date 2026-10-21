@@ -6,7 +6,7 @@ import {
   faqAnswer,
   publicAssistantIntent,
 } from "../src/lib/assistantReply";
-import { wantsOwnAccountHelp } from "../src/lib/riderAssistantIntent";
+import { wantsFileSupportTicket, wantsOwnAccountHelp } from "../src/lib/riderAssistantIntent";
 
 assert.equal(publicAssistantIntent("How do I book a scooter?"), null);
 assert.equal(publicAssistantIntent("स्कूटर कैसे बुक करें?"), null);
@@ -61,6 +61,8 @@ assert.equal(wantsOwnAccountHelp("मेरी बुकिंग कैसी �
 assert.equal(wantsOwnAccountHelp("मैं नया रजिस्टर हुआ हूँ"), true);
 assert.equal(wantsOwnAccountHelp("मेरा अकाउंट कैसा है?"), true);
 assert.equal(wantsOwnAccountHelp("किराया कितना है?"), false);
+assert.equal(wantsFileSupportTicket("शिकायत दर्ज करो स्कूटर नहीं चली"), true);
+assert.equal(wantsFileSupportTicket("टिकट कैसे बनता है?"), false);
 
 const unsignedOwnFaq = faqAnswer("मेरी बुकिंग", "hi");
 assert.ok((unsignedOwnFaq.score || 0) >= 1);

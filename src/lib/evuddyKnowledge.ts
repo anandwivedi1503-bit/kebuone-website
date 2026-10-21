@@ -63,8 +63,9 @@ WALLET: rider purse for returned deposits/credits. Not an extra charge on top of
 SUPPORT:
 - /contact form (name, email, phone, subject, message) creates a website enquiry ticket.
 - Directory: Customer Support, Helpdesk phone, Business Partnerships, Careers, Corporate Office (same helpdesk email except office address).
-- After pay: Book EV → Need help? → ticket bound to that booking (pickup, mid-ride, battery, breakdown).
-- Rider sees tickets on Book EV; staff see Support dashboard.
+- Book EV and Rent to Own payment steps show Rider complaint ticket under payment as soon as a booking ID exists (even if unpaid). Ticket is bound to that booking (pickup, mid-ride, battery, breakdown, payment).
+- Signed-in Eva can file the same booking ticket when the rider asks to register a complaint — only after the ticket API succeeds.
+- Rider sees tickets on Book EV / Rent to Own; staff see Support dashboard (same tickets collection).
 - After a completed ride (or a paid Rent to Own day), Book EV asks for 1–5 star ratings of the scooter and hub. One review per booking. 4–5 stars can publish on the homepage; 1–3 wait on the Reviews desk.
 - Staff Reviews desk: publish, hide, or reply. Hub pages show the running average.
 

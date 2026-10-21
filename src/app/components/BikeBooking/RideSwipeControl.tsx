@@ -18,11 +18,13 @@ export default function RideSwipeControl({
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [offset, setOffset] = useState(0);
   const dragging = useRef(false);
+  const travelRef = useRef(0);
 
   const maxTravel = () => Math.max((trackRef.current?.clientWidth || 280) - 64, 120);
 
   const finish = async (travel: number) => {
     const done = travel >= maxTravel() * 0.82;
+    travelRef.current = 0;
     setOffset(0);
     if (!done || disabled || busy) return;
     await onConfirm();
@@ -39,13 +41,14 @@ export default function RideSwipeControl({
     const rect = trackRef.current?.getBoundingClientRect();
     if (!rect) return;
     const next = Math.min(maxTravel(), Math.max(0, event.clientX - rect.left - 32));
+    travelRef.current = next;
     setOffset(next);
   };
 
   const onPointerUp = (event: PointerEvent<HTMLButtonElement>) => {
     if (!dragging.current) return;
     dragging.current = false;
-    void finish(offset);
+    void finish(travelRef.current);
     event.currentTarget.releasePointerCapture(event.pointerId);
   };
 

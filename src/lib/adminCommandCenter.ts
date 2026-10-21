@@ -4,9 +4,12 @@ import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
 import { sessionHasAnyDashboard, type AdminSessionInfo } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { OPEN_TICKET_STATUSES } from "@/lib/opsTruth";
 import {
   applyHubScope,
   idInScopeFilter,
+  idInScopeOrWebsiteFilter,
+  mergeFilters,
   scopedBookingIds,
   scopedRiderIds,
   sessionHubScope,
@@ -103,10 +106,10 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     : NOT_DELETED_FILTER;
   const bookingIds = await scopedBookingIds(session);
   const riderIds = await scopedRiderIds(session);
-  const ticketFilter = {
-    ...NOT_DELETED_FILTER,
-    ...idInScopeFilter("bookingId", bookingIds),
-  };
+  const ticketFilter = mergeFilters(
+    NOT_DELETED_FILTER,
+    idInScopeOrWebsiteFilter("bookingId", bookingIds)
+  );
   const refundFilter = {
     ...NOT_DELETED_FILTER,
     ...idInScopeFilter("bookingId", bookingIds),
@@ -176,7 +179,9 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
       vehicleStatus: "Available",
     }).maxTimeMS(2500),
     Booking.countDocuments({ ...bookingFilter, rideStatus: "In Ride" }).maxTimeMS(2500),
-    Ticket.countDocuments({ ...ticketFilter, status: "OPEN" }).maxTimeMS(2500),
+    Ticket.countDocuments(
+      mergeFilters(ticketFilter, { status: { $in: [...OPEN_TICKET_STATUSES] } })
+    ).maxTimeMS(2500),
     Refund.countDocuments({
       ...refundFilter,
       refundStatus: { $in: ["PROCESSING", "PENDING"] },

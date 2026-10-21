@@ -62,7 +62,7 @@ const HELP_TOPICS = [
     label: "टिकट",
     ask: "सपोर्ट टिकट कैसे बनता है?",
     icon: Ticket,
-    blurb: "Book EV पर Need help?",
+    blurb: "पेमेंट के नीचे टिकट",
   },
   {
     label: "हेल्पडेस्क",

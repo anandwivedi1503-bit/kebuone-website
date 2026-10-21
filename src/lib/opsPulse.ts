@@ -8,9 +8,12 @@ import Refund from "@/models/Refund";
 import Rider from "@/models/Rider";
 import Ticket from "@/models/Ticket";
 import Vehicle from "@/models/Vehicle";
+import { OPEN_TICKET_STATUSES, PENDING_KYC_FILTER, PENDING_REFUND_STATUSES } from "@/lib/opsTruth";
 import {
   applyHubScope,
   idInScopeFilter,
+  idInScopeOrWebsiteFilter,
+  mergeFilters,
   scopedBookingIds,
   scopedRiderIds,
   sessionHubScope,
@@ -33,7 +36,7 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
     "startHub",
   ]);
   const vehicleBase = applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub"]);
-  const ticketScope = idInScopeFilter("bookingId", bookingIds);
+  const ticketScope = idInScopeOrWebsiteFilter("bookingId", bookingIds);
   const riderScope = idInScopeFilter("riderId", riderIds);
   const refundScope = idInScopeFilter("bookingId", bookingIds);
 
@@ -66,11 +69,11 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
   if (can(session, API_DASHBOARDS.tickets)) {
     tasks.push(
       (async () => {
-        const open = await Ticket.countDocuments({
-          ...NOT_DELETED_FILTER,
-          ...ticketScope,
-          status: { $in: ["OPEN", "IN-PROGRESS"] },
-        }).maxTimeMS(1800);
+        const open = await Ticket.countDocuments(
+          mergeFilters(NOT_DELETED_FILTER, ticketScope, {
+            status: { $in: [...OPEN_TICKET_STATUSES] },
+          })
+        ).maxTimeMS(1800);
         stats.push({ label: "Tickets", value: String(open), dashboard: "support" });
       })()
     );
@@ -78,11 +81,9 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
   if (can(session, API_DASHBOARDS.ridersRead)) {
     tasks.push(
       (async () => {
-        const pending = await Rider.countDocuments({
-          ...NOT_DELETED_FILTER,
-          ...riderScope,
-          $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
-        }).maxTimeMS(1800);
+        const pending = await Rider.countDocuments(
+          mergeFilters(NOT_DELETED_FILTER, riderScope, PENDING_KYC_FILTER)
+        ).maxTimeMS(1800);
         stats.push({ label: "KYC", value: String(pending), dashboard: "kyc" });
       })()
     );
@@ -101,11 +102,11 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
   if (can(session, API_DASHBOARDS.refunds)) {
     tasks.push(
       (async () => {
-        const pending = await Refund.countDocuments({
-          ...NOT_DELETED_FILTER,
-          ...refundScope,
-          status: "PENDING",
-        }).maxTimeMS(1800);
+        const pending = await Refund.countDocuments(
+          mergeFilters(NOT_DELETED_FILTER, refundScope, {
+            refundStatus: { $in: [...PENDING_REFUND_STATUSES] },
+          })
+        ).maxTimeMS(1800);
         stats.push({ label: "Refunds", value: String(pending), dashboard: "refunds" });
       })()
     );

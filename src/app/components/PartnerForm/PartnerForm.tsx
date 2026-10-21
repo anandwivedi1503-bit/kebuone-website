@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
 import {
   ComingThroughChips,
   PREMIUM_BTN,
@@ -33,6 +34,8 @@ export default function PartnerForm() {
     consentAccepted: false,
   });
   const [loading, setLoading] = useState(false);
+  const [formStatus, setFormStatus] = useState("");
+  const [formError, setFormError] = useState("");
 
   const set = (name: string, value: string | boolean) =>
     setFormData((current) => ({ ...current, [name]: value }));
@@ -41,6 +44,8 @@ export default function PartnerForm() {
     e.preventDefault();
     try {
       setLoading(true);
+      setFormStatus("");
+      setFormError("");
       const res = await fetch("/api/partners", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -48,7 +53,7 @@ export default function PartnerForm() {
       });
       const data = await res.json();
       if (data.success) {
-        alert("Partner Application Submitted Successfully");
+        setFormStatus("Partner application submitted. Our team will contact you.");
         setFormData({
           fullName: "",
           phone: "",
@@ -68,11 +73,11 @@ export default function PartnerForm() {
           consentAccepted: false,
         });
       } else {
-        alert(data.errors?.join("\n") || data.message || "Submission Failed");
+        setFormError(data.errors?.join(" ") || data.message || "Submission failed.");
       }
     } catch (error) {
       console.log(error);
-      alert("Something went wrong");
+      setFormError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +94,11 @@ export default function PartnerForm() {
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-center text-[15px] leading-8 text-[#5C635E]">
           Dealers, distributors and fleet partners use this form. Looking at fleet investment first?{" "}
-          <a href="#fleet-investment" className="font-medium text-[#1F6B4A]">
+          <a
+            href={FLEET_INVESTMENT.pdfHref}
+            download={FLEET_INVESTMENT.pdfFileName}
+            className="font-medium text-[#1F6B4A]"
+          >
             Download the PDF
           </a>
           .
@@ -299,6 +308,12 @@ export default function PartnerForm() {
               />
               I agree to be contacted by EVUDDY regarding partnership opportunities.
             </label>
+            {formError ? (
+              <p className="text-sm font-medium text-red-700 md:col-span-2">{formError}</p>
+            ) : null}
+            {formStatus ? (
+              <p className="text-sm font-medium text-[#1F6B4A] md:col-span-2">{formStatus}</p>
+            ) : null}
             <button type="submit" disabled={loading} className={`${PREMIUM_BTN} md:col-span-2`}>
               {loading ? "Submitting..." : "Apply for EVUDDY partnership →"}
             </button>

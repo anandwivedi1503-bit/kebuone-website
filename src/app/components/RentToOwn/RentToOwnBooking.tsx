@@ -18,6 +18,7 @@ import {
 import { PREMIUM_BTN, PREMIUM_FIELD, VoiceArea, VoiceField } from "../FormVoice/FormVoiceDock";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import RideSwipeControl from "../BikeBooking/RideSwipeControl";
+import RiderComplaintTicket from "../BikeBooking/RiderComplaintTicket";
 import {
   loadRtoDraft,
   markRiderBookingLock,
@@ -514,6 +515,7 @@ export default function RentToOwnBooking() {
       const orderData = await orderRes.json();
       if (!orderData.success) {
         setError(orderData.message || "Unable to start payment.");
+        setPaymentLoading(false);
         return;
       }
 
@@ -605,12 +607,14 @@ export default function RentToOwnBooking() {
               verifyData = { success: false, message: "Payment verification failed." };
             }
             if (!verifyData?.success) {
+              setPaymentLoading(false);
               setError(
                 verifyData?.message ||
                   "Razorpay received the payment. Refresh this page and it will attach to your booking."
               );
               return;
             }
+            setPaymentLoading(false);
             applyRtoPaid(verifyData);
           },
           modal: {
@@ -631,13 +635,16 @@ export default function RentToOwnBooking() {
         const script = document.createElement("script");
         script.src = "https://checkout.razorpay.com/v1/checkout.js";
         script.onload = openCheckout;
+        script.onerror = () => {
+          setError("Payment could not be started.");
+          setPaymentLoading(false);
+        };
         document.body.appendChild(script);
       } else {
         openCheckout();
       }
     } catch {
       setError("Payment could not be started.");
-    } finally {
       setPaymentLoading(false);
     }
   };
@@ -1052,6 +1059,19 @@ export default function RentToOwnBooking() {
                 </button>
               </div>
             )}
+            {bookingId && firebaseIdToken ? (
+              <RiderComplaintTicket
+                bookingId={bookingId}
+                token={firebaseIdToken}
+                riderPhone={riderPhone}
+                riderId={riderId}
+                rideStatus={rideStatus}
+              />
+            ) : bookingId ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                Sign in with your booking phone to send a rider complaint ticket from this payment step.
+              </div>
+            ) : null}
           </div>
         )}
       </div>

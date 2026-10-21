@@ -24,7 +24,7 @@ const features = [
   {
     icon: HeartHandshake,
     title: "24×7 rider helpdesk",
-    text: "helpdesk@kebuone.in · +91 8726006519 · tickets on Book EV.",
+    text: "helpdesk@kebuone.in · +91 8726006519 · Rider complaint ticket under payment.",
   },
 ];
 

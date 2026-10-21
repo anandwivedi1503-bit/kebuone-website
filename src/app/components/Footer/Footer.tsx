@@ -16,7 +16,6 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaYoutube,
-  FaFacebookF,
 } from "react-icons/fa";
 
 import { riderResumeHref } from "@/lib/riderPlanGate";
@@ -470,22 +469,6 @@ export default function Footer() {
         YouTube
       </motion.a>
 
-      <motion.a
-        whileHover={{ x: 8 }}
-        href="#"
-        className="
-        flex
-        items-center
-        gap-3
-        text-gray-400
-        transition
-        hover:text-white
-        "
-      >
-        <FaFacebookF size={20} />
-        Facebook
-      </motion.a>
-
     </div>
 
     </div>
@@ -607,7 +590,7 @@ export default function Footer() {
       whileTap={{
         scale: .95,
       }}
-      href="https://www.instagram.com/kebuone/"
+      href="https://www.instagram.com/evuddy_bike?igsh=OXlhcXpnYnJqcXEx/"
       target="_blank"
       rel="noopener noreferrer"
       className="
@@ -687,34 +670,6 @@ export default function Footer() {
       "
     >
       <FaYoutube size={20} />
-    </motion.a>
-
-    <motion.a
-      whileHover={{
-        y: -5,
-        scale: 1.08,
-      }}
-      whileTap={{
-        scale: .95,
-      }}
-      href="#"
-      className="
-      flex
-      h-12
-      w-12
-      items-center
-      justify-center
-      rounded-full
-      border
-      border-white/10
-      bg-white/5
-      transition-all
-      duration-300
-      hover:border-[#18B368]
-      hover:bg-[#18B368]/15
-      "
-    >
-      <FaFacebookF size={20} />
     </motion.a>
 
   </div>
