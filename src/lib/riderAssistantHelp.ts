@@ -242,9 +242,10 @@ export async function loadEvaRiderSession(
     firstName: name,
     isNewRider,
     canBook: true,
-    briefing: `RIDER ${rider.riderId} (${name || "unnamed"}): active booking ${booking.bookingId} rideStatus=${ride} paymentStatus=${pay} pending=${pending} hub=${booking.startHub || ""} mode=${booking.rentalMode || ""}. NEVER read OTP. NEVER take payment. Next step is on Book EV buttons.`,
-    href: "/book-bike",
+    briefing: `RIDER ${rider.riderId} (${name || "unnamed"}): active booking ${booking.bookingId} rideStatus=${ride} paymentStatus=${pay} pending=${pending} hub=${booking.startHub || ""} mode=${booking.rentalMode || ""}. NEVER read OTP. NEVER take payment. Next step is on Book EV buttons. Rider complaint ticket lives under the payment step.`,
+    href: String(booking.rentalMode) === "Rent To Own" ? "/rent-to-own" : "/book-bike",
     statusAnswer,
+    bookingId: String(booking.bookingId || ""),
   };
 }
 

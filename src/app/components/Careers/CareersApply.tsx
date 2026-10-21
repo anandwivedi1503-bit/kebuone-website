@@ -27,7 +27,6 @@ export default function CareersApply() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ticketId: `CR-${Date.now()}`,
           userId: email || name,
           category: "OTHER",
           description,

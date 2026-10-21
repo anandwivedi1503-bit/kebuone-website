@@ -44,7 +44,7 @@ const DASHBOARD_ALIASES: { keys: RegExp; id: string }[] = [
   { keys: /\b(partner|partners|fleet partner)\b/i, id: "partner" },
   { keys: /\b(user|users|rider|riders)\b/i, id: "users" },
   { keys: /\b(kyc)\b/i, id: "kyc" },
-  { keys: /\b(support|ticket|tickets|complaint)\b/i, id: "support" },
+  { keys: /\b(support|ticket|tickets|complaint|टिकट|शिकायत)\b/i, id: "support" },
   { keys: /\b(transaction|transactions|payments list)\b/i, id: "transactions" },
   { keys: /\b(analytics|stats board)\b/i, id: "analytics" },
   { keys: /\b(refund|refunds)\b/i, id: "refunds" },
@@ -135,6 +135,15 @@ function buildAction(
         focusQuery: focusQuery || undefined,
       };
     }
+    if (q.wantKyc && canOpenDashboard(session, "kyc")) {
+      return {
+        type: "open_dashboard",
+        dashboard: "kyc",
+        label: "Open KYC — finish Approve there",
+        autoNavigate: true,
+        focusQuery: focusQuery || undefined,
+      };
+    }
     if (
       (q.wantKyc || hits.some((hit) => hit.kind === "rider")) &&
       canOpenDashboard(session, "users")
@@ -143,15 +152,6 @@ function buildAction(
         type: "open_dashboard",
         dashboard: "users",
         label: "Open Users — finish Approve there",
-        autoNavigate: true,
-        focusQuery: focusQuery || undefined,
-      };
-    }
-    if (q.wantKyc && canOpenDashboard(session, "kyc")) {
-      return {
-        type: "open_dashboard",
-        dashboard: "kyc",
-        label: "Open KYC — finish Approve there",
         autoNavigate: true,
         focusQuery: focusQuery || undefined,
       };
@@ -184,6 +184,26 @@ function buildAction(
       label: "Open Bookings — Ready for Pickup",
       autoNavigate: true,
       focusQuery: "Ready For Pickup",
+    };
+  }
+
+  if (q.wantOpenTickets && canOpenDashboard(session, "support")) {
+    return {
+      type: "open_dashboard",
+      dashboard: "support",
+      label: "Open Support — rider tickets",
+      autoNavigate: true,
+      focusQuery: focusQuery || undefined,
+    };
+  }
+
+  if (q.wantKyc && canOpenDashboard(session, "kyc")) {
+    return {
+      type: "open_dashboard",
+      dashboard: "kyc",
+      label: "Open KYC — pending riders",
+      autoNavigate: true,
+      focusQuery: focusQuery || undefined,
     };
   }
 

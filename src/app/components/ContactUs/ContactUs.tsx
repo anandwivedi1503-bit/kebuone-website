@@ -66,14 +66,25 @@ export default function ContactUs() {
     setError("");
     setStatus("");
 
+    const phone = form.phone.replace(/\D/g, "").slice(-10);
+    if (!/^[6-9]\d{9}$/.test(phone)) {
+      setError("Enter a valid 10-digit Indian mobile number.");
+      setLoading(false);
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email.trim())) {
+      setError("Enter a valid email address.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ticketId: `CT-${Date.now()}`,
           userId: form.email || form.phone || form.fullName,
-          riderPhone: form.phone.replace(/\D/g, "").slice(-10),
+          riderPhone: phone,
           category: "OTHER",
           description: `${form.fullName} | ${form.phone} | ${form.subject}: ${form.message}`.slice(0, 500),
           status: "OPEN",

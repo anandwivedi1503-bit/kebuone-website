@@ -144,6 +144,14 @@ export async function ensureScaleIndexes() {
       ),
     "booking hub createdAt"
   );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { startHub: 1, createdAt: -1 },
+        { background: true, name: "booking_start_hub_created" }
+      ),
+    "booking startHub createdAt"
+  );
 
   await createIndexSafe(
     () =>
@@ -227,6 +235,46 @@ export async function ensureScaleIndexes() {
         { background: true, name: "ops_ticket_status_created" }
       ),
     "ops ticket status"
+  );
+  await createIndexSafe(
+    () =>
+      Ticket.collection.createIndex(
+        { bookingId: 1, status: 1, createdAt: -1 },
+        { background: true, name: "ops_ticket_booking_status" }
+      ),
+    "ops ticket booking status"
+  );
+  await createIndexSafe(
+    () =>
+      Ticket.collection.createIndex(
+        { isDeleted: 1, createdAt: -1 },
+        { background: true, name: "ops_ticket_deleted_created" }
+      ),
+    "ops ticket deleted"
+  );
+  await createIndexSafe(
+    () =>
+      Rider.collection.createIndex(
+        { kycStatus: 1, createdAt: -1 },
+        { background: true, name: "ops_rider_kycStatus_created" }
+      ),
+    "ops rider kycStatus"
+  );
+  await createIndexSafe(
+    () =>
+      Refund.collection.createIndex(
+        { refundStatus: 1, createdAt: -1 },
+        { background: true, name: "ops_refund_status_created" }
+      ),
+    "ops refund status"
+  );
+  await createIndexSafe(
+    () =>
+      Transaction.collection.createIndex(
+        { bookingId: 1, createdAt: -1 },
+        { background: true, name: "ops_txn_booking_created" }
+      ),
+    "ops transaction booking"
   );
   await createIndexSafe(
     () =>

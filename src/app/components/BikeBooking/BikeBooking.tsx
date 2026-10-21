@@ -18,6 +18,7 @@ import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, COMPANY_SECURITY_DEPOSIT, catalogRate } from "@/lib/rentalPlans";
 import { MicSlot, PREMIUM_BTN, PREMIUM_FIELD } from "../FormVoice/FormVoiceDock";
 import RideSwipeControl from "./RideSwipeControl";
+import RiderComplaintTicket from "./RiderComplaintTicket";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
   loadRentalDraft,
@@ -194,19 +195,6 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [firebaseIdToken, setFirebaseIdToken] = useState("");
   const [walletAvailable, setWalletAvailable] = useState(0);
   const [walletStatus, setWalletStatus] = useState("");
-  const [helpText, setHelpText] = useState("");
-  const [helpStatus, setHelpStatus] = useState("");
-  const [helpLoading, setHelpLoading] = useState(false);
-  const [helpCategory, setHelpCategory] = useState("BOOKING_ISSUE");
-  const [helpTickets, setHelpTickets] = useState<
-    Array<{
-      ticketId?: string;
-      category?: string;
-      status?: string;
-      description?: string;
-      adminRemarks?: string;
-    }>
-  >([]);
   const [isRentToOwn, setIsRentToOwn] = useState(false);
   const [receipts, setReceipts] = useState<
     Array<{
@@ -393,14 +381,6 @@ useEffect(() => {
       setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
       if (Number(active.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
       try {
-        const ticketRes = await fetch("/api/tickets/mine", {
-          headers: { Authorization: `Bearer ${firebaseIdToken}` },
-          cache: "no-store",
-        });
-        const ticketData = await ticketRes.json();
-        if (ticketData.success && Array.isArray(ticketData.data)) {
-          setHelpTickets(ticketData.data);
-        }
         const receiptRes = await fetch("/api/receipts/mine", {
           headers: { Authorization: `Bearer ${firebaseIdToken}` },
           cache: "no-store",
@@ -536,14 +516,6 @@ useEffect(() => {
         );
       }
       try {
-        const ticketRes = await fetch("/api/tickets/mine", {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-        const ticketData = await ticketRes.json();
-        if (ticketData.success && Array.isArray(ticketData.data)) {
-          setHelpTickets(ticketData.data);
-        }
         const receiptRes = await fetch("/api/receipts/mine", {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
@@ -1419,62 +1391,10 @@ setStep(4);
     } catch {}
   };
 
-  const sendHelpTicket = async () => {
-    setHelpStatus("");
-    const description = helpText.trim();
-    if (description.length < 10) {
-      setHelpStatus("Describe the issue in at least 10 characters.");
-      return;
-    }
-    const token = firebaseIdToken || (await auth.currentUser?.getIdToken());
-    if (!token || !bookingId) {
-      setHelpStatus("Sign in and complete booking first.");
-      return;
-    }
-    setHelpLoading(true);
-    try {
-      const res = await fetch("/api/tickets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ticketId: `BK-${Date.now()}`,
-          bookingId,
-          userId: riderPhone || riderId,
-          category: helpCategory || "BOOKING_ISSUE",
-          description: `${rideStatus === "In Ride" ? "During ride: " : ""}${description}`.slice(0, 500),
-          firebaseIdToken: token,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        setHelpStatus(data.errors?.join(" ") || data.message || "Could not send ticket.");
-        return;
-      }
-      setHelpText("");
-      setHelpStatus("Support ticket sent. You can track status below. Hub staff see it on Support.");
-      try {
-        const ticketRes = await fetch("/api/tickets/mine", {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-        const ticketData = await ticketRes.json();
-        if (ticketData.success && Array.isArray(ticketData.data)) {
-          setHelpTickets(ticketData.data);
-        }
-      } catch {}
-    } finally {
-      setHelpLoading(false);
-    }
-  };
-
   return (
     <section
 className="
 relative
-overflow-hidden
 bg-gradient-to-br
 from-[#F6FFF9]
 via-white
@@ -1484,6 +1404,7 @@ md:py-28
 "
 >
 
+<div className="pointer-events-none absolute inset-0 overflow-hidden">
 <div
 className="
 absolute
@@ -1509,6 +1430,7 @@ bg-[#22C55E]/10
 blur-[140px]
 "
 />
+</div>
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="mb-16 text-center print:hidden">
 
@@ -2786,40 +2708,22 @@ Payment Status
 
 )}
 
-{(bookingDone && paidAmount > 0) && (
-<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
-  <p className="font-bold text-[#0F172A]">Need help with this booking?</p>
-  <p className="mt-1 text-sm text-slate-500">
-    Use this during pickup or mid-ride: unlock, breakdown, battery, payment. Hub staff see it immediately and you see their reply below.
-  </p>
-  <select
-    value={helpCategory}
-    onChange={(e) => setHelpCategory(e.target.value)}
-    className="mt-3 h-11 w-full rounded-2xl border border-slate-200 px-4 text-sm outline-none focus:border-[#18B368]"
-  >
-    <option value="BOOKING_ISSUE">Booking / general</option>
-    <option value="UNLOCK_ISSUE">Unlock / pickup OTP</option>
-    <option value="VEHICLE_BREAKDOWN">Scooter breakdown</option>
-    <option value="BATTERY_ISSUE">Battery / range / swap</option>
-    <option value="PAYMENT_ISSUE">Payment</option>
-    <option value="REFUND_REQUEST">Deposit refund</option>
-  </select>
-  <textarea
-    value={helpText}
-    onChange={(e) => setHelpText(e.target.value)}
-    rows={3}
-    className="mt-3 w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#18B368]"
-    placeholder="What happened? Example: scooter stopped, battery died, puncture..."
+{bookingDone && bookingId && firebaseIdToken ? (
+  <RiderComplaintTicket
+    bookingId={bookingId}
+    token={firebaseIdToken}
+    riderPhone={riderPhone}
+    riderId={riderId}
+    rideStatus={rideStatus}
   />
-  <button
-    type="button"
-    disabled={helpLoading}
-    onClick={() => void sendHelpTicket()}
-    className="mt-3 h-11 rounded-full bg-[#0F172A] px-5 text-sm font-bold text-white disabled:opacity-60"
-  >
-    {helpLoading ? "Sending..." : "Send to support"}
-  </button>
-  {helpStatus ? <p className="mt-2 text-sm text-slate-600">{helpStatus}</p> : null}
+) : bookingDone && bookingId ? (
+  <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+    Sign in with your booking phone to send a rider complaint ticket from this payment step.
+  </div>
+) : null}
+
+{(bookingDone && bookingId && (pastRides.length || isRentToOwn)) && (
+<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
   {pastRides.length ? (
     <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
       <p className="text-sm font-bold text-[#0F172A]">Your recent rides</p>
@@ -2856,28 +2760,6 @@ Payment Status
           );
         })}
       </ul>
-    </div>
-  ) : null}
-  {helpTickets.length ? (
-    <div className="mt-4 space-y-2">
-      {helpTickets.slice(0, 5).map((ticket) => (
-          <div
-            key={String(ticket.ticketId)}
-            className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left text-sm"
-          >
-            <p className="font-bold text-[#0F172A]">
-              {ticket.ticketId} · {ticket.status} · {String(ticket.category || "").replace(/_/g, " ")}
-            </p>
-            <p className="mt-1 text-slate-600">{ticket.description}</p>
-            {ticket.adminRemarks ? (
-              <p className="mt-2 text-emerald-800">
-                Staff: {ticket.adminRemarks}
-              </p>
-            ) : ticket.status === "OPEN" || ticket.status === "IN-PROGRESS" ? (
-              <p className="mt-2 text-amber-800">Hub staff are working on this.</p>
-            ) : null}
-          </div>
-        ))}
     </div>
   ) : null}
   {isRentToOwn ? (

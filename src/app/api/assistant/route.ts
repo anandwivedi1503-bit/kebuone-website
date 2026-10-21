@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 
 import { answerEvuddyQuestion, assistantConfigured, type ChatTurn } from "@/lib/assistantReply";
+import { fileRiderBookingTicket } from "@/lib/fileRiderBookingTicket";
 import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
+import { getVerifiedFirebaseUser } from "@/lib/requestAuth";
 import { loadEvaRiderSession } from "@/lib/riderAssistantHelp";
+import { wantsFileSupportTicket } from "@/lib/riderAssistantIntent";
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +38,33 @@ export async function POST(req: Request) {
         riderSession = await loadEvaRiderSession(req, body.firebaseIdToken);
       } catch (error) {
         console.error("ASSISTANT RIDER SESSION SKIPPED:", error);
+      }
+    }
+
+    if (wantsFileSupportTicket(question) && riderSession?.bookingId) {
+      const firebaseUser = await getVerifiedFirebaseUser(req, body.firebaseIdToken);
+      if (firebaseUser) {
+        const filed = await fileRiderBookingTicket({
+          firebaseUser,
+          bookingId: riderSession.bookingId,
+          description: question,
+        });
+        if (filed.ok) {
+          return NextResponse.json({
+            success: true,
+            answer: `${riderSession.firstName ? `${riderSession.firstName} जी, ` : ""}शिकायत टिकट ${filed.ticketId} बन गया (${filed.category.replace(/_/g, " ")}). स्टाफ Support डैशबोर्ड पर देखेंगे। Book EV / Rent to Own पेमेंट के नीचे भी स्टेटस दिखेगा। OTP या पैसे मैं नहीं लेती।`,
+            href: riderSession.href || "/book-bike",
+            navigate: false,
+            mode: assistantConfigured() ? "ai" : "guide",
+          });
+        }
+        return NextResponse.json({
+          success: true,
+          answer: `${riderSession.firstName ? `${riderSession.firstName} जी, ` : ""}टिकट अभी नहीं बना: ${filed.message} Book EV / Rent to Own पेमेंट स्टेप के नीचे वाला फॉर्म भी इस्तेमाल कर सकते हैं।`,
+          href: riderSession.href || "/book-bike",
+          navigate: true,
+          mode: assistantConfigured() ? "ai" : "guide",
+        });
       }
     }
 

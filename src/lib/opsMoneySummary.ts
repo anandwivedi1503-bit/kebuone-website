@@ -50,8 +50,8 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
                     { $ne: ["$rideStatus", "Cancelled"] },
                     {
                       $or: [
-                        { $eq: ["$paymentStatus", "Unpaid"] },
                         { $eq: ["$paymentStatus", "Pending"] },
+                        { $eq: ["$paymentStatus", "Partial"] },
                       ],
                     },
                   ],

@@ -13,8 +13,15 @@ import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import {
+  OPEN_TICKET_STATUSES,
+  PENDING_KYC_FILTER,
+  PENDING_REFUND_STATUSES,
+} from "@/lib/opsTruth";
+import {
   applyHubScope,
   idInScopeFilter,
+  idInScopeOrWebsiteFilter,
+  mergeFilters,
   scopedBookingIds,
   scopedRiderIds,
   sessionHubScope,
@@ -74,7 +81,8 @@ export function parseOpsQuery(question: string): OpsQueryTokens {
         : "";
   const bookingId = (asked.match(/\b(?:BK|RTO)-\d+\b/i) || [])[0]?.toUpperCase() || "";
   const riderId = (asked.match(/\bRDR-\d+\b/i) || [])[0]?.toUpperCase() || "";
-  const ticketId = (asked.match(/\bTKT-[A-Z0-9-]+\b/i) || [])[0] || "";
+  const ticketId =
+    (asked.match(/\b(?:TKT|CT|CR)-[A-Z0-9-]+\b/i) || [])[0]?.toUpperCase() || "";
   const vehicleToken = (asked.match(/\b(?:EV|VH|VEH)[-_]?\w+\b/i) || [])[0] || "";
   const token = escapeRegex(asked.replace(/['"]/g, "").trim());
   const fuzzy = token.length >= 2 ? new RegExp(token, "i") : null;
@@ -126,7 +134,7 @@ export async function universalOpsSearch(
   const bookingBase = () =>
     applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub", "startHub"]);
   const vehicleBase = () => applyHubScope({ ...NOT_DELETED_FILTER }, hubs, ["currentHub"]);
-  const ticketScope = idInScopeFilter("bookingId", bookingIds);
+  const ticketScope = idInScopeOrWebsiteFilter("bookingId", bookingIds);
   const riderScope = idInScopeFilter("riderId", riderIds);
   const walletScope = idInScopeFilter("riderId", riderIds);
   const txScope = idInScopeFilter("bookingId", bookingIds);
@@ -171,11 +179,11 @@ export async function universalOpsSearch(
     if (can(session, API_DASHBOARDS.tickets) && (q.wantSummary || q.wantCounts || q.wantOpenTickets)) {
       tasks.push(
         (async () => {
-          const open = await Ticket.countDocuments({
-            ...NOT_DELETED_FILTER,
-            ...ticketScope,
-            status: { $in: ["OPEN", "IN-PROGRESS"] },
-          }).maxTimeMS(1500);
+          const open = await Ticket.countDocuments(
+            mergeFilters(NOT_DELETED_FILTER, ticketScope, {
+              status: { $in: [...OPEN_TICKET_STATUSES] },
+            })
+          ).maxTimeMS(1500);
           stats.push({ label: "Tickets", value: String(open), dashboard: "support" });
         })()
       );
@@ -183,11 +191,9 @@ export async function universalOpsSearch(
     if (can(session, API_DASHBOARDS.ridersRead) && (q.wantSummary || q.wantCounts || q.wantKyc)) {
       tasks.push(
         (async () => {
-          const pending = await Rider.countDocuments({
-            ...NOT_DELETED_FILTER,
-            ...riderScope,
-            $or: [{ approvalStatus: "Pending" }, { status: "Pending" }],
-          }).maxTimeMS(1500);
+          const pending = await Rider.countDocuments(
+            mergeFilters(NOT_DELETED_FILTER, riderScope, PENDING_KYC_FILTER)
+          ).maxTimeMS(1500);
           stats.push({ label: "KYC", value: String(pending), dashboard: "kyc" });
         })()
       );
@@ -206,11 +212,11 @@ export async function universalOpsSearch(
     if (can(session, API_DASHBOARDS.refunds) && (q.wantSummary || q.wantCounts || q.wantRefunds)) {
       tasks.push(
         (async () => {
-          const pending = await Refund.countDocuments({
-            ...NOT_DELETED_FILTER,
-            ...txScope,
-            status: "PENDING",
-          }).maxTimeMS(1500);
+          const pending = await Refund.countDocuments(
+            mergeFilters(NOT_DELETED_FILTER, txScope, {
+              refundStatus: { $in: [...PENDING_REFUND_STATUSES] },
+            })
+          ).maxTimeMS(1500);
           stats.push({ label: "Refunds", value: String(pending), dashboard: "refunds" });
         })()
       );
@@ -271,7 +277,7 @@ export async function universalOpsSearch(
         if (q.riderId) and.push({ riderId: q.riderId });
         else if (q.phone) and.push({ phone: q.phone });
         else if (q.wantKyc && !q.fuzzy) {
-          and.push({ $or: [{ approvalStatus: "Pending" }, { status: "Pending" }] });
+          and.push(PENDING_KYC_FILTER);
         } else if (q.fuzzy) {
           and.push({
             $or: [{ riderId: q.fuzzy }, { fullName: q.fuzzy }, { phone: q.fuzzy }, { email: q.fuzzy }],
@@ -346,7 +352,7 @@ export async function universalOpsSearch(
         if (q.ticketId) and.push({ ticketId: q.ticketId });
         if (q.riderId) and.push({ riderId: q.riderId });
         if (q.phone) and.push({ riderPhone: q.phone });
-        if (q.wantOpenTickets) and.push({ status: { $in: ["OPEN", "IN-PROGRESS"] } });
+        if (q.wantOpenTickets) and.push({ status: { $in: [...OPEN_TICKET_STATUSES] } });
         if (!and.length && q.fuzzy) {
           and.push({
             $or: [
@@ -359,7 +365,9 @@ export async function universalOpsSearch(
           });
         }
         if (!and.length) return;
-        const rows = await Ticket.find({ ...NOT_DELETED_FILTER, ...ticketScope, $and: and })
+        const rows = await Ticket.find(
+          mergeFilters(NOT_DELETED_FILTER, ticketScope, { $and: and })
+        )
           .select("ticketId bookingId riderId status category riderPhone")
           .sort({ createdAt: -1 })
           .limit(10)
@@ -384,7 +392,7 @@ export async function universalOpsSearch(
       (async () => {
         const and: Record<string, unknown>[] = [];
         if (q.wantRefunds && !q.bookingId && !q.riderId && !q.phone && !q.fuzzy) {
-          and.push({ status: "PENDING" });
+          and.push({ refundStatus: { $in: [...PENDING_REFUND_STATUSES] } });
         }
         if (q.bookingId) and.push({ bookingId: q.bookingId });
         if (q.riderId) and.push({ riderId: q.riderId });
@@ -395,7 +403,7 @@ export async function universalOpsSearch(
         }
         if (!and.length) return;
         const rows = await Refund.find({ ...NOT_DELETED_FILTER, ...txScope, $and: and })
-          .select("refundId bookingId riderId amount status")
+          .select("refundId bookingId riderId amount refundStatus status")
           .sort({ createdAt: -1 })
           .limit(10)
           .lean()
@@ -405,9 +413,9 @@ export async function universalOpsSearch(
             kind: "refund",
             id: String(row.refundId || ""),
             title: String(row.refundId || "Refund"),
-            detail: `${row.bookingId || ""} · ₹${Number(row.amount || 0)} · ${row.status || ""}`,
+            detail: `${row.bookingId || ""} · ₹${Number(row.amount || 0)} · ${row.refundStatus || row.status || ""}`,
             dashboard: "refunds",
-            badge: String(row.status || ""),
+            badge: String(row.refundStatus || row.status || ""),
           });
         }
       })()
