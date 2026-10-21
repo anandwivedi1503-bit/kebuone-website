@@ -14,7 +14,6 @@ import { firebaseAuth } from "@/lib/firebase";
 import {
   isRiderLoggedIn,
   logoutRider,
-  riderResumeHref,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
 import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
@@ -47,7 +46,6 @@ function isHandsetScreen() {
 function NavbarInner() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
-  const [resumeHref, setResumeHref] = useState("/ride-options");
   const [compactNav, setCompactNav] = useState(false);
 
   useEffect(() => {
@@ -74,7 +72,6 @@ function NavbarInner() {
     const refreshSession = () => {
       try {
         const signedIn = Boolean(firebaseAuth?.currentUser) && isRiderLoggedIn();
-        setResumeHref(riderResumeHref());
         setRiderLoggedIn(signedIn);
       } catch {
         setRiderLoggedIn(false);
@@ -135,13 +132,13 @@ function NavbarInner() {
         <div className="nav-desktop-row shrink-0 items-center gap-[clamp(0.25rem,0.55vw,0.65rem)]">
           {!riderLoggedIn && (
             <>
-          <Link
-            href="/partners#dealer-network"
-            className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
-          >
-            <Building2 size={16} />
-            Dealers
-          </Link>
+              <Link
+                href="/partners#dealer-network"
+                className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
+              >
+                <Building2 size={16} />
+                Dealers
+              </Link>
               <Link
                 href="/partners"
                 className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
@@ -156,18 +153,18 @@ function NavbarInner() {
                 <Wallet size={16} />
                 Invest
               </Link>
-              <Link
-                href="/ride-options"
-                className="group flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-3.5 text-[clamp(12px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
-              >
-                Book EV
-                <ChevronRight
-                  size={16}
-                  className="transition-transform duration-300 group-hover:translate-x-1"
-                />
-              </Link>
             </>
           )}
+          <Link
+            href="/ride-options"
+            className="group flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap bg-[#1F6B4A] px-3.5 text-[clamp(12px,1.05vw,15px)] font-medium tracking-[0.06em] text-white transition-colors hover:bg-[#18573c]"
+          >
+            Book EV
+            <ChevronRight
+              size={16}
+              className="transition-transform duration-300 group-hover:translate-x-1"
+            />
+          </Link>
           {riderLoggedIn && <RiderAccountMenu />}
         </div>
 
@@ -219,11 +216,11 @@ function NavbarInner() {
                 {riderLoggedIn ? (
                   <>
                     <Link
-                      href={resumeHref}
+                      href="/ride-options"
                       onClick={closeMenu}
                       className="flex h-14 w-full items-center justify-center gap-2 rounded-full bg-[#111827] font-semibold text-white"
                     >
-                      Continue my ride
+                      Book EV
                       <ChevronRight size={18} />
                     </Link>
                     <button

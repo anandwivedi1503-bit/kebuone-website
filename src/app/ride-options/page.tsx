@@ -17,7 +17,6 @@ import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import {
   getChosenPlan,
-  hasRiderPlanReady,
   logoutRider,
   markRiderPlanReady,
   rememberRiderProfile,
@@ -113,38 +112,15 @@ export default function RideOptionsPage() {
       if (cancelled || booted) return;
       booted = true;
 
-      if (hasRiderPlanReady() && getChosenPlan()) {
-        window.location.replace(riderResumeHref());
-        return;
-      }
-
-      if (hasRiderPlanReady()) {
-        setView("plans");
-        setRideOptionsView("plans");
-        return;
-      }
-
       const user = auth?.currentUser;
       const storedPhone =
         user?.phoneNumber?.replace(/\D/g, "").slice(-10) ||
         localStorage.getItem("kebu_rider_phone") ||
         "";
 
-      if (user && storedPhone) {
-        try {
-          const token = await user.getIdToken();
-          const response = await fetch(`/api/riders?phone=${storedPhone}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await response.json();
-          if (!cancelled) applyRiderResult(data);
-          return;
-        } catch {
-          // Fall through to OTP.
-        }
-      }
-
+      if (storedPhone) setPhone(storedPhone);
       setView("otp");
+      setRideOptionsView("otp");
     };
 
     if (!auth) {
@@ -353,9 +329,9 @@ export default function RideOptionsPage() {
               Confirm your mobile number
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Already registered riders must complete OTP verification before choosing
-              Normal booking or Rent to Own. New riders can register directly. If you
-              already verified OTP here, registration will not send a second SMS.
+              Every Book EV start begins here. Enter your 10-digit mobile number, get OTP,
+              then choose Normal booking or Rent to Own. New riders can register after
+              this OTP — you will not get a second SMS.
             </p>
 
             <label className="mt-8 block text-sm font-semibold text-[#0F172A]">
