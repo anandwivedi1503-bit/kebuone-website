@@ -86,11 +86,11 @@ export default function HomePlans() {
                 plan.featured ? "ring-[#1F6B4A]/30" : "ring-[#E4DDD2]"
               }`}
             >
-              <div className="relative h-40 overflow-hidden bg-[#1C1917]">
+              <div className="relative aspect-[16/10] overflow-hidden bg-[#EDE8DE]">
                 <HomeImg
                   src={plan.image}
                   alt={`${plan.name} EVUDDY ride`}
-                  className="h-full w-full object-cover object-center transition duration-500 group-hover:scale-[1.04]"
+                  className="h-full w-full object-contain object-center"
                 />
                 {plan.featured ? (
                   <span className="absolute left-3 top-3 rounded-full bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#1F6B4A]">
@@ -114,8 +114,8 @@ export default function HomePlans() {
           href="/ride-options"
           className="mt-4 grid overflow-hidden bg-[#0B1B16] text-white sm:grid-cols-[220px_1fr_auto] sm:items-center"
         >
-          <div className="relative hidden h-full min-h-[140px] sm:block">
-            <HomeImg src={BRAND.range} alt="Rent to Own EVUDDY scooter" className="h-full w-full object-cover" />
+          <div className="relative hidden h-full min-h-[140px] bg-[#0B1B16] sm:block">
+            <HomeImg src={BRAND.range} alt="Rent to Own EVUDDY scooter" className="h-full w-full object-contain object-center" />
           </div>
           <div className="px-6 py-7">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-white/55">

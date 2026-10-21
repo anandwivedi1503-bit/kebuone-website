@@ -4,7 +4,7 @@ import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
 import { sessionHasAnyDashboard, type AdminSessionInfo } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
-import { OPEN_TICKET_STATUSES } from "@/lib/opsTruth";
+import { OPEN_TICKET_STATUSES, PENDING_KYC_FILTER } from "@/lib/opsTruth";
 import {
   applyHubScope,
   idInScopeFilter,
@@ -49,6 +49,8 @@ export type CommandCenterCounts = {
   completedSwaps: number;
   pendingPartners: number;
   approvedPartners: number;
+  pendingKyc: number;
+  depositHolds: number;
   wallets: number;
   blockedWallets: number;
   totalWalletBalance: number;
@@ -158,6 +160,8 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     completedSwaps,
     pendingPartners,
     approvedPartners,
+    pendingKyc,
+    depositHolds,
     wallets,
     blockedWallets,
     walletBalanceAgg,
@@ -212,6 +216,11 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     BatterySwap.countDocuments({ ...batteryFilter, status: "COMPLETED" }).maxTimeMS(2500),
     Partner.countDocuments({ applicationStatus: "Pending" }).maxTimeMS(2500),
     Partner.countDocuments({ applicationStatus: "Approved" }).maxTimeMS(2500),
+    Rider.countDocuments(mergeFilters(riderFilter, PENDING_KYC_FILTER)).maxTimeMS(2500),
+    Wallet.countDocuments({
+      ...walletFilter,
+      freezeAmount: { $gt: 0 },
+    }).maxTimeMS(2500),
     Wallet.countDocuments(walletFilter).maxTimeMS(2500),
     Wallet.countDocuments({
       ...walletFilter,
@@ -312,6 +321,8 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     completedSwaps,
     pendingPartners,
     approvedPartners,
+    pendingKyc,
+    depositHolds,
     wallets,
     blockedWallets,
     totalWalletBalance: Number(walletBalanceAgg[0]?.total || 0),
@@ -353,7 +364,10 @@ function filterCommandCenterForSession(
   const canWallet = sessionHasAnyDashboard(session, ...API_DASHBOARDS.walletRead);
   const canTx = sessionHasAnyDashboard(session, ...API_DASHBOARDS.transactions);
 
-  if (!canRiders) counts.riders = 0;
+  if (!canRiders) {
+    counts.riders = 0;
+    counts.pendingKyc = 0;
+  }
   if (!canVehicles) {
     counts.vehicles = 0;
     counts.availableVehicles = 0;
@@ -399,6 +413,7 @@ function filterCommandCenterForSession(
   if (!canWallet) {
     counts.wallets = 0;
     counts.blockedWallets = 0;
+    counts.depositHolds = 0;
     counts.totalWalletBalance = 0;
   }
   if (!canTx && !canWallet) counts.totalRevenue = 0;

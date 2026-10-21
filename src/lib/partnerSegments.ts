@@ -197,6 +197,10 @@ export const RIDER_NETWORK_SEGMENTS = PARTNER_SEGMENTS.filter(
   (segment) => segment.kind === "network"
 );
 
+export const PARTNER_DESK_SEGMENTS = PARTNER_SEGMENTS.filter(
+  (segment) => segment.kind === "role"
+);
+
 export function riderMatchesNetwork(
   rider: { comingThrough?: string },
   segmentId: PartnerSegmentId

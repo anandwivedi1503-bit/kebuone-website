@@ -30,8 +30,8 @@ const [saving, setSaving] = useState(false);
 
 const loadHubs = () => {
   Promise.all([
-    fetch("/api/hubs").then((res)=>res.json()),
-    fetch("/api/vehicles").then((res)=>res.json()),
+    fetch("/api/hubs", { cache: "no-store" }).then((res)=>res.json()),
+    fetch("/api/vehicles", { cache: "no-store" }).then((res)=>res.json()),
     fetch("/api/ops/yard-queue", { cache: "no-store" }).then((res)=>res.json()),
   ])
     .then(([hubData, vehicleData, bookingData])=>{
@@ -73,13 +73,13 @@ const filteredHubs=hubs.filter((hub)=>{
 
 const matchesSearch=
 
-hub.hubName
+String(hub.hubName || "")
 .toLowerCase()
 .includes(searchTerm.toLowerCase())
 
 ||
 
-hub.hubCode
+String(hub.hubCode || "")
 .toLowerCase()
 .includes(searchTerm.toLowerCase());
 

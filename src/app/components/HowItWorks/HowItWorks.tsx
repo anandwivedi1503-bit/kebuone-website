@@ -81,11 +81,11 @@ export default function HowItWorks() {
                   reverse ? "lg:[&>div:first-child]:order-2" : ""
                 }`}
               >
-                <div className="relative min-h-[200px] bg-[#1C1917] sm:min-h-[240px]">
+                <div className="relative min-h-[280px] bg-[#EDE8DE] sm:min-h-[360px]">
                   <HomeImg
                     src={step.image}
                     alt={step.title}
-                    className="absolute inset-0 h-full w-full object-cover object-center"
+                    className="absolute inset-0 h-full w-full object-contain object-center"
                   />
                 </div>
                 <div className="flex flex-col justify-center px-6 py-8 sm:px-10">

@@ -63,8 +63,8 @@ export default function PartnerSpotlight() {
           Dealer. Distributor. <span className="italic text-[#1F6B4A]">Fleet partner.</span>
         </h2>
 
-        <div
-          className="relative mt-8 min-h-[340px] overflow-hidden sm:min-h-[420px]"
+          <div
+          className="relative mt-8 min-h-[380px] overflow-hidden bg-[#0B1B16] sm:min-h-[480px]"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
@@ -73,13 +73,13 @@ export default function PartnerSpotlight() {
               key={item.kicker}
               src={item.image}
               alt=""
-              className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-300 ${
+              className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-300 ${
                 index === slide ? "opacity-100" : "opacity-0"
               }`}
             />
           ))}
           <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B16] via-[#0B1B16]/55 to-[#0B1B16]/10" />
-          <div className="relative z-[1] flex min-h-[340px] flex-col justify-end p-6 text-white sm:min-h-[420px] sm:p-10">
+          <div className="relative z-[1] flex min-h-[380px] flex-col justify-end p-6 text-white sm:min-h-[480px] sm:p-10">
             <div className="mb-3 flex items-center justify-between gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F4C430]">
                 {ad.kicker}

@@ -19,5 +19,5 @@ export const BRAND = {
   distributor: "/brand/scene-distributor-warehouse.png",
 } as const;
 
-export const SCOOTER_FRAME = "overflow-hidden bg-[#1C1917]";
-export const SCOOTER_IMG = "h-full w-full object-cover object-center";
+export const SCOOTER_FRAME = "overflow-hidden bg-[#EDE8DE]";
+export const SCOOTER_IMG = "h-full w-full object-contain object-center";

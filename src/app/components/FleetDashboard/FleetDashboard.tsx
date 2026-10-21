@@ -30,7 +30,7 @@ useState("All");
 
 const loadFleet = () => {
   Promise.all([
-    fetch("/api/vehicles").then((res) => res.json()),
+    fetch("/api/vehicles", { cache: "no-store" }).then((res) => res.json()),
     fetch("/api/ops/yard-queue", { cache: "no-store" }).then((res) => res.json()),
   ])
     .then(([vehicleData, bookingData]) => {

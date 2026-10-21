@@ -5,7 +5,7 @@ import { Mail, Phone } from "lucide-react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 import {
-  PARTNER_SEGMENTS,
+  PARTNER_DESK_SEGMENTS,
   type PartnerSegmentId,
   partnerMatchesSegment,
   partnerSheetRows,
@@ -72,7 +72,7 @@ export default function PartnerDashboard() {
   const pendingApplications = partners.filter((p) => p.applicationStatus === "Pending").length;
   const approvedApplications = partners.filter((p) => p.applicationStatus === "Approved").length;
   const selectedSegment =
-    PARTNER_SEGMENTS.find((item) => item.id === channel)?.label || "All channels";
+    PARTNER_DESK_SEGMENTS.find((item) => item.id === channel)?.label || "All applications";
   const sheetName =
     channel === "ALL"
       ? "partner-applications"
@@ -122,7 +122,7 @@ export default function PartnerDashboard() {
           selected={channel === "ALL"}
           onClick={() => setChannel("ALL")}
         />
-        {PARTNER_SEGMENTS.map((segment) => (
+        {PARTNER_DESK_SEGMENTS.map((segment) => (
           <KPICard
             key={segment.id}
             title={segment.label}
@@ -139,7 +139,7 @@ export default function PartnerDashboard() {
 
       <SectionHeader
         title="Incoming forms"
-        subtitle={`Tap a segment above to highlight that list. Sheet download and print use ${selectedSegment.toLowerCase()}.`}
+        subtitle={`Dealer, distributor and fleet-investment forms only. Sheet uses ${selectedSegment.toLowerCase()}.`}
       />
 
       <DashboardCard title="Applications" subtitle="Review, approve, call or email">
@@ -156,8 +156,8 @@ export default function PartnerDashboard() {
             onChange={(e) => setChannel(e.target.value as ChannelFilter)}
             className="rounded-xl border border-gray-200 px-4 py-3"
           >
-            <option value="ALL">All channels</option>
-            {PARTNER_SEGMENTS.map((segment) => (
+            <option value="ALL">All applications</option>
+            {PARTNER_DESK_SEGMENTS.map((segment) => (
               <option key={segment.id} value={segment.id}>
                 {segment.label}
               </option>

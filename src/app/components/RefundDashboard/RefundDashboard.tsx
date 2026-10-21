@@ -128,12 +128,16 @@ const filteredRefunds = refunds.filter((refund) => {
 
 });
 
-const approveRefund = async (id: string, sendToRazorpay = false) => {
+const approveRefund = async (id: string, sendToRazorpay = true, amount = 0) => {
 
+  const rupees = Number(amount || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
   const confirmApprove = confirm(
     sendToRazorpay
-      ? "Send this refund back through Razorpay to the rider's original payment? Wallet will not be credited."
-      : "Credit this refund to the rider WALLET?"
+      ? `Refund ₹${rupees} through Razorpay to the rider's original payment? Amount is loaded from this ticket.`
+      : `Credit ₹${rupees} to the rider wallet? Use only if there is no Razorpay payment.`
   );
 
   if (!confirmApprove) return;
@@ -230,7 +234,7 @@ return(
 
 title="Refund Dashboard"
 
-subtitle="Security deposit is held on the wallet until the scooter is returned and remaining fare is ₹0. Then a deposit refund waits here for admin. Only refunds linked to a real booking or support ticket are listed."
+subtitle="Like Rapido: refund the ₹2,500 security deposit plus cancelled or failed booking payments. Approve loads that amount and sends it through Razorpay. Wallet is deposit hold only — not a recharge account."
 
 />
 
@@ -639,25 +643,7 @@ refund.refundStatus === "PENDING" ? (
 <div className="flex flex-col gap-2">
 <button
 disabled={processingId===refund._id}
-onClick={()=>approveRefund(refund._id, false)}
-className="
-px-5
-py-2
-rounded-xl
-bg-green-600
-text-white
-font-semibold
-hover:bg-green-700
-transition
-"
->
-{processingId===refund._id
-? "Processing..."
-: "To wallet"}
-</button>
-<button
-disabled={processingId===refund._id}
-onClick={()=>approveRefund(refund._id, true)}
+onClick={()=>approveRefund(refund._id, true, refund.amount)}
 className="
 px-5
 py-2
@@ -669,7 +655,26 @@ hover:bg-slate-900
 transition
 "
 >
-To Razorpay
+{processingId===refund._id
+? "Processing..."
+: `Refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")} via Razorpay`}
+</button>
+<button
+disabled={processingId===refund._id}
+onClick={()=>approveRefund(refund._id, false, refund.amount)}
+className="
+px-5
+py-2
+rounded-xl
+border border-slate-200
+bg-white
+text-slate-600
+font-semibold
+hover:bg-slate-50
+transition
+"
+>
+Wallet only if no Razorpay
 </button>
 </div>
 

@@ -31,7 +31,6 @@ const [holdFilter, setHoldFilter] = useState<"ALL" | "HOLD" | "CREDIT">("ALL");
 const [selectedWallet,setSelectedWallet]=useState<any>(null);
 const [showDetails,setShowDetails]=useState(false);
 
-const [showRecharge,setShowRecharge]=useState(false);
 const [showDebit,setShowDebit]=useState(false);
 const [showHistory,setShowHistory]=useState(false);
 const [amount,setAmount]=useState(0);
@@ -116,78 +115,6 @@ const loadTransactions = async () => {
       "LOAD TRANSACTIONS ERROR:",
       error
     );
-  }
-};
-
-const rechargeWallet = async () => {
-  if (!selectedWallet) return;
-
-  const rechargeAmount = Number(amount);
-
-  if (
-    !Number.isFinite(rechargeAmount) ||
-    rechargeAmount < 1 ||
-    rechargeAmount > 50000
-  ) {
-    alert("Amount must be between ₹1 and ₹50,000.");
-    return;
-  }
-
-  if (remarks.length > 200) {
-    alert("Remarks cannot exceed 200 characters.");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const res = await fetch("/api/wallet/recharge", {
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json",
-        "Idempotency-Key": createIdempotencyKey(),
-      },
-
-      body: JSON.stringify({
-        riderId: selectedWallet.riderId,
-        amount: rechargeAmount,
-        remarks: remarks.trim(),
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok || !data.success) {
-      throw new Error(
-        data.message || "Recharge failed."
-      );
-    }
-
-    setShowRecharge(false);
-    setAmount(0);
-    setRemarks("");
-
-    await Promise.all([
-      loadWallets(),
-      loadTransactions(),
-    ]);
-
-    alert(
-      data.duplicate
-        ? "This recharge was already processed."
-        : "Wallet Recharged Successfully"
-    );
-  } catch (error) {
-    console.error("RECHARGE ERROR:", error);
-
-    alert(
-      error instanceof Error
-        ? error.message
-        : "Unable to recharge wallet."
-    );
-  } finally {
-    setLoading(false);
   }
 };
 
@@ -411,7 +338,7 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="EVUDDY credit the rider can spend, plus security deposit held until the scooter is returned. Deposit hold is tracking only — it is not freeze and Razorpay does not add credit here. Refunds pays the deposit out after the ride ends."
+subtitle="Wallet holds the ₹2,500 security deposit only. It is not a recharge account. Refund deposits and cancelled/failed bookings from Refunds via Razorpay."
 />
 
 <OpsMoneyStrip />
@@ -434,7 +361,7 @@ onClick={() => {
 <KPICard
 title="Spendable credit"
 value={`₹${totalSpendable.toLocaleString("en-IN")}`}
-subtitle="Ledger minus freeze"
+subtitle="Not for recharge — leftover only"
 icon="💰"
 color="green"
 selected={holdFilter === "CREDIT"}
@@ -560,14 +487,14 @@ subtitle="Wallet transaction statistics."
 <KPIGrid>
 
 <KPICard
-title="Recharge"
+title="Deposit returns"
 value={
 transactions.filter(
-t=>t.transactionType==="Admin Credit"
+t=>t.transactionType==="Refund"
 ).length
 }
-subtitle="Credits"
-icon="➕"
+subtitle="Razorpay refunds, not top-ups"
+icon="↩️"
 color="green"
 />
 
@@ -751,16 +678,6 @@ View
 <button
 onClick={()=>{
 setSelectedWallet(wallet);
-setShowRecharge(true);
-}}
-className="px-4 py-2 rounded-xl bg-green-600 text-white"
->
-Recharge
-</button>
-
-<button
-onClick={()=>{
-setSelectedWallet(wallet);
 setShowDebit(true);
 }}
 className="px-4 py-2 rounded-xl bg-red-600 text-white"
@@ -864,79 +781,6 @@ No wallets found.
 ) : null}
 
 </DashboardCard>
-
-{showRecharge&&(
-
-<div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-
-<div className="bg-white rounded-3xl p-8 w-full max-w-md mx-4">
-
-<h2 className="text-2xl font-bold mb-6">
-
-Recharge Wallet
-
-</h2>
-
-<input
-  type="number"
-  min="1"
-  max="50000"
-  step="0.01"
-  placeholder="Amount"
-  value={amount || ""}
-  onChange={(e) =>
-    setAmount(Number(e.target.value))
-  }
-  className="w-full border rounded-xl p-3 mb-4"
-  disabled={loading}
-/>
-
-<textarea
-  placeholder="Remarks"
-  value={remarks}
-  maxLength={200}
-  onChange={(e) =>
-    setRemarks(e.target.value)
-  }
-  className="w-full border rounded-xl p-3 mb-6"
-  disabled={loading}
-/>
-
-<div className="flex gap-4">
-
-<ActionButton
-onClick={rechargeWallet}
-disabled={loading}
->
-
-{loading?"Processing...":"Recharge"}
-
-</ActionButton>
-
-<button
-onClick={()=>{
-
-setShowRecharge(false);
-
-setAmount(0);
-
-setRemarks("");
-
-}}
-className="px-6 py-3 rounded-xl border"
->
-
-Cancel
-
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-)}
 
 {showDebit&&(
 

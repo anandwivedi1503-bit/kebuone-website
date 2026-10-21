@@ -500,18 +500,26 @@ export default function RentToOwnBooking() {
     try {
       const payNow = Number(pendingAmount || payableAmount);
       const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
-      const orderRes = await fetch("/api/razorpay/create-order", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          bookingMongoId,
-          amount: payNow,
-          firebaseIdToken: token,
-        }),
-      });
+      const controller = new AbortController();
+      const lookupTimer = window.setTimeout(() => controller.abort(), 25000);
+      let orderRes: Response;
+      try {
+        orderRes = await fetch("/api/razorpay/create-order", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            bookingMongoId,
+            amount: payNow,
+            firebaseIdToken: token,
+          }),
+          signal: controller.signal,
+        });
+      } finally {
+        window.clearTimeout(lookupTimer);
+      }
       const orderData = await orderRes.json();
       if (!orderData.success) {
         setError(orderData.message || "Unable to start payment.");
@@ -655,7 +663,7 @@ export default function RentToOwnBooking() {
     try {
       const payNow = Number(pendingAmount || payableAmount);
       if (walletAvailable < payNow) {
-        setError(`Wallet has ${formatINR(walletAvailable)}. Pay with Razorpay or recharge.`);
+        setError(`Wallet has ${formatINR(walletAvailable)}. Pay remaining fare with Razorpay.`);
         return;
       }
       const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";

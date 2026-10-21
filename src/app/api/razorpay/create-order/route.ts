@@ -43,6 +43,20 @@ function getRazorpayErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : "";
 }
 
+async function withTimeout<T>(promise: Promise<T>, ms = 6000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timer = setTimeout(() => reject(new Error("RAZORPAY_LOOKUP_TIMEOUT")), ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -297,54 +311,25 @@ export async function POST(req: Request) {
     const existingOrderId = clean(booking.razorpayOrderId);
     if (existingOrderId) {
       try {
-        const existing = (await razorpay.orders.fetch(existingOrderId)) as {
+        const existing = (await withTimeout(
+          razorpay.orders.fetch(existingOrderId) as Promise<{
+            id?: string;
+            status?: string;
+            amount?: number;
+            currency?: string;
+          }>
+        )) as {
           id?: string;
           status?: string;
           amount?: number;
           currency?: string;
         };
-        const payments = (await razorpay.orders.fetchPayments(existingOrderId)) as {
-          items?: Array<{ id?: string; status?: string; amount?: number }>;
-        };
-        const captured = (payments.items || []).find((item) => item.status === "captured");
-        if (captured?.id) {
-          const paidAmount = Number(captured.amount || existing.amount || amountPaise) / 100;
-          const applied = await applyCapturedRazorpayPayment({
-            bookingMongoId,
-            razorpayOrderId: existingOrderId,
-            razorpayPaymentId: String(captured.id),
-            paidAmount,
-          });
-          if (!applied.ok) {
-            return NextResponse.json(
-              { success: false, message: applied.message },
-              { status: applied.status }
-            );
-          }
-          const walletBooking = (applied.booking || {}) as {
-            receivedAmount?: number;
-            paymentDue?: number;
-          };
-          return NextResponse.json({
-            success: true,
-            alreadyCaptured: true,
-            payableAmount,
-            remainingAmount: applied.pendingAmount,
-            pendingAmount: applied.pendingAmount,
-            receivedAmount: Number(walletBooking.receivedAmount || 0),
-            paymentDue: Number(walletBooking.paymentDue || payableAmount),
-            paymentStatus: applied.paymentStatus,
-            pickupOTP: applied.pickupOTP,
-            rideEndOTP: applied.rideEndOTP,
-            booking: applied.booking,
-            data: applied.booking,
-            message: applied.message,
-          });
-        }
+        const existingAmount = Number(existing.amount || 0);
         const status = String(existing.status || "");
+
         if (
-          (status === "created" || status === "attempted") &&
-          Number(existing.amount || 0) === amountPaise
+          existingAmount === amountPaise &&
+          (status === "created" || status === "attempted")
         ) {
           return NextResponse.json({
             success: true,
@@ -359,13 +344,61 @@ export async function POST(req: Request) {
             remainingAmount,
           });
         }
+
+        if (existingAmount === amountPaise) {
+          const payments = (await withTimeout(
+            razorpay.orders.fetchPayments(existingOrderId) as Promise<{
+              items?: Array<{ id?: string; status?: string; amount?: number }>;
+            }>
+          )) as {
+            items?: Array<{ id?: string; status?: string; amount?: number }>;
+          };
+          const captured = (payments.items || []).find((item) => item.status === "captured");
+          if (captured?.id) {
+            const paidAmount = Number(captured.amount || existing.amount || amountPaise) / 100;
+            const applied = await applyCapturedRazorpayPayment({
+              bookingMongoId,
+              razorpayOrderId: existingOrderId,
+              razorpayPaymentId: String(captured.id),
+              paidAmount,
+            });
+            if (!applied.ok) {
+              return NextResponse.json(
+                { success: false, message: applied.message },
+                { status: applied.status }
+              );
+            }
+            if (Number(applied.pendingAmount || 0) <= 0.009) {
+              const walletBooking = (applied.booking || {}) as {
+                receivedAmount?: number;
+                paymentDue?: number;
+              };
+              return NextResponse.json({
+                success: true,
+                alreadyCaptured: true,
+                payableAmount,
+                remainingAmount: applied.pendingAmount,
+                pendingAmount: applied.pendingAmount,
+                receivedAmount: Number(walletBooking.receivedAmount || 0),
+                paymentDue: Number(walletBooking.paymentDue || payableAmount),
+                paymentStatus: applied.paymentStatus,
+                pickupOTP: applied.pickupOTP,
+                rideEndOTP: applied.rideEndOTP,
+                booking: applied.booking,
+                data: applied.booking,
+                message: applied.message,
+              });
+            }
+          }
+        }
+
         if (status === "created" || status === "attempted") {
           try {
             const orders = razorpay.orders as typeof razorpay.orders & {
               cancel?: (id: string) => Promise<unknown>;
             };
             if (typeof orders.cancel === "function") {
-              await orders.cancel(existingOrderId);
+              await withTimeout(orders.cancel(existingOrderId) as Promise<unknown>, 4000);
             }
           } catch (cancelError) {
             console.error("RAZORPAY CANCEL SUPERSEDED ORDER:", cancelError);

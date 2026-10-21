@@ -108,7 +108,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative aspect-[3/2] overflow-hidden bg-[#1C1917]">
+        <div className="relative aspect-[16/10] overflow-hidden bg-[#EDE8DE] sm:aspect-[3/2]">
           {SLIDES.map((item, index) => {
             const prev = (slide + SLIDES.length - 1) % SLIDES.length;
             const visible = index === slide || (slide !== 0 && index === prev);
@@ -119,7 +119,7 @@ export default function Hero() {
                 src={item.src}
                 alt={item.title}
                 priority={index === 0 && slide === 0}
-                className={`absolute inset-0 h-full w-full object-cover object-center transition-opacity duration-500 ${
+                className={`absolute inset-0 h-full w-full object-contain object-center transition-opacity duration-500 ${
                   index === slide ? "opacity-100" : "opacity-0"
                 }`}
               />

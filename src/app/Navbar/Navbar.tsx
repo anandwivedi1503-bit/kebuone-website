@@ -133,6 +133,8 @@ function NavbarInner() {
         </div>
 
         <div className="nav-desktop-row shrink-0 items-center gap-[clamp(0.25rem,0.55vw,0.65rem)]">
+          {!riderLoggedIn && (
+            <>
           <Link
             href="/partners#dealer-network"
             className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
@@ -140,8 +142,6 @@ function NavbarInner() {
             <Building2 size={16} />
             Dealers
           </Link>
-          {!riderLoggedIn && (
-            <>
               <Link
                 href="/partners"
                 className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
