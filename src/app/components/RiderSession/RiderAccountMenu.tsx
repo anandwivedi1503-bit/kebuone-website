@@ -7,7 +7,6 @@ import {
   Bike,
   ChevronDown,
   HelpCircle,
-  LogOut,
   Phone,
 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -17,12 +16,12 @@ import {
   getChosenPlan,
   getRiderProfile,
   hasRiderPlanReady,
-  logoutRider,
   openRiderAccountMenu,
   riderResumeHref,
   RIDER_ACCOUNT_OPEN_EVENT,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
+import SessionExit from "../SessionExit/SessionExit";
 
 const planLabel = (plan: string) => {
   if (plan === "rental") return "Normal booking";
@@ -192,20 +191,9 @@ export default function RiderAccountMenu({
                 </span>
                 Help & support
               </Link>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  void logoutRider();
-                }}
-                className="mt-1 flex w-full items-center gap-3 rounded-2xl px-3 py-3 font-bold text-[#EC2A8C] hover:bg-[#EC2A8C]/8"
-              >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EC2A8C]/10 text-[#EC2A8C]">
-                  <LogOut size={18} />
-                </span>
-                Log out
-              </button>
+              <div className="mt-1 px-1 pb-1">
+                <SessionExit compact onPicked={() => setOpen(false)} />
+              </div>
             </div>
           </motion.div>
         )}

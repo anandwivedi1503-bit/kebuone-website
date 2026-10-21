@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
-import { consumeOpsFocus } from "@/lib/opsFocus";
+import { consumeOpsFocus, openOpsDesk } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -703,7 +703,7 @@ export default function UserManagement() {
     <PageContainer>
       <DashboardHeader
         title="User Management"
-        subtitle="Manage riders, KYC verification, wallet balances and account activity."
+        subtitle="Live rider ledger from MongoDB — same records as KYC, Wallet and Bookings. Zeros mean no riders yet, not sample data."
       />
 
       {/* ===================================================
@@ -762,9 +762,10 @@ export default function UserManagement() {
           value={
             pendingKYC
           }
-          subtitle="Verification"
+          subtitle="Opens KYC desk"
           icon="🪪"
           color="yellow"
+          onClick={() => openOpsDesk("kyc")}
         />
 
         <KPICard

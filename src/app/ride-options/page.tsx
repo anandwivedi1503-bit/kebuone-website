@@ -15,9 +15,9 @@ import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
+import SessionExit from "@/app/components/SessionExit/SessionExit";
 import {
   getChosenPlan,
-  logoutRider,
   markRiderPlanReady,
   rememberRiderProfile,
   riderResumeHref,
@@ -119,6 +119,21 @@ export default function RideOptionsPage() {
         "";
 
       if (storedPhone) setPhone(storedPhone);
+
+      if (user && storedPhone) {
+        try {
+          const token = await user.getIdToken();
+          const response = await fetch(`/api/riders?phone=${storedPhone}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await response.json();
+          if (!cancelled) applyRiderResult(data);
+          return;
+        } catch {
+          // Fall through to OTP.
+        }
+      }
+
       setView("otp");
       setRideOptionsView("otp");
     };
@@ -195,7 +210,7 @@ export default function RideOptionsPage() {
     data?: RiderApprovalFields;
   }) => {
     if (!data.success || !data.data) {
-      setView("register");
+      window.location.replace("/register");
       return;
     }
 
@@ -210,8 +225,9 @@ export default function RideOptionsPage() {
 
     if (isRiderApproved(data.data)) {
       markRiderPlanReady();
-      if (getChosenPlan()) {
-        window.location.replace(riderResumeHref());
+      const resume = riderResumeHref();
+      if (resume !== "/ride-options") {
+        window.location.replace(resume);
         return;
       }
       setView("plans");
@@ -226,7 +242,7 @@ export default function RideOptionsPage() {
       return;
     }
 
-    setView("register");
+    window.location.replace("/register");
   };
 
   const sendOtp = async () => {
@@ -329,9 +345,11 @@ export default function RideOptionsPage() {
               Confirm your mobile number
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Every Book EV start begins here. Enter your 10-digit mobile number, get OTP,
-              then choose Normal booking or Rent to Own. New riders can register after
-              this OTP — you will not get a second SMS.
+              New riders: verify OTP, then complete registration steps 1–4. Registered
+              riders: after OTP you return to the same booking step you left. Already
+              signed-in riders skip this screen and resume automatically. There is no
+              timeout on unfinished registration — your form stays until you submit or
+              staff decide on KYC.
             </p>
 
             <label className="mt-8 block text-sm font-semibold text-[#0F172A]">
@@ -406,13 +424,9 @@ export default function RideOptionsPage() {
             Your rider profile is under review. Ride options appear here as soon as an
             admin approves your account.
           </p>
-          <button
-            type="button"
-            onClick={() => void logoutRider()}
-            className="mt-8 text-sm font-bold text-slate-500 underline-offset-4 hover:text-[#1F6B4A] hover:underline"
-          >
-            Log out
-          </button>
+          <div className="mx-auto mt-8 max-w-lg">
+            <SessionExit />
+          </div>
         </section>
       )}
 
@@ -445,13 +459,9 @@ export default function RideOptionsPage() {
               Pick a flexible rental, or own the scooter after 20 months of Rent to Own payments.
               Your choice stays locked until you logout, so refresh keeps you on the same path.
             </p>
-            <button
-              type="button"
-              onClick={() => void logoutRider()}
-              className="mt-5 text-sm font-bold text-slate-500 underline-offset-4 hover:text-[#EC2A8C] hover:underline"
-            >
-              Logout and start again
-            </button>
+            <div className="mx-auto mt-6 max-w-lg">
+              <SessionExit />
+            </div>
           </div>
 
           <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
