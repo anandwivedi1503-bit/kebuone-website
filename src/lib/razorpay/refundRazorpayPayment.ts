@@ -1,5 +1,6 @@
 import { money } from "@/lib/gst";
 import { getRazorpayClient } from "@/lib/razorpay/config";
+import { isRazorpayPaymentId } from "@/lib/razorpay/bookingRazorpayCaptures";
 import Transaction from "@/models/Transaction";
 
 export async function refundRazorpayPayment(paymentId: string, amountInr: number) {
@@ -65,7 +66,7 @@ export async function refundRazorpayAmountForBooking(
     if (available <= 0.009) continue;
     const chunk = Math.min(available, remaining);
     const paymentId = String(pay.razorpayPaymentId || pay.transactionId || "").trim();
-    if (!paymentId) continue;
+    if (!isRazorpayPaymentId(paymentId)) continue;
     const refund = await refundRazorpayPayment(paymentId, chunk);
     const refundId = String((refund as { id?: string }).id || "");
     if (refundId) ids.push(refundId);

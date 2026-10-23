@@ -7,6 +7,8 @@ import Hub from "@/models/Hub";
 import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
 import Review from "@/models/Review";
+import Refund from "@/models/Refund";
+import Wallet from "@/models/Wallet";
 import { isAdminAuthenticated,
   requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
@@ -90,6 +92,9 @@ export async function GET(req: Request) {
       hubBookingsAgg,
       vehicleBookingsAgg,
       reviewAgg,
+      pendingRefunds,
+      refundedCount,
+      walletCount,
     ] = await Promise.all([
       Rider.countDocuments(riderMatch),
       Vehicle.countDocuments(vehicleMatch),
@@ -181,6 +186,20 @@ export async function GET(req: Request) {
         },
         { $group: { _id: null, avg: { $avg: "$stars" }, n: { $sum: 1 } } },
       ]),
+      Refund.countDocuments({
+        ...NOT_DELETED,
+        ...idInScopeFilter("bookingId", bookingIds),
+        refundStatus: { $in: ["PENDING", "APPROVED", "PROCESSING"] },
+      }),
+      Refund.countDocuments({
+        ...NOT_DELETED,
+        ...idInScopeFilter("bookingId", bookingIds),
+        refundStatus: "REFUNDED",
+      }),
+      Wallet.countDocuments({
+        ...NOT_DELETED,
+        ...idInScopeFilter("riderId", riderIds),
+      }),
     ]);
 
     const totalRevenue = Number(totalRevenueAgg[0]?.total || 0);
@@ -246,6 +265,10 @@ export async function GET(req: Request) {
         averageRiderStars: Number(reviewAgg[0]?.n || 0)
           ? Number(Number(reviewAgg[0].avg).toFixed(2))
           : 0,
+        pendingRefunds,
+        refundedCount,
+        walletCount,
+        source: "live-mongo",
       },
     });
   } catch (error) {

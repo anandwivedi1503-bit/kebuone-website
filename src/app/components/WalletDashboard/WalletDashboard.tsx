@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
+import { consumeOpsFocus } from "@/lib/opsFocus";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -24,7 +25,7 @@ const [transactions,setTransactions]=useState<any[]>([]);
 const [txnPages,setTxnPages]=useState(1);
 const [hasMoreWalletTxns,setHasMoreWalletTxns]=useState(false);
 
-const [search,setSearch]=useState("");
+const [search,setSearch]=useState(() => consumeOpsFocus());
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [holdFilter, setHoldFilter] = useState<"ALL" | "HOLD" | "CREDIT">("ALL");
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
-import { consumeOpsFocus } from "@/lib/opsFocus";
+import { consumeOpsFocus, openOpsDesk } from "@/lib/opsFocus";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -136,8 +136,8 @@ const approveRefund = async (id: string, sendToRazorpay = true, amount = 0) => {
   });
   const confirmApprove = confirm(
     sendToRazorpay
-      ? `Refund ₹${rupees} through Razorpay to the rider's original payment? Amount is loaded from this ticket.`
-      : `Credit ₹${rupees} to the rider wallet? Use only if there is no Razorpay payment.`
+      ? `Refund ₹${rupees}? Razorpay is used when this booking has a pay_ capture. Cash/offline bookings credit the rider wallet instead.`
+      : `Credit ₹${rupees} to the rider wallet? Use only when there is no Razorpay capture.`
   );
 
   if (!confirmApprove) return;
@@ -160,6 +160,8 @@ const approveRefund = async (id: string, sendToRazorpay = true, amount = 0) => {
 
 const data = await res.json();
 
+await fetchRefunds();
+
 if (!data.success) {
 
   alert(
@@ -173,12 +175,11 @@ if (!data.success) {
 }
 
 alert(
-    sendToRazorpay
-      ? "Refund sent via Razorpay."
-      : "Refund credited to rider wallet."
+    data.message ||
+      (data.channel === "Wallet"
+        ? "Refund credited to rider wallet."
+        : "Refund sent via Razorpay.")
   );
-
-await fetchRefunds();
 
   } finally {
 
@@ -239,7 +240,7 @@ return(
 
 title="Refund Dashboard"
 
-subtitle="Like Rapido: refund the ₹2,500 security deposit plus cancelled or failed booking payments. Approve loads that amount and sends it through Razorpay. Wallet is deposit hold only — not a recharge account."
+subtitle="Deposit and cancellation refunds. Razorpay returns money to the original capture. If there is no pay_ capture (cash/offline), the same amount is credited to the rider wallet automatically."
 
 />
 
@@ -561,7 +562,7 @@ transition
 
 {refund.refundStatus==="REFUNDED" && (
 <>
-<StatusBadge status="active" />
+<StatusBadge status="active" label="REFUNDED" />
 <span className="font-semibold text-green-700">
 REFUNDED
 </span>
@@ -570,7 +571,7 @@ REFUNDED
 
 {refund.refundStatus==="APPROVED" && (
 <>
-<StatusBadge status="warning" />
+<StatusBadge status="warning" label="APPROVED" />
 <span className="font-semibold text-yellow-700">
 APPROVED
 </span>
@@ -579,8 +580,8 @@ APPROVED
 
 {refund.refundStatus==="PROCESSING" && (
 <>
-<StatusBadge status="inactive" />
-<span className="font-semibold text-gray-700">
+<StatusBadge status="warning" label="PROCESSING" />
+<span className="font-semibold text-amber-800">
 PROCESSING
 </span>
 </>
@@ -665,6 +666,11 @@ transition
 ? "Processing..."
 : `Refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")} via Razorpay`}
 </button>
+{refund.failureReason ? (
+  <p className="max-w-[220px] text-left text-[11px] font-medium text-rose-700">
+    {refund.failureReason}
+  </p>
+) : null}
 <button
 disabled={processingId===refund._id}
 onClick={()=>approveRefund(refund._id, false, refund.amount)}
@@ -680,8 +686,17 @@ hover:bg-slate-50
 transition
 "
 >
-Wallet only if no Razorpay
+Wallet if no Razorpay capture
 </button>
+{refund.riderId ? (
+<button
+type="button"
+onClick={() => openOpsDesk("wallet", String(refund.riderId))}
+className="rounded-xl bg-[#18B368] px-5 py-2 text-xs font-semibold text-white"
+>
+Open wallet
+</button>
+) : null}
 </div>
 
 ) : refund.refundStatus === "REFUNDED" ? (

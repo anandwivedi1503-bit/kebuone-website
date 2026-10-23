@@ -97,7 +97,7 @@ return(
 
 title="Business Intelligence"
 
-subtitle="Live Mongo counts for this ops login — 0 means no records in that period, not dummy data. Same ledger as Bookings, Revenue, Fleet and Users."
+subtitle="Live Mongo — same riders, bookings, refunds and wallets as the other desks. A zero means no records in that period, not a placeholder."
 
 />
 
@@ -167,6 +167,22 @@ analytics?.totalRevenue || 0
 subtitle="Collected"
 icon={<IndianRupee size={26} />}
 color="red"
+/>
+
+<KPICard
+title="Wallets"
+value={analytics?.walletCount || 0}
+subtitle="Rider wallets"
+icon={<CreditCard size={26} />}
+color="green"
+/>
+
+<KPICard
+title="Refunds pending"
+value={analytics?.pendingRefunds || 0}
+subtitle={`${analytics?.refundedCount || 0} already paid`}
+icon={<IndianRupee size={26} />}
+color="yellow"
 />
 
 </KPIGrid>
@@ -358,7 +374,7 @@ Average earning generated per booking.
 
 <SectionHeader
 title="Monthly Analytics"
-subtitle="Revenue & Booking Trends"
+subtitle="Current calendar year from live transactions and bookings"
 />
 
 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

@@ -81,14 +81,15 @@ export default function FleetPartnerInvestment(_props?: { posterPriority?: boole
             </p>
           </div>
 
-          <aside className="relative isolate min-h-[280px] overflow-hidden rounded-[28px]">
+          <aside className="relative isolate overflow-hidden rounded-[28px] border border-white/10 bg-[#0B1B16]">
+            <div className="flex aspect-[4/3] items-center justify-center bg-[#10241c] p-4">
             <HomeImg
               src={BRAND.yard}
-              alt=""
-              className="absolute inset-0 h-full w-full object-cover object-center"
+              alt="EVUDDY yard"
+              className="h-full w-full object-contain object-center"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1B16] via-[#0B1B16]/55 to-transparent" />
-            <div className="relative flex h-full min-h-[280px] flex-col justify-end p-7">
+            </div>
+            <div className="relative flex flex-col p-7">
               <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">Invest</p>
               <p className="font-display mt-2 text-3xl font-medium leading-tight">
                 Put your capital on India&apos;s yellow EV fleet

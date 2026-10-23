@@ -11,6 +11,7 @@ import Transaction from "@/models/Transaction";
 import Rider from "@/models/Rider";
 import mongoose from "mongoose";
 import { money } from "@/lib/gst";
+import { listBookingRazorpayPaymentIds } from "@/lib/razorpay/bookingRazorpayCaptures";
 import { refundRazorpayAmountForBooking } from "@/lib/razorpay/refundRazorpayPayment";
 import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
@@ -89,6 +90,8 @@ export async function PATCH(
     }
 
     const body = await req.json();
+    let refundChannel = "Wallet";
+    let refundMessage = "";
 
     const updateData: Record<string, unknown> = {};
 
@@ -316,22 +319,22 @@ if (!rider) {
 let sendToRazorpay = body.sendToRazorpay !== false;
 const paymentId = String(booking.razorpayPaymentId || "");
 let gatewayId = String(refund.razorpayRefundId || "").trim();
-const gatewayIds = String(refund.gatewayTxnId || "")
-  .split(",")
-  .map((id) => id.trim())
-  .filter(Boolean);
+const captureIds = await listBookingRazorpayPaymentIds(
+  String(refund.bookingId),
+  paymentId
+);
+let walletFallbackReason = "";
 
-if (sendToRazorpay && !paymentId && !gatewayId && gatewayIds.length === 0) {
-  const hasRazorpayTxn = await Transaction.exists({
-    bookingId: refund.bookingId,
-    paymentMethod: "Razorpay",
-    transactionType: "Booking Payment",
-    status: "Success",
-  }).session(session);
-  if (!hasRazorpayTxn) {
-    sendToRazorpay = false;
-  }
+if (sendToRazorpay && !gatewayId && captureIds.length === 0) {
+  sendToRazorpay = false;
+  walletFallbackReason =
+    "No Razorpay capture (pay_ id) on this booking — credited the rider wallet.";
+  updateData.paymentGateway = "Wallet";
 }
+refundChannel = sendToRazorpay ? "Razorpay" : "Wallet";
+refundMessage = sendToRazorpay
+  ? "Refund sent via Razorpay to the original payment."
+  : walletFallbackReason || "Refund credited to the rider wallet.";
 
 if (sendToRazorpay) {
 
@@ -398,20 +401,20 @@ if (sendToRazorpay) {
     }
   } catch (error) {
     console.error("RAZORPAY REFUND ERROR:", error);
+    const detail = error instanceof Error ? error.message : String(error || "Razorpay refund failed");
     await Refund.updateOne(
-      { _id: id, refundStatus: "PROCESSING" },
+      { _id: id, refundStatus: { $in: ["PROCESSING", "PENDING", "APPROVED"] } },
       {
         $set: {
           refundStatus: "APPROVED",
-          failureReason: "Razorpay refund failed",
+          failureReason: detail.slice(0, 400),
         },
       }
     );
     return NextResponse.json(
       {
         success: false,
-        message:
-          "Razorpay could not refund this payment. Retry, or use wallet credit only if there was no Razorpay capture. The rider wallet was not changed.",
+        message: `Razorpay could not refund this payment (${detail}). Status is Approved — retry Razorpay, or credit wallet only if this was cash/offline.`,
       },
       { status: 502 }
     );
@@ -508,7 +511,7 @@ if (isDepositRefund) {
 
 booking.remarks = appendBoundedText(
   booking.remarks,
-  `Refund Completed\nRefund ID : ${refund.refundId}\nAmount : ₹${refund.amount}`
+  `${walletFallbackReason || "Refund Completed"}\nRefund ID : ${refund.refundId}\nAmount : ₹${refund.amount}`
 );
 
 await booking.save({
@@ -723,12 +726,14 @@ void writeAudit({
   entityId: String(updatedRefund.refundId || id),
   riderId: String(updatedRefund.riderId || ""),
   bookingId: String(updatedRefund.bookingId || ""),
-  detail: body.sendToRazorpay === true ? "Razorpay" : "Wallet",
+  detail: refundMessage || refundChannel,
 });
 
 return NextResponse.json({
   success: true,
   data: updatedRefund,
+  channel: refundChannel,
+  message: refundMessage || undefined,
 });
 
 } catch (error) {

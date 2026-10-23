@@ -30,6 +30,7 @@ import {
   isRecentCompletedRide,
   isUnpaidGhostAfterCompleted,
 } from "../src/lib/riderCompletion";
+import { isRazorpayPaymentId } from "../src/lib/razorpay/bookingRazorpayCaptures";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -313,4 +314,8 @@ assert.equal(
   }),
   true
 );
+assert.equal(isRazorpayPaymentId("pay_AbCd123"), true);
+assert.equal(isRazorpayPaymentId("order_AbCd123"), false);
+assert.equal(isRazorpayPaymentId(""), false);
+
 console.log("money-rules self-test ok");

@@ -240,7 +240,7 @@ export default function EvuddyNetwork() {
                     onClick={() => setActive(city)}
                     className={`rounded-full px-3.5 py-1.5 text-[12px] font-medium tracking-[0.04em] transition ${
                       on
-                        ? "bg-[#1F6B4A] text-[#1C1917]"
+                        ? "bg-[#1F6B4A] text-white"
                         : "border border-[#E4DDD2] bg-[#FBF9F5] text-[#1C1917]/80 hover:border-[#1F6B4A] hover:text-[#1C1917]"
                     }`}
                   >
@@ -289,6 +289,18 @@ export default function EvuddyNetwork() {
             </div>
           </div>
 
+          <div className="flex flex-col gap-4">
+          <div className="overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white shadow-[0_20px_50px_rgba(28,25,23,0.06)]">
+            <iframe
+              title={`EVUDDY hub map ${selected.name}`}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                `${selected.lat},${selected.lng}`
+              )}&z=14&output=embed`}
+              className="h-[240px] w-full border-0 sm:h-[300px]"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
           <div
             className="relative isolate overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white"
             onMouseMove={(event) => {
@@ -402,6 +414,7 @@ export default function EvuddyNetwork() {
               </div>
               <p className="hidden max-w-[55%] truncate text-right text-xs text-[#8A847A] sm:block">{selected.hubs}</p>
             </div>
+          </div>
           </div>
         </div>
 

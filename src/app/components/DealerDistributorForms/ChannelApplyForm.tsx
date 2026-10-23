@@ -145,7 +145,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
             {isDealer ? dealerProgram.dealerMin : dealerProgram.distributorMin}
             <span className="ml-2 text-base font-sans font-normal text-[#8A847A]">minimum</span>
           </p>
-          <div className="relative mt-10 hidden overflow-hidden rounded-[28px] lg:block">
+          <div className="relative mt-10 hidden overflow-hidden rounded-[28px] bg-[#F4F0E6] p-4 lg:block">
             <HomeImg
               src={isDealer ? BRAND.dealer : BRAND.distributor}
               alt={
@@ -153,7 +153,7 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
                   ? "EVUDDY dealer showroom with yellow scooters"
                   : "EVUDDY distributor warehouse with scooters ready to ship"
               }
-              className="aspect-[16/10] w-full object-cover object-center"
+              className="aspect-[16/10] w-full object-contain object-center"
             />
           </div>
           <p className="mt-6 text-sm text-[#5C635E]">
