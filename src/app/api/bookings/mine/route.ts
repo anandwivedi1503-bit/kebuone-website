@@ -45,6 +45,7 @@ export async function GET(req: Request) {
         bookingBelongsToRiderFilter(rider),
         NOT_DELETED_FILTER,
         { rideStatus: { $nin: ["Cancelled", "Completed"] } },
+        { vehicleId: { $exists: true, $nin: ["", null] } },
         {
           $or: [
             { paymentStatus: { $in: ["Pending", "Partial"] } },

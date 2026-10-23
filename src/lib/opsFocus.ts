@@ -23,6 +23,14 @@ export function consumeOpsFocus(): string {
 }
 
 export const OPEN_OPS_DESK_EVENT = "evuddy-open-ops-desk";
+export const OPEN_OPS_EVA_EVENT = "evuddy-open-ops-eva";
+
+export function openOpsEva(query?: string) {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent(OPEN_OPS_EVA_EVENT, { detail: { query: String(query || "").trim() } })
+  );
+}
 
 export function openOpsDesk(dashboard: string, query?: string) {
   if (typeof window === "undefined") return;
