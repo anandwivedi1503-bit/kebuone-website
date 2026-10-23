@@ -24,7 +24,7 @@ import {
   mergeFilters,
   scopedBookingIds,
   scopedRiderIds,
-  sessionHubScope,
+  resolveHubScope,
 } from "@/lib/staffHubScope";
 
 export type OpsHit = {
@@ -128,7 +128,7 @@ export async function universalOpsSearch(
   const hasIdentity = Boolean(q.phone || q.bookingId || q.riderId || q.ticketId || q.vehicleToken);
   const hasText = Boolean(q.fuzzy);
   const searchAll = hasIdentity || hasText;
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   const bookingIds = await scopedBookingIds(session);
   const riderIds = await scopedRiderIds(session);
   const bookingBase = () =>

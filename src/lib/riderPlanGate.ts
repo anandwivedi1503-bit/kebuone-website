@@ -127,12 +127,31 @@ export function setChosenPlan(plan: RiderChosenPlan) {
   writeKey(CHOSEN_PLAN_KEY, plan);
 }
 
+export function clearChosenPlan() {
+  removeKey(CHOSEN_PLAN_KEY);
+  emitRiderSession();
+}
+
 export function hasRiderBookingLock() {
   return readKey(BOOKING_LOCK_KEY) === "1";
 }
 
 export function markRiderBookingLock() {
   writeKey(BOOKING_LOCK_KEY, "1");
+}
+
+export function clearRiderBookingLock() {
+  removeKey(BOOKING_LOCK_KEY);
+  emitRiderSession();
+}
+
+export function isOpenRideBooking(booking?: {
+  _id?: unknown;
+  rideStatus?: unknown;
+} | null) {
+  if (!booking?._id) return false;
+  const ride = String(booking.rideStatus || "");
+  return ride !== "Cancelled" && ride !== "Completed";
 }
 
 export function getRideOptionsView(): RideOptionsView | "" {
@@ -300,6 +319,7 @@ export async function logoutRider() {
 
   removeKey(PLAN_READY_KEY);
   removeKey(BOOKING_LOCK_KEY);
+  removeKey(CHOSEN_PLAN_KEY);
   removeKey(RIDE_OPTIONS_VIEW_KEY);
   emitRiderSession();
 

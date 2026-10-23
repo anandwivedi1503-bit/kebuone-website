@@ -9,7 +9,7 @@ import {
   idInScopeFilter,
   scopedBookingIds,
   scopedRiderIds,
-  sessionHubScope,
+  resolveHubScope,
 } from "@/lib/staffHubScope";
 
 function roundMoney(value: number) {
@@ -20,7 +20,7 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
   const notDeleted = {
     $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
   };
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   const bookingIds = await scopedBookingIds(session);
   const riderIds = await scopedRiderIds(session);
   const bookingMatch = applyHubScope({ ...notDeleted }, hubs, [

@@ -38,6 +38,8 @@ export default function ReviewsDashboard() {
   const [selected, setSelected] = useState<ReviewRow | null>(null);
   const [reply, setReply] = useState("");
   const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
 
   const load = async () => {
     const params = new URLSearchParams({
@@ -46,8 +48,17 @@ export default function ReviewsDashboard() {
     });
     if (statusFilter !== "ALL") params.set("status", statusFilter);
     if (search.trim()) params.set("q", search.trim());
-    const res = await fetch(`/api/reviews?${params}`, { cache: "no-store" });
+    const res = await fetch(`/api/reviews?${params}`, {
+      cache: "no-store",
+      credentials: "include",
+    });
     const data = await res.json();
+    if (!data.success && data.message) {
+      setError(data.message);
+      setReviews([]);
+      return;
+    }
+    setError("");
     setReviews(data.data || []);
     setHasMore(Boolean(data.pagination?.hasMore));
   };
@@ -59,16 +70,34 @@ export default function ReviewsDashboard() {
 
   const patch = async (id: string, body: Record<string, unknown>) => {
     setBusy(id);
-    const res = await fetch(`/api/reviews/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    setBusy("");
-    if (data.success) {
+    setError("");
+    setMessage("");
+    try {
+      const res = await fetch(`/api/reviews/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setError(data.message || "Could not save this review.");
+        return;
+      }
+      setMessage(
+        body.staffReply !== undefined && !body.status
+          ? "Reply saved."
+          : "Review updated."
+      );
       await load();
       setSelected(data.data);
+      if (typeof data.data?.staffReply === "string") {
+        setReply(data.data.staffReply);
+      }
+    } catch {
+      setError("Could not save this review. Check your connection.");
+    } finally {
+      setBusy("");
     }
   };
 
@@ -79,12 +108,13 @@ export default function ReviewsDashboard() {
     reviews.length === 0
       ? 0
       : reviews.reduce((sum, row) => sum + Number(row.stars || 0), 0) / reviews.length;
+  const selectedId = String(selected?.reviewId || selected?._id || "");
 
   return (
     <PageContainer>
       <DashboardHeader
         title="Rider reviews"
-        subtitle="Ratings after a completed ride. Publish, hide, or reply."
+        subtitle="Ratings after a completed ride. Publish, hide, or reply — the same records feed the public site."
       />
       <KPIGrid>
         <KPICard title="Pending" value={pending} subtitle="Need a look" icon={<Star size={22} />} color="yellow" />
@@ -100,6 +130,16 @@ export default function ReviewsDashboard() {
       </KPIGrid>
 
       <DashboardCard title="Inbox" subtitle="One review per booking. 4–5 stars auto-publish.">
+        {error ? (
+          <p className="mb-4 rounded-2xl bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">
+            {error}
+          </p>
+        ) : null}
+        {message ? (
+          <p className="mb-4 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+            {message}
+          </p>
+        ) : null}
         <div className="mb-4 flex flex-col gap-3 sm:flex-row">
           <input
             value={search}
@@ -138,6 +178,8 @@ export default function ReviewsDashboard() {
                 onClick={() => {
                   setSelected(row);
                   setReply(row.staffReply || "");
+                  setError("");
+                  setMessage("");
                 }}
                 className={`w-full rounded-2xl border px-4 py-3 text-left ${
                   selected?._id === row._id
@@ -183,7 +225,7 @@ export default function ReviewsDashboard() {
             ) : null}
           </div>
 
-          <div className="rounded-2xl border border-slate-200 p-5">
+          <div className="rounded-2xl border border-slate-200 bg-[#F8FBF9] p-5">
             {selected ? (
               <>
                 <p className="text-sm font-medium text-[#0A1134]">{selected.reviewId}</p>
@@ -204,33 +246,37 @@ export default function ReviewsDashboard() {
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
                   rows={3}
-                  className="mt-4 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm"
+                  className="mt-4 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
                   placeholder="Public staff reply (optional)"
                 />
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     disabled={Boolean(busy)}
-                    onClick={() => void patch(selected._id, { status: "Published", staffReply: reply })}
-                    className="rounded-full bg-[#18B368] px-4 py-2 text-sm font-medium text-white"
+                    onClick={() =>
+                      void patch(selectedId, { status: "Published", staffReply: reply })
+                    }
+                    className="rounded-full bg-[#18B368] px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                   >
                     Publish
                   </button>
                   <button
                     type="button"
                     disabled={Boolean(busy)}
-                    onClick={() => void patch(selected._id, { status: "Hidden", staffReply: reply })}
-                    className="rounded-full bg-slate-800 px-4 py-2 text-sm font-medium text-white"
+                    onClick={() =>
+                      void patch(selectedId, { status: "Hidden", staffReply: reply })
+                    }
+                    className="rounded-full bg-slate-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-60"
                   >
                     Hide
                   </button>
                   <button
                     type="button"
                     disabled={Boolean(busy)}
-                    onClick={() => void patch(selected._id, { staffReply: reply })}
-                    className="rounded-full border border-slate-200 px-4 py-2 text-sm"
+                    onClick={() => void patch(selectedId, { staffReply: reply })}
+                    className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm disabled:opacity-60"
                   >
-                    Save reply
+                    {busy ? "Saving..." : "Save reply"}
                   </button>
                 </div>
               </>

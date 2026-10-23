@@ -17,7 +17,7 @@ import {
   idInScopeFilter,
   scopedBookingIds,
   scopedRiderIds,
-  sessionHubScope,
+  resolveHubScope,
 } from "@/lib/staffHubScope";
 
 const NOT_DELETED = {
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
 
     await connectDB();
 
-    const hubs = sessionHubScope(gate.session);
+    const hubs = await resolveHubScope(gate.session);
     const bookingIds = await scopedBookingIds(gate.session);
     const riderIds = await scopedRiderIds(gate.session);
     const bookingMatch = applyHubScope({ ...NOT_DELETED }, hubs, [

@@ -26,7 +26,7 @@ import {
 import { rtoDailyPayable } from "@/lib/rtoInstallmentCycle";
 import { publicApiError } from "@/lib/publicError";
 import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, redactBookingOtps, withNextCursor } from "@/lib/listQuery";
-import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
@@ -143,7 +143,7 @@ export async function GET(req: Request) {
       hub: ["currentHub", "startHub"],
       city: "pickupCity",
     });
-    applyHubScope(filter, sessionHubScope(gate.session), ["currentHub", "startHub"]);
+    applyHubScope(filter, await resolveHubScope(gate.session), ["currentHub", "startHub"]);
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const and = (filter.$and as unknown[]) || [];

@@ -148,6 +148,7 @@ const approveRefund = async (id: string, sendToRazorpay = true, amount = 0) => {
 
     const res = await fetch(`/api/refunds/${id}`, {
   method: "PATCH",
+  credentials: "include",
   headers: {
     "Content-Type": "application/json",
   },
@@ -161,7 +162,11 @@ const data = await res.json();
 
 if (!data.success) {
 
-  alert(data.message || "Unable to approve refund.");
+  alert(
+    data.message ||
+      (Array.isArray(data.errors) ? data.errors.join(" ") : "") ||
+      "Unable to approve refund."
+  );
 
   return;
 
@@ -638,7 +643,8 @@ View
 <td className="px-6 py-5 text-center">
 
 {refund.refundStatus === "PROCESSING" ||
-refund.refundStatus === "PENDING" ? (
+refund.refundStatus === "PENDING" ||
+refund.refundStatus === "APPROVED" ? (
 
 <div className="flex flex-col gap-2">
 <button
@@ -697,7 +703,8 @@ Done ✓
 <td className="px-6 py-5 text-center">
 
 {refund.refundStatus === "PROCESSING" ||
-refund.refundStatus === "PENDING" ? (
+refund.refundStatus === "PENDING" ||
+refund.refundStatus === "APPROVED" ? (
 
 <button
 disabled={processingId===refund._id}

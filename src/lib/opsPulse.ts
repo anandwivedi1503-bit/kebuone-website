@@ -16,7 +16,7 @@ import {
   mergeFilters,
   scopedBookingIds,
   scopedRiderIds,
-  sessionHubScope,
+  resolveHubScope,
 } from "@/lib/staffHubScope";
 
 function can(session: AdminSessionInfo, keys: readonly string[]) {
@@ -28,7 +28,7 @@ export async function getOpsPulse(session: AdminSessionInfo): Promise<OpsStat[]>
   await connectDB();
   const stats: OpsStat[] = [];
   const tasks: Array<Promise<void>> = [];
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   const bookingIds = await scopedBookingIds(session);
   const riderIds = await scopedRiderIds(session);
   const bookingBase = applyHubScope({ ...NOT_DELETED_FILTER }, hubs, [

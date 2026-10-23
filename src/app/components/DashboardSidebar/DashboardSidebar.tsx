@@ -180,13 +180,24 @@ export default function DashboardSidebar({
                 <Globe size={14} />
                 Back to website
               </a>
-              <a
-                href="/api/admin-logout"
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await fetch("/api/admin-logout", {
+                      method: "POST",
+                      credentials: "include",
+                    });
+                  } catch {
+                    // Still leave the desk.
+                  }
+                  window.location.href = "/admin-login";
+                }}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-[#0B1B16] transition hover:bg-[#18B368] hover:text-white"
               >
                 <LogOut size={14} />
                 Log out of CRM
-              </a>
+              </button>
             </div>
           </div>
         </div>

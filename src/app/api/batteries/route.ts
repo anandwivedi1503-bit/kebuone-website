@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
 import Vehicle from "@/models/Vehicle";
-import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { listResponse, parseListQuery } from "@/lib/listQuery";
 
 export async function GET(req: Request) {
@@ -18,7 +18,7 @@ export async function GET(req: Request) {
     const notDeleted = {
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
     };
-    const hubs = sessionHubScope(gate.session);
+    const hubs = await resolveHubScope(gate.session);
     const vehicleQuery = applyHubScope({ ...notDeleted }, hubs, ["currentHub"]);
     const scopedVehicleIds = hubs
       ? (await Vehicle.distinct("vehicleId", vehicleQuery)).map((id) =>
