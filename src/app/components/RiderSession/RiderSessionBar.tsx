@@ -1,21 +1,30 @@
 "use client";
 
+import { onAuthStateChanged } from "firebase/auth";
 import { useEffect, useState } from "react";
 import { ChevronRight, User } from "lucide-react";
 
+import { firebaseAuth } from "@/lib/firebase";
 import {
+  clearRiderBookingLock,
   getChosenPlan,
   getRiderProfile,
   hasRiderBookingLock,
   hasRiderPlanReady,
+  isOpenRideBooking,
   openRiderAccountMenu,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
 
-const planLabel = (plan: string) => {
-  if (plan === "rental") return "Normal booking";
-  if (plan === "rto") return "Rent to Own";
-  return "Ride options";
+const planLabel = (plan: string, live: boolean) => {
+  if (live) {
+    if (plan === "rto") return "Rent to Own · Booking in progress";
+    if (plan === "rental") return "Normal booking · Booking in progress";
+    return "Booking in progress";
+  }
+  if (plan === "rental") return "Normal booking · Ready to book";
+  if (plan === "rto") return "Rent to Own · Ready to book";
+  return "Signed in · Ready to book";
 };
 
 export default function RiderSessionBar() {
@@ -33,13 +42,42 @@ export default function RiderSessionBar() {
       setRiderId(profile.riderId);
       setName(profile.name);
       setPlan(getChosenPlan());
-      setLocked(hasRiderBookingLock());
       setPlanReady(hasRiderPlanReady());
     };
-    refresh();
+
+    const syncLiveBooking = async () => {
+      refresh();
+      try {
+        const token = await firebaseAuth?.currentUser?.getIdToken();
+        if (!token) {
+          setLocked(false);
+          return;
+        }
+        const res = await fetch("/api/bookings/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const json = await res.json();
+        const live = Boolean(json.success && isOpenRideBooking(json.data));
+        setLocked(live);
+        if (!live && hasRiderBookingLock()) clearRiderBookingLock();
+      } catch {
+        setLocked(false);
+      }
+    };
+
+    void syncLiveBooking();
+    const unsubscribe = firebaseAuth
+      ? onAuthStateChanged(firebaseAuth, () => {
+          void syncLiveBooking();
+        })
+      : () => {};
     window.addEventListener(RIDER_SESSION_EVENT, refresh);
     window.addEventListener("storage", refresh);
+    const timer = window.setInterval(() => void syncLiveBooking(), 15000);
     return () => {
+      unsubscribe();
+      window.clearInterval(timer);
       window.removeEventListener(RIDER_SESSION_EVENT, refresh);
       window.removeEventListener("storage", refresh);
     };
@@ -63,10 +101,7 @@ export default function RiderSessionBar() {
         <p className="truncate text-lg font-black text-[#0F172A]">
           {name || riderId || "Rider"} {phone ? `· +91 ${phone}` : ""}
         </p>
-        <p className="text-sm text-slate-500">
-          {planLabel(plan)}
-          {locked ? " · Booking in progress" : ""}
-        </p>
+        <p className="text-sm text-slate-500">{planLabel(plan, locked)}</p>
       </div>
       <ChevronRight className="shrink-0 text-[#18B368]" size={22} />
     </button>

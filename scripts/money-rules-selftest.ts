@@ -26,6 +26,10 @@ import {
   sanitizeReviewComment,
 } from "../src/lib/reviews";
 import { getBookingRemainingAmount, gstBreakdownInclusive } from "../src/lib/gst";
+import {
+  isRecentCompletedRide,
+  isUnpaidGhostAfterCompleted,
+} from "../src/lib/riderCompletion";
 
 const unpaid = nextPaymentProgress({ rideStatus: "Booked" }, 0, 2000);
 assert.equal(unpaid.pickupOTP, undefined);
@@ -272,4 +276,41 @@ assert.equal(
   true
 );
 
+const finishedAt = new Date("2026-10-23T10:00:00.000Z");
+const ghostCreated = new Date("2026-10-23T10:02:00.000Z");
+assert.equal(
+  isUnpaidGhostAfterCompleted(
+    {
+      createdAt: ghostCreated,
+      receivedAmount: 0,
+      pickupOTPVerified: false,
+      rideStatus: "Booked",
+      paymentStatus: "Pending",
+    },
+    { completedAt: finishedAt, rideStatus: "Completed" },
+    ghostCreated.getTime() + 1000
+  ),
+  true
+);
+assert.equal(
+  isUnpaidGhostAfterCompleted(
+    {
+      createdAt: ghostCreated,
+      receivedAmount: 100,
+      pickupOTPVerified: false,
+      rideStatus: "Booked",
+      paymentStatus: "Partial",
+    },
+    { completedAt: finishedAt, rideStatus: "Completed" },
+    ghostCreated.getTime() + 1000
+  ),
+  false
+);
+assert.equal(
+  isRecentCompletedRide({
+    rideStatus: "Completed",
+    completedAt: new Date(),
+  }),
+  true
+);
 console.log("money-rules self-test ok");

@@ -175,7 +175,7 @@ export default function RiderAccountMenu({
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-[#18B368] text-white">
                   <Bike size={18} />
                 </span>
-                Continue my ride
+                {resumeHref === "/ride-options" ? "Book a ride" : "Continue my ride"}
               </Link>
               <Link
                 href="/contact"

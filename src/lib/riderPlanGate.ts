@@ -12,6 +12,7 @@ const RIDE_OPTIONS_VIEW_KEY = "kebu_ride_options_view";
 const RENTAL_DRAFT_KEY = "kebu_rider_rental_draft";
 const RTO_DRAFT_KEY = "kebu_rider_rto_draft";
 const REGISTRATION_DRAFT_KEY = "kebu_rider_registration_draft";
+const COMPLETED_DISMISSED_AT_KEY = "kebu_completed_dismissed_at";
 
 export type RiderChosenPlan = "rental" | "rto";
 export type RideOptionsView = "otp" | "pending" | "plans" | "register";
@@ -145,13 +146,17 @@ export function clearRiderBookingLock() {
   emitRiderSession();
 }
 
-export function isOpenRideBooking(booking?: {
+type RideBookingLike = {
   _id?: unknown;
   bookingId?: unknown;
   vehicleId?: unknown;
   rideStatus?: unknown;
   paymentStatus?: unknown;
-} | null) {
+};
+
+export function isOpenRideBooking<T extends RideBookingLike>(
+  booking?: T | null
+): booking is T {
   if (!booking?._id || !String(booking.bookingId || "").trim()) return false;
   if (!String(booking.vehicleId || "").trim()) return false;
   const ride = String(booking.rideStatus || "");
@@ -186,8 +191,20 @@ export function riderResumeHref() {
   return "/ride-options";
 }
 
+export function dismissCompletedRides() {
+  writeKey(COMPLETED_DISMISSED_AT_KEY, String(Date.now()));
+}
+
+export function shouldPresentCompletedRide(completedAt?: unknown) {
+  const at = new Date(String(completedAt || "")).getTime();
+  if (!Number.isFinite(at) || at <= 0) return false;
+  const dismissed = Number(readKey(COMPLETED_DISMISSED_AT_KEY) || 0);
+  return at > dismissed;
+}
+
 /** After a finished ride, OTP must show plan choice — not a leftover payment screen. */
 export function resetRiderBookingChoice() {
+  dismissCompletedRides();
   clearChosenPlan();
   clearRiderBookingLock();
   clearRentalDraft();
@@ -344,6 +361,7 @@ export async function logoutRider() {
   removeKey(RIDE_OPTIONS_VIEW_KEY);
   removeKey(RENTAL_DRAFT_KEY);
   removeKey(RTO_DRAFT_KEY);
+  removeKey(COMPLETED_DISMISSED_AT_KEY);
   emitRiderSession();
 
   try {

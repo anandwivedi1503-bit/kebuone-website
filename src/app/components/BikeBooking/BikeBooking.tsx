@@ -20,7 +20,9 @@ import { MicSlot, PREMIUM_BTN, PREMIUM_FIELD } from "../FormVoice/FormVoiceDock"
 import RideSwipeControl from "./RideSwipeControl";
 import RiderComplaintTicket from "./RiderComplaintTicket";
 import RideReviewCard from "../RideReview/RideReviewCard";
+import { isRecentCompletedRide } from "@/lib/riderCompletion";
 import {
+  clearRiderBookingLock,
   isOpenRideBooking,
   loadRentalDraft,
   markRiderBookingLock,
@@ -28,8 +30,34 @@ import {
   resetRiderBookingChoice,
   saveRentalDraft,
   setChosenPlan,
+  shouldPresentCompletedRide,
   syncPlanFromActiveBooking,
 } from "@/lib/riderPlanGate";
+
+type MineBooking = {
+  _id?: string;
+  bookingId?: string;
+  vehicleId?: string;
+  vehicleModel?: string;
+  vehicleNumber?: string;
+  batteryPercentage?: number;
+  currentHub?: string;
+  startHub?: string;
+  pickupHubName?: string;
+  pickupCity?: string;
+  rentalMode?: string;
+  paymentDue?: number;
+  receivedAmount?: number;
+  pendingAmount?: number;
+  paymentStatus?: string;
+  rideStatus?: string;
+  pickupOTPVerified?: boolean;
+  pickupOTP?: string;
+  rideEndOTP?: string;
+  riderReturnedAt?: string;
+  completedAt?: string;
+  actualRideEnd?: string;
+};
 
 type RazorpayResponse = {
   razorpay_order_id: string;
@@ -235,6 +263,71 @@ const [pickupOtp, setPickupOtp] = useState("");
   const otpSmsKeyRef = useRef("");
   const recoverPayRef = useRef(false);
   const rentalDraftHydrated = useRef(true);
+  const bookingMongoIdRef = useRef("");
+  const bookingIdRef = useRef("");
+
+  const hydrateFromMine = (active: MineBooking, mode: "open" | "completed") => {
+    const ride = mode === "completed" ? "Completed" : String(active.rideStatus || "");
+    setBookingId(String(active.bookingId || ""));
+    setBookingMongoId(String(active._id || ""));
+    bookingIdRef.current = String(active.bookingId || "");
+    bookingMongoIdRef.current = String(active._id || "");
+    setBookingDone(true);
+    setStep(4);
+    setCity(String(active.pickupCity || city || ""));
+    setHub(String(active.startHub || active.pickupHubName || hub || ""));
+    setSelectedBike(String(active.vehicleId || ""));
+    setRentalMode(
+      (["Hourly", "Daily", "Weekly", "Monthly"].includes(String(active.rentalMode))
+        ? active.rentalMode
+        : "Daily") as "Hourly" | "Daily" | "Weekly" | "Monthly"
+    );
+    setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
+    const due = Number(active.paymentDue || 0);
+    const received = Number(active.receivedAmount || 0);
+    const pending = Number(active.pendingAmount || 0);
+    setBookingTotal(due || received + pending);
+    setPaidAmount(received);
+    setPendingAmount(mode === "completed" ? 0 : pending);
+    setPaymentAmount(String(mode === "completed" ? 0 : pending > 0 ? pending : due || ""));
+    setBookingPaymentStatus(String(active.paymentStatus || "Pending"));
+    setPaymentSuccess(mode === "completed" || (pending <= 0.009 && received > 0));
+    setRideStatus(ride);
+    setPickupOtpVerified(Boolean(active.pickupOTPVerified) || mode === "completed");
+    setPickupOtp(mode === "completed" ? "" : String(active.pickupOTP || ""));
+    setRideEndOtp(mode === "completed" ? "" : String(active.rideEndOTP || ""));
+    setRiderReturnedAt(
+      active.riderReturnedAt
+        ? String(active.riderReturnedAt)
+        : mode === "completed"
+          ? String(active.completedAt || active.actualRideEnd || "")
+          : ""
+    );
+    setReservedBike({
+      _id: String(active.vehicleId || ""),
+      vehicleId: String(active.vehicleId || ""),
+      vehicleModel: active.vehicleModel,
+      registrationNumber: active.vehicleNumber,
+      batteryPercentage: active.batteryPercentage,
+      currentHub: active.currentHub || active.startHub,
+    });
+    setReservedHub({
+      hubName: active.pickupHubName || active.startHub,
+      hubCode: active.startHub,
+      hubLocation: "",
+    });
+    if (mode === "completed") {
+      clearRiderBookingLock();
+      setMessage("Thank you for riding with EVUDDY. The yard has taken the scooter back.");
+      return;
+    }
+    markRiderBookingLock();
+    setMessage(
+      pending > 0.009
+        ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here (Razorpay/wallet) or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
+        : `Open booking ${active.bookingId}. Payment for this cycle is complete.`
+    );
+  };
 
   const loadReviewExtras = async (token: string) => {
     try {
@@ -323,9 +416,13 @@ useEffect(() => {
 
 useEffect(() => {
   if (!rentalDraftHydrated.current) return;
-  if (bookingDone) {
+  if (bookingDone && rideStatus !== "Completed" && rideStatus !== "Cancelled") {
     markRiderBookingLock();
     setChosenPlan("rental");
+    return;
+  }
+  if (bookingDone && (rideStatus === "Completed" || rideStatus === "Cancelled")) {
+    clearRiderBookingLock();
     return;
   }
   saveRentalDraft({
@@ -337,7 +434,7 @@ useEffect(() => {
     bikeSearch,
     referenceBy,
   });
-}, [step, city, hub, selectedBike, rentalMode, bikeSearch, referenceBy, bookingDone]);
+}, [step, city, hub, selectedBike, rentalMode, bikeSearch, referenceBy, bookingDone, rideStatus]);
 
 useEffect(() => {
   if (!city) return;
@@ -361,8 +458,10 @@ useEffect(() => {
         cache: "no-store",
       });
       const mineData = await mineRes.json();
-      const active = mineData.data;
-      if (!mineData.success || !active) return;
+      const active = mineData.data as MineBooking | null;
+      const lastCompleted = mineData.lastCompleted as MineBooking | null;
+      if (!mineData.success) return;
+      if (isOpenRideBooking(active)) {
       setPaidAmount(Number(active.receivedAmount || 0));
       setPendingAmount(Number(active.pendingAmount || 0));
       setBookingPaymentStatus(String(active.paymentStatus || ""));
@@ -417,6 +516,24 @@ useEffect(() => {
           );
         }
       }
+        return;
+      }
+      const sameCompleted =
+        Boolean(lastCompleted?._id) &&
+        (String(lastCompleted?._id) === bookingMongoIdRef.current ||
+          String(lastCompleted?.bookingId || "") === bookingIdRef.current);
+      if (
+        isRecentCompletedRide(lastCompleted) &&
+        (sameCompleted ||
+          shouldPresentCompletedRide(
+            lastCompleted?.completedAt || lastCompleted?.actualRideEnd
+          ))
+      ) {
+        hydrateFromMine(lastCompleted as MineBooking, "completed");
+        try {
+          await loadReviewExtras(firebaseIdToken);
+        } catch {}
+      }
     } catch {}
   };
   void refreshMine();
@@ -454,7 +571,8 @@ useEffect(() => {
         cache: "no-store",
       });
       const mineData = await mineRes.json();
-      const active = mineData.data;
+      const active = mineData.data as MineBooking | null;
+      const lastCompleted = mineData.lastCompleted as MineBooking | null;
       if (mineData.success && isOpenRideBooking(active)) {
         if (String(active.rentalMode || "") === "Rent To Own") {
           syncPlanFromActiveBooking("Rent To Own");
@@ -462,56 +580,23 @@ useEffect(() => {
           return;
         }
         syncPlanFromActiveBooking(String(active.rentalMode || "Daily"));
-        setBookingId(String(active.bookingId || ""));
-        setBookingMongoId(String(active._id));
-        setBookingDone(true);
-        setStep(4);
-        setCity(String(active.pickupCity || city || ""));
-        setHub(String(active.startHub || active.pickupHubName || ""));
-        setSelectedBike(String(active.vehicleId || ""));
-        setRentalMode(
-          (["Hourly", "Daily", "Weekly", "Monthly"].includes(String(active.rentalMode))
-            ? active.rentalMode
-            : "Daily") as "Hourly" | "Daily" | "Weekly" | "Monthly"
-        );
-        setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
-        const due = Number(active.paymentDue || 0);
-        const received = Number(active.receivedAmount || 0);
-        const pending = Number(active.pendingAmount || 0);
-        setBookingTotal(due || received + pending);
-        setPaidAmount(received);
-        setPendingAmount(pending);
-        setPaymentAmount(String(pending > 0 ? pending : due || ""));
-        setBookingPaymentStatus(String(active.paymentStatus || "Pending"));
-        setPaymentSuccess(pending <= 0.009 && received > 0);
-        setRideStatus(String(active.rideStatus || ""));
-        setPickupOtpVerified(Boolean(active.pickupOTPVerified));
-        setPickupOtp(String(active.pickupOTP || ""));
-        setRideEndOtp(String(active.rideEndOTP || ""));
-        setRiderReturnedAt(active.riderReturnedAt ? String(active.riderReturnedAt) : "");
-        setReservedBike({
-          _id: String(active.vehicleId || ""),
-          vehicleId: String(active.vehicleId || ""),
-          vehicleModel: active.vehicleModel,
-          registrationNumber: active.vehicleNumber,
-          batteryPercentage: active.batteryPercentage,
-          currentHub: active.currentHub || active.startHub,
-        });
-        setReservedHub({
-          hubName: active.pickupHubName || active.startHub,
-          hubCode: active.startHub,
-          hubLocation: "",
-        });
-        setMessage(
-          pending > 0.009
-            ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here (Razorpay/wallet) or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
-            : `Open booking ${active.bookingId}. Payment for this cycle is complete.`
-        );
+        hydrateFromMine(active, "open");
+      } else if (
+        mineData.success &&
+        isRecentCompletedRide(lastCompleted) &&
+        shouldPresentCompletedRide(
+          lastCompleted?.completedAt || lastCompleted?.actualRideEnd
+        )
+      ) {
+        hydrateFromMine(lastCompleted as MineBooking, "completed");
       } else {
         setBookingDone(false);
         setBookingMongoId("");
         setBookingId("");
+        bookingMongoIdRef.current = "";
+        bookingIdRef.current = "";
         setReservedBike(null);
+        setRideStatus("");
         setStep((current) => (current === 4 ? 1 : current));
       }
       try {
@@ -813,6 +898,12 @@ setStep(2);
 
   const createBooking = async (e: FormEvent) => {
     e.preventDefault();
+    if (bookingDone || rideStatus === "Completed" || rideStatus === "Cancelled") {
+      return;
+    }
+    if (step !== 3) {
+      return;
+    }
 
     if (!currentBike) {
       setError("Select an available bike.");
@@ -904,6 +995,8 @@ referenceBy,
       }
       setBookingId(createdId);
       setBookingMongoId(String(bookingData.data?._id || ""));
+      bookingIdRef.current = createdId;
+      bookingMongoIdRef.current = String(bookingData.data?._id || "");
       const reservedTotal = Number(
         bookingData.data.paymentDue ||
           bookingData.data.pendingAmount ||
@@ -1690,7 +1783,10 @@ step > index + 1
           
 <div className="grid gap-10 lg:grid-cols-[1.38fr_0.62fr]">
           <form
-            onSubmit={createBooking}
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (step === 3 && !bookingDone) void createBooking(event);
+            }}
             className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl print:hidden md:p-10"
           >
             <div className="mb-6 rounded-[24px] border border-[#E6EBE7] bg-white p-4">
@@ -1713,7 +1809,7 @@ step > index + 1
                   </span>
                 ))}
               </div>
-              {bookingDone ? (
+              {bookingDone && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
               <div className="mt-3 rounded-2xl bg-[#F4F6F4] px-4 py-3 text-sm text-[#5C635E]">
                 You have an open normal booking. Finish payment or the ride here. Start Rent to Own after this ride is completed.
               </div>
@@ -2396,28 +2492,38 @@ hover:-translate-y-1
 <div className="inline-flex items-center gap-3 rounded-full bg-[#F4FFF8] px-5 py-2">
 <div className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
 <span className="text-sm font-bold uppercase tracking-[0.15em] text-[#18B368]">
-{paymentSuccess ? "BOOKING CONFIRMED" : remainingPayLocked ? "REMAINING PAYMENT" : "SECURE PAYMENT"}
+{rideStatus === "Completed"
+  ? "RIDE COMPLETE"
+  : paymentSuccess
+    ? "BOOKING CONFIRMED"
+    : remainingPayLocked
+      ? "REMAINING PAYMENT"
+      : "SECURE PAYMENT"}
 </span>
 </div>
 <h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[#0F172A]">
-{paymentSuccess
-  ? "You're booked"
-  : remainingPayLocked
-  ? "Pay the remaining amount"
-  : "Complete your payment"}
+{rideStatus === "Completed"
+  ? "Thank you for riding with EVUDDY"
+  : paymentSuccess
+    ? "You're booked"
+    : remainingPayLocked
+      ? "Pay the remaining amount"
+      : "Complete your payment"}
 </h2>
 <p className="mt-3 max-w-2xl text-[17px] leading-8 text-slate-500">
-{paymentSuccess
-  ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
-  : remainingPayLocked
-  ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
-  : bookingDone
-  ? "Your scooter is reserved. Pay any amount from ₹1 with Razorpay to get pickup OTP. Remaining can be paid during the ride."
-  : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
+{rideStatus === "Completed"
+  ? "The yard has taken the scooter back. Rate this trip below. Book EV starts a new ride from Normal vs Rent to Own."
+  : paymentSuccess
+    ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
+    : remainingPayLocked
+      ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
+      : bookingDone
+        ? "Your scooter is reserved. Pay any amount from ₹1 with Razorpay to get pickup OTP. Remaining can be paid during the ride."
+        : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
 </p>
 </div>
 
-{!paymentSuccess ? (
+{!paymentSuccess && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
 <div
 className="
 mt-8
@@ -2584,59 +2690,9 @@ disabled:opacity-60
                 </>
                 ) : null}
 
-                {bookingDone && paidAmount > 0 ? (
+                {bookingDone && rideStatus === "Completed" ? (
                   <div className="mt-4 space-y-3">
-                    {pickupOtp && !pickupOtpVerified ? (
-                      <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-5">
-                        <p className="text-xs font-bold uppercase tracking-widest text-green-800">
-                          Pickup OTP — tell this to the yard
-                        </p>
-                        <p className="mt-2 text-5xl font-black tracking-[0.28em] text-green-700">
-                          {pickupOtp}
-                        </p>
-                        <p className="mt-2 text-sm text-green-800">
-                          Tell this OTP at {hubLabel}. After the yard saves it, swipe Ride started below.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => void sendOtpSms()}
-                          className="mt-3 rounded-full border border-green-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-green-800"
-                        >
-                          Resend OTP SMS
-                        </button>
-                        {otpSmsStatus ? (
-                          <p className="mt-2 text-xs text-green-900">{otpSmsStatus}</p>
-                        ) : null}
-                      </div>
-                    ) : pickupOtpVerified && rideStatus !== "In Ride" ? (
-                      <div className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm text-sky-950">
-                        Yard confirmed pickup and unlocked the scooter. Slide to start your ride.
-                      </div>
-                    ) : rideStatus === "In Ride" ? null : (
-                      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                        Pickup OTP is being prepared. Keep this page open — it appears here for the yard.
-                      </div>
-                    )}
-
-                    {pickupOtpVerified && rideStatus !== "In Ride" && rideStatus !== "Completed" ? (
-                      <RideSwipeControl
-                        label="Slide to start ride"
-                        hint="Yard has saved your pickup OTP. Slide to mark the ride as started."
-                        busy={rideSwipeBusy}
-                        onConfirm={() => swipeRide("/api/rides/rider-start")}
-                      />
-                    ) : null}
-
-                    {rideStatus === "In Ride" && pendingAmount > 0.009 ? (
-                      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
-                        {isRentToOwn
-                          ? `Today’s Rent to Own ${formatINR(pendingAmount)} (GST included) is due. Pay here or as cash at the yard. Keep the scooter — no ride-end OTP.`
-                          : `Remaining ${formatINR(pendingAmount)} must be paid here or as cash at the yard before you can swipe Ride end. Paying remaining does not create the OTP yet.`}
-                      </p>
-                    ) : null}
-
-                    {rideStatus === "Completed" ? (
-                      <div className="overflow-hidden rounded-[32px] border border-emerald-200/80 bg-[radial-gradient(circle_at_top_right,_rgba(24,179,104,0.18),_transparent_42%),linear-gradient(180deg,#06281c_0%,#0B1B16_55%,#10231c_100%)] px-6 py-8 text-left text-white shadow-[0_30px_80px_rgba(11,27,22,0.28)] sm:px-8">
+                    <div className="overflow-hidden rounded-[32px] border border-emerald-200/80 bg-[radial-gradient(circle_at_top_right,_rgba(24,179,104,0.18),_transparent_42%),linear-gradient(180deg,#06281c_0%,#0B1B16_55%,#10231c_100%)] px-6 py-8 text-left text-white shadow-[0_30px_80px_rgba(11,27,22,0.28)] sm:px-8">
                         <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6EE7A8]">
                           Ride complete
                         </p>
@@ -2687,6 +2743,56 @@ disabled:opacity-60
                           </div>
                         ) : null}
                       </div>
+                  </div>
+                ) : bookingDone && paidAmount > 0 ? (
+                  <div className="mt-4 space-y-3">
+                    {pickupOtp && !pickupOtpVerified ? (
+                      <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-5">
+                        <p className="text-xs font-bold uppercase tracking-widest text-green-800">
+                          Pickup OTP — tell this to the yard
+                        </p>
+                        <p className="mt-2 text-5xl font-black tracking-[0.28em] text-green-700">
+                          {pickupOtp}
+                        </p>
+                        <p className="mt-2 text-sm text-green-800">
+                          Tell this OTP at {hubLabel}. After the yard saves it, swipe Ride started below.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => void sendOtpSms()}
+                          className="mt-3 rounded-full border border-green-300 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-green-800"
+                        >
+                          Resend OTP SMS
+                        </button>
+                        {otpSmsStatus ? (
+                          <p className="mt-2 text-xs text-green-900">{otpSmsStatus}</p>
+                        ) : null}
+                      </div>
+                    ) : pickupOtpVerified && rideStatus !== "In Ride" ? (
+                      <div className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm text-sky-950">
+                        Yard confirmed pickup and unlocked the scooter. Slide to start your ride.
+                      </div>
+                    ) : rideStatus === "In Ride" ? null : (
+                      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+                        Pickup OTP is being prepared. Keep this page open — it appears here for the yard.
+                      </div>
+                    )}
+
+                    {pickupOtpVerified && rideStatus !== "In Ride" && rideStatus !== "Completed" ? (
+                      <RideSwipeControl
+                        label="Slide to start ride"
+                        hint="Yard has saved your pickup OTP. Slide to mark the ride as started."
+                        busy={rideSwipeBusy}
+                        onConfirm={() => swipeRide("/api/rides/rider-start")}
+                      />
+                    ) : null}
+
+                    {rideStatus === "In Ride" && pendingAmount > 0.009 ? (
+                      <p className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-900">
+                        {isRentToOwn
+                          ? `Today’s Rent to Own ${formatINR(pendingAmount)} (GST included) is due. Pay here or as cash at the yard. Keep the scooter — no ride-end OTP.`
+                          : `Remaining ${formatINR(pendingAmount)} must be paid here or as cash at the yard before you can swipe Ride end. Paying remaining does not create the OTP yet.`}
+                      </p>
                     ) : null}
 
                     {rideEndOtp ? (
@@ -2752,7 +2858,7 @@ Payment Status
 
 )}
 
-{bookingDone && bookingId && firebaseIdToken ? (
+{bookingDone && bookingId && firebaseIdToken && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
   <RiderComplaintTicket
     bookingId={bookingId}
     token={firebaseIdToken}
@@ -2760,13 +2866,13 @@ Payment Status
     riderId={riderId}
     rideStatus={rideStatus}
   />
-) : bookingDone && bookingId ? (
+) : bookingDone && bookingId && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
   <div className="mt-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
     Sign in with your booking phone to send a rider complaint ticket from this payment step.
   </div>
 ) : null}
 
-{(bookingDone && bookingId && (pastRides.length || isRentToOwn)) && (
+{(bookingDone && bookingId && rideStatus !== "Completed" && (pastRides.length || isRentToOwn)) && (
 <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
   {pastRides.length ? (
     <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">

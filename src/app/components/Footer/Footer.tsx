@@ -18,7 +18,7 @@ import {
   FaYoutube,
 } from "react-icons/fa";
 
-import { riderResumeHref } from "@/lib/riderPlanGate";
+import { RIDER_SESSION_EVENT, riderResumeHref } from "@/lib/riderPlanGate";
 import { BRAND } from "@/lib/brandMedia";
 
 function RideEntryLink({
@@ -30,7 +30,14 @@ function RideEntryLink({
 }) {
   const [href, setHref] = useState("/ride-options");
   useEffect(() => {
-    setHref(riderResumeHref());
+    const refresh = () => setHref(riderResumeHref());
+    refresh();
+    window.addEventListener(RIDER_SESSION_EVENT, refresh);
+    window.addEventListener("storage", refresh);
+    return () => {
+      window.removeEventListener(RIDER_SESSION_EVENT, refresh);
+      window.removeEventListener("storage", refresh);
+    };
   }, []);
   return (
     <Link href={href} className={className}>
