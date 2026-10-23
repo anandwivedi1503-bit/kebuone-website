@@ -390,6 +390,8 @@ export default function RentToOwnBooking() {
           setHub(String(active.startHub || active.pickupHubName || ""));
           setSelectedBike(String(active.vehicleId || ""));
           setStep(4);
+        } else {
+          setStep((current) => (current === 4 && !bookingId ? 1 : current));
         }
       } catch {
         // Draft restore still covers the application steps.

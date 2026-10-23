@@ -21,12 +21,11 @@ import RideSwipeControl from "./RideSwipeControl";
 import RiderComplaintTicket from "./RiderComplaintTicket";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
-  clearChosenPlan,
-  clearRiderBookingLock,
   isOpenRideBooking,
   loadRentalDraft,
   markRiderBookingLock,
   rememberRiderProfile,
+  resetRiderBookingChoice,
   saveRentalDraft,
   setChosenPlan,
   syncPlanFromActiveBooking,
@@ -325,15 +324,6 @@ useEffect(() => {
 useEffect(() => {
   if (!rentalDraftHydrated.current) return;
   if (bookingDone) {
-    saveRentalDraft({
-      step: 4,
-      city,
-      hub,
-      selectedBike,
-      rentalMode,
-      bikeSearch,
-      referenceBy,
-    });
     markRiderBookingLock();
     setChosenPlan("rental");
     return;
@@ -517,6 +507,12 @@ useEffect(() => {
             ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here (Razorpay/wallet) or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
             : `Open booking ${active.bookingId}. Payment for this cycle is complete.`
         );
+      } else {
+        setBookingDone(false);
+        setBookingMongoId("");
+        setBookingId("");
+        setReservedBike(null);
+        setStep((current) => (current === 4 ? 1 : current));
       }
       try {
         const receiptRes = await fetch("/api/receipts/mine", {
@@ -1717,9 +1713,11 @@ step > index + 1
                   </span>
                 ))}
               </div>
+              {bookingDone ? (
               <div className="mt-3 rounded-2xl bg-[#F4F6F4] px-4 py-3 text-sm text-[#5C635E]">
-                Rent to Own is frozen for this normal booking. Logout if you need to switch plans.
+                You have an open normal booking. Finish payment or the ride here. Start Rent to Own after this ride is completed.
               </div>
+              ) : null}
             </div>
             {step === 1 && (
               <div className="grid gap-5 md:grid-cols-2">
@@ -1910,7 +1908,7 @@ cursor-pointer
                 </div>
 
                 <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-                  Rent to Own is frozen because you chose normal booking.
+                  This path is hourly / daily / weekly / monthly rental. Rent to Own is the other card on Book EV.
                 </div>
 
                    {loading ? (
@@ -2413,7 +2411,9 @@ hover:-translate-y-1
   ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
   : remainingPayLocked
   ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
-  : "Your scooter is reserved. Pay any amount from ₹1 to get pickup OTP. Remaining can be paid during the ride."}
+  : bookingDone
+  ? "Your scooter is reserved. Pay any amount from ₹1 with Razorpay to get pickup OTP. Remaining can be paid during the ride."
+  : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
 </p>
 </div>
 
@@ -2503,6 +2503,87 @@ focus:ring-[#18B368]/10
   />
 </div>
 
+                {bookingDone && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
+                <>
+                <button
+                  type="button"
+                  disabled={amountDue <= 0 || paymentLoading}
+                  onClick={payWithRazorpay}
+                  className="
+mt-7
+flex
+h-16
+w-full
+items-center
+justify-center
+gap-3
+rounded-2xl
+bg-gradient-to-r
+from-[#16A34A]
+via-[#22C55E]
+to-[#18B368]
+font-bold
+tracking-wide
+text-white
+shadow-[0_22px_55px_rgba(24,179,104,.35)]
+transition-all
+duration-300
+hover:-translate-y-1
+hover:shadow-[0_28px_70px_rgba(24,179,104,.45)]
+disabled:opacity-60
+"
+                >
+                  <CreditCard size={18} />
+
+{paymentLoading
+ ? "Processing..."
+ : remainingPayLocked
+ ? `Pay remaining ${formatINR(pendingAmount)} with Razorpay`
+ : "Pay Securely with Razorpay"}
+                </button>
+
+                <button
+                  type="button"
+                  disabled={
+                    amountDue <= 0 ||
+                    paymentLoading ||
+                    !walletCoversPay
+                  }
+                  onClick={() => void payWithWallet()}
+                  className="
+mt-3
+flex
+h-16
+w-full
+items-center
+justify-center
+gap-3
+rounded-2xl
+border
+border-[#18B368]
+bg-white
+font-bold
+tracking-wide
+text-[#0F172A]
+transition-all
+duration-300
+hover:-translate-y-0.5
+disabled:opacity-60
+"
+                >
+                  <Wallet size={18} />
+                  {walletAvailable < 1
+                    ? "Wallet ₹0.00 — use Razorpay"
+                    : walletCoversPay
+                    ? `Pay ${formatINR(walletPayNow)} from wallet`
+                    : `Wallet ${formatINR(walletAvailable)} — not enough for this amount`}
+                </button>
+                <p className="mt-2 text-center text-xs text-slate-500">
+                  Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal online path. You can also hand cash to the yard manager — they record it on Hub/Booking and must handover that cash to the company.
+                </p>
+                </>
+                ) : null}
+
                 {bookingDone && paidAmount > 0 ? (
                   <div className="mt-4 space-y-3">
                     {pickupOtp && !pickupOtpVerified ? (
@@ -2571,8 +2652,7 @@ focus:ring-[#18B368]/10
                           <button
                             type="button"
                             onClick={() => {
-                              clearRiderBookingLock();
-                              clearChosenPlan();
+                              resetRiderBookingChoice();
                               window.location.href = "/ride-options";
                             }}
                             className="rounded-full bg-[#18B368] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(24,179,104,0.35)]"
@@ -2643,92 +2723,6 @@ focus:ring-[#18B368]/10
                   <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
                     Reserve is holding the scooter. Pay at least ₹1 to get pickup OTP.
                   </div>
-                ) : null}
-
-                {bookingDone && amountDue > 0.009 && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
-                <>
-                <button
-                  type="button"
-                  disabled={
-   !bookingDone ||
-   amountDue <= 0 ||
-   paymentLoading
-}
-                  onClick={payWithRazorpay}
-                  className="
-mt-7
-flex
-h-16
-w-full
-items-center
-justify-center
-gap-3
-rounded-2xl
-bg-gradient-to-r
-from-[#16A34A]
-via-[#22C55E]
-to-[#18B368]
-font-bold
-tracking-wide
-text-white
-shadow-[0_22px_55px_rgba(24,179,104,.35)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:shadow-[0_28px_70px_rgba(24,179,104,.45)]
-disabled:opacity-60
-"
-                >
-                  <CreditCard size={18} />
-
-{paymentLoading
- ? "Processing..."
- : remainingPayLocked
- ? `Pay remaining ${formatINR(pendingAmount)} with Razorpay`
- : "Pay Securely with Razorpay"}
-                </button>
-
-                <button
-                  type="button"
-                  disabled={
-                    !bookingDone ||
-                    amountDue <= 0 ||
-                    paymentLoading ||
-                    !walletCoversPay
-                  }
-                  onClick={() => void payWithWallet()}
-                  className="
-mt-3
-flex
-h-16
-w-full
-items-center
-justify-center
-gap-3
-rounded-2xl
-border
-border-[#18B368]
-bg-white
-font-bold
-tracking-wide
-text-[#0F172A]
-transition-all
-duration-300
-hover:-translate-y-0.5
-disabled:opacity-60
-"
-                >
-                  <Wallet size={18} />
-                  {walletAvailable < 1
-                    ? "Wallet ₹0.00 — use Razorpay"
-                    : walletCoversPay
-                    ? `Pay ${formatINR(walletPayNow)} from wallet`
-                    : `Wallet ${formatINR(walletAvailable)} — not enough for this amount`}
-                </button>
-                <p className="mt-2 text-center text-xs text-slate-500">
-                  Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal online path. You can also hand cash to the yard manager — they record it on Hub/Booking and must handover that cash to the company.
-                </p>
-                </>
                 ) : null}
 
                 {paymentMessage && (

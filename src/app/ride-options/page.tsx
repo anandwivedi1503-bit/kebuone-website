@@ -17,12 +17,10 @@ import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
 import {
-  clearChosenPlan,
-  clearRiderBookingLock,
-  getChosenPlan,
   isOpenRideBooking,
   markRiderPlanReady,
   rememberRiderProfile,
+  resetRiderBookingChoice,
   setChosenPlan,
   setRideOptionsView,
   syncPlanFromActiveBooking,
@@ -103,9 +101,6 @@ export default function RideOptionsPage() {
   const confirmationRef = useRef<ConfirmationResult | null>(null);
   const recaptchaRef = useRef<RecaptchaVerifier | null>(null);
 
-  const [chosenPlan, setChosenPlanState] = useState<"rental" | "rto" | "">(() =>
-    getChosenPlan()
-  );
 
   useEffect(() => {
     let cancelled = false;
@@ -213,9 +208,14 @@ export default function RideOptionsPage() {
           cache: "no-store",
         });
         const mineData = await mineRes.json();
-        const active = mineData.data as
-          | { _id?: string; rentalMode?: string; rideStatus?: string }
-          | null;
+        const active = mineData.data as {
+          _id?: string;
+          bookingId?: string;
+          vehicleId?: string;
+          rentalMode?: string;
+          rideStatus?: string;
+          paymentStatus?: string;
+        } | null;
         if (mineData.success && isOpenRideBooking(active)) {
           syncPlanFromActiveBooking(String(active?.rentalMode || "Daily"));
           window.location.replace(
@@ -229,9 +229,7 @@ export default function RideOptionsPage() {
     } catch {
       // No live booking — show rental vs Rent to Own.
     }
-    clearChosenPlan();
-    clearRiderBookingLock();
-    setChosenPlanState("");
+    resetRiderBookingChoice();
     if (rider.riderId) setRiderId(rider.riderId);
     setView("plans");
   };
@@ -480,8 +478,8 @@ export default function RideOptionsPage() {
               How do you want to ride?
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
-              Pick a flexible rental, or own the scooter after 20 months of Rent to Own payments.
-              Pick a plan for this booking. A live unpaid ride still opens automatically.
+              Pick Normal booking or Rent to Own. A finished ride does not come back. Only an unpaid
+              or in-progress ride opens again so you can pay or finish it.
             </p>
             <div className="mx-auto mt-6 max-w-lg">
               <SessionExit />
@@ -491,15 +489,8 @@ export default function RideOptionsPage() {
           <div className="mx-auto mt-10 grid max-w-5xl gap-5 lg:grid-cols-2">
             <Link
               href="/book-bike?flow=rental"
-              onClick={() => {
-                setChosenPlan("rental");
-                setChosenPlanState("rental");
-              }}
-              className={`group rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] transition sm:p-8 ${
-                chosenPlan === "rto"
-                  ? "pointer-events-none opacity-40 grayscale"
-                  : "hover:-translate-y-1"
-              }`}
+              onClick={() => setChosenPlan("rental")}
+              className="group rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] transition hover:-translate-y-1 sm:p-8"
             >
               <span className="inline-flex rounded-full bg-[#18B368]/10 px-3 py-1 text-xs font-bold text-[#18B368]">
                 FLEXIBLE RENTAL
@@ -530,21 +521,6 @@ export default function RideOptionsPage() {
               </span>
             </Link>
 
-            {chosenPlan === "rental" ? (
-              <div className="rounded-[28px] border border-slate-200 bg-slate-100 p-6 text-slate-500 sm:p-8">
-                <span className="inline-flex rounded-full bg-slate-200 px-3 py-1 text-xs font-bold">
-                  FROZEN
-                </span>
-                <div className="mt-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-300 text-white">
-                  <KeyRound size={22} />
-                </div>
-                <h2 className="mt-5 text-2xl font-black text-slate-600">Rent to Own</h2>
-                <p className="mt-2 text-sm leading-6">
-                  You chose normal booking. Rent to Own stays frozen for this session.
-                  Logout if you need to switch plans.
-                </p>
-              </div>
-            ) : (
             <Link
               href="/rent-to-own"
               onClick={() => setChosenPlan("rto")}
@@ -571,7 +547,6 @@ export default function RideOptionsPage() {
                 Start Rent to Own <ArrowRight size={16} />
               </span>
             </Link>
-            )}
           </div>
         </section>
       )}

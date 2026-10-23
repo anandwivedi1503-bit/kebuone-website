@@ -23,7 +23,7 @@ import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
 import { TypingDots } from "@/app/components/Assistant/AssistantShell";
 import { useVoiceAssistant } from "@/app/components/Assistant/useVoiceAssistant";
 import { ASSISTANT_LANGUAGES } from "@/lib/assistantLanguages";
-import { writeOpsFocus } from "@/lib/opsFocus";
+import { OPEN_OPS_EVA_EVENT, writeOpsFocus } from "@/lib/opsFocus";
 
 type Hit = {
   kind: string;
@@ -162,19 +162,6 @@ export default function OpsAssistant({
   }, [open, loadPulse]);
 
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setOpen(true);
-        setMode("command");
-      }
-      if (event.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
-
-  useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" });
   }, [turns, loading, mode]);
 
@@ -241,6 +228,34 @@ export default function OpsAssistant({
     },
     [language, onOpenDashboard]
   );
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setOpen(true);
+        setMode("command");
+      }
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    const onEva = (event: Event) => {
+      const query = String(
+        (event as CustomEvent<{ query?: string }>).detail?.query || ""
+      ).trim();
+      setOpen(true);
+      setMode(query ? "ask" : "command");
+      if (query) {
+        setQuestion(query);
+        void runSearch(query, { askMode: true, navigate: true });
+      }
+    };
+    window.addEventListener(OPEN_OPS_EVA_EVENT, onEva);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(OPEN_OPS_EVA_EVENT, onEva);
+    };
+  }, [runSearch]);
 
   useEffect(() => {
     if (!open || mode !== "command") return;

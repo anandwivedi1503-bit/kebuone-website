@@ -147,11 +147,24 @@ export function clearRiderBookingLock() {
 
 export function isOpenRideBooking(booking?: {
   _id?: unknown;
+  bookingId?: unknown;
+  vehicleId?: unknown;
   rideStatus?: unknown;
+  paymentStatus?: unknown;
 } | null) {
-  if (!booking?._id) return false;
+  if (!booking?._id || !String(booking.bookingId || "").trim()) return false;
+  if (!String(booking.vehicleId || "").trim()) return false;
   const ride = String(booking.rideStatus || "");
-  return ride !== "Cancelled" && ride !== "Completed";
+  if (ride === "Cancelled" || ride === "Completed") return false;
+  const liveRide = [
+    "Booked",
+    "Reserved",
+    "Payment Pending",
+    "Ready For Pickup",
+    "In Ride",
+  ].includes(ride);
+  const livePay = ["Pending", "Partial"].includes(String(booking.paymentStatus || ""));
+  return liveRide || livePay;
 }
 
 export function getRideOptionsView(): RideOptionsView | "" {
@@ -168,17 +181,17 @@ export function setRideOptionsView(view: RideOptionsView) {
 
 export function riderResumeHref() {
   const plan = getChosenPlan();
-  const rentalDraft = loadRentalDraft();
-  const rtoDraft = loadRtoDraft();
-  if (plan === "rto" || rtoDraft) {
-    if (!plan) setChosenPlan("rto");
-    return "/rent-to-own";
-  }
-  if (plan === "rental" || rentalDraft) {
-    if (!plan) setChosenPlan("rental");
-    return "/book-bike?flow=rental";
-  }
+  if (hasRiderBookingLock() && plan === "rto") return "/rent-to-own";
+  if (hasRiderBookingLock() && plan === "rental") return "/book-bike?flow=rental";
   return "/ride-options";
+}
+
+/** After a finished ride, OTP must show plan choice — not a leftover payment screen. */
+export function resetRiderBookingChoice() {
+  clearChosenPlan();
+  clearRiderBookingLock();
+  clearRentalDraft();
+  clearRtoDraft();
 }
 
 export function loadRegistrationDraft(): RegistrationDraft | null {
@@ -262,11 +275,15 @@ function readJson<T>(key: string): T | null {
 
 export function loadRentalDraft(): RentalWizardDraft | null {
   const draft = readJson<RentalWizardDraft>(RENTAL_DRAFT_KEY);
-  if (!draft || ![1, 2, 3, 4].includes(Number(draft.step))) return null;
+  if (!draft || ![1, 2, 3].includes(Number(draft.step))) {
+    if (draft && Number(draft.step) === 4) removeKey(RENTAL_DRAFT_KEY);
+    return null;
+  }
   return draft;
 }
 
 export function saveRentalDraft(draft: RentalWizardDraft) {
+  if (draft.step === 4) return;
   writeKey(RENTAL_DRAFT_KEY, JSON.stringify(draft), false);
 }
 
@@ -277,11 +294,15 @@ export function clearRentalDraft() {
 
 export function loadRtoDraft(): RtoWizardDraft | null {
   const draft = readJson<RtoWizardDraft>(RTO_DRAFT_KEY);
-  if (!draft || ![1, 2, 3, 4].includes(Number(draft.step))) return null;
+  if (!draft || ![1, 2, 3].includes(Number(draft.step))) {
+    if (draft && Number(draft.step) === 4) removeKey(RTO_DRAFT_KEY);
+    return null;
+  }
   return draft;
 }
 
 export function saveRtoDraft(draft: RtoWizardDraft) {
+  if (draft.step === 4) return;
   writeKey(RTO_DRAFT_KEY, JSON.stringify(draft), false);
 }
 
@@ -321,6 +342,8 @@ export async function logoutRider() {
   removeKey(BOOKING_LOCK_KEY);
   removeKey(CHOSEN_PLAN_KEY);
   removeKey(RIDE_OPTIONS_VIEW_KEY);
+  removeKey(RENTAL_DRAFT_KEY);
+  removeKey(RTO_DRAFT_KEY);
   emitRiderSession();
 
   try {
