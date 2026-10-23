@@ -44,7 +44,7 @@ export async function GET(req: Request) {
       $and: [
         bookingBelongsToRiderFilter(rider),
         NOT_DELETED_FILTER,
-        { rideStatus: { $ne: "Cancelled" } },
+        { rideStatus: { $nin: ["Cancelled", "Completed"] } },
         {
           $or: [
             { paymentStatus: { $in: ["Pending", "Partial"] } },
@@ -72,26 +72,6 @@ export async function GET(req: Request) {
     if (activeDoc) {
       await openDueRtoInstallment(activeDoc);
       booking = activeDoc.toObject();
-    }
-
-    if (!booking) {
-      const since = new Date(Date.now() - 48 * 60 * 60 * 1000);
-      booking = await Booking.findOne({
-        $and: [
-          bookingBelongsToRiderFilter(rider),
-          NOT_DELETED_FILTER,
-          { rideStatus: "Completed" },
-          {
-            $or: [
-              { completedAt: { $gte: since } },
-              { actualRideEnd: { $gte: since } },
-            ],
-          },
-        ],
-      })
-        .select("-rideStartOTP")
-        .sort({ completedAt: -1, createdAt: -1 })
-        .lean();
     }
 
     return NextResponse.json({ success: true, data: booking || null });

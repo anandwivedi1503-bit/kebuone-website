@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 
 import DashboardSidebar from "../DashboardSidebar/DashboardSidebar";
+import OpsCommandBar from "../DashboardUI/OpsCommandBar";
 import "../DashboardUI/ops-shell.css";
 import { ALL_DASHBOARDS } from "@/lib/adminRoles";
 import { OPEN_OPS_DESK_EVENT } from "@/lib/opsFocus";
@@ -166,6 +167,13 @@ export default function DashboardContainer() {
 
       <main className="min-h-screen pt-14 lg:ml-[272px] lg:pt-0">
         <div className="px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
+          {sessionReady ? (
+            <OpsCommandBar
+              onOpenDashboard={setActiveDashboard}
+              onRefresh={() => window.location.reload()}
+              homeDashboard={isSuper ? "admin" : allowed[0] || "bookings"}
+            />
+          ) : null}
           {!sessionReady ? (
             <p className="rounded-3xl bg-white p-8 text-slate-600">Loading ops access…</p>
           ) : (

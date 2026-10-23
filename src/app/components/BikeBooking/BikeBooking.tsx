@@ -21,6 +21,9 @@ import RideSwipeControl from "./RideSwipeControl";
 import RiderComplaintTicket from "./RiderComplaintTicket";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import {
+  clearChosenPlan,
+  clearRiderBookingLock,
+  isOpenRideBooking,
   loadRentalDraft,
   markRiderBookingLock,
   rememberRiderProfile,
@@ -462,7 +465,7 @@ useEffect(() => {
       });
       const mineData = await mineRes.json();
       const active = mineData.data;
-      if (mineData.success && active?._id) {
+      if (mineData.success && isOpenRideBooking(active)) {
         if (String(active.rentalMode || "") === "Rent To Own") {
           syncPlanFromActiveBooking("Rent To Own");
           window.location.replace("/rent-to-own");
@@ -1124,7 +1127,16 @@ setStep(4);
     } catch (error) {
       console.error("RAZORPAY CHECKOUT:", error);
       setPaymentMessage("");
-      setError("Could not open Razorpay. Please try again.");
+      const aborted =
+        (error instanceof DOMException && error.name === "AbortError") ||
+        (error instanceof Error && /abort/i.test(error.message));
+      setError(
+        aborted
+          ? "Razorpay took too long to start. Check the internet connection and tap Pay again."
+          : error instanceof Error && error.message
+            ? error.message
+            : "Could not open Razorpay. Please try again."
+      );
     } finally {
       if (!checkoutOpened) setPaymentLoading(false);
     }
@@ -2543,18 +2555,42 @@ focus:ring-[#18B368]/10
                     ) : null}
 
                     {rideStatus === "Completed" ? (
-                      <div className="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white px-5 py-6 text-center">
-                        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
+                      <div className="overflow-hidden rounded-[32px] border border-emerald-200/80 bg-[radial-gradient(circle_at_top_right,_rgba(24,179,104,0.18),_transparent_42%),linear-gradient(180deg,#06281c_0%,#0B1B16_55%,#10231c_100%)] px-6 py-8 text-left text-white shadow-[0_30px_80px_rgba(11,27,22,0.28)] sm:px-8">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6EE7A8]">
                           Ride complete
                         </p>
-                        <p className="mt-2 text-2xl font-black text-[#0F172A]">
+                        <p className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
                           Thank you for riding with EVUDDY
                         </p>
-                        <p className="mt-2 text-sm text-slate-600">
-                          The yard has taken the scooter back. We hope to see you again soon. Deposit refunds (if any) are approved by admin after return.
+                        <p className="mt-3 max-w-xl text-sm leading-7 text-white/70">
+                          The yard has taken the scooter back. Your trip is closed on our books.
+                          If a security deposit is due back, ops refunds it on the original Razorpay
+                          payment — not as a leftover booking screen.
                         </p>
+                        <div className="mt-6 flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              clearRiderBookingLock();
+                              clearChosenPlan();
+                              window.location.href = "/ride-options";
+                            }}
+                            className="rounded-full bg-[#18B368] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(24,179,104,0.35)]"
+                          >
+                            Book another ride
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              window.location.href = "/";
+                            }}
+                            className="rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white"
+                          >
+                            Back to website
+                          </button>
+                        </div>
                         {firebaseIdToken && bookingId ? (
-                          <div className="mt-5 text-left">
+                          <div className="mt-6">
                             <RideReviewCard
                               bookingId={bookingId}
                               token={firebaseIdToken}
@@ -2609,7 +2645,7 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : null}
 
-                {!paymentSuccess && rideStatus !== "Completed" ? (
+                {bookingDone && amountDue > 0.009 && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
                 <>
                 <button
                   type="button"

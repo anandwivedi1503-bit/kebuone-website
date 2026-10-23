@@ -5,7 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import iot from "@/models/IoT";
 import Vehicle from "@/models/Vehicle";
 import Booking from "@/models/Booking";
-import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { providedSecretMatches } from "@/lib/timingSafe";
 
 const lockStatuses = ["Locked", "Unlocked"];
@@ -46,7 +46,7 @@ export async function GET() {
       {
         $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
       },
-      sessionHubScope(gate.session),
+      await resolveHubScope(gate.session),
       ["currentHub"]
     );
     const vehicles = await Vehicle.find(vehicleFilter)

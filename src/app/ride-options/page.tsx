@@ -17,12 +17,15 @@ import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
 import {
+  clearChosenPlan,
+  clearRiderBookingLock,
   getChosenPlan,
+  isOpenRideBooking,
   markRiderPlanReady,
   rememberRiderProfile,
-  riderResumeHref,
   setChosenPlan,
   setRideOptionsView,
+  syncPlanFromActiveBooking,
 } from "@/lib/riderPlanGate";
 
 const formatINR = (amount: number) =>
@@ -127,7 +130,7 @@ export default function RideOptionsPage() {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await response.json();
-          if (!cancelled) applyRiderResult(data);
+          if (!cancelled) await applyRiderResult(data);
           return;
         } catch {
           // Fall through to OTP.
@@ -179,12 +182,7 @@ export default function RideOptionsPage() {
         });
         const data = await response.json();
         if (data.success && isRiderApproved(data.data)) {
-          markRiderPlanReady();
-          if (getChosenPlan()) {
-            window.location.replace(riderResumeHref());
-            return;
-          }
-          setView("plans");
+          await routeApprovedRider(data.data);
         }
       } catch {
         // Keep waiting for admin approval.
@@ -205,7 +203,40 @@ export default function RideOptionsPage() {
     if (container) container.innerHTML = "";
   };
 
-  const applyRiderResult = (data: {
+  const routeApprovedRider = async (rider: RiderApprovalFields) => {
+    markRiderPlanReady();
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      if (token) {
+        const mineRes = await fetch("/api/bookings/mine", {
+          headers: { Authorization: `Bearer ${token}` },
+          cache: "no-store",
+        });
+        const mineData = await mineRes.json();
+        const active = mineData.data as
+          | { _id?: string; rentalMode?: string; rideStatus?: string }
+          | null;
+        if (mineData.success && isOpenRideBooking(active)) {
+          syncPlanFromActiveBooking(String(active?.rentalMode || "Daily"));
+          window.location.replace(
+            String(active?.rentalMode || "") === "Rent To Own"
+              ? "/rent-to-own"
+              : "/book-bike?flow=rental"
+          );
+          return;
+        }
+      }
+    } catch {
+      // No live booking — show rental vs Rent to Own.
+    }
+    clearChosenPlan();
+    clearRiderBookingLock();
+    setChosenPlanState("");
+    if (rider.riderId) setRiderId(rider.riderId);
+    setView("plans");
+  };
+
+  const applyRiderResult = async (data: {
     success?: boolean;
     data?: RiderApprovalFields;
   }) => {
@@ -224,13 +255,7 @@ export default function RideOptionsPage() {
     }
 
     if (isRiderApproved(data.data)) {
-      markRiderPlanReady();
-      const resume = riderResumeHref();
-      if (resume !== "/ride-options") {
-        window.location.replace(resume);
-        return;
-      }
-      setView("plans");
+      await routeApprovedRider(data.data);
       return;
     }
 
@@ -322,7 +347,7 @@ export default function RideOptionsPage() {
         headers: { Authorization: `Bearer ${idToken}` },
       });
       const data = await response.json();
-      applyRiderResult(data);
+      await applyRiderResult(data);
     } catch (err) {
       setError(firebaseOtpError(err));
     } finally {
@@ -345,11 +370,10 @@ export default function RideOptionsPage() {
               Confirm your mobile number
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              New riders: verify OTP, then complete registration steps 1–4. Registered
-              riders: after OTP you return to the same booking step you left. Already
-              signed-in riders skip this screen and resume automatically. There is no
-              timeout on unfinished registration — your form stays until you submit or
-              staff decide on KYC.
+              New riders: verify OTP, then complete registration. Returning riders: after
+              OTP you choose Normal booking or Rent to Own again. An unpaid or in-progress
+              ride still opens so you can pay or finish it. There is no timeout on
+              unfinished registration.
             </p>
 
             <label className="mt-8 block text-sm font-semibold text-[#0F172A]">
@@ -457,7 +481,7 @@ export default function RideOptionsPage() {
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
               Pick a flexible rental, or own the scooter after 20 months of Rent to Own payments.
-              Your choice stays locked until you logout, so refresh keeps you on the same path.
+              Pick a plan for this booking. A live unpaid ride still opens automatically.
             </p>
             <div className="mx-auto mt-6 max-w-lg">
               <SessionExit />

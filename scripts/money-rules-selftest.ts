@@ -106,16 +106,16 @@ assert.equal(
   sessionHubScope({ role: "super", username: "superadmin", dashboards: [] }),
   null
 );
-assert.deepEqual(
+assert.equal(
   sessionHubScope({ role: "staff", username: "yard", dashboards: ["bookings"] }),
-  []
+  null
 );
 assert.equal(
   staffCanAccessBooking(
     { role: "staff", username: "yard", dashboards: ["bookings"] },
     { currentHub: "NOIDA-01" }
   ),
-  false
+  true
 );
 assert.deepEqual(
   sessionHubScope({

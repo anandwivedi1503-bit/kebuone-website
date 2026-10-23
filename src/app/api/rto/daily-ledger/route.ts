@@ -8,7 +8,7 @@ import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { openDueRtoDays } from "@/lib/jobs/releaseUnpaidBookings";
 import Booking from "@/models/Booking";
 import Transaction from "@/models/Transaction";
-import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 
 export const runtime = "nodejs";
 
@@ -25,7 +25,7 @@ export async function GET() {
         { rentalMode: "Rent To Own" },
         applyHubScope(
           {},
-          sessionHubScope(gate.session),
+          await resolveHubScope(gate.session),
           ["currentHub", "startHub"]
         ),
       ],

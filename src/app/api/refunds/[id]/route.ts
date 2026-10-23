@@ -313,15 +313,27 @@ if (!rider) {
 
 }
 
-const sendToRazorpay = body.sendToRazorpay !== false;
+let sendToRazorpay = body.sendToRazorpay !== false;
+const paymentId = String(booking.razorpayPaymentId || "");
+let gatewayId = String(refund.razorpayRefundId || "").trim();
+const gatewayIds = String(refund.gatewayTxnId || "")
+  .split(",")
+  .map((id) => id.trim())
+  .filter(Boolean);
+
+if (sendToRazorpay && !paymentId && !gatewayId && gatewayIds.length === 0) {
+  const hasRazorpayTxn = await Transaction.exists({
+    bookingId: refund.bookingId,
+    paymentMethod: "Razorpay",
+    transactionType: "Booking Payment",
+    status: "Success",
+  }).session(session);
+  if (!hasRazorpayTxn) {
+    sendToRazorpay = false;
+  }
+}
 
 if (sendToRazorpay) {
-  const paymentId = String(booking.razorpayPaymentId || "");
-  let gatewayId = String(refund.razorpayRefundId || "").trim();
-  const gatewayIds = String(refund.gatewayTxnId || "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
 
   await session.abortTransaction();
   session.endSession();
@@ -331,7 +343,7 @@ if (sendToRazorpay) {
     const claimed = await Refund.findOneAndUpdate(
       {
         _id: refund._id,
-        refundStatus: { $in: ["PENDING", "APPROVED"] },
+        refundStatus: { $in: ["PENDING", "APPROVED", "PROCESSING"] },
       },
       { $set: { refundStatus: "PROCESSING" } },
       { new: true }
@@ -351,24 +363,6 @@ if (sendToRazorpay) {
           { status: live?.refundStatus === "REFUNDED" ? 400 : 409 }
         );
       }
-    }
-  }
-
-  if (!paymentId && !gatewayId && gatewayIds.length === 0) {
-    const hasRazorpayTxn = await Transaction.exists({
-      bookingId: refund.bookingId,
-      paymentMethod: "Razorpay",
-      transactionType: "Booking Payment",
-      status: "Success",
-    });
-    if (!hasRazorpayTxn) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "This booking has no Razorpay payment. Use the wallet refund.",
-        },
-        { status: 400 }
-      );
     }
   }
 
@@ -416,7 +410,8 @@ if (sendToRazorpay) {
     return NextResponse.json(
       {
         success: false,
-        message: "Razorpay refund failed. Wallet was not credited.",
+        message:
+          "Razorpay could not refund this payment. Retry, or use wallet credit only if there was no Razorpay capture. The rider wallet was not changed.",
       },
       { status: 502 }
     );
@@ -540,9 +535,54 @@ await releaseSecurityDepositHoldOnce(
   "Hold released with wallet deposit refund"
 );
 
-const wallet = await Wallet.findOne({
+let wallet = await Wallet.findOne({
   riderId: booking.riderId,
 }).session(session);
+
+if (!wallet) {
+  const phone = String(rider.phone || booking.userPhone || "")
+    .replace(/\D/g, "")
+    .slice(-10);
+  if (!/^[6-9]\d{9}$/.test(phone)) {
+    await session.abortTransaction();
+    session.endSession();
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Cannot create a wallet for this rider because the phone number is missing.",
+      },
+      { status: 400 }
+    );
+  }
+  try {
+    const [created] = await Wallet.create(
+      [
+        {
+          riderId: String(booking.riderId || ""),
+          userId: rider._id,
+          userName: String(rider.fullName || booking.userName || ""),
+          phone,
+          balance: 0,
+          securityDepositHold: 0,
+          freezeAmount: 0,
+          totalRecharge: 0,
+          totalSpent: 0,
+          totalRefund: 0,
+          status: "Active",
+          adminBlocked: false,
+          isDeleted: false,
+          updatedBy: "Refund",
+        },
+      ],
+      { session }
+    );
+    wallet = created;
+  } catch {
+    wallet = await Wallet.findOne({
+      riderId: booking.riderId,
+    }).session(session);
+  }
+}
 
 if (!wallet) {
 
@@ -552,10 +592,10 @@ if (!wallet) {
   return NextResponse.json(
     {
       success: false,
-      message: "Wallet not found.",
+      message: "Could not create a rider wallet for this refund. Try again.",
     },
     {
-      status: 404,
+      status: 500,
     }
   );
 

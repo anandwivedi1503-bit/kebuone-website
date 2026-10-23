@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarDays, Clock3, Printer, ShieldCheck } from "lucide-react";
+import { CalendarDays, Clock3, LogOut, Printer, ShieldCheck } from "lucide-react";
 
 type DashboardHeaderProps = {
   title: string;
@@ -85,6 +85,25 @@ export default function DashboardHeader({
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#18B368]/25 bg-white text-slate-600 transition hover:border-[#18B368] hover:bg-[#18B368] hover:text-white"
             >
               <Printer size={16} />
+            </button>
+            <button
+              type="button"
+              title="Log out of CRM"
+              onClick={async () => {
+                try {
+                  await fetch("/api/admin-logout", {
+                    method: "POST",
+                    credentials: "include",
+                  });
+                } catch {
+                  // Still leave the desk.
+                }
+                window.location.href = "/admin-login";
+              }}
+              className="flex h-10 items-center gap-2 rounded-xl bg-[#0B1B16] px-3 text-xs font-semibold text-white transition hover:bg-[#18B368]"
+            >
+              <LogOut size={14} />
+              Log out
             </button>
           </div>
         </div>

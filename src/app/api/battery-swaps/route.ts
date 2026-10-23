@@ -14,7 +14,7 @@ import {
 import {
   applyHubScope,
   hubForbiddenResponse,
-  sessionHubScope,
+  resolveHubScope,
   staffCanAccessBooking,
 } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
@@ -32,7 +32,7 @@ export async function GET() {
 
     const filter = applyHubScope(
       {},
-      sessionHubScope(gate.session),
+      await resolveHubScope(gate.session),
       ["hubId"]
     );
     const swaps = await BatterySwap.find(filter).sort({ createdAt: -1 }).limit(300).lean();

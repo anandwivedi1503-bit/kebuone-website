@@ -1,6 +1,7 @@
 import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import Booking from "@/models/Booking";
+import Hub from "@/models/Hub";
 
 export function normalizeHubCodes(value: unknown): string[] {
   const raw = Array.isArray(value)
@@ -13,10 +14,61 @@ export function normalizeHubCodes(value: unknown): string[] {
   );
 }
 
-/** null = unrestricted super. Staff with no hubs get [] (see nothing). */
+/**
+ * null = unrestricted (super admin, or staff with no hub list).
+ * Team Access says an empty hub list means every yard — not a blank desk.
+ */
 export function sessionHubScope(session: AdminSessionInfo | null): string[] | null {
   if (!session || session.role === "super") return null;
-  return normalizeHubCodes(session.hubs);
+  const hubs = normalizeHubCodes(session.hubs);
+  return hubs.length ? hubs : null;
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/** Expand assigned hub codes to names/locations so yard logins match booking rows. */
+export async function resolveHubScope(
+  session: AdminSessionInfo | null
+): Promise<string[] | null> {
+  const hubs = sessionHubScope(session);
+  if (hubs === null || hubs.length === 0) return hubs;
+
+  try {
+    const rx = new RegExp(`^(${hubs.map(escapeRegex).join("|")})$`, "i");
+    const rows = (await Hub.find({
+      $and: [
+        NOT_DELETED_FILTER,
+        {
+          $or: [
+            { hubCode: { $in: hubs } },
+            { hubName: rx },
+            { hubLocation: rx },
+          ],
+        },
+      ],
+    })
+      .select("hubCode hubName hubLocation")
+      .lean()) as Array<{
+      hubCode?: string;
+      hubName?: string;
+      hubLocation?: string;
+    }>;
+
+    const aliases = new Set(hubs);
+    for (const row of rows) {
+      for (const value of [row.hubCode, row.hubName, row.hubLocation]) {
+        const trimmed = String(value || "").trim();
+        if (trimmed) aliases.add(trimmed);
+        const upper = trimmed.toUpperCase();
+        if (upper) aliases.add(upper);
+      }
+    }
+    return Array.from(aliases);
+  } catch {
+    return hubs;
+  }
 }
 
 export function applyHubScope(
@@ -46,14 +98,16 @@ export function bookingHubs(booking: {
 
 export function staffCanAccessBooking(
   session: AdminSessionInfo | null,
-  booking: { currentHub?: unknown; startHub?: unknown }
+  booking: { currentHub?: unknown; startHub?: unknown },
+  hubsOverride?: string[] | null
 ) {
-  const hubs = sessionHubScope(session);
+  const hubs = hubsOverride === undefined ? sessionHubScope(session) : hubsOverride;
   if (hubs === null) return true;
   if (!hubs.length) return false;
+  const allowed = new Set(hubs.map((item) => item.toUpperCase()));
   const codes = bookingHubs(booking);
   if (codes.length === 0) return false;
-  return codes.some((code) => hubs.includes(code));
+  return codes.some((code) => allowed.has(code) || hubs.includes(code));
 }
 
 export function hubForbiddenResponse() {
@@ -70,7 +124,7 @@ export async function riderInSessionScope(
   session: AdminSessionInfo | null,
   riderId?: string
 ) {
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   if (hubs === null) return true;
   if (!hubs.length) return false;
   const id = String(riderId || "").trim().toUpperCase();
@@ -108,7 +162,7 @@ export async function denyIfBookingOutOfHub(
   session: AdminSessionInfo | null,
   bookingId?: string
 ) {
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   if (hubs === null) return null;
   if (!hubs.length) return hubForbiddenResponse();
   const id = String(bookingId || "").trim();
@@ -117,12 +171,12 @@ export async function denyIfBookingOutOfHub(
     .select("currentHub startHub")
     .lean()) as { currentHub?: unknown; startHub?: unknown } | null;
   if (!booking) return null;
-  if (staffCanAccessBooking(session, booking)) return null;
+  if (staffCanAccessBooking(session, booking, hubs)) return null;
   return hubForbiddenResponse();
 }
 
 export async function scopedBookingIds(session: AdminSessionInfo | null) {
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   if (hubs === null) return null;
   if (!hubs.length) return [];
   const ids = await Booking.distinct(
@@ -133,7 +187,7 @@ export async function scopedBookingIds(session: AdminSessionInfo | null) {
 }
 
 export async function scopedRiderIds(session: AdminSessionInfo | null) {
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   if (hubs === null) return null;
   if (!hubs.length) return [];
   const ids = await Booking.distinct(

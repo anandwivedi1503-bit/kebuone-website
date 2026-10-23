@@ -12,7 +12,7 @@ import {
   mergeFilters,
   scopedBookingIds,
   scopedRiderIds,
-  sessionHubScope,
+  resolveHubScope,
 } from "@/lib/staffHubScope";
 import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
@@ -89,7 +89,7 @@ const leanRecent = {
 export async function getAdminCommandCenter(session: AdminSessionInfo) {
   await connectDB();
 
-  const hubCodes = sessionHubScope(session);
+  const hubCodes = await resolveHubScope(session);
   const bookingFilter = applyHubScope(
     { ...NOT_DELETED_FILTER },
     hubCodes,

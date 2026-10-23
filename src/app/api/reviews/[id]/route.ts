@@ -74,7 +74,10 @@ export async function PATCH(
       detail: `${review.status}${review.staffReply ? " + reply" : ""}`,
     });
 
-    return NextResponse.json({ success: true, data: review });
+    return NextResponse.json({
+      success: true,
+      data: typeof review.toObject === "function" ? review.toObject() : review,
+    });
   } catch (error) {
     return NextResponse.json(
       { success: false, message: publicApiError(error, "Unable to update review.") },

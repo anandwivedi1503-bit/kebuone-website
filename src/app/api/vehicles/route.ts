@@ -21,7 +21,7 @@ import {
   rtoDailyRate,
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
-import { applyHubScope, sessionHubScope } from "@/lib/staffHubScope";
+import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 
 const registrationTypes = [
   "RTO",
@@ -574,7 +574,7 @@ export async function GET(req: Request) {
       const filter: Record<string, unknown> = {
         $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
       };
-      applyHubScope(filter, sessionHubScope(session), ["currentHub"]);
+      applyHubScope(filter, await resolveHubScope(session), ["currentHub"]);
       const vehicles = await Vehicle.find(filter)
         .sort({
           updatedAt: -1,

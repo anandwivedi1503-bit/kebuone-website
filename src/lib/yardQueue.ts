@@ -2,7 +2,7 @@ import {
   applyHubScope,
   idInScopeFilter,
   scopedBookingIds,
-  sessionHubScope,
+  resolveHubScope,
 } from "@/lib/staffHubScope";
 import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
@@ -15,7 +15,7 @@ const LIVE_RIDES = ["Ready For Pickup", "In Ride"];
 
 export async function getYardQueue(session: AdminSessionInfo) {
   await connectDB();
-  const hubs = sessionHubScope(session);
+  const hubs = await resolveHubScope(session);
   const scope = (extra: Record<string, unknown> = {}) =>
     applyHubScope(
       { ...NOT_DELETED_FILTER, ...extra },

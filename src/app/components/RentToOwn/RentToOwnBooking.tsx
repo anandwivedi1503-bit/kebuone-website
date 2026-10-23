@@ -20,6 +20,7 @@ import RideReviewCard from "../RideReview/RideReviewCard";
 import RideSwipeControl from "../BikeBooking/RideSwipeControl";
 import RiderComplaintTicket from "../BikeBooking/RiderComplaintTicket";
 import {
+  isOpenRideBooking,
   loadRtoDraft,
   markRiderBookingLock,
   rememberRiderProfile,
@@ -370,7 +371,7 @@ export default function RentToOwnBooking() {
         });
         const mineData = await mineRes.json();
         const active = mineData.data;
-        if (mineData.success && active?._id) {
+        if (mineData.success && isOpenRideBooking(active)) {
           if (String(active.rentalMode || "") !== "Rent To Own") {
             syncPlanFromActiveBooking(String(active.rentalMode || "Daily"));
             window.location.replace("/book-bike?flow=rental");
@@ -499,7 +500,14 @@ export default function RentToOwnBooking() {
     setPaymentLoading(true);
     try {
       const payNow = Number(pendingAmount || payableAmount);
-      const token = firebaseIdToken || (await auth.currentUser?.getIdToken()) || "";
+      const token =
+        (await auth.currentUser?.getIdToken(true)) || firebaseIdToken || "";
+      if (!token) {
+        setError("Please verify your phone number before payment.");
+        setPaymentLoading(false);
+        return;
+      }
+      setFirebaseIdToken(token);
       const controller = new AbortController();
       const lookupTimer = window.setTimeout(() => controller.abort(), 25000);
       let orderRes: Response;

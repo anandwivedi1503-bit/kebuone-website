@@ -42,7 +42,7 @@ export default function SessionExit({ compact = false, onPicked }: SessionExitPr
         <span>
           <span className="block text-sm">Log out completely</span>
           <span className="block text-xs font-medium text-[#EC2A8C]/80">
-            Booking progress is saved for next OTP
+            Next OTP shows rental vs Rent to Own again
           </span>
         </span>
       </button>
