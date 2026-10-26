@@ -7,7 +7,6 @@ import { ArrowRight } from "lucide-react";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 import HomeImg from "../HomeMedia/HomeImg";
-import { GpsScooterMark } from "./GpsScooter";
 
 const SLIDES = [
   { src: BRAND.cityCommute, kicker: "City commute", title: "Ride the city" },
@@ -152,7 +151,7 @@ export default function Hero() {
               {cityLine} · In ride
             </p>
           </div>
-          <div className="relative h-[220px] overflow-hidden bg-[#F4F0E6] sm:h-[260px]">
+          <div className="relative h-[200px] overflow-hidden rounded-2xl bg-[#F4F0E6] sm:h-[240px]">
             <svg viewBox="0 0 960 260" className="h-full w-full" fill="none" aria-label="Scooter moving from hub to yard">
               <defs>
                 <pattern id="gps-grid" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -195,10 +194,17 @@ export default function Hero() {
                 </text>
               </a>
               <g>
-                <animateMotion dur="12s" repeatCount="indefinite" rotate="auto">
+                <animateMotion dur="14s" repeatCount="indefinite" rotate="auto">
                   <mpath href="#evuddy-route" />
                 </animateMotion>
-                <GpsScooterMark />
+                <image
+                  href="/evuddy-scooter-cutout.png"
+                  x="-36"
+                  y="-28"
+                  width="72"
+                  height="72"
+                  preserveAspectRatio="xMidYMid meet"
+                />
               </g>
             </svg>
           </div>

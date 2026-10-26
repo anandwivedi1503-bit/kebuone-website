@@ -89,10 +89,10 @@ export default function Footer() {
           <div
             className="
             relative
-            min-h-[380px]
+            min-h-[420px]
             overflow-hidden
             rounded-[28px]
-            sm:min-h-[480px]
+            sm:min-h-[520px]
             sm:rounded-[40px]
             border
             border-white/10
@@ -107,10 +107,10 @@ export default function Footer() {
               src={BRAND.yard}
               alt="EVUDDY flagship hub at dusk"
               fill
-              className="object-cover object-center"
+              className="object-cover object-[center_42%] scale-[1.02] sm:object-[center_38%]"
               sizes="(min-width: 1024px) 80vw, 100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07111F]/80 via-[#07111F]/40 to-[#07111F]/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07111F]/88 via-[#07111F]/35 to-[#07111F]/15" />
 
             <div className="relative z-10 mx-auto max-w-4xl text-center">
 

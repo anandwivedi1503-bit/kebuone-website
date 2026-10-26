@@ -29,6 +29,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/fleet-partner-investment.pdf",
+        headers: [
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "frame-ancestors 'self'",
+              "object-src 'self'",
+            ].join("; "),
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
@@ -58,7 +72,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://www.gstatic.com",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://cdn.razorpay.com https://*.razorpay.com https://www.google.com https://www.gstatic.com https://www.recaptcha.net https://*.firebaseapp.com",
+              "frame-src 'self' https://api.razorpay.com https://checkout.razorpay.com https://cdn.razorpay.com https://*.razorpay.com https://www.google.com https://maps.google.com https://www.gstatic.com https://www.recaptcha.net https://*.firebaseapp.com",
               "worker-src 'self' blob:",
               "media-src 'self' blob:",
             ].join("; "),

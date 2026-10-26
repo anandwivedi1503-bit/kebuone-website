@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 
 import AssistantLogo from "@/app/components/Assistant/AssistantLogo";
 
@@ -12,6 +12,7 @@ type Props = {
   tone?: "rider" | "ops";
 };
 
+/** Single floating control — logo + label in one pill (no duplicate orb + chip). */
 export default function AssistantFab({
   open,
   onClick,
@@ -19,10 +20,7 @@ export default function AssistantFab({
   ariaLabel,
   tone = "rider",
 }: Props) {
-  const glow =
-    tone === "ops"
-      ? "shadow-[0_18px_50px_rgba(11,27,22,.45)]"
-      : "shadow-[0_18px_50px_rgba(24,179,104,.45)]";
+  const accent = tone === "ops" ? "from-[#0B1B16] to-[#10241c]" : "from-[#1F6B4A] to-[#15803D]";
 
   return (
     <button
@@ -30,39 +28,26 @@ export default function AssistantFab({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-expanded={open}
-      className={`pointer-events-auto group relative flex items-center gap-3 ${open ? "" : "animate-[assistantFabIn_.45s_ease]"}`}
+      className={`pointer-events-auto group flex items-center gap-0 overflow-hidden rounded-full bg-gradient-to-r ${accent} p-1 pr-4 text-white shadow-[0_14px_40px_rgba(31,107,74,0.35)] transition hover:shadow-[0_18px_48px_rgba(31,107,74,0.42)] hover:brightness-105 active:scale-[0.98] sm:pr-5`}
     >
-      {!open ? (
-        <span className="pointer-events-none absolute inset-0 -m-2 rounded-full bg-[#18B368]/25 blur-md group-hover:bg-[#18B368]/35" />
-      ) : null}
-      {!open ? (
-        <span className="pointer-events-none absolute left-1/2 top-1/2 h-[4.5rem] w-[4.5rem] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-[#18B368]/35 animate-[assistantRing_2.4s_ease-out_infinite]" />
-      ) : null}
-
-      <span
-        className={`relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#18B368] via-[#12A35C] to-[#EC2A8C] p-[3px] transition-transform duration-200 group-hover:scale-105 active:scale-95 ${glow}`}
-      >
-        <span className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white p-1">
-          {open ? (
-            <X className="text-[#0B1B16]" size={26} strokeWidth={2.5} />
-          ) : (
-            <AssistantLogo size={56} priority />
-          )}
-        </span>
-        {!open ? (
-          <span className="absolute bottom-1 right-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-[#22C55E] shadow-[0_0_0_3px_rgba(34,197,94,.25)]" />
-        ) : null}
+      <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
+        {open ? (
+          <X size={22} strokeWidth={2.5} />
+        ) : (
+          <>
+            <AssistantLogo size={40} priority />
+            <span className="absolute bottom-0.5 right-0.5 h-2.5 w-2.5 rounded-full border-2 border-[#1F6B4A] bg-[#22C55E]" />
+          </>
+        )}
       </span>
-
       {!open ? (
-        <span
-          className={`hidden sm:inline-flex items-center rounded-full px-4 py-2 text-sm font-black text-white ${
-            tone === "ops" ? "bg-[#0B1B16]" : "bg-[#0B1B16]/95"
-          } ${glow}`}
-        >
+        <span className="flex items-center gap-1.5 pl-2 text-sm font-semibold tracking-[0.02em]">
+          <MessageCircle size={15} className="opacity-90" aria-hidden />
           {label}
         </span>
-      ) : null}
+      ) : (
+        <span className="pl-3 text-sm font-semibold">Close</span>
+      )}
     </button>
   );
 }
