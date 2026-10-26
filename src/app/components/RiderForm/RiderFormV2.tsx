@@ -19,6 +19,7 @@ import {
   SpeakAllButton,
   VoiceField,
 } from "../FormVoice/FormVoiceDock";
+import RegistrationDocumentPicker from "./RegistrationDocumentPicker";
 
 import {
   RecaptchaVerifier,
@@ -225,6 +226,8 @@ const allowedDocumentTypes = [
   "image/jpg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ];
 
 const allowedPhotoTypes = [
@@ -232,6 +235,8 @@ const allowedPhotoTypes = [
   "image/jpg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ];
 
 const maxFileSize = 5 * 1024 * 1024;
@@ -313,6 +318,9 @@ const fileTypeAllowed = (file: File, allowedTypes: string[]) => {
   if (mime === "image/jpg") {
     return allowedTypes.includes("image/jpeg") || allowedTypes.includes("image/jpg");
   }
+  if (mime === "image/heif") {
+    return allowedTypes.includes("image/heic") || allowedTypes.includes("image/heif");
+  }
   if (mime && allowedTypes.includes(mime)) return true;
   const name = file.name.toLowerCase();
   if (/\.(jpe?g)$/.test(name)) {
@@ -320,6 +328,9 @@ const fileTypeAllowed = (file: File, allowedTypes: string[]) => {
   }
   if (name.endsWith(".png")) return allowedTypes.includes("image/png");
   if (name.endsWith(".webp")) return allowedTypes.includes("image/webp");
+  if (name.endsWith(".heic") || name.endsWith(".heif")) {
+    return allowedTypes.includes("image/heic") || allowedTypes.includes("image/heif");
+  }
   if (name.endsWith(".pdf")) return allowedTypes.includes("application/pdf");
   return !mime;
 };
@@ -379,9 +390,15 @@ const areFilesIdentical = (
 const fileCacheKey = (file: File) =>
   `${file.name}:${file.size}:${file.lastModified}`;
 
+const isImageFile = (file: File) => {
+  const mime = (file.type || "").toLowerCase();
+  if (mime.startsWith("image/")) return true;
+  return /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name);
+};
+
 const compressImageForUpload = (file: File) =>
   new Promise<File>((resolve) => {
-    if (!file.type.startsWith("image/")) {
+    if (!isImageFile(file)) {
       resolve(file);
       return;
     }
@@ -2226,410 +2243,88 @@ Step 4 of 4
 </p>
 
                   <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-
-  <label
-    className="
-    cursor-pointer
-    border-2
-    border-dashed
-    border-[#18B368]/25
-    rounded-3xl
-    p-8
-    bg-[#F0F7F3]/50
-    hover:scale-[1.03]
-hover:shadow-xl
-    hover:border-[#FF165E]
-    hover:bg-[#F0F7F3]
-    transition-all
-    duration-300
-    text-center
-    "
-  >
-
-    <div className="text-5xl mb-4">
-      📄
-    </div>
-
-    <h4 className="font-bold text-[#0A1134] mb-2">
-      Aadhaar Front *
-    </h4>
-    <p className="text-xs text-red-500 mb-2 font-medium">
-Required
-</p>
-
-    <p className="text-[#444] text-sm mb-3">
-      Drag & Drop or Click To Upload
-    </p>
-    <p className="text-xs text-gray-400 mt-2">
-Maximum Size: 5 MB
-</p>
-
-    <p className="text-xs text-[#666]">
-      PDF • JPG • PNG
-    </p>
-   {aadhaarFrontFile && (
-  <>
-    <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {aadhaarFrontFile.name}
-    </p>
-
-    <p className="text-xs text-gray-500">
-      {(aadhaarFrontFile.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        setAadhaarFrontFile(null);
-      }}
-      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
-    >
-      ❌ Remove File
-    </button>
-  </>
-)}
-
-    <input
-      type="file"
-       accept=".pdf,.jpg,.jpeg,.png,.webp"
-      className="hidden"
-      onChange={(e) =>
-  selectValidatedFile(
-    e.target.files ? e.target.files[0] : null,
-    setAadhaarFrontFile,
-    allowedDocumentTypes,
-    "Aadhaar Front"
-  )
-}
-    />
-
-  </label>
-
-  <label
-    className="
-    cursor-pointer
-    border-2
-    border-dashed
-    border-[#18B368]/25
-    rounded-3xl
-    p-8
-    bg-[#F0F7F3]/50
-    hover:scale-[1.03]
-hover:shadow-xl
-    hover:border-[#FF165E]
-    hover:bg-[#F0F7F3]
-    transition-all
-    duration-300
-    text-center
-    "
-  >
-
-    <div className="text-5xl mb-4">
-      📄
-    </div>
-
-    <h4 className="font-bold text-[#0A1134] mb-2">
-      Aadhaar Back *
-    </h4>
-    <p className="text-xs text-red-500 mb-2 font-medium">
-Required
-</p>
-
-    <p className="text-[#444] text-sm mb-3">
-      Drag & Drop or Click To Upload
-    </p>
-    <p className="text-xs text-gray-400 mt-2">
-Maximum Size: 5 MB
-</p>
-
-    <p className="text-xs text-[#666]">
-      PDF • JPG • PNG
-    </p>
-   {aadhaarBackFile && (
-  <>
-    <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {aadhaarBackFile.name}
-    </p>
-
-    <p className="text-xs text-gray-500">
-      {(aadhaarBackFile.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        setAadhaarBackFile(null);
-      }}
-      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
-    >
-      ❌ Remove File
-    </button>
-  </>
-)}
-
-    <input
-      type="file"
-       accept=".pdf,.jpg,.jpeg,.png,.webp"
-      className="hidden"
-      onChange={(e) =>
-  selectValidatedFile(
-    e.target.files ? e.target.files[0] : null,
-    setAadhaarBackFile,
-    allowedDocumentTypes,
-    "Aadhaar Back"
-  )
-}
-    />
-
-  </label>
-
-  <label
-    className="
-    cursor-pointer
-    border-2
-    border-dashed
-    border-[#18B368]/25
-    rounded-3xl
-    p-8
-    bg-[#F0F7F3]/50
-    hover:border-[#FF165E]
-    hover:bg-[#F0F7F3]
-    hover:scale-[1.03]
-hover:shadow-xl
-    transition-all
-    duration-300
-    text-center
-    "
-  >
-
-    <div className="text-5xl mb-4">
-      🪪
-    </div>
-
-    <h4 className="font-bold text-[#0A1134] mb-2">
-  Driving License Front
-</h4>
-
-<p className="text-xs text-orange-500 mb-2 font-medium">
-  Optional
-</p>
-
-    <p className="text-gray-500 text-sm mb-3">
-      Drag & Drop or Click To Upload
-    </p>
-    <p className="text-xs text-gray-400 mt-2">
-Maximum Size: 5 MB
-</p>
-
-    <p className="text-xs text-gray-400">
-      PDF • JPG • PNG
-    </p>
-
-    {licenseFrontFile && (
-  <>
-    <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {licenseFrontFile.name}
-    </p>
-
-    <p className="text-xs text-gray-500">
-      {(licenseFrontFile.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        setLicenseFrontFile(null);
-      }}
-      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
-    >
-      ❌ Remove File
-    </button>
-  </>
-)}
-
-    <input
-  type="file"
-  accept=".pdf,.jpg,.jpeg,.png,.webp"
-  className="hidden"
-  onChange={(e) =>
-    selectValidatedFile(
-      e.target.files ? e.target.files[0] : null,
-      setLicenseFrontFile,
-      allowedDocumentTypes,
-      "Driving license front"
-    )
-  }
-/>
-
-  </label>
-
-  <label
-    className="
-    cursor-pointer
-    border-2
-    border-dashed
-    border-[#18B368]/25
-    rounded-3xl
-    p-8
-    bg-[#F0F7F3]/50
-    hover:border-[#FF165E]
-    hover:bg-[#F0F7F3]
-    hover:scale-[1.03]
-hover:shadow-xl
-    transition-all
-    duration-300
-    text-center
-    "
-  >
-
-    <div className="text-5xl mb-4">
-      🪪
-    </div>
-
-    <h4 className="font-bold text-[#0A1134] mb-2">
-  Driving License Back
-</h4>
-
-<p className="text-xs text-orange-500 mb-2 font-medium">
-  Optional
-</p>
-
-    <p className="text-gray-500 text-sm mb-3">
-      Drag & Drop or Click To Upload
-    </p>
-    <p className="text-xs text-gray-400 mt-2">
-Maximum Size: 5 MB
-</p>
-
-    <p className="text-xs text-gray-400">
-      PDF • JPG • PNG
-    </p>
-
-    {licenseBackFile && (
-  <>
-    <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {licenseBackFile.name}
-    </p>
-
-    <p className="text-xs text-gray-500">
-      {(licenseBackFile.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        setLicenseBackFile(null);
-      }}
-      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
-    >
-      ❌ Remove File
-    </button>
-  </>
-)}
-
-    <input
-  type="file"
-  accept=".pdf,.jpg,.jpeg,.png,.webp"
-  className="hidden"
-  onChange={(e) =>
-    selectValidatedFile(
-      e.target.files ? e.target.files[0] : null,
-      setLicenseBackFile,
-      allowedDocumentTypes,
-      "Driving license Back"
-    )
-  }
-/>
-
-  </label>
-
-  <label
-  className="
-  cursor-pointer
-  border-2
-  border-dashed
-  border-[#18B368]/25
-  rounded-3xl
-  p-8
-  bg-[#F0F7F3]/50
-  hover:border-[#FF165E]
-  hover:bg-[#F0F7F3]
-  hover:scale-[1.03]
-  hover:shadow-xl
-  transition-all
-  duration-300
-  text-center
-  "
->
-
-  <div className="text-5xl mb-4">
-    📷
-  </div>
-
-  <h4 className="font-bold text-[#0A1134] mb-2">
-  Profile Photo *
-</h4>
-
-<p className="text-xs text-red-500 mb-2 font-medium">
-  Required Document
-</p>
-
-  <p className="text-gray-500 text-sm mb-3">
-    Upload Passport Size Photo
-  </p>
-
-  <p className="text-xs text-gray-400">
-    JPG • PNG
-  </p>
-
-  <p className="text-xs text-gray-400 mt-2">
-    Maximum Size: 5 MB
-  </p>
-
- {profilePhoto && (
-  <>
-    <p className="mt-3 text-green-600 text-sm font-semibold">
-      ✅ {profilePhoto.name}
-    </p>
-
-    <p className="text-xs text-gray-500">
-      {(profilePhoto.size / 1024 / 1024).toFixed(2)} MB
-    </p>
-
-    <button
-      type="button"
-      onClick={(e) => {
-        e.preventDefault();
-        setProfilePhoto(null);
-      }}
-      className="mt-3 text-red-600 text-sm font-semibold hover:underline"
-    >
-      ❌ Remove File
-    </button>
-  </>
-)}
-
-  <input
-  type="file"
-  accept=".jpg,.jpeg,.png,.webp"
-  className="hidden"
-  onChange={(e) =>
-    selectValidatedFile(
-      e.target.files ? e.target.files[0] : null,
-      setProfilePhoto,
-      allowedPhotoTypes,
-      "Profile photo"
-    )
-  }
-/>
-
-</label>
-
-</div>
+                    <RegistrationDocumentPicker
+                      title="Aadhaar Front"
+                      icon="📄"
+                      required
+                      allowPdf
+                      file={aadhaarFrontFile}
+                      onSelect={(file) =>
+                        selectValidatedFile(
+                          file,
+                          setAadhaarFrontFile,
+                          allowedDocumentTypes,
+                          "Aadhaar Front"
+                        )
+                      }
+                      onClear={() => setAadhaarFrontFile(null)}
+                    />
+                    <RegistrationDocumentPicker
+                      title="Aadhaar Back"
+                      icon="📄"
+                      required
+                      allowPdf
+                      file={aadhaarBackFile}
+                      onSelect={(file) =>
+                        selectValidatedFile(
+                          file,
+                          setAadhaarBackFile,
+                          allowedDocumentTypes,
+                          "Aadhaar Back"
+                        )
+                      }
+                      onClear={() => setAadhaarBackFile(null)}
+                    />
+                    <RegistrationDocumentPicker
+                      title="Driving License Front"
+                      icon="🪪"
+                      optional
+                      allowPdf
+                      file={licenseFrontFile}
+                      onSelect={(file) =>
+                        selectValidatedFile(
+                          file,
+                          setLicenseFrontFile,
+                          allowedDocumentTypes,
+                          "Driving license front"
+                        )
+                      }
+                      onClear={() => setLicenseFrontFile(null)}
+                    />
+                    <RegistrationDocumentPicker
+                      title="Driving License Back"
+                      icon="🪪"
+                      optional
+                      allowPdf
+                      file={licenseBackFile}
+                      onSelect={(file) =>
+                        selectValidatedFile(
+                          file,
+                          setLicenseBackFile,
+                          allowedDocumentTypes,
+                          "Driving license Back"
+                        )
+                      }
+                      onClear={() => setLicenseBackFile(null)}
+                    />
+                    <RegistrationDocumentPicker
+                      title="Profile Photo"
+                      icon="📷"
+                      required
+                      photoOnly
+                      hint="Passport-size photo — camera or gallery"
+                      file={profilePhoto}
+                      onSelect={(file) =>
+                        selectValidatedFile(
+                          file,
+                          setProfilePhoto,
+                          allowedPhotoTypes,
+                          "Profile photo"
+                        )
+                      }
+                      onClear={() => setProfilePhoto(null)}
+                    />
+                  </div>
                 </>
               )}
 
