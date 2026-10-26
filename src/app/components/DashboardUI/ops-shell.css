@@ -1,6 +1,6 @@
 .ops-shell {
   --ev-green: #18b368;
-  --ev-navy: #0a1134;
+  --ev-navy: #1c1917;
   color: var(--ev-navy);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -10,7 +10,7 @@
     radial-gradient(1200px 480px at 8% -8%, rgba(24, 179, 104, 0.22), transparent 52%),
     radial-gradient(900px 420px at 100% 0%, rgba(244, 196, 48, 0.12), transparent 48%),
     radial-gradient(700px 360px at 70% 100%, rgba(14, 165, 233, 0.08), transparent 50%),
-    linear-gradient(180deg, #e8f5ee 0%, #f3f7f5 160px, #eef2f4 100%);
+    linear-gradient(180deg, #f7f4ee 0%, #f6faf8 160px, #f3f6f4 100%);
 }
 
 .ops-shell table {

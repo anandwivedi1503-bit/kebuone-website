@@ -146,18 +146,18 @@ export default function RiderAccountMenu({
             transition={{ duration: 0.16 }}
             className="absolute right-0 z-[1200] mt-3 w-[min(92vw,340px)] overflow-hidden rounded-[28px] border border-white bg-white shadow-[0_30px_80px_rgba(15,23,42,0.18)]"
           >
-            <div className="bg-[#0B1B16] px-5 py-5 text-white">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6EE7A8]">
+            <div className="border-b border-[#E6EBE7] bg-gradient-to-br from-[#F7F4EE] to-white px-5 py-5">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#1F6B4A]">
                 Rider profile
               </p>
-              <p className="mt-2 truncate text-xl font-black">{displayName}</p>
-              {riderId ? <p className="mt-1 text-sm text-white/70">{riderId}</p> : null}
+              <p className="mt-2 truncate text-xl font-black text-[#1C1917]">{displayName}</p>
+              {riderId ? <p className="mt-1 text-sm text-[#6B736E]">{riderId}</p> : null}
               {phone ? (
-                <p className="mt-1 inline-flex items-center gap-2 text-sm text-white/80">
+                <p className="mt-1 inline-flex items-center gap-2 text-sm text-[#5C635E]">
                   <Phone size={14} /> +91 {phone}
                 </p>
               ) : null}
-              <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold">
+              <p className="mt-3 inline-flex rounded-full bg-[#E8F3EC] px-3 py-1 text-xs font-bold text-[#146C3A]">
                 {planLabel(plan)}
               </p>
             </div>

@@ -14,11 +14,12 @@ import { auth } from "@/lib/firebase";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
-import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
 import {
   isOpenRideBooking,
   markRiderPlanReady,
+  hasBookEvOtpSession,
+  markBookEvOtpSession,
   rememberRiderProfile,
   resetRiderBookingChoice,
   setChosenPlan,
@@ -104,11 +105,11 @@ export default function RideOptionsPage() {
 
   useEffect(() => {
     let cancelled = false;
-    let booted = false;
+    let resolving = false;
 
     const resolveSession = async () => {
-      if (cancelled || booted) return;
-      booted = true;
+      if (cancelled || resolving) return;
+      resolving = true;
 
       const user = auth?.currentUser;
       const storedPhone =
@@ -118,7 +119,7 @@ export default function RideOptionsPage() {
 
       if (storedPhone) setPhone(storedPhone);
 
-      if (user && storedPhone) {
+      if (user && storedPhone && hasBookEvOtpSession()) {
         try {
           const token = await user.getIdToken();
           const response = await fetch(`/api/riders?phone=${storedPhone}`, {
@@ -126,14 +127,18 @@ export default function RideOptionsPage() {
           });
           const data = await response.json();
           if (!cancelled) await applyRiderResult(data);
+          resolving = false;
           return;
         } catch {
           // Fall through to OTP.
         }
       }
 
-      setView("otp");
-      setRideOptionsView("otp");
+      if (!cancelled) {
+        setView("otp");
+        setRideOptionsView("otp");
+      }
+      resolving = false;
     };
 
     if (!auth) {
@@ -340,6 +345,7 @@ export default function RideOptionsPage() {
         result.user.phoneNumber?.replace(/\D/g, "").slice(-10) || phone;
 
       localStorage.setItem("kebu_rider_phone", verifiedPhone);
+      markBookEvOtpSession();
 
       const response = await fetch(`/api/riders?phone=${verifiedPhone}`, {
         headers: { Authorization: `Bearer ${idToken}` },
@@ -368,10 +374,10 @@ export default function RideOptionsPage() {
               Confirm your mobile number
             </h1>
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              New riders: verify OTP, then complete registration. Returning riders: after
-              OTP you choose Normal booking or Rent to Own again. An unpaid or in-progress
-              ride still opens so you can pay or finish it. There is no timeout on
-              unfinished registration.
+              Every Book EV visit starts here — confirm your mobile with OTP (even if you
+              used this phone before). New riders continue to registration after OTP.
+              Returning riders pick Normal booking or Rent to Own. An unpaid or in-progress
+              ride still opens so you can pay or finish it.
             </p>
 
             <label className="mt-8 block text-sm font-semibold text-[#0F172A]">
@@ -469,7 +475,6 @@ export default function RideOptionsPage() {
 
       {view === "plans" && (
         <section className="page-under-nav bg-[#F6FAF8] px-4 pb-20 sm:px-6 lg:px-10">
-          <RiderSessionBar />
           <div className="mx-auto max-w-5xl text-center">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">
               Verification successful

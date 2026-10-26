@@ -7,6 +7,7 @@ export const FLEET_INVESTMENT = {
   plansHref: "/partners#fleet-investment",
   pdfHref: "/fleet-partner-investment.pdf",
   pdfFileName: "EVUDDY-Fleet-Partner-Investment.pdf",
+  posterSrc: "/fleet-partner-poster-new.png",
 } as const;
 
 export function fleetInvestmentKnowledgeBlock() {

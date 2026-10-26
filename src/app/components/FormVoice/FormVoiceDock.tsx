@@ -54,7 +54,7 @@ export function FieldMic({
           voice.stop();
           return;
         }
-        void voice.listen(onText, "auto", undefined, true);
+        void voice.listen(onText, "hi", undefined, true, 18000);
       }}
       className={`absolute right-2.5 top-1/2 z-10 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full transition ${
         voice.listening ? "bg-[#1C1917] text-white" : "text-[#1F6B4A] hover:bg-[#E8F3EC]"
@@ -231,7 +231,7 @@ export function SpeakAllButton({
             email: emailMatch?.[0],
             rest: text,
           });
-        }, "auto", undefined, true)
+        }, "hi", undefined, true, 18000)
       }
       className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#EAF7EF] px-4 text-[13px] font-medium text-[#146C3A]"
     >

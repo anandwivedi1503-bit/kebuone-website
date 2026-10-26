@@ -13,6 +13,8 @@ const RENTAL_DRAFT_KEY = "kebu_rider_rental_draft";
 const RTO_DRAFT_KEY = "kebu_rider_rto_draft";
 const REGISTRATION_DRAFT_KEY = "kebu_rider_registration_draft";
 const COMPLETED_DISMISSED_AT_KEY = "kebu_completed_dismissed_at";
+/** Tab session only — Book EV must show mobile OTP until verified this visit. */
+const BOOK_EV_OTP_SESSION_KEY = "kebu_book_ev_otp_session";
 
 export type RiderChosenPlan = "rental" | "rto";
 export type RideOptionsView = "otp" | "pending" | "plans" | "register";
@@ -108,6 +110,33 @@ function removeKey(key: string) {
 
 export function hasRiderPlanReady() {
   return readKey(PLAN_READY_KEY) === "1";
+}
+
+export function markBookEvOtpSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(BOOK_EV_OTP_SESSION_KEY, "1");
+  } catch {
+    // Private mode — OTP step may repeat; still safe.
+  }
+}
+
+export function hasBookEvOtpSession() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.sessionStorage.getItem(BOOK_EV_OTP_SESSION_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function clearBookEvOtpSession() {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(BOOK_EV_OTP_SESSION_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 export function markRiderPlanReady() {
@@ -355,6 +384,7 @@ export function leaveToWebsite() {
 export async function logoutRider() {
   if (typeof window === "undefined") return;
 
+  clearBookEvOtpSession();
   removeKey(PLAN_READY_KEY);
   removeKey(BOOKING_LOCK_KEY);
   removeKey(CHOSEN_PLAN_KEY);

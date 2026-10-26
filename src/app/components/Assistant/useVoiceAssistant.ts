@@ -4,6 +4,11 @@ import { useEffect, useRef, useState } from "react";
 
 import { BROWSER_STT_LANG, ttsLangFor } from "@/lib/assistantLanguages";
 
+type SpeechResultList = ArrayLike<{
+  isFinal?: boolean;
+  0?: { transcript?: string };
+}>;
+
 type SpeechRecognitionLike = {
   lang: string;
   interimResults: boolean;
@@ -11,10 +16,23 @@ type SpeechRecognitionLike = {
   start: () => void;
   stop: () => void;
   abort?: () => void;
-  onresult: ((event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult: ((event: { results: SpeechResultList }) => void) | null;
   onerror: (() => void) | null;
   onend: (() => void) | null;
 };
+
+function mergeSpeechResults(results: SpeechResultList) {
+  let finals = "";
+  let interim = "";
+  for (let i = 0; i < results.length; i++) {
+    const chunk = String(results[i]?.[0]?.transcript || "").trim();
+    if (!chunk) continue;
+    if (results[i]?.isFinal) finals += `${chunk} `;
+    else interim = chunk;
+  }
+  const combined = `${finals}${interim}`.replace(/\s+/g, " ").trim();
+  return combined;
+}
 
 function speechCtor() {
   if (typeof window === "undefined") return null;
@@ -125,7 +143,8 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
     onText: (text: string) => void,
     language = "auto",
     onError?: (message: string) => void,
-    preferBrowser = false
+    preferBrowser = false,
+    listenMs = 12000
   ) => {
     if (listening) {
       setStatus("समझ रही हूँ…");
@@ -170,17 +189,21 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
     finishRef.current = finish;
     failRef.current = fail;
 
+    const sttLang =
+      language === "auto" || !language
+        ? "hi-IN"
+        : BROWSER_STT_LANG[language] || "hi-IN";
+
     const startBrowserBackup = () => {
       const Ctor = speechCtor();
       if (!Ctor) return;
       try {
         const rec = new Ctor();
-        rec.lang = BROWSER_STT_LANG[language] || "hi-IN";
+        rec.lang = sttLang;
         rec.interimResults = true;
         rec.continuous = true;
         rec.onresult = (event) => {
-          const last = event.results[event.results.length - 1];
-          const text = String(last?.[0]?.transcript || "").trim();
+          const text = mergeSpeechResults(event.results);
           if (text) backupRef.current = text;
         };
         rec.onerror = () => {
@@ -209,7 +232,7 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
         const text = backupRef.current;
         if (text) finish(text);
         else fail("आवाज़ नहीं सुनाई दी। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।");
-      }, 12000);
+      }, listenMs);
       return true;
     }
 
@@ -226,7 +249,7 @@ export function useVoiceAssistant(transcribeUrl = "/api/assistant/transcribe") {
         const text = backupRef.current;
         if (text) finish(text);
         else fail("आवाज़ नहीं सुनाई दी। माइक दबाएँ, साफ़ बोलें, फिर रोकने के लिए फिर दबाएँ।");
-      }, 12000);
+      }, listenMs);
       return true;
     }
 
