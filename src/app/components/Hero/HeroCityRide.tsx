@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import { useEvuddySideSrc } from "./useEvuddySideSrc";
 
 function Tree({ size = 1 }: { size?: number }) {
@@ -438,7 +439,7 @@ export default function HeroCityRide() {
             <img src={bikeSrc} alt="EVUDDY scooter" className="evuddy-city-bike" />
           ) : (
             <img
-              src="/evuddy-scooter-cutout.png"
+              src={YELLOW_SCOOTER_CUTOUT}
               alt="EVUDDY yellow scooter"
               className="evuddy-city-bike object-contain"
             />

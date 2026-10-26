@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
-import { GpsScooterMark } from "../Hero/GpsScooter";
+import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import HubMapPreview from "./HubMapPreview";
 import NetworkExperienceStrip from "./NetworkExperienceStrip";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
@@ -352,13 +352,14 @@ export default function EvuddyNetwork() {
                   />
                   <g>
                     <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={networkPath} />
-                    <foreignObject x="-28" y="-28" width="56" height="56">
-                    <img
-                      src="/evuddy-scooter-cutout.png"
-                      alt=""
-                      className="h-14 w-14 object-contain"
+                    <image
+                      href={YELLOW_SCOOTER_CUTOUT}
+                      x="-36"
+                      y="-30"
+                      width="72"
+                      height="58"
+                      preserveAspectRatio="xMidYMid meet"
                     />
-                  </foreignObject>
                   </g>
                 </>
               ) : null}

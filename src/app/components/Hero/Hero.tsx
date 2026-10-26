@@ -1,6 +1,7 @@
 "use client";
 
 import { BRAND } from "@/lib/brandMedia";
+import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -198,11 +199,11 @@ export default function Hero() {
                   <mpath href="#evuddy-route" />
                 </animateMotion>
                 <image
-                  href="/evuddy-scooter-cutout.png"
-                  x="-40"
-                  y="-32"
-                  width="80"
-                  height="80"
+                  href={YELLOW_SCOOTER_CUTOUT}
+                  x="-44"
+                  y="-36"
+                  width="88"
+                  height="72"
                   preserveAspectRatio="xMidYMid meet"
                 />
               </g>

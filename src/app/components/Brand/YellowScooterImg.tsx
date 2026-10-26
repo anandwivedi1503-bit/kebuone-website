@@ -2,19 +2,19 @@
 
 import type { ImgHTMLAttributes } from "react";
 
-import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
+import { YELLOW_SCOOTER_CUTOUT, YELLOW_SCOOTER_RIDE } from "@/lib/scooterAssets";
 
 type Props = ImgHTMLAttributes<HTMLImageElement> & {
-  variant?: "cutout" | "side" | "product";
+  /** cutout = transparent PNG for GPS/maps; ride = full yellow scooter photo */
+  variant?: "cutout" | "ride";
 };
 
 const SRC = {
   cutout: YELLOW_SCOOTER_CUTOUT,
-  side: "/evuddy-side.png",
-  product: "/evuddy-scooter.png",
+  ride: YELLOW_SCOOTER_RIDE,
 } as const;
 
-/** Yellow fleet scooter — always object-contain so nothing is cropped on mobile. */
+/** Yellow fleet scooter — cutout has no background; ride is full brand still. */
 export default function YellowScooterImg({
   variant = "cutout",
   className = "",
@@ -29,7 +29,9 @@ export default function YellowScooterImg({
       loading={props.loading ?? "lazy"}
       decoding="async"
       draggable={false}
-      className={`max-h-full max-w-full object-contain object-center ${className}`}
+      className={`max-h-full max-w-full ${
+        variant === "cutout" ? "object-contain object-center" : "object-cover object-center"
+      } ${className}`}
     />
   );
 }

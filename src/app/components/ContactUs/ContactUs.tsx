@@ -145,10 +145,10 @@ export default function ContactUs() {
           </div>
         </div>
 
-        <figure className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] bg-[#0B1B16] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
+        <figure className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] bg-[#EDE8DE] shadow-[0_18px_40px_rgba(8,17,47,0.12)] sm:rounded-[28px]">
           <img
             src={BRAND.rider}
-            alt="EVUDDY electric scooters"
+            alt="Rider on EVUDDY yellow electric scooter"
             className="absolute inset-0 h-full w-full object-cover object-center"
           />
         </figure>
