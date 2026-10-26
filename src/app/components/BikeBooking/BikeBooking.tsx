@@ -17,6 +17,7 @@ import { downloadHtmlFile } from "@/lib/dashboardExport";
 import { notifyBrowser } from "@/lib/notifyBrowser";
 import { CATALOG_RATES, COMPANY_SECURITY_DEPOSIT, catalogRate } from "@/lib/rentalPlans";
 import { MicSlot, PREMIUM_BTN, PREMIUM_FIELD } from "../FormVoice/FormVoiceDock";
+import { BOOKING_BTN_OUTLINE, BOOKING_BTN_PRIMARY, BOOKING_BTN_SECONDARY } from "@/lib/bookingUi";
 import RideSwipeControl from "./RideSwipeControl";
 import RiderComplaintTicket from "./RiderComplaintTicket";
 import RideReviewCard from "../RideReview/RideReviewCard";
@@ -2408,81 +2409,25 @@ text-[#0F172A]
 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className="
-flex-1
-h-16
-rounded-2xl
-border
-border-slate-300
-bg-white
-font-bold
-text-slate-700
-transition-all
-duration-300
-hover:border-[#18B368]
-hover:text-[#18B368]
-hover:-translate-y-1
-"
-                  >
+                  <button type="button" onClick={() => setStep(2)} className={`${BOOKING_BTN_SECONDARY} sm:flex-1`}>
                     Back
                   </button>
 
                   <button
                     type="submit"
                     disabled={bookingDone || saving}
-                    className="
-flex
-h-16
-flex-1
-items-center
-justify-center
-gap-3
-rounded-2xl
-bg-gradient-to-r
-from-[#16A34A]
-via-[#22C55E]
-to-[#18B368]
-font-bold
-tracking-wide
-text-white
-shadow-[0_18px_45px_rgba(24,179,104,.35)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:shadow-[0_24px_60px_rgba(24,179,104,.45)]
-disabled:opacity-60
-"
+                    className={`${BOOKING_BTN_PRIMARY} sm:flex-1`}
                   >
                     <ShieldCheck size={18} />
                     {saving ? "Reserving..." : bookingDone ? "Reserved" : "Reserve Scooter"}
                   </button>
                 </div>
 
-                {bookingDone && (
-                  <button
-                    type="button"
-                    onClick={() => setStep(4)}
-                    className="
-mt-5
-h-16
-w-full
-rounded-2xl
-bg-[#1F6B4A]
-font-bold
-tracking-wide
-text-white
-transition-all
-duration-300
-hover:bg-[#18573c]
-hover:-translate-y-1
-"
-                  >
-                    Go To Payment
+                {bookingDone && step < 4 ? (
+                  <button type="button" onClick={() => setStep(4)} className={`${BOOKING_BTN_PRIMARY} mt-4`}>
+                    Continue to payment
                   </button>
-                )}
+                ) : null}
               </div>
             )}
 
@@ -2501,7 +2446,7 @@ hover:-translate-y-1
       : "SECURE PAYMENT"}
 </span>
 </div>
-<h2 className="mt-5 text-4xl font-black tracking-[-0.03em] text-[#0F172A]">
+<h2 className="mt-5 text-2xl font-black tracking-[-0.03em] text-[#0F172A] sm:text-4xl">
 {rideStatus === "Completed"
   ? "Thank you for riding with EVUDDY"
   : paymentSuccess
@@ -2615,29 +2560,7 @@ focus:ring-[#18B368]/10
                   type="button"
                   disabled={amountDue <= 0 || paymentLoading}
                   onClick={payWithRazorpay}
-                  className="
-mt-7
-flex
-h-16
-w-full
-items-center
-justify-center
-gap-3
-rounded-2xl
-bg-gradient-to-r
-from-[#16A34A]
-via-[#22C55E]
-to-[#18B368]
-font-bold
-tracking-wide
-text-white
-shadow-[0_22px_55px_rgba(24,179,104,.35)]
-transition-all
-duration-300
-hover:-translate-y-1
-hover:shadow-[0_28px_70px_rgba(24,179,104,.45)]
-disabled:opacity-60
-"
+                  className={`${BOOKING_BTN_PRIMARY} mt-7`}
                 >
                   <CreditCard size={18} />
 
@@ -2656,26 +2579,7 @@ disabled:opacity-60
                     !walletCoversPay
                   }
                   onClick={() => void payWithWallet()}
-                  className="
-mt-3
-flex
-h-16
-w-full
-items-center
-justify-center
-gap-3
-rounded-2xl
-border
-border-[#18B368]
-bg-white
-font-bold
-tracking-wide
-text-[#0F172A]
-transition-all
-duration-300
-hover:-translate-y-0.5
-disabled:opacity-60
-"
+                  className={`${BOOKING_BTN_OUTLINE} mt-3`}
                 >
                   <Wallet size={18} />
                   {walletAvailable < 1
@@ -2704,26 +2608,21 @@ disabled:opacity-60
                           If a security deposit is due back, ops refunds it on the original Razorpay
                           payment — not as a leftover booking screen.
                         </p>
-                        <div className="mt-6 flex flex-wrap gap-3">
+                        <div className="mt-6">
                           <button
                             type="button"
                             onClick={() => {
                               resetRiderBookingChoice();
                               window.location.href = "/ride-options";
                             }}
-                            className="rounded-full bg-[#18B368] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(24,179,104,0.35)]"
+                            className="min-h-12 w-full rounded-full bg-[#18B368] px-5 py-3 text-sm font-bold text-white shadow-[0_12px_30px_rgba(24,179,104,0.35)] sm:w-auto"
                           >
                             Book another ride
                           </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              window.location.href = "/";
-                            }}
-                            className="rounded-full border border-white/20 bg-white/5 px-5 py-3 text-sm font-bold text-white"
-                          >
-                            Back to website
-                          </button>
+                          <p className="mt-3 text-sm text-white/60">
+                            To leave the app, use <strong className="text-white/80">Log out</strong> or{" "}
+                            <strong className="text-white/80">Back to website</strong> in the menu (top right).
+                          </p>
                         </div>
                         {firebaseIdToken && bookingId ? (
                           <div className="mt-6">
@@ -2996,7 +2895,7 @@ shadow-[0_35px_90px_rgba(15,23,42,.10)]
                   className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-slate-700 shadow-sm print:hidden"
                 >
                   <Download size={16} className="text-[#18B368]" />
-                  Download file
+                  Download invoice
                 </button>
               </div>
 

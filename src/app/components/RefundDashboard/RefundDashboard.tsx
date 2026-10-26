@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus, openOpsDesk } from "@/lib/opsFocus";
+import { downloadRefundReceipt } from "@/lib/refundReceipt";
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
 import KPIGrid from "../DashboardUI/KPIGrid";
@@ -23,7 +24,22 @@ const [search,setSearch] = useState(() => consumeOpsFocus())
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [selectedRefund, setSelectedRefund] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");
+const [razorpayModal, setRazorpayModal] = useState<any | null>(null);
+const [razorpayModalMsg, setRazorpayModalMsg] = useState("");
 const [loading, setLoading] = useState(true);
+
+const loadRazorpayScript = () =>
+  new Promise<boolean>((resolve) => {
+    if (typeof window !== "undefined" && (window as { Razorpay?: unknown }).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 const fetchRefunds = async () => {
 
   try {
@@ -128,20 +144,7 @@ const filteredRefunds = refunds.filter((refund) => {
 
 });
 
-const approveRefund = async (id: string, sendToRazorpay = true, amount = 0) => {
-
-  const rupees = Number(amount || 0).toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-  const confirmApprove = confirm(
-    sendToRazorpay
-      ? `Refund ₹${rupees}? Razorpay is used when this booking has a pay_ capture. Cash/offline bookings credit the rider wallet instead.`
-      : `Credit ₹${rupees} to the rider wallet? Use only when there is no Razorpay capture.`
-  );
-
-  if (!confirmApprove) return;
-
+const runApproveRefund = async (id: string, sendToRazorpay = true) => {
   setProcessingId(id);
 
   try {
@@ -174,12 +177,28 @@ if (!data.success) {
 
 }
 
-alert(
-    data.message ||
-      (data.channel === "Wallet"
-        ? "Refund credited to rider wallet."
-        : "Refund sent via Razorpay.")
-  );
+const row = data.data || refunds.find((r) => r._id === id);
+    if (data.success && row) {
+      downloadRefundReceipt({
+        refundId: String(row.refundId || id),
+        bookingId: String(row.bookingId || ""),
+        riderId: String(row.riderId || ""),
+        amount: Number(row.amount || 0),
+        paymentGateway: data.channel || row.paymentGateway,
+        gatewayTxnId: row.gatewayTxnId,
+        razorpayRefundId: row.razorpayRefundId,
+        processedAt: row.processedAt || new Date(),
+      });
+    }
+
+    alert(
+      data.message ||
+        (data.channel === "Wallet"
+          ? "Refund credited to rider wallet. Payment slip downloaded."
+          : "Refund sent via Razorpay. Payment slip downloaded.")
+    );
+    setRazorpayModal(null);
+    setRazorpayModalMsg("");
 
   } finally {
 
@@ -187,6 +206,37 @@ alert(
 
   }
 
+};
+
+const approveRefund = async (id: string, sendToRazorpay = true, amount = 0) => {
+  if (sendToRazorpay) {
+    const refund = refunds.find((r) => r._id === id);
+    if (refund) {
+      setRazorpayModalMsg("");
+      setRazorpayModal(refund);
+      return;
+    }
+  }
+  const rupees = Number(amount || 0).toLocaleString("en-IN", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  if (!confirm(`Credit ₹${rupees} to the rider wallet? Use only when there is no Razorpay capture.`)) {
+    return;
+  }
+  await runApproveRefund(id, false);
+};
+
+const confirmRazorpayRefund = async () => {
+  if (!razorpayModal?._id) return;
+  setRazorpayModalMsg("Loading Razorpay...");
+  const loaded = await loadRazorpayScript();
+  if (!loaded) {
+    setRazorpayModalMsg("Razorpay script could not load. Check connection and retry.");
+    return;
+  }
+  setRazorpayModalMsg("Sending refund to the rider’s original payment method...");
+  await runApproveRefund(String(razorpayModal._id), true);
 };
 
 const rejectRefund = async (id: string) => {
@@ -651,20 +701,11 @@ refund.refundStatus === "APPROVED" ? (
 <button
 disabled={processingId===refund._id}
 onClick={()=>approveRefund(refund._id, true, refund.amount)}
-className="
-px-5
-py-2
-rounded-xl
-bg-slate-800
-text-white
-font-semibold
-hover:bg-slate-900
-transition
-"
+className="min-h-11 px-4 py-2 rounded-xl bg-[#0F172A] text-white text-sm font-semibold hover:bg-black transition"
 >
 {processingId===refund._id
 ? "Processing..."
-: `Refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")} via Razorpay`}
+: `Razorpay refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
 </button>
 {refund.failureReason ? (
   <p className="max-w-[220px] text-left text-[11px] font-medium text-rose-700">
@@ -688,15 +729,6 @@ transition
 >
 Wallet if no Razorpay capture
 </button>
-{refund.riderId ? (
-<button
-type="button"
-onClick={() => openOpsDesk("wallet", String(refund.riderId))}
-className="rounded-xl bg-[#18B368] px-5 py-2 text-xs font-semibold text-white"
->
-Open wallet
-</button>
-) : null}
 </div>
 
 ) : refund.refundStatus === "REFUNDED" ? (
@@ -912,6 +944,38 @@ Remarks
 
 </div>
 
+{selectedRefund.refundStatus === "REFUNDED" ? (
+  <div className="md:col-span-2 flex flex-wrap gap-3">
+    <button
+      type="button"
+      onClick={() =>
+        downloadRefundReceipt({
+          refundId: String(selectedRefund.refundId),
+          bookingId: String(selectedRefund.bookingId || ""),
+          riderId: String(selectedRefund.riderId || ""),
+          amount: Number(selectedRefund.amount || 0),
+          paymentGateway: selectedRefund.paymentGateway,
+          gatewayTxnId: selectedRefund.gatewayTxnId,
+          razorpayRefundId: selectedRefund.razorpayRefundId,
+          processedAt: selectedRefund.processedAt,
+        })
+      }
+      className="rounded-xl bg-[#18B368] px-5 py-2.5 text-sm font-bold text-white"
+    >
+      Download payment slip
+    </button>
+    {selectedRefund.riderId ? (
+      <button
+        type="button"
+        onClick={() => openOpsDesk("wallet", String(selectedRefund.riderId))}
+        className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700"
+      >
+        Open rider wallet
+      </button>
+    ) : null}
+  </div>
+) : null}
+
 </div>
 
 </div>
@@ -919,6 +983,48 @@ Remarks
 </div>
 
 )}
+
+{razorpayModal ? (
+  <div className="fixed inset-0 z-[60] flex items-end justify-center bg-black/60 p-4 sm:items-center">
+    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+      <p className="text-xs font-bold uppercase tracking-widest text-[#18B368]">Razorpay refund</p>
+      <h3 className="mt-2 text-xl font-black text-[#0F172A]">
+        ₹{Number(razorpayModal.amount || 0).toLocaleString("en-IN")}
+      </h3>
+      <p className="mt-2 text-sm text-slate-600">
+        Booking <strong>{razorpayModal.bookingId}</strong> · Rider{" "}
+        <strong>{razorpayModal.riderId || "—"}</strong>
+      </p>
+      <p className="mt-3 text-sm leading-6 text-slate-500">
+        EVUDDY sends this refund through Razorpay to the original card/UPI capture for this rider.
+        You will get a downloadable payment slip when it completes.
+      </p>
+      {razorpayModalMsg ? (
+        <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">{razorpayModalMsg}</p>
+      ) : null}
+      <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          disabled={Boolean(processingId)}
+          onClick={() => void confirmRazorpayRefund()}
+          className="min-h-12 flex-1 rounded-xl bg-[#0F172A] text-sm font-bold text-white disabled:opacity-60"
+        >
+          {processingId ? "Processing..." : "Confirm refund on Razorpay"}
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setRazorpayModal(null);
+            setRazorpayModalMsg("");
+          }}
+          className="min-h-12 flex-1 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+) : null}
 
 </PageContainer>
 );
