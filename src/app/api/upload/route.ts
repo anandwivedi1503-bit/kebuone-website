@@ -18,6 +18,8 @@ const ALLOWED_TYPES = [
   "image/jpg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ];
 
 function normalizeMimeType(value: string): string {
@@ -25,6 +27,10 @@ function normalizeMimeType(value: string): string {
 
   if (mimeType === "image/jpg") {
     return "image/jpeg";
+  }
+
+  if (mimeType === "image/heif") {
+    return "image/heic";
   }
 
   return mimeType;
@@ -77,6 +83,20 @@ function detectFileType(
     return "image/webp";
   }
 
+  if (buffer.length >= 12 && buffer.subarray(4, 8).toString() === "ftyp") {
+    const brand = buffer.subarray(8, 12).toString("ascii").toLowerCase();
+    if (
+      brand.startsWith("heic") ||
+      brand.startsWith("heix") ||
+      brand.startsWith("hevc") ||
+      brand.startsWith("hevx") ||
+      brand.startsWith("mif1") ||
+      brand.startsWith("msf1")
+    ) {
+      return "image/heic";
+    }
+  }
+
   return null;
 }
 
@@ -92,7 +112,6 @@ export async function POST(req: Request) {
     const contentType = req.headers.get("content-type") || "";
     let firebaseIdToken = "";
     let buffer: Buffer | null = null;
-    let declaredMime = "";
 
     if (contentType.includes("multipart/form-data")) {
       const form = await req.formData();
@@ -113,7 +132,6 @@ export async function POST(req: Request) {
         );
       }
 
-      declaredMime = normalizeMimeType(uploaded.type || "");
       buffer = Buffer.from(await uploaded.arrayBuffer());
     } else {
       const body = await req.json();
@@ -139,7 +157,6 @@ export async function POST(req: Request) {
         );
       }
 
-      declaredMime = normalizeMimeType(matches[1]);
       const base64Data = matches[2];
 
       if (base64Data.length > MAX_BASE64_LENGTH) {
@@ -171,8 +188,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const mimeType = declaredMime;
-
     if (buffer.length === 0) {
       return NextResponse.json(
         {
@@ -200,17 +215,6 @@ export async function POST(req: Request) {
         {
           success: false,
           error: "Unsupported file type.",
-        },
-        { status: 400 }
-      );
-    }
-
-    if (mimeType && mimeType !== detectedMimeType) {
-      return NextResponse.json(
-        {
-          success: false,
-          error:
-            "File content does not match the declared file type.",
         },
         { status: 400 }
       );
