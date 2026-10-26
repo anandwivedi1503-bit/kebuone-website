@@ -49,7 +49,7 @@ export default function HubMapPreview({ name, lat, lng, hubLine }: Props) {
           transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
         >
           <div className="h-[min(22vw,84px)] w-[min(22vw,84px)] sm:h-[88px] sm:w-[88px]">
-            <YellowScooterImg className="h-full w-full drop-shadow-[0_8px_16px_rgba(28,25,23,0.22)]" />
+            <YellowScooterImg variant="cutout" className="h-full w-full" />
           </div>
         </motion.div>
         <div className="absolute left-3 top-3 max-w-[85%] rounded-full bg-white/95 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.12em] text-[#1F6B4A] shadow-sm sm:left-4 sm:top-4 sm:text-[10px] sm:tracking-[0.14em]">

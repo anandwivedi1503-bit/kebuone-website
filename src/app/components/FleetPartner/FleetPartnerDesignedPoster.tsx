@@ -48,19 +48,13 @@ export default function FleetPartnerDesignedPoster() {
             EVUDDY · Smart electric mobility
           </p>
         </div>
-        <div className="relative flex min-h-[200px] items-end justify-center bg-gradient-to-t from-[#F4C430]/15 to-transparent px-4 pb-4 pt-6 sm:min-h-0 sm:items-center sm:pb-8">
-          <motion.div
-            animate={reduceMotion ? undefined : { y: [0, -8, 0] }}
-            transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-            className="relative w-full max-w-[280px]"
-          >
-            <div className="absolute inset-x-8 bottom-2 h-8 rounded-full bg-black/25 blur-xl" />
-            <YellowScooterImg
-              variant="cutout"
-              className="relative mx-auto h-[min(42vw,220px)] w-auto sm:h-[260px]"
-              loading="eager"
-            />
-          </motion.div>
+        <div className="relative min-h-[220px] overflow-hidden sm:min-h-0">
+          <YellowScooterImg
+            variant="ride"
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            loading="eager"
+          />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#0B1B16] via-[#0B1B16]/35 to-transparent sm:via-transparent sm:to-[#0B1B16]/50" />
         </div>
       </div>
     </motion.div>
