@@ -24,9 +24,8 @@ export default function PartnerSpotlight() {
           Grow India&apos;s yellow EV fleet with{" "}
           <span className="italic text-[#1F6B4A]">EVUDDY</span>
         </h2>
-        <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[#5C635E]">
-          New web poster plus your original presentation slide. Open or download the official PDF
-          anytime — apply on the partners form when ready.
+        <p className="mt-4 max-w-xl text-[15px] leading-7 text-[#5C635E]">
+          Web poster + your original slide · PDF download below.
         </p>
 
         <div className="mt-8 space-y-8">

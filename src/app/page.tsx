@@ -7,6 +7,8 @@ import Hero from "./components/Hero/Hero";
 import HomePartners from "./components/HomePartners/HomePartners";
 import HomeTrustBar from "./components/HomeTrustBar/HomeTrustBar";
 import HomePlans from "./components/HomePlans/HomePlans";
+import EvuddyAdvantage from "./components/HomeAdvantage/EvuddyAdvantage";
+import EvuddyJoinSteps from "./components/HomeAdvantage/EvuddyJoinSteps";
 import PartnerSpotlight from "./components/PartnerSpotlight/PartnerSpotlight";
 import Footer from "./components/Footer/Footer";
 
@@ -16,7 +18,6 @@ const HomeFilm = dynamic(() => import("./components/HomeFilm/HomeFilm"), {
 const EvuddyNetwork = dynamic(() => import("./components/EvuddyNetwork/EvuddyNetwork"));
 const Services = dynamic(() => import("./components/Services/Services"));
 const WhyKebu = dynamic(() => import("./components/WhyKebu/WhyKebu"));
-const HowItWorks = dynamic(() => import("./components/HowItWorks/HowItWorks"));
 const RiderReviews = dynamic(() => import("./components/RiderReviews/RiderReviews"));
 
 export default function Home() {
@@ -30,11 +31,12 @@ export default function Home() {
       <HomeTrustBar />
       <HomeFilm />
       <HomePlans />
+      <EvuddyAdvantage />
       <EvuddyNetwork />
+      <EvuddyJoinSteps />
       <Services />
       <WhyKebu />
       <PartnerSpotlight />
-      <HowItWorks />
       <RiderReviews />
       <Footer />
     </main>

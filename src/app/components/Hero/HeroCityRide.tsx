@@ -438,7 +438,7 @@ export default function HeroCityRide() {
             <img src={bikeSrc} alt="EVUDDY scooter" className="evuddy-city-bike" />
           ) : (
             <img
-              src="/evuddy-scooter-cutout.png"
+              src="/evuddy-brand-scooter.png"
               alt="EVUDDY yellow scooter"
               className="evuddy-city-bike object-contain"
             />

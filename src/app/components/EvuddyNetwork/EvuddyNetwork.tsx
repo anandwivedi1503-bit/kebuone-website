@@ -2,10 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
-import { GpsScooterMark } from "../Hero/GpsScooter";
+import { MapPin, Navigation } from "lucide-react";
+import { BRAND_SCOOTER_PHOTO } from "@/lib/scooterAssets";
 import HubMapPreview from "./HubMapPreview";
-import NetworkExperienceStrip from "./NetworkExperienceStrip";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { openGoogleMaps } from "./maps";
 
@@ -78,18 +77,13 @@ const FALLBACK_CITIES: CityMark[] = [
   { name: "Lucknow", x: 210.3, y: 215.78, hubs: "Live hub", hubCount: 1, lat: 26.8467, lng: 80.9462 },
 ];
 
-const STEPS = [
-  { n: "01", title: "Choose city", text: "Pick a live EVUDDY city. The map shows the yard." },
-  { n: "02", title: "Navigate", text: "Open Google Maps to the exact pickup hub." },
-  { n: "03", title: "Pickup OTP", text: "Pay, then show OTP at the yard to take the scooter." },
-  { n: "04", title: "Ride & return", text: "IoT on the scooter. Return at the hub when remaining is ₹0." },
-];
-
-const PROOFS = [
-  { icon: Radio, title: "IoT on every scooter", text: "Live GPS, lock and battery from the vehicle — same as ops." },
-  { icon: MapPin, title: "Live GPS while you ride", text: "Same feed ops use — location, lock and battery on the scooter." },
-  { icon: ShieldCheck, title: "Yard-verified pickup", text: "OTP after first payment. No scooter leaves without it." },
-];
+function hubLabel(hub: LiveHub | undefined, cityName: string) {
+  const loc = String(hub?.hubLocation || "").trim();
+  const name = String(hub?.hubName || "").trim();
+  if (loc.length > 3) return loc;
+  if (name.length > 3) return name;
+  return `${cityName} · EVUDDY hub`;
+}
 
 function CountUp({ value }: { value: number }) {
   const [n, setN] = useState(0);
@@ -152,7 +146,7 @@ export default function EvuddyNetwork() {
         lat: Number.isFinite(lat) ? lat : point.lat,
         lng: Number.isFinite(lng) ? lng : point.lng,
         hubCount: Math.max(1, cityHubs.length),
-        hubs: first?.hubName || first?.hubLocation || "Live EVUDDY hub",
+        hubs: hubLabel(first, name),
       } satisfies CityMark;
     });
 
@@ -352,11 +346,11 @@ export default function EvuddyNetwork() {
                   />
                   <g>
                     <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={networkPath} />
-                    <foreignObject x="-28" y="-28" width="56" height="56">
+                    <foreignObject x="-32" y="-24" width="64" height="64">
                     <img
-                      src="/evuddy-scooter-cutout.png"
+                      src={BRAND_SCOOTER_PHOTO}
                       alt=""
-                      className="h-14 w-14 object-contain"
+                      className="h-16 w-16 object-contain"
                     />
                   </foreignObject>
                   </g>
@@ -418,9 +412,7 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <NetworkExperienceStrip />
-
-        <div className="relative mt-12 overflow-hidden border-y border-[#E4DDD2] py-3">
+        <div className="relative mt-10 overflow-hidden border-y border-[#E4DDD2] py-3">
           <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-6 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">
             {ticker.map((name, i) => (
               <span key={`${name}-${i}`} className="inline-flex items-center gap-2">
@@ -431,64 +423,6 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <div className="mt-14 grid gap-8 sm:grid-cols-3">
-          {PROOFS.map((item) => (
-            <div key={item.title} className="border-t border-[#E4DDD2] pt-5">
-              <item.icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
-              <p className="mt-3 text-sm font-medium">{item.title}</p>
-              <p className="mt-1.5 text-sm leading-6 text-[#5C635E]">{item.text}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-16">
-          <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#1F6B4A]">
-            How a hub ride works
-          </p>
-          <div className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step) => (
-              <div key={step.n} className="border-t border-[#E4DDD2] pt-5">
-                <p className="text-[11px] tracking-[0.16em] text-[#8A847A]">{step.n}</p>
-                <p className="font-display mt-3 text-xl font-medium">{step.title}</p>
-                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="relative border-t border-[#E4DDD2] bg-[#FBF9F5]">
-        <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:px-12">
-          <div className="grid gap-8 sm:grid-cols-3">
-            {[
-              {
-                icon: Warehouse,
-                kicker: "Live yard",
-                title: "Hub",
-                text: "Every scooter starts and ends at a gated EVUDDY hub — never a random street.",
-              },
-              {
-                icon: Store,
-                kicker: "Partners",
-                title: "Dealers & distributors",
-                text: "Applications from /partners/dealer and /partners/distributor land on the partner desk for approve, call and notes.",
-              },
-              {
-                icon: KeyRound,
-                kicker: "Gate control",
-                title: "Pickup OTP",
-                text: "The yard OTP only appears after first payment. No pay, no scooter.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="border-t border-[#E4DDD2] pt-5">
-                <item.icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
-                <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">{item.kicker}</p>
-                <p className="font-display mt-1 text-xl font-medium text-[#1C1917]">{item.title}</p>
-                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{item.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
       </div>
 
       <style>{`

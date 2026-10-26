@@ -198,7 +198,7 @@ export default function Hero() {
                   <mpath href="#evuddy-route" />
                 </animateMotion>
                 <image
-                  href="/evuddy-scooter-cutout.png"
+                  href="/evuddy-brand-scooter.png"
                   x="-40"
                   y="-32"
                   width="80"

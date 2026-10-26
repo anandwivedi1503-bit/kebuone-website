@@ -2,16 +2,16 @@
 
 import type { ImgHTMLAttributes } from "react";
 
-import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
+import { BRAND_SCOOTER_PHOTO } from "@/lib/scooterAssets";
 
 type Props = ImgHTMLAttributes<HTMLImageElement> & {
   variant?: "cutout" | "side" | "product";
 };
 
 const SRC = {
-  cutout: YELLOW_SCOOTER_CUTOUT,
-  side: "/evuddy-side.png",
-  product: "/evuddy-scooter.png",
+  cutout: BRAND_SCOOTER_PHOTO,
+  side: BRAND_SCOOTER_PHOTO,
+  product: BRAND_SCOOTER_PHOTO,
 } as const;
 
 /** Yellow fleet scooter — always object-contain so nothing is cropped on mobile. */
