@@ -31,6 +31,8 @@ import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { cancelUnpaidPrePaymentReserveInSession } from "@/lib/cancelUnpaidPrePaymentReserve";
+import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
@@ -347,19 +349,37 @@ await session.endSession();
   );
 }
 
-if (
-      rider.currentBookingId &&
-      String(rider.currentBookingId).trim()
-    ) {
-      await session.abortTransaction();
-      await session.endSession();
-      return NextResponse.json(
+if (rider.currentBookingId && String(rider.currentBookingId).trim()) {
+      const heldBooking = await Booking.findOne(
         {
-          success: false,
-          errors: ["You already have an active booking."],
+          bookingId: rider.currentBookingId,
+          riderId: rider.riderId,
         },
-        { status: 409 }
+        null,
+        { session }
       );
+      if (
+        heldBooking &&
+        isUnpaidPrePaymentReserve(heldBooking.toObject()) &&
+        (await cancelUnpaidPrePaymentReserveInSession(
+          heldBooking,
+          session,
+          "Replaced by a new booking after an unpaid reserve",
+          "Rider"
+        ))
+      ) {
+        rider.currentBookingId = "";
+      } else {
+        await session.abortTransaction();
+        await session.endSession();
+        return NextResponse.json(
+          {
+            success: false,
+            errors: ["You already have an active booking."],
+          },
+          { status: 409 }
+        );
+      }
     }
 
     if (
@@ -510,17 +530,27 @@ null,
 );
 
 if (existingRide) {
-  await session.abortTransaction();
-await session.endSession();
-  return NextResponse.json(
-    {
-      success: false,
-      errors: [
-        "You already have an active booking.",
-      ],
-    },
-    { status: 409 }
-  );
+  if (
+    isUnpaidPrePaymentReserve(existingRide.toObject()) &&
+    (await cancelUnpaidPrePaymentReserveInSession(
+      existingRide,
+      session,
+      "Replaced by a new booking after an unpaid reserve",
+      "Rider"
+    ))
+  ) {
+    // Continue — unpaid reserve cleared.
+  } else {
+    await session.abortTransaction();
+    await session.endSession();
+    return NextResponse.json(
+      {
+        success: false,
+        errors: ["You already have an active booking."],
+      },
+      { status: 409 }
+    );
+  }
 }
 
 const existingPendingBooking = await Booking.findOne(
@@ -538,19 +568,30 @@ null,
 );
 
 if (existingPendingBooking) {
-
+  if (
+    isUnpaidPrePaymentReserve(existingPendingBooking.toObject()) &&
+    (await cancelUnpaidPrePaymentReserveInSession(
+      existingPendingBooking,
+      session,
+      "Replaced by a new booking after an unpaid reserve",
+      "Rider"
+    ))
+  ) {
+    // Continue — unpaid reserve cleared.
+  } else {
     await session.abortTransaction();
     await session.endSession();
 
     return NextResponse.json(
-    {
-        success:false,
-        errors:[
-            "Previous booking payment is still pending. Pay the remaining amount on Book EV first."
-        ]
-    },
-    {status:409}
+      {
+        success: false,
+        errors: [
+          "Previous booking payment is still pending. Pay the remaining amount on Book EV first.",
+        ],
+      },
+      { status: 409 }
     );
+  }
 }
 
 /*
