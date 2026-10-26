@@ -41,6 +41,14 @@ body {
   overflow-x: hidden;
 }
 
+/* Prevent marketing stills from cropping on narrow phones */
+.img-safe-contain {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+}
+
 nav.fixed {
   background: #ffffff !important;
   isolation: isolate;

@@ -5,6 +5,7 @@ import { useReducedMotion } from "framer-motion";
 import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
 import { GpsScooterMark } from "../Hero/GpsScooter";
 import HubMapPreview from "./HubMapPreview";
+import NetworkExperienceStrip from "./NetworkExperienceStrip";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { openGoogleMaps } from "./maps";
 
@@ -351,9 +352,13 @@ export default function EvuddyNetwork() {
                   />
                   <g>
                     <animateMotion dur="8s" repeatCount="indefinite" rotate="auto" path={networkPath} />
-                    <g transform="scale(0.85)">
-                      <GpsScooterMark />
-                    </g>
+                    <foreignObject x="-28" y="-28" width="56" height="56">
+                    <img
+                      src="/evuddy-scooter-cutout.png"
+                      alt=""
+                      className="h-14 w-14 object-contain"
+                    />
+                  </foreignObject>
                   </g>
                 </>
               ) : null}
@@ -413,7 +418,9 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <div className="relative mt-10 overflow-hidden border-y border-[#E4DDD2] py-3">
+        <NetworkExperienceStrip />
+
+        <div className="relative mt-12 overflow-hidden border-y border-[#E4DDD2] py-3">
           <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-6 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">
             {ticker.map((name, i) => (
               <span key={`${name}-${i}`} className="inline-flex items-center gap-2">

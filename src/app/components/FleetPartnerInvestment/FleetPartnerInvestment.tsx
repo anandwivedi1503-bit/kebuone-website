@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Download, Leaf, Radio, ShieldCheck, Sparkles } from "lucide-react";
 
 import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
+import FleetPartnerDesignedPoster from "../FleetPartner/FleetPartnerDesignedPoster";
 import HomeImg from "../HomeMedia/HomeImg";
 
 const FORM = "/partners#partner-form";
@@ -80,34 +81,19 @@ export default function FleetPartnerInvestment(_props?: { posterPriority?: boole
             </p>
           </div>
 
-          <aside className="relative isolate overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white shadow-[0_24px_60px_rgba(28,25,23,0.08)]">
-            <div className="flex items-center justify-center bg-[#FAFAF8] p-4">
+          <div className="space-y-4">
+            <FleetPartnerDesignedPoster />
+            <div className="rounded-2xl border border-[#E4DDD2] bg-white p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8A847A]">
+                Original slide
+              </p>
               <HomeImg
                 src={FLEET_INVESTMENT.posterSrc}
-                alt="EVUDDY fleet partner investment poster"
-                className="max-h-[min(52vh,480px)] w-full rounded-xl object-contain"
+                alt="Original fleet partner presentation poster"
+                className="mt-3 max-h-[280px] w-full object-contain"
               />
             </div>
-            <div className="relative flex flex-col border-t border-[#E4DDD2] p-7">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B736E]">
-                Invest
-              </p>
-              <p className="font-display mt-2 text-2xl font-medium leading-tight text-[#1C1917]">
-                Official fleet partner brief
-              </p>
-              <p className="mt-3 text-sm leading-6 text-[#5C635E]">
-                Updated campaign PDF. Open in your browser or save for your records.
-              </p>
-              <a
-                href={FLEET_INVESTMENT.pdfHref}
-                download={FLEET_INVESTMENT.pdfFileName}
-                className="mt-6 inline-flex min-h-12 w-fit items-center gap-2 rounded-full bg-[#F4C430] px-5 text-[13px] font-semibold text-[#1C1917]"
-              >
-                <Download size={16} />
-                Download PDF
-              </a>
-            </div>
-          </aside>
+          </div>
         </div>
 
         <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

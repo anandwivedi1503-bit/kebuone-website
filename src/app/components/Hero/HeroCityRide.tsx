@@ -437,7 +437,11 @@ export default function HeroCityRide() {
           {bikeSrc ? (
             <img src={bikeSrc} alt="EVUDDY scooter" className="evuddy-city-bike" />
           ) : (
-            <div className="evuddy-city-bike h-[72px] rounded-md bg-[#EC2A8C]/90 sm:h-[96px]" />
+            <img
+              src="/evuddy-scooter-cutout.png"
+              alt="EVUDDY yellow scooter"
+              className="evuddy-city-bike object-contain"
+            />
           )}
         </motion.div>
       </div>

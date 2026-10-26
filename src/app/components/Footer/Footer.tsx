@@ -107,10 +107,19 @@ export default function Footer() {
               src={BRAND.yard}
               alt="EVUDDY flagship hub at dusk"
               fill
-              className="object-cover object-[center_42%] scale-[1.02] sm:object-[center_38%]"
-              sizes="(min-width: 1024px) 80vw, 100vw"
+              className="hidden object-cover object-[center_38%] sm:block"
+              sizes="(min-width: 640px) 80vw, 100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#07111F]/88 via-[#07111F]/35 to-[#07111F]/15" />
+            <div className="relative h-44 w-full sm:hidden">
+              <Image
+                src={BRAND.yard}
+                alt=""
+                fill
+                className="object-contain object-bottom"
+                sizes="100vw"
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-[#07111F]/90 via-[#07111F]/40 to-[#07111F]/10 sm:from-[#07111F]/88 sm:via-[#07111F]/35" />
 
             <div className="relative z-10 mx-auto max-w-4xl text-center">
 
