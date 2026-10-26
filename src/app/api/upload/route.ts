@@ -22,20 +22,6 @@ const ALLOWED_TYPES = [
   "image/heif",
 ];
 
-function normalizeMimeType(value: string): string {
-  const mimeType = value.toLowerCase();
-
-  if (mimeType === "image/jpg") {
-    return "image/jpeg";
-  }
-
-  if (mimeType === "image/heif") {
-    return "image/heic";
-  }
-
-  return mimeType;
-}
-
 function detectFileType(
   buffer: Buffer
 ): string | null {
