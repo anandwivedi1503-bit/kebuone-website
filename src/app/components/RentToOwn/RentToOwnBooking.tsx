@@ -20,7 +20,7 @@ import RideReviewCard from "../RideReview/RideReviewCard";
 import RideSwipeControl from "../BikeBooking/RideSwipeControl";
 import RiderComplaintTicket from "../BikeBooking/RiderComplaintTicket";
 import {
-  isOpenRideBooking,
+  shouldAutoResumeOpenBooking,
   loadRtoDraft,
   markRiderBookingLock,
   rememberRiderProfile,
@@ -371,10 +371,10 @@ export default function RentToOwnBooking() {
         });
         const mineData = await mineRes.json();
         const active = mineData.data;
-        if (mineData.success && isOpenRideBooking(active)) {
+        if (mineData.success && shouldAutoResumeOpenBooking(active)) {
           if (String(active.rentalMode || "") !== "Rent To Own") {
             syncPlanFromActiveBooking(String(active.rentalMode || "Daily"));
-            window.location.replace("/book-bike?flow=rental");
+            window.location.replace("/book-bike?flow=rental&resume=1");
             return;
           }
           syncPlanFromActiveBooking("Rent To Own");

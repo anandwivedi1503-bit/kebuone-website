@@ -22,15 +22,17 @@ import RideSwipeControl from "./RideSwipeControl";
 import RiderComplaintTicket from "./RiderComplaintTicket";
 import RideReviewCard from "../RideReview/RideReviewCard";
 import { isRecentCompletedRide } from "@/lib/riderCompletion";
+import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
 import {
+  clearRentalDraft,
   clearRiderBookingLock,
-  isOpenRideBooking,
   loadRentalDraft,
   markRiderBookingLock,
   rememberRiderProfile,
   resetRiderBookingChoice,
   saveRentalDraft,
   setChosenPlan,
+  shouldAutoResumeOpenBooking,
   shouldPresentCompletedRide,
   syncPlanFromActiveBooking,
 } from "@/lib/riderPlanGate";
@@ -462,7 +464,7 @@ useEffect(() => {
       const active = mineData.data as MineBooking | null;
       const lastCompleted = mineData.lastCompleted as MineBooking | null;
       if (!mineData.success) return;
-      if (isOpenRideBooking(active)) {
+      if (shouldAutoResumeOpenBooking(active)) {
       setPaidAmount(Number(active.receivedAmount || 0));
       setPendingAmount(Number(active.pendingAmount || 0));
       setBookingPaymentStatus(String(active.paymentStatus || ""));
@@ -574,7 +576,34 @@ useEffect(() => {
       const mineData = await mineRes.json();
       const active = mineData.data as MineBooking | null;
       const lastCompleted = mineData.lastCompleted as MineBooking | null;
-      if (mineData.success && isOpenRideBooking(active)) {
+      const resumePayment =
+        typeof window !== "undefined" &&
+        new URLSearchParams(window.location.search).get("resume") === "1";
+
+      if (
+        mineData.success &&
+        isUnpaidPrePaymentReserve(active) &&
+        !resumePayment
+      ) {
+        try {
+          await fetch("/api/bookings/release-unpaid-reserve", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch {
+          // Still show the city/hub wizard even if release fails.
+        }
+        clearRiderBookingLock();
+        clearRentalDraft();
+        setBookingDone(false);
+        setBookingMongoId("");
+        setBookingId("");
+        bookingMongoIdRef.current = "";
+        bookingIdRef.current = "";
+        setReservedBike(null);
+        setRideStatus("");
+        setStep(1);
+      } else if (mineData.success && shouldAutoResumeOpenBooking(active)) {
         if (String(active.rentalMode || "") === "Rent To Own") {
           syncPlanFromActiveBooking("Rent To Own");
           window.location.replace("/rent-to-own");

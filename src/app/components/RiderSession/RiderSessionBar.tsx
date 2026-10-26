@@ -11,7 +11,7 @@ import {
   getRiderProfile,
   hasRiderBookingLock,
   hasRiderPlanReady,
-  isOpenRideBooking,
+  shouldAutoResumeOpenBooking,
   openRiderAccountMenu,
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
@@ -58,7 +58,7 @@ export default function RiderSessionBar() {
           cache: "no-store",
         });
         const json = await res.json();
-        const live = Boolean(json.success && isOpenRideBooking(json.data));
+        const live = Boolean(json.success && shouldAutoResumeOpenBooking(json.data));
         setLocked(live);
         if (!live && hasRiderBookingLock()) clearRiderBookingLock();
       } catch {

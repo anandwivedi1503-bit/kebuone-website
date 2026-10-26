@@ -1,6 +1,7 @@
 import { signOut } from "firebase/auth";
 
 import { firebaseAuth } from "@/lib/firebase";
+import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
 
 export const RIDER_SESSION_EVENT = "kebu-rider-session";
 export const RIDER_ACCOUNT_OPEN_EVENT = "kebu-open-rider-account";
@@ -199,6 +200,14 @@ export function isOpenRideBooking<T extends RideBookingLike>(
   ].includes(ride);
   const livePay = ["Pending", "Partial"].includes(String(booking.paymentStatus || ""));
   return liveRide || livePay;
+}
+
+/** Unpaid reserve should not reopen the payment screen when the rider taps Normal booking. */
+export function shouldAutoResumeOpenBooking<T extends RideBookingLike>(
+  booking?: T | null
+): booking is T {
+  if (!isOpenRideBooking(booking)) return false;
+  return !isUnpaidPrePaymentReserve(booking);
 }
 
 export function getRideOptionsView(): RideOptionsView | "" {
