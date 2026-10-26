@@ -482,6 +482,7 @@ if (sendToRazorpay) {
   }).session(session);
 
   if (!existingRefundTransaction) {
+    const invoiceNumber = `INV-RF-${liveRefund.refundId}`;
     await Transaction.create(
       [
         {
@@ -494,6 +495,11 @@ if (sendToRazorpay) {
           transactionType: "Refund",
           status: "Success",
           refundStatus: "Completed",
+          invoiceNumber,
+          invoiceGenerated: true,
+          razorpayPaymentId: gatewayId?.startsWith("pay_") ? gatewayId : "",
+          remarks: `Razorpay refund ${gatewayId || ""}`.trim(),
+          transactionSource: "Admin Panel",
         },
       ],
       { session }
@@ -656,32 +662,26 @@ const existingRefundTransaction =
   }).session(session);
 
 if (!existingRefundTransaction) {
-
+  const invoiceNumber = `INV-RF-${refund.refundId}`;
   await Transaction.create(
     [
       {
         transactionId: `RF-${refund.refundId}`,
-
         bookingId: booking.bookingId,
-
         userId: String(booking.userId),
-
         userName: booking.userName,
-
         amount: refund.amount,
-
         paymentMethod: "Wallet",
-
         transactionType: "Refund",
-
         status: "Success",
-
         refundStatus: "Completed",
+        invoiceNumber,
+        invoiceGenerated: true,
+        remarks: walletFallbackReason || "Wallet refund",
+        transactionSource: "Admin Panel",
       },
     ],
-    {
-      session,
-    }
+    { session }
   );
 }
 }

@@ -18,6 +18,7 @@ import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
 import NavbarErrorBoundary from "./NavbarErrorBoundary";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { title: "Home", href: "/" },
@@ -43,6 +44,9 @@ function isHandsetScreen() {
 }
 
 function NavbarInner() {
+  const pathname = usePathname();
+  const hideSessionExitOnBooking =
+    pathname.startsWith("/book-bike") || pathname.startsWith("/rent-to-own");
   const [menuOpen, setMenuOpen] = useState(false);
   const [riderLoggedIn, setRiderLoggedIn] = useState(false);
   const [compactNav, setCompactNav] = useState(false);
@@ -217,7 +221,9 @@ function NavbarInner() {
                       Book EV
                       <ChevronRight size={18} />
                     </Link>
-                    <SessionExit compact onPicked={closeMenu} />
+                    {!hideSessionExitOnBooking ? (
+                      <SessionExit compact onPicked={closeMenu} />
+                    ) : null}
                   </>
                 ) : (
                   <>

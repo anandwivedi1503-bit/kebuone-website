@@ -20,6 +20,7 @@ import KPIGrid from "../DashboardUI/KPIGrid";
 import KPICard from "../DashboardUI/KPICard";
 import DashboardCard from "../DashboardUI/DashboardCard";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
+import { downloadTransactionInvoice } from "@/lib/transactionReceipt";
 import { isRevenueTransaction, revenueAmount, revenueGst } from "@/lib/opsRevenue";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import DashboardActions from "../DashboardUI/DashboardActions";
@@ -884,6 +885,14 @@ Invoice
 {selectedTransaction.invoiceNumber || "-"}
 
 </p>
+
+<button
+  type="button"
+  onClick={() => downloadTransactionInvoice(selectedTransaction)}
+  className="mt-4 rounded-xl bg-[#18B368] px-5 py-2.5 text-sm font-bold text-white"
+>
+  Download invoice
+</button>
 
 </div>
 
