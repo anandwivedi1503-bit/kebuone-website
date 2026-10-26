@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
 import { GpsScooterMark } from "../Hero/GpsScooter";
+import HubMapPreview from "./HubMapPreview";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
-import { googleMapsUrl, openGoogleMaps } from "./maps";
+import { openGoogleMaps } from "./maps";
 
 type CityMark = {
   name: string;
@@ -224,7 +225,7 @@ export default function EvuddyNetwork() {
           </div>
         </div>
 
-        <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,1.22fr)] lg:items-stretch">
+        <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-start">
           <div className="flex flex-col rounded-[28px] border border-[#E4DDD2] bg-white p-5 sm:p-7">
             <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-[#1F6B4A]">
               Live cities from ops
@@ -277,30 +278,24 @@ export default function EvuddyNetwork() {
               <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-[#8A847A]">Selected hub</p>
               <p className="font-display mt-2 text-3xl font-medium tracking-tight">{selected.name}</p>
               <p className="mt-1 text-sm text-[#5C635E]">{selected.hubs}</p>
-              <a
-                href={googleMapsUrl(selected.lat, selected.lng, `EVUDDY ${selected.name}`)}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c]"
+              <button
+                type="button"
+                onClick={() => openGoogleMaps(selected.lat, selected.lng, `EVUDDY ${selected.name}`)}
+                className="mt-5 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1F6B4A] text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c] hover:shadow-md"
               >
                 <Navigation size={15} />
                 Open in Google Maps
-              </a>
+              </button>
             </div>
           </div>
 
           <div className="flex flex-col gap-4">
-          <div className="overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white shadow-[0_20px_50px_rgba(28,25,23,0.06)]">
-            <iframe
-              title={`EVUDDY hub map ${selected.name}`}
-              src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                `${selected.lat},${selected.lng}`
-              )}&z=14&output=embed`}
-              className="h-[240px] w-full border-0 sm:h-[300px]"
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
+          <HubMapPreview
+            name={selected.name}
+            lat={selected.lat}
+            lng={selected.lng}
+            hubLine={selected.hubs}
+          />
           <div
             className="relative isolate overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white"
             onMouseMove={(event) => {
@@ -317,7 +312,7 @@ export default function EvuddyNetwork() {
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_42%,rgba(31,107,74,0.10),transparent_58%)]" />
             <svg
               viewBox={INDIA_VIEWBOX}
-              className="relative mx-auto h-auto w-full max-w-[640px] px-3 pb-20 pt-8 sm:px-6 sm:pt-10"
+              className="relative mx-auto h-auto w-full max-w-[520px] px-3 pb-10 pt-6 sm:px-5 sm:pt-8"
               role="img"
               aria-label="Map of India with EVUDDY hub cities"
             >
