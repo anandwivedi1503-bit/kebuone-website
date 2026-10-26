@@ -2470,13 +2470,13 @@ mt-5
 h-16
 w-full
 rounded-2xl
-bg-[#0F172A]
+bg-[#1F6B4A]
 font-bold
 tracking-wide
 text-white
 transition-all
 duration-300
-hover:bg-black
+hover:bg-[#18573c]
 hover:-translate-y-1
 "
                   >
@@ -2796,18 +2796,18 @@ disabled:opacity-60
                     ) : null}
 
                     {rideEndOtp ? (
-                      <div className="rounded-2xl bg-slate-900 px-5 py-5 text-white">
-                        <p className="text-xs font-bold uppercase tracking-widest text-green-300">
+                      <div className="rounded-2xl border border-[#1F6B4A]/20 bg-gradient-to-br from-[#E8F3EC] to-white px-5 py-5 text-[#1C1917]">
+                        <p className="text-xs font-bold uppercase tracking-widest text-[#1F6B4A]">
                           Ride end OTP — tell this to the yard on return
                         </p>
-                        <p className="mt-2 text-5xl font-black tracking-[0.28em]">{rideEndOtp}</p>
-                        <p className="mt-2 text-sm text-slate-200">
+                        <p className="mt-2 text-5xl font-black tracking-[0.28em] text-[#0F172A]">{rideEndOtp}</p>
+                        <p className="mt-2 text-sm text-[#5C635E]">
                           Same as pickup: you generate it, the yard enters it, then the scooter is taken in.
                         </p>
                         <button
                           type="button"
                           onClick={() => void sendOtpSms()}
-                          className="mt-3 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold uppercase tracking-wide text-white print:hidden"
+                          className="mt-3 rounded-full border border-[#1F6B4A]/25 bg-white px-4 py-2 text-xs font-bold uppercase tracking-wide text-[#1F6B4A] print:hidden"
                         >
                           Resend OTP SMS
                         </button>

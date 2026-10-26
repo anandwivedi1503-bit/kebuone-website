@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import RentToOwnBooking from "@/app/components/RentToOwn/RentToOwnBooking";
-import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import { getChosenPlan, hasRiderPlanReady, setChosenPlan } from "@/lib/riderPlanGate";
 
 export default function RentToOwnPage() {
@@ -38,9 +37,6 @@ export default function RentToOwnPage() {
     <main>
       <Navbar />
       <div className="page-under-nav">
-        <div className="px-4 sm:px-6 lg:px-10">
-          <RiderSessionBar />
-        </div>
         <RentToOwnBooking />
       </div>
       <Footer />

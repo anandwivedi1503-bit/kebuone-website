@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import BikeBooking from "@/app/components/BikeBooking/BikeBooking";
-import RiderSessionBar from "@/app/components/RiderSession/RiderSessionBar";
 import { getChosenPlan, hasRiderPlanReady, riderResumeHref, setChosenPlan } from "@/lib/riderPlanGate";
 
 export default function BookBikePage() {
@@ -50,9 +49,6 @@ export default function BookBikePage() {
         <Navbar />
       </div>
       <div className="page-under-nav">
-        <div className="print:hidden px-4 sm:px-6 lg:px-10">
-          <RiderSessionBar />
-        </div>
         <BikeBooking />
       </div>
       <div className="print:hidden">

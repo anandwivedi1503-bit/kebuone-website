@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ArrowRight, Download, Leaf, Radio, ShieldCheck, Sparkles } from "lucide-react";
 
-import { BRAND } from "@/lib/brandMedia";
 import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
 import HomeImg from "../HomeMedia/HomeImg";
 
@@ -36,25 +35,25 @@ export default function FleetPartnerInvestment(_props?: { posterPriority?: boole
   return (
     <section
       id="fleet-investment"
-      className="relative scroll-mt-36 overflow-hidden bg-[#07130F] py-16 text-white sm:py-24"
+      className="relative scroll-mt-36 overflow-hidden border-t border-[#E4DDD2] bg-[#F7F4EE] py-16 sm:py-24"
     >
-      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#1F6B4A]/40 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-[#F4C430]/20 blur-[110px]" />
+      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#1F6B4A]/12 blur-[120px]" />
+      <div className="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-[#F4C430]/15 blur-[110px]" />
 
       <div className="relative mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12">
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#A8E6C3]">
+            <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#5F6B63]">
               Fleet partner
             </p>
             <h2
               id="investment-poster"
-              className="font-display mt-4 text-4xl font-medium tracking-[-0.04em] sm:text-6xl"
+              className="font-display mt-4 text-4xl font-medium tracking-[-0.04em] text-[#1C1917] sm:text-6xl"
             >
               Put your capital on
-              <span className="mt-1 block italic text-[#F4C430]">India&apos;s yellow EV fleet.</span>
+              <span className="mt-1 block italic text-[#1F6B4A]">India&apos;s yellow EV fleet.</span>
             </h2>
-            <p className="mt-5 max-w-xl text-[15px] leading-8 text-white/70">
+            <p className="mt-5 max-w-xl text-[15px] leading-8 text-[#5C635E]">
               {FLEET_INVESTMENT.company} operates EVUDDY. You grow the fleet. We run the yards,
               the riders, and the software. Download the official brief — then apply. No payment
               on this website.
@@ -63,44 +62,46 @@ export default function FleetPartnerInvestment(_props?: { posterPriority?: boole
               <a
                 href={FLEET_INVESTMENT.pdfHref}
                 download={FLEET_INVESTMENT.pdfFileName}
-                className="inline-flex min-h-14 items-center justify-center gap-2 bg-[#F4C430] px-8 text-[13px] font-medium tracking-[0.08em] text-[#07130F] transition hover:bg-[#ffe08a]"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#1F6B4A] px-8 text-[13px] font-semibold tracking-[0.08em] text-white transition hover:bg-[#18573c]"
               >
                 <Download size={18} />
                 Download PDF
               </a>
               <Link
                 href={FORM}
-                className="inline-flex min-h-14 items-center justify-center gap-2 border border-white/20 px-8 text-[13px] font-medium tracking-[0.08em] text-white transition hover:border-[#F4C430] hover:text-[#F4C430]"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full border border-[#1C1917]/12 bg-white px-8 text-[13px] font-semibold tracking-[0.08em] text-[#1C1917] transition hover:border-[#1F6B4A]/40"
               >
                 Apply as a partner
                 <ArrowRight size={16} />
               </Link>
             </div>
-            <p className="mt-4 text-xs tracking-[0.04em] text-white/45">
+            <p className="mt-4 text-xs tracking-[0.04em] text-[#8A847A]">
               Choose Fleet Partner Investment on the form. We confirm terms in writing.
             </p>
           </div>
 
-          <aside className="relative isolate overflow-hidden rounded-[28px] border border-white/10 bg-[#0B1B16]">
-            <div className="flex aspect-[4/3] items-center justify-center bg-[#10241c] p-4">
-            <HomeImg
-              src={BRAND.yard}
-              alt="EVUDDY yard"
-              className="h-full w-full object-contain object-center"
-            />
+          <aside className="relative isolate overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-white shadow-[0_24px_60px_rgba(28,25,23,0.08)]">
+            <div className="flex items-center justify-center bg-[#FAFAF8] p-4">
+              <HomeImg
+                src={FLEET_INVESTMENT.posterSrc}
+                alt="EVUDDY fleet partner investment poster"
+                className="max-h-[min(52vh,480px)] w-full rounded-xl object-contain"
+              />
             </div>
-            <div className="relative flex flex-col p-7">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">Invest</p>
-              <p className="font-display mt-2 text-3xl font-medium leading-tight">
-                Put your capital on India&apos;s yellow EV fleet
+            <div className="relative flex flex-col border-t border-[#E4DDD2] p-7">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#6B736E]">
+                Invest
               </p>
-              <p className="mt-3 text-sm leading-6 text-white/75">
-                One PDF. The full partnership story. Then apply on the form below.
+              <p className="font-display mt-2 text-2xl font-medium leading-tight text-[#1C1917]">
+                Official fleet partner brief
+              </p>
+              <p className="mt-3 text-sm leading-6 text-[#5C635E]">
+                Updated campaign PDF. Open in your browser or save for your records.
               </p>
               <a
                 href={FLEET_INVESTMENT.pdfHref}
                 download={FLEET_INVESTMENT.pdfFileName}
-                className="mt-6 inline-flex min-h-12 w-fit items-center gap-2 rounded-full bg-white px-5 text-[13px] font-semibold text-[#0B1B16]"
+                className="mt-6 inline-flex min-h-12 w-fit items-center gap-2 rounded-full bg-[#F4C430] px-5 text-[13px] font-semibold text-[#1C1917]"
               >
                 <Download size={16} />
                 Download PDF
@@ -113,10 +114,10 @@ export default function FleetPartnerInvestment(_props?: { posterPriority?: boole
           {highlights.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.title} className="border-t border-white/10 pt-5">
-                <Icon size={18} strokeWidth={1.5} className="text-[#F4C430]" />
-                <h3 className="mt-4 font-medium">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-white/60">{item.text}</p>
+              <div key={item.title} className="rounded-2xl border border-[#E4DDD2] bg-white p-5">
+                <Icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
+                <h3 className="mt-4 font-medium text-[#1C1917]">{item.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{item.text}</p>
               </div>
             );
           })}
