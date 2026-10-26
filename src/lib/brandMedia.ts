@@ -2,7 +2,7 @@
 export const BRAND = {
   film: "/brand/evuddy-ride.mp4",
   filmPoster: "/brand/scene-film-poster.png",
-  rider: "/new-vehicle.jpeg",
+  rider: "/evuddy-scooter-cutout.png",
   city: "/brand/scene-city-front.png",
   cityCommute: "/brand/scene-city-front.png",
   afterWork: "/brand/scene-after-front.png",

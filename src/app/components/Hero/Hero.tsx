@@ -107,7 +107,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative aspect-[16/10] overflow-hidden bg-[#EDE8DE] sm:aspect-[3/2]">
+        <div className="relative aspect-[4/3] min-h-[220px] overflow-hidden bg-[#EDE8DE] sm:aspect-[3/2] sm:min-h-0">
           {SLIDES.map((item, index) => {
             const prev = (slide + SLIDES.length - 1) % SLIDES.length;
             const visible = index === slide || (slide !== 0 && index === prev);
@@ -199,10 +199,10 @@ export default function Hero() {
                 </animateMotion>
                 <image
                   href="/evuddy-scooter-cutout.png"
-                  x="-36"
-                  y="-28"
-                  width="72"
-                  height="72"
+                  x="-40"
+                  y="-32"
+                  width="80"
+                  height="80"
                   preserveAspectRatio="xMidYMid meet"
                 />
               </g>
