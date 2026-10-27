@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
           </div>
 
           <p className="mt-4 text-sm leading-6 text-slate-500">
-            Named ops users: username + password. Shared env password remains emergency bootstrap only. Access is limited to the desks assigned in Team access.
+            Super admin: username <strong className="font-semibold text-slate-700">superadmin</strong> plus your existing admin password. Staff use their own username from Team access.
           </p>
 
           <label className="mt-7 block text-[11px] font-medium uppercase tracking-[0.14em] text-slate-500">
@@ -78,7 +78,8 @@ export default function AdminLoginPage() {
               setUsername(e.target.value);
               setError("");
             }}
-            placeholder="Staff only"
+            placeholder="superadmin"
+            required
             className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-4 text-[#0A1134] outline-none transition focus:border-[#18B368] focus:shadow-[0_0_0_3px_rgba(24,179,104,0.18)]"
           />
 

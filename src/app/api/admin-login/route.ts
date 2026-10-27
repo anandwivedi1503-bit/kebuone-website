@@ -72,7 +72,22 @@ export async function POST(req: Request) {
     );
   }
 
+  const bootstrapUsername = String(
+    process.env.ADMIN_BOOTSTRAP_USERNAME || "superadmin"
+  )
+    .trim()
+    .toLowerCase();
+
   if (safeCompare(password, adminPassword)) {
+    if (!username || username !== bootstrapUsername) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Use username "${bootstrapUsername}" with your admin password.`,
+        },
+        { status: 401 }
+      );
+    }
     const response = NextResponse.json({
       success: true,
       role: "super",

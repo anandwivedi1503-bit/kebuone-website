@@ -1,18 +1,35 @@
 .ops-shell {
   --ev-green: #18b368;
-  --ev-navy: #1c1917;
+  --ev-green-deep: #0f5f3f;
+  --ev-navy: #0a1134;
   --ev-surface: #ffffff;
   --ev-border: rgba(15, 23, 42, 0.08);
+  --ev-glow: rgba(24, 179, 104, 0.35);
   color: var(--ev-navy);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.011em;
   background:
-    radial-gradient(1200px 480px at 8% -8%, rgba(24, 179, 104, 0.22), transparent 52%),
-    radial-gradient(900px 420px at 100% 0%, rgba(244, 196, 48, 0.12), transparent 48%),
-    radial-gradient(700px 360px at 70% 100%, rgba(14, 165, 233, 0.08), transparent 50%),
-    linear-gradient(180deg, #f7f4ee 0%, #f6faf8 160px, #f3f6f4 100%);
+    radial-gradient(ellipse 120% 80% at 0% -20%, rgba(24, 179, 104, 0.28), transparent 55%),
+    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(244, 196, 48, 0.14), transparent 50%),
+    radial-gradient(ellipse 70% 50% at 80% 100%, rgba(10, 17, 52, 0.06), transparent 55%),
+    linear-gradient(165deg, #f9f7f2 0%, #f4faf7 45%, #eef6f2 100%);
+  background-attachment: fixed;
+}
+
+@keyframes ops-desk-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 12px 40px rgba(15, 23, 42, 0.06);
+  }
+  50% {
+    box-shadow:
+      0 1px 2px rgba(15, 23, 42, 0.04),
+      0 16px 48px rgba(24, 179, 104, 0.1);
+  }
 }
 
 .ops-shell table {
@@ -75,12 +92,28 @@
 }
 
 .ops-shell .ops-saas-panel {
-  border: 1px solid var(--ev-border);
-  border-radius: 1.25rem;
-  background: var(--ev-surface);
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 12px 40px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(24, 179, 104, 0.12);
+  border-radius: 1.35rem;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.98) 100%
+  );
+  backdrop-filter: blur(12px);
+  animation: ops-desk-glow 8s ease-in-out infinite;
+}
+
+.ops-shell .ops-kpi-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+  .ops-shell .ops-kpi-grid {
+    grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+    gap: 1rem;
+  }
 }
 
 .ops-shell h1,

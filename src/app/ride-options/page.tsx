@@ -15,6 +15,7 @@ import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
+import { readSmsOtpCode } from "@/lib/webOtpAutofill";
 import {
   markRiderPlanReady,
   hasBookEvOtpSession,
@@ -171,22 +172,10 @@ export default function RideOptionsPage() {
 
   useEffect(() => {
     if (!otpSent || otp.length >= 6) return;
-    if (!("OTPCredential" in window)) return;
-
     const ac = new AbortController();
-    (async () => {
-      try {
-        const cred = (await navigator.credentials.get({
-          otp: { transport: ["sms"] },
-          signal: ac.signal,
-        } as CredentialRequestOptions)) as { code?: string } | null;
-        const code = String(cred?.code || "").replace(/\D/g, "").slice(0, 6);
-        if (code.length === 6) setOtp(code);
-      } catch {
-        // Browser or device does not expose SMS OTP — manual entry still works.
-      }
-    })();
-
+    void readSmsOtpCode(ac.signal).then((code) => {
+      if (code) setOtp(code);
+    });
     return () => ac.abort();
   }, [otpSent, otp.length]);
 
@@ -334,7 +323,12 @@ export default function RideOptionsPage() {
 
       setOtpSent(true);
       setOtpCooldown(OTP_COOLDOWN_SECONDS);
-      setMessage("OTP sent successfully.");
+      setMessage("OTP sent successfully. Tap the OTP field if autofill does not appear.");
+      window.setTimeout(() => {
+        void readSmsOtpCode().then((code) => {
+          if (code) setOtp(code);
+        });
+      }, 400);
     } catch (err) {
       setError(firebaseOtpError(err));
       confirmationRef.current = null;
@@ -418,6 +412,11 @@ export default function RideOptionsPage() {
                 <input
                   value={otp}
                   onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+                  onFocus={() => {
+                    void readSmsOtpCode().then((code) => {
+                      if (code) setOtp(code);
+                    });
+                  }}
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   name="one-time-code"

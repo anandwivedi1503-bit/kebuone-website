@@ -19,7 +19,14 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 import CashCollectForm from "../YardRideDesk/CashCollectForm";
 
-export default function BookingDashboard(){
+type BookingDashboardProps = {
+  /** Super admin only — yard staff must enter OTP from the rider, never read it from CRM. */
+  revealPickupOtp?: boolean;
+};
+
+export default function BookingDashboard({
+  revealPickupOtp = false,
+}: BookingDashboardProps) {
 
 const [bookings,setBookings]=useState<any[]>([]);
 const nextCursorRef=useRef("");
@@ -195,12 +202,21 @@ setProcessingId("");
 
     }
 
-    setGeneratedPickupOTP((prev) => ({
-      ...prev,
-      [booking._id]: data.pickupOTP,
-    }));
-
-    alert("Pickup OTP generated successfully.");
+    if (data.pickupOTP && revealPickupOtp) {
+      setGeneratedPickupOTP((prev) => ({
+        ...prev,
+        [booking._id]: data.pickupOTP,
+      }));
+      alert("Pickup OTP generated successfully.");
+    } else if (data.pickupOTPGenerated || data.success) {
+      alert(
+        data.message ||
+          "Pickup OTP is active on the rider's Book EV app. Enter the code they tell you."
+      );
+      setSelectedRideBooking(booking);
+      setEnteredPickupOTP("");
+      setOtpModalOpen(true);
+    }
 
     await fetchBookings("poll");
 
@@ -499,11 +515,15 @@ const hubDisplay = (booking: any) => {
 };
 
 const pickupOtpReady = (booking: any) =>
-  Boolean(
-    booking.pickupOTP ||
-      booking.pickupOTPGenerated ||
-      generatedPickupOTP[booking._id]
-  );
+  revealPickupOtp
+    ? Boolean(
+        booking.pickupOTP ||
+          booking.pickupOTPGenerated ||
+          generatedPickupOTP[booking._id]
+      )
+    : Boolean(
+        booking.pickupOTPGenerated || Number(booking.receivedAmount || 0) >= 1
+      );
 
 return(
 
@@ -1308,32 +1328,7 @@ disabled:cursor-not-allowed
 {booking.rideStatus === "Ready For Pickup" && (
 
 <>
-{!(generatedPickupOTP[booking._id]) ? (
-
-<button
-disabled={processingId===booking._id}
-onClick={()=>generatePickupOTP(booking)}
-className="
-rounded-lg
-bg-blue-600
-px-3
-py-2
-text-white
-font-semibold
-disabled:opacity-50
-disabled:cursor-not-allowed
-"
->
-
-{processingId===booking._id
-? "Loading..."
-: pickupOtpReady(booking)
-? "Show Pickup OTP"
-: "Generate Pickup OTP"}
-
-</button>
-
-) : (
+{revealPickupOtp && generatedPickupOTP[booking._id] ? (
 
 <>
 
@@ -1381,6 +1376,58 @@ disabled:cursor-not-allowed
 </button>
 
 </>
+
+) : !pickupOtpReady(booking) ? (
+
+<button
+disabled={processingId===booking._id}
+onClick={()=>generatePickupOTP(booking)}
+className="
+rounded-lg
+bg-blue-600
+px-3
+py-2
+text-white
+font-semibold
+disabled:opacity-50
+disabled:cursor-not-allowed
+"
+>
+
+{processingId===booking._id
+? "Loading..."
+: "Prepare pickup OTP"}
+
+</button>
+
+) : (
+
+<button
+disabled={processingId===booking._id}
+onClick={() => {
+  if (revealPickupOtp && !generatedPickupOTP[booking._id]) {
+    void generatePickupOTP(booking);
+    return;
+  }
+  setSelectedRideBooking(booking);
+  setEnteredPickupOTP("");
+  setOtpModalOpen(true);
+}}
+className="
+rounded-lg
+bg-green-600
+px-3
+py-2
+text-white
+font-semibold
+disabled:opacity-50
+disabled:cursor-not-allowed
+"
+>
+
+{revealPickupOtp ? "Show / start ride" : "Enter rider pickup OTP"}
+
+</button>
 
 )}
 
@@ -1789,13 +1836,19 @@ OTP Details
 
 <p>
   <b>Pickup OTP :</b>{" "}
-  {generatedPickupOTP[selectedBooking._id] ||
-    selectedBooking.pickupOTP ||
-    (selectedBooking.pickupOTPGenerated
-      ? "Generated — use Show Pickup OTP on the row"
-      : Number(selectedBooking.receivedAmount || 0) > 0
-      ? "Ready — use Show Pickup OTP on the row"
-      : "After first payment")}
+  {revealPickupOtp
+    ? generatedPickupOTP[selectedBooking._id] ||
+      selectedBooking.pickupOTP ||
+      (selectedBooking.pickupOTPGenerated
+        ? "Generated — use Show Pickup OTP on the row"
+        : Number(selectedBooking.receivedAmount || 0) > 0
+          ? "Ready — use Show Pickup OTP on the row"
+          : "After first payment")
+    : selectedBooking.pickupOTPVerified
+      ? "Verified at yard"
+      : selectedBooking.pickupOTPGenerated
+        ? "Hidden — yard enters code from rider"
+        : "After first payment"}
 </p>
 
 <p>
@@ -1817,7 +1870,8 @@ OTP Details
 <hr className="my-3"/>
 
 <p>
-  <b>Ride End OTP :</b> {selectedBooking.rideEndOTP || "-"}
+  <b>Ride End OTP :</b>{" "}
+  {revealPickupOtp ? selectedBooking.rideEndOTP || "-" : "Hidden — yard enters code from rider"}
 </p>
 
 <p>
