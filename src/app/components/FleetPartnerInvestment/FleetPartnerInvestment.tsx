@@ -5,7 +5,6 @@ import { ArrowRight, Download, Leaf, Radio, ShieldCheck, Sparkles } from "lucide
 
 import { FLEET_INVESTMENT } from "@/lib/fleetInvestment";
 import FleetPartnerDesignedPoster from "../FleetPartner/FleetPartnerDesignedPoster";
-import HomeImg from "../HomeMedia/HomeImg";
 
 const FORM = "/partners#partner-form";
 
@@ -13,97 +12,81 @@ const highlights = [
   {
     icon: Sparkles,
     title: "Your capital. Our fleet.",
-    text: "Fund yellow EVUDDY scooters. We place them on live hubs in the city.",
+    text: "Fund yellow EVUDDY scooters on live hubs.",
   },
   {
     icon: Radio,
     title: "We operate every kilometre",
-    text: "KYC, GPS, charging, pickup OTP and rider support stay on the EVUDDY platform.",
+    text: "KYC, GPS, charging, pickup OTP and rider support on EVUDDY.",
   },
   {
     icon: ShieldCheck,
     title: "Transparent paperwork",
-    text: "The official brief is a download — not a calculator buried in the page.",
+    text: "Official brief as PDF — terms confirmed in writing.",
   },
   {
     icon: Leaf,
     title: "Clean mobility, real demand",
-    text: "Riders book hourly to monthly and Rent to Own. Partners grow the fleet behind them.",
+    text: "Hourly to Rent to Own — partners grow the fleet behind riders.",
   },
 ];
 
-export default function FleetPartnerInvestment(_props?: { posterPriority?: boolean }) {
+export default function FleetPartnerInvestment() {
   return (
     <section
       id="fleet-investment"
-      className="relative scroll-mt-36 overflow-hidden border-t border-[#E4DDD2] bg-[#F7F4EE] py-16 sm:py-24"
+      className="relative scroll-mt-36 overflow-hidden border-t border-[#E4DDD2] bg-white py-14 sm:py-20"
     >
-      <div className="pointer-events-none absolute -left-24 top-0 h-80 w-80 rounded-full bg-[#1F6B4A]/12 blur-[120px]" />
-      <div className="pointer-events-none absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-[#F4C430]/15 blur-[110px]" />
-
-      <div className="relative mx-auto max-w-[1200px] px-5 sm:px-8 lg:px-12">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
+      <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-12">
+        <div className="grid items-start gap-10 lg:grid-cols-2">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#5F6B63]">
-              Fleet partner
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#18B368]">
+              Fleet partner investment
             </p>
-            <h2
+            <h1
               id="investment-poster"
-              className="font-display mt-4 text-4xl font-medium tracking-[-0.04em] text-[#1C1917] sm:text-6xl"
+              className="font-display mt-4 text-[clamp(2rem,5vw,3.25rem)] font-medium leading-[1.08] tracking-[-0.04em] text-[#0A1134]"
             >
-              Put your capital on
-              <span className="mt-1 block italic text-[#1F6B4A]">India&apos;s yellow EV fleet.</span>
-            </h2>
-            <p className="mt-5 max-w-xl text-[15px] leading-8 text-[#5C635E]">
-              {FLEET_INVESTMENT.company} operates EVUDDY. You grow the fleet. We run the yards,
-              the riders, and the software. Download the official brief — then apply. No payment
-              on this website.
+              Put capital on India&apos;s
+              <span className="mt-1 block text-[#18B368]">yellow EV fleet.</span>
+            </h1>
+            <p className="mt-5 max-w-lg text-sm leading-7 text-[#5C635E] sm:text-[15px]">
+              {FLEET_INVESTMENT.company} operates EVUDDY. You grow the fleet; we run yards, riders,
+              and software. Download the brief, then apply — no payment on this site.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href={FLEET_INVESTMENT.pdfHref}
                 download={FLEET_INVESTMENT.pdfFileName}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[#1F6B4A] px-8 text-[13px] font-semibold tracking-[0.08em] text-white transition hover:bg-[#18573c]"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#18B368] px-8 text-sm font-semibold text-white transition hover:bg-[#14a05c]"
               >
                 <Download size={18} />
                 Download PDF
               </a>
               <Link
                 href={FORM}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full border border-[#1C1917]/12 bg-white px-8 text-[13px] font-semibold tracking-[0.08em] text-[#1C1917] transition hover:border-[#1F6B4A]/40"
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#0A1134]/12 px-8 text-sm font-semibold text-[#0A1134] transition hover:border-[#18B368]/40"
               >
-                Apply as a partner
+                Apply as partner
                 <ArrowRight size={16} />
               </Link>
             </div>
-            <p className="mt-4 text-xs tracking-[0.04em] text-[#8A847A]">
-              Choose Fleet Partner Investment on the form. We confirm terms in writing.
-            </p>
           </div>
 
-          <div className="space-y-4">
-            <FleetPartnerDesignedPoster />
-            <div className="rounded-2xl border border-[#E4DDD2] bg-white p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8A847A]">
-                Original slide
-              </p>
-              <HomeImg
-                src={FLEET_INVESTMENT.posterSrc}
-                alt="Original fleet partner presentation poster"
-                className="mt-3 max-h-[280px] w-full object-contain"
-              />
-            </div>
-          </div>
+          <FleetPartnerDesignedPoster />
         </div>
 
-        <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {highlights.map((item) => {
             const Icon = item.icon;
             return (
-              <div key={item.title} className="rounded-2xl border border-[#E4DDD2] bg-white p-5">
-                <Icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
-                <h3 className="mt-4 font-medium text-[#1C1917]">{item.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{item.text}</p>
+              <div
+                key={item.title}
+                className="rounded-2xl border border-[#18B368]/12 bg-[#F7FAF8] p-5 transition hover:border-[#18B368]/25"
+              >
+                <Icon size={18} className="text-[#18B368]" strokeWidth={1.75} />
+                <h3 className="mt-3 text-sm font-semibold text-[#0A1134]">{item.title}</h3>
+                <p className="mt-2 text-xs leading-6 text-[#5C635E] sm:text-sm">{item.text}</p>
               </div>
             );
           })}

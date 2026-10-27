@@ -108,10 +108,18 @@
 }
 
 .ops-shell .ops-sidebar-item-active {
-  color: #0a1134;
-  background: linear-gradient(90deg, rgba(24, 179, 104, 0.18), rgba(24, 179, 104, 0.06));
+  color: #0a5c36;
+  background: linear-gradient(90deg, rgba(24, 179, 104, 0.28), rgba(232, 248, 240, 0.95));
   box-shadow: inset 3px 0 0 #18b368;
   font-weight: 600;
+}
+
+.ops-shell .ops-sidebar-item-active svg {
+  color: #18b368;
+}
+
+.ops-shell .ops-sidebar-footer {
+  background: linear-gradient(180deg, rgba(232, 248, 240, 0.5), rgba(255, 255, 255, 0.9));
 }
 
 .ops-shell .ops-glass-card {

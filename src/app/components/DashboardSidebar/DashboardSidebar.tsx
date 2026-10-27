@@ -148,7 +148,7 @@ export default function DashboardSidebar({
                   setMobileOpen(false);
                 }}
                 className={`ops-sidebar-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition duration-200 ${
-                  active ? "ops-sidebar-item-active" : ""
+                  active ? "ops-sidebar-item-active" : "text-slate-600"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -158,8 +158,8 @@ export default function DashboardSidebar({
           })}
         </nav>
 
-        <div className="border-t border-[#18B368]/10 p-4">
-          <div className="overflow-hidden rounded-2xl border border-[#18B368]/15 bg-white/80 shadow-sm backdrop-blur-sm">
+        <div className="ops-sidebar-footer border-t border-[#18B368]/15 p-4">
+          <div className="overflow-hidden rounded-2xl border border-[#18B368]/20 bg-white/90 shadow-sm backdrop-blur-sm">
             <div className="h-0.5 w-full bg-gradient-to-r from-[#18B368] to-[#0A1134]" />
             <div className="px-3 py-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">

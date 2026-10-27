@@ -13,6 +13,7 @@ import Link from "next/link";
 import { auth } from "@/lib/firebase";
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
+import OperatingCitiesNotice from "@/app/components/Brand/OperatingCitiesNotice";
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
 import { readSmsOtpCode } from "@/lib/webOtpAutofill";
@@ -380,8 +381,10 @@ export default function RideOptionsPage() {
       {view === "boot" && <section className="min-h-[40vh]" />}
 
       {view === "otp" && (
-        <section className="page-under-nav bg-[#F6FAF8] px-4 pb-20 sm:px-6 lg:px-10">
-          <div className="mx-auto max-w-lg rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-8">
+        <section className="page-under-nav rider-flow-shell bg-[#F6FAF8] px-4 pb-20 sm:px-6 lg:px-10">
+          <div className="mx-auto max-w-lg space-y-4">
+            <OperatingCitiesNotice compact />
+          <div className="rounded-[28px] border border-white bg-white p-6 shadow-[0_20px_50px_rgba(15,23,42,0.06)] sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#18B368]">
               Verify to continue
             </p>
@@ -466,6 +469,7 @@ export default function RideOptionsPage() {
               </Link>
             </p>
             <div id="ride-options-recaptcha" />
+          </div>
           </div>
         </section>
       )}

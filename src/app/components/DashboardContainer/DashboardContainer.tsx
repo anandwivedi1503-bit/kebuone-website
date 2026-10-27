@@ -200,9 +200,7 @@ export default function DashboardContainer() {
             <VehicleManagement />
           )}
           {activeDashboard === "kyc" && show("kyc") && <KYCDashboard />}
-          {activeDashboard === "bookings" && show("bookings") && (
-            <BookingDashboard revealPickupOtp={isSuper} />
-          )}
+          {activeDashboard === "bookings" && show("bookings") && <BookingDashboard />}
           {activeDashboard === "renttoown" && show("renttoown") && (
             <RentToOwnDashboard />
           )}
