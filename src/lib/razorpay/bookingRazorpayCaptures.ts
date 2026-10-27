@@ -11,8 +11,10 @@ export async function listBookingRazorpayPaymentIds(
   const rows = await Transaction.find({
     bookingId,
     paymentMethod: "Razorpay",
-    transactionType: "Booking Payment",
     status: "Success",
+    transactionType: {
+      $in: ["Booking Payment", "Security Deposit Hold", "Partial Payment"],
+    },
   })
     .select("razorpayPaymentId transactionId")
     .lean();

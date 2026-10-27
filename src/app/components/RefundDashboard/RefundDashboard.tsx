@@ -1041,9 +1041,9 @@ Remarks
           type="button"
           disabled={Boolean(processingId)}
           onClick={() => void confirmRazorpayRefund()}
-          className="min-h-12 flex-1 rounded-xl bg-[#0F172A] text-sm font-bold text-white disabled:opacity-60"
+          className="min-h-12 flex-1 rounded-xl bg-gradient-to-r from-[#18B368] to-[#0A1134] text-sm font-bold text-white shadow-[0_10px_28px_rgba(24,179,104,0.35)] disabled:opacity-60"
         >
-          {processingId ? "Processing..." : "Confirm refund on Razorpay"}
+          {processingId ? "Processing..." : "Refund securely with Razorpay"}
         </button>
         <button
           type="button"

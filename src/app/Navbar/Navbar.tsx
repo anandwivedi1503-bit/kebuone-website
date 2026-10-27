@@ -131,13 +131,6 @@ function NavbarInner() {
           {!riderLoggedIn && (
             <>
               <Link
-                href="/partners#dealer-network"
-                className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
-              >
-                <Building2 size={16} />
-                Dealers
-              </Link>
-              <Link
                 href="/partners"
                 className="flex h-9 shrink-0 items-center gap-1.5 whitespace-nowrap px-[clamp(0.35rem,0.7vw,0.85rem)] text-[clamp(12px,1.05vw,15px)] font-medium text-[#1F6B4A] transition-colors hover:text-[#18573c]"
               >
@@ -227,14 +220,6 @@ function NavbarInner() {
                   </>
                 ) : (
                   <>
-                    <Link
-                      href="/partners#dealer-network"
-                      onClick={closeMenu}
-                      className="flex h-14 w-full items-center justify-center gap-2 rounded-full border border-[#18B368]/20 bg-white font-semibold text-[#18B368] transition hover:bg-[#18B368] hover:text-white"
-                    >
-                      <Building2 size={20} />
-                      Become a dealer
-                    </Link>
                     <Link
                       href="/partners"
                       onClick={closeMenu}

@@ -27,7 +27,7 @@ const [hasMoreWalletTxns,setHasMoreWalletTxns]=useState(false);
 
 const [search,setSearch]=useState(() => consumeOpsFocus());
 const [statusFilter, setStatusFilter] = useState("ALL");
-const [holdFilter, setHoldFilter] = useState<"ALL" | "HOLD" | "CREDIT">("ALL");
+const [holdFilter, setHoldFilter] = useState<"ALL" | "HOLD" | "CREDIT">("HOLD");
 
 const [selectedWallet,setSelectedWallet]=useState<any>(null);
 const [showDetails,setShowDetails]=useState(false);
@@ -70,6 +70,7 @@ const loadWallets = async (showPageLoader = false) => {
   try {
     const res = await fetch(`/api/wallet?limit=${Math.min(500, 80 * walletPages)}&page=1`, {
       cache: "no-store",
+      credentials: "include",
     });
 
     const data = await res.json();
@@ -216,27 +217,16 @@ walletId:string,
 status:string
 )=>{
 
-const res = await fetch(
-`/api/wallet/${walletId}`,
-{
-
-method:"PATCH",
-
-headers:{
-"Content-Type":"application/json",
-},
-
-body:JSON.stringify({
-
-status:
-status==="Active"
-? "Blocked"
-: "Active",
-
-}),
-
-}
-);
+const res = await fetch(`/api/wallet/${walletId}`, {
+  method: "PATCH",
+  credentials: "include",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    status: status === "Active" ? "Blocked" : "Active",
+  }),
+});
 
 const data = await res.json();
 
@@ -246,7 +236,7 @@ loadWallets();
 
 }else{
 
-alert("Unable to update wallet.");
+alert(data.message || "Unable to update wallet. Check ops login and desk access.");
 
 }
 
@@ -678,16 +668,6 @@ View
 
 <button
 onClick={()=>{
-setSelectedWallet(wallet);
-setShowDebit(true);
-}}
-className="px-4 py-2 rounded-xl bg-red-600 text-white"
->
-Debit
-</button>
-
-<button
-onClick={()=>{
 
 setSelectedWallet(wallet);
 
@@ -734,7 +714,7 @@ wallet.status==="Active"
 
 ? "Freeze"
 
-: "Activate"}
+: "Unfreeze"}
 
 </button>
 

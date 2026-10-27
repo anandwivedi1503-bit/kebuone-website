@@ -54,7 +54,15 @@ export function FieldMic({
           voice.stop();
           return;
         }
-        void voice.listen(onText, "hi", undefined, true, 18000);
+        void voice.listen(
+          onText,
+          "hi",
+          (message) => {
+            if (message) window.alert(message);
+          },
+          true,
+          18000
+        );
       }}
       className={`absolute right-2.5 top-1/2 z-10 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full transition ${
         voice.listening ? "bg-[#1C1917] text-white" : "text-[#1F6B4A] hover:bg-[#E8F3EC]"
