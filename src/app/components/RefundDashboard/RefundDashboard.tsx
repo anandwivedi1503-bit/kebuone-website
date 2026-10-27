@@ -26,6 +26,7 @@ const [selectedRefund, setSelectedRefund] = useState<any | null>(null);
 const [processingId, setProcessingId] = useState("");
 const [razorpayModal, setRazorpayModal] = useState<any | null>(null);
 const [razorpayModalMsg, setRazorpayModalMsg] = useState("");
+const [notifyRiderOnRefund, setNotifyRiderOnRefund] = useState(true);
 const [loading, setLoading] = useState(true);
 
 const loadRazorpayScript = () =>
@@ -144,7 +145,11 @@ const filteredRefunds = refunds.filter((refund) => {
 
 });
 
-const runApproveRefund = async (id: string, sendToRazorpay = true) => {
+const runApproveRefund = async (
+  id: string,
+  sendToRazorpay = true,
+  notifyRider = notifyRiderOnRefund
+) => {
   setProcessingId(id);
 
   try {
@@ -158,6 +163,7 @@ const runApproveRefund = async (id: string, sendToRazorpay = true) => {
   body: JSON.stringify({
     refundStatus: "REFUNDED",
     sendToRazorpay,
+    notifyRider,
   }),
 });
 
@@ -191,11 +197,15 @@ const row = data.data || refunds.find((r) => r._id === id);
       });
     }
 
+    const notify = data.notify as { email?: boolean; sms?: boolean } | undefined;
+    const notifyLine = notify
+      ? `\nRider notify: ${notify.email ? "email sent" : "email skipped"} · ${notify.sms ? "SMS sent" : "SMS skipped"}`
+      : "";
     alert(
-      data.message ||
+      (data.message ||
         (data.channel === "Wallet"
           ? "Refund credited to rider wallet. Payment slip downloaded."
-          : "Refund sent via Razorpay. Payment slip downloaded.")
+          : "Refund sent via Razorpay (Shubhrax Mobility). Payment slip downloaded.")) + notifyLine
     );
     setRazorpayModal(null);
     setRazorpayModalMsg("");
@@ -705,7 +715,9 @@ className="min-h-11 px-4 py-2 rounded-xl bg-[#0F172A] text-white text-sm font-se
 >
 {processingId===refund._id
 ? "Processing..."
-: `Razorpay refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
+: refund.refundKind === "SecurityDeposit"
+  ? `Refund deposit · Shubhrax Razorpay ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`
+  : `Razorpay refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
 </button>
 {refund.failureReason ? (
   <p className="max-w-[220px] text-left text-[11px] font-medium text-rose-700">
@@ -996,9 +1008,23 @@ Remarks
         <strong>{razorpayModal.riderId || "—"}</strong>
       </p>
       <p className="mt-3 text-sm leading-6 text-slate-500">
-        EVUDDY sends this refund through Razorpay to the original card/UPI capture for this rider.
-        You will get a downloadable payment slip when it completes.
+        Refund is processed on the <strong>Shubhrax Mobility Ltd</strong> Razorpay merchant
+        account — back to the same UPI/card used for this booking
+        {razorpayModal.refundKind === "SecurityDeposit" ? " (security deposit)" : ""}.
+        Invoice slip downloads here; rider gets email/SMS when enabled below.
       </p>
+      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700">
+        <input
+          type="checkbox"
+          checked={notifyRiderOnRefund}
+          onChange={(e) => setNotifyRiderOnRefund(e.target.checked)}
+          className="mt-0.5 h-4 w-4 rounded border-slate-300"
+        />
+        <span>
+          Send payment slip to rider&apos;s registered <strong>email</strong> and{" "}
+          <strong>mobile</strong> (MSG91 / Resend when configured).
+        </span>
+      </label>
       {razorpayModalMsg ? (
         <p className="mt-3 rounded-xl bg-slate-50 px-3 py-2 text-sm text-slate-700">{razorpayModalMsg}</p>
       ) : null}

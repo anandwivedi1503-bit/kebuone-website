@@ -167,7 +167,7 @@ export default function DashboardContainer() {
       />
 
       <main className="min-h-screen pt-14 lg:ml-[272px] lg:pt-0">
-        <div className="px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
+        <div className="ops-saas-panel mx-auto max-w-[1680px] px-3 py-4 sm:px-5 sm:py-6 lg:px-7 lg:py-7">
           {sessionReady ? (
             <>
               <OpsCommandBar

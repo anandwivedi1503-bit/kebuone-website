@@ -56,10 +56,10 @@ export const team: TeamMember[] = [
     image: "/anand-sde.png",
   },
   {
-    id: "admin-front-desk",
-    name: "Aanya Singh",
-    role: "Admin & Front Desk",
-    image: "/leadership/admin-and-telecaller.png",
+    id: "business",
+    name: "Arvind",
+    role: "Business Development · Executive Director, Shubhrax Mobility Ltd",
+    image: "/leadership/business-planner-arvind.png",
   },
   {
     id: "designer",
@@ -73,7 +73,4 @@ export const team: TeamMember[] = [
     role: "Marketing Team",
     image: "/leadership/marketing-team.png",
   },
-  { id: "finance", name: "Team member", role: "Finance", image: "" },
-  { id: "hr", name: "Team member", role: "Human Resources", image: "" },
-  { id: "business", name: "Team member", role: "Business Development", image: "" },
 ];

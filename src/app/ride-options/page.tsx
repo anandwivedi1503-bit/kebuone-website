@@ -170,6 +170,27 @@ export default function RideOptionsPage() {
   }, [otpCooldown]);
 
   useEffect(() => {
+    if (!otpSent || otp.length >= 6) return;
+    if (!("OTPCredential" in window)) return;
+
+    const ac = new AbortController();
+    (async () => {
+      try {
+        const cred = (await navigator.credentials.get({
+          otp: { transport: ["sms"] },
+          signal: ac.signal,
+        } as CredentialRequestOptions)) as { code?: string } | null;
+        const code = String(cred?.code || "").replace(/\D/g, "").slice(0, 6);
+        if (code.length === 6) setOtp(code);
+      } catch {
+        // Browser or device does not expose SMS OTP — manual entry still works.
+      }
+    })();
+
+    return () => ac.abort();
+  }, [otpSent, otp.length]);
+
+  useEffect(() => {
     if (view !== "pending" || !riderId) return;
 
     const poll = async () => {
@@ -398,8 +419,13 @@ export default function RideOptionsPage() {
                   value={otp}
                   onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
                   inputMode="numeric"
+                  autoComplete="one-time-code"
+                  name="one-time-code"
+                  autoCorrect="off"
+                  autoCapitalize="off"
+                  spellCheck={false}
                   placeholder="6 digit OTP"
-                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 outline-none focus:border-[#18B368]"
+                  className="mt-2 w-full rounded-2xl border border-slate-200 px-4 py-3 text-lg tracking-[0.35em] outline-none focus:border-[#18B368] focus:ring-2 focus:ring-[#18B368]/20"
                 />
               </label>
             )}
