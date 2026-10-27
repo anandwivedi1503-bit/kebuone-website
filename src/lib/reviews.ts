@@ -40,11 +40,7 @@ export function bookingEligibleForReview(booking: {
 }) {
   const status = String(booking.rideStatus || "");
   if (status === "Cancelled") return false;
-  if (status === "Completed") return true;
-  return (
-    String(booking.rentalMode || "") === "Rent To Own" &&
-    Number(booking.receivedAmount || 0) > 0.009
-  );
+  return status === "Completed";
 }
 
 export function isReviewStatus(value: unknown): value is ReviewStatus {

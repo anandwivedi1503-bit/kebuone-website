@@ -1058,7 +1058,7 @@ export default function RentToOwnBooking() {
                     Ride started. Stay on this page for daily payments when they are due.
                   </p>
                 ) : null}
-                {firebaseIdToken && bookingId ? (
+                {rideStatus === "Completed" && firebaseIdToken && bookingId ? (
                   <div className="mt-4">
                     <RideReviewCard
                       bookingId={bookingId}

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
-import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } from "lucide-react";
+import { MapPin, Navigation, Radio, ShieldCheck } from "lucide-react";
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import HubMapPreview from "./HubMapPreview";
 import NetworkExperienceStrip from "./NetworkExperienceStrip";
@@ -470,40 +470,6 @@ export default function EvuddyNetwork() {
                 <p className="text-[11px] tracking-[0.16em] text-[#8A847A]">{step.n}</p>
                 <p className="font-display mt-3 text-xl font-medium">{step.title}</p>
                 <p className="mt-2 text-sm leading-6 text-[#5C635E]">{step.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="relative border-t border-[#E4DDD2] bg-[#FBF9F5]">
-        <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:px-12">
-          <div className="grid gap-8 sm:grid-cols-3">
-            {[
-              {
-                icon: Warehouse,
-                kicker: "Live yard",
-                title: "Hub",
-                text: "Every scooter starts and ends at a gated EVUDDY hub — never a random street.",
-              },
-              {
-                icon: Store,
-                kicker: "Partners",
-                title: "Dealers & distributors",
-                text: "Applications from /partners/dealer and /partners/distributor land on the partner desk for approve, call and notes.",
-              },
-              {
-                icon: KeyRound,
-                kicker: "Gate control",
-                title: "Pickup OTP",
-                text: "The yard OTP only appears after first payment. No pay, no scooter.",
-              },
-            ].map((item) => (
-              <div key={item.title} className="border-t border-[#E4DDD2] pt-5">
-                <item.icon size={18} strokeWidth={1.5} className="text-[#1F6B4A]" />
-                <p className="mt-4 text-[10px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">{item.kicker}</p>
-                <p className="font-display mt-1 text-xl font-medium text-[#1C1917]">{item.title}</p>
-                <p className="mt-2 text-sm leading-6 text-[#5C635E]">{item.text}</p>
               </div>
             ))}
           </div>
