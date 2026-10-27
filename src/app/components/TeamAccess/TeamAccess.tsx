@@ -243,7 +243,91 @@ export default function TeamAccess() {
         </form>
       </DashboardCard>
 
-      <div className="mt-6 overflow-x-auto rounded-[24px] bg-white shadow-sm">
+      <div className="mt-6 space-y-3 lg:hidden">
+        {loading ? (
+          <p className="rounded-[24px] bg-white p-6 text-sm text-slate-500 shadow-sm">
+            Loading team logins...
+          </p>
+        ) : staff.length === 0 ? (
+          <p className="rounded-[24px] bg-white p-6 text-sm text-slate-500 shadow-sm">
+            {error
+              ? "Team list is empty until super admin can load it."
+              : "No staff logins yet. Super admin password still opens everything."}
+          </p>
+        ) : (
+          staff.map((row) => (
+            <article
+              key={row._id}
+              className="rounded-[24px] border border-slate-100 bg-white p-4 shadow-sm"
+            >
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="font-semibold text-[#0A1134]">{row.displayName || row.username}</p>
+                  <p className="text-xs text-slate-400">{row.username}</p>
+                </div>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    row.isActive ? "bg-emerald-50 text-emerald-800" : "bg-slate-100 text-slate-600"
+                  }`}
+                >
+                  {row.isActive ? "Active" : "Off"}
+                </span>
+              </div>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Hubs</p>
+              <p className="mt-1 text-sm text-slate-700">
+                {(row.hubs || []).length ? (row.hubs || []).join(", ") : "All yards"}
+                {row.staffRole === "super" ? " · named super" : ""}
+              </p>
+              <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                Dashboards
+              </p>
+              {row.staffRole === "super" ? (
+                <p className="mt-1 text-sm text-slate-700">All desks</p>
+              ) : (
+                <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  {STAFF_DASHBOARDS.map((id) => (
+                    <label
+                      key={id}
+                      className="flex min-w-0 items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={(row.dashboards || []).includes(id)}
+                        onChange={() => {
+                          const current = row.dashboards || [];
+                          const next = current.includes(id)
+                            ? current.filter((item) => item !== id)
+                            : [...current, id];
+                          void saveDashboards(row, next);
+                        }}
+                      />
+                      <span className="min-w-0 break-words">{DASHBOARD_LABELS[id] || id}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-4">
+                <button
+                  type="button"
+                  className="font-bold text-[#18B368]"
+                  onClick={() => void toggleActive(row)}
+                >
+                  {row.isActive ? "Disable" : "Enable"}
+                </button>
+                <button
+                  type="button"
+                  className="font-bold text-red-600"
+                  onClick={() => void remove(row._id)}
+                >
+                  Remove
+                </button>
+              </div>
+            </article>
+          ))
+        )}
+      </div>
+
+      <div className="mt-6 hidden overflow-x-auto rounded-[24px] bg-white shadow-sm lg:block">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b text-left text-slate-500">
@@ -280,7 +364,7 @@ export default function TeamAccess() {
                     {row.staffRole === "super" ? (
                       "All desks"
                     ) : (
-                      <div className="grid max-w-xl grid-cols-2 gap-1">
+                      <div className="grid max-w-xl grid-cols-2 gap-1 xl:grid-cols-3">
                         {STAFF_DASHBOARDS.map((id) => (
                           <label key={id} className="flex items-center gap-1 text-xs">
                             <input

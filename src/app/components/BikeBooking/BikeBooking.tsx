@@ -1817,7 +1817,7 @@ step > index + 1
               event.preventDefault();
               if (step === 3 && !bookingDone) void createBooking(event);
             }}
-            className="rounded-[36px] border border-white bg-white/95 p-6 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl print:hidden md:p-10"
+            className="min-w-0 overflow-x-hidden rounded-[28px] border border-white bg-white/95 p-4 pb-28 shadow-[0_40px_120px_rgba(15,23,42,.12)] backdrop-blur-xl print:hidden sm:rounded-[36px] sm:p-6 md:p-10 md:pb-10"
           >
             <div className="mb-6 rounded-[24px] border border-[#E6EBE7] bg-white p-4">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#6B736E]">Plans · GST included</p>
@@ -2461,8 +2461,8 @@ text-[#0F172A]
             )}
 
             {step === 4 && (
-              <div>
-                <div className="mb-8">
+              <div className="min-w-0">
+                <div className="mb-6 sm:mb-8">
 <div className="inline-flex items-center gap-3 rounded-full bg-[#F4FFF8] px-5 py-2">
 <div className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
 <span className="text-sm font-bold uppercase tracking-[0.15em] text-[#18B368]">
@@ -2486,7 +2486,7 @@ text-[#0F172A]
 </h2>
 <p className="mt-3 max-w-2xl text-[17px] leading-8 text-slate-500">
 {rideStatus === "Completed"
-  ? "The yard has taken the scooter back. Rate this trip below. Book EV starts a new ride from Normal vs Rent to Own."
+  ? "The yard has taken the scooter back. Rate your trip in the thank-you card below."
   : paymentSuccess
     ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
     : remainingPayLocked
@@ -2507,7 +2507,8 @@ border-[#18B368]/10
 bg-gradient-to-br
 from-[#F6FFF9]
 to-white
-p-7
+p-4
+sm:p-7
 shadow-[0_15px_40px_rgba(24,179,104,.08)]
 "
 >
@@ -2800,18 +2801,29 @@ Payment Status
   </div>
 ) : null}
 
-{(bookingDone && bookingId && rideStatus !== "Completed" && (pastRides.length || isRentToOwn)) && (
-<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-5 text-left">
-  {pastRides.length ? (
-    <div className="mt-5 rounded-2xl border border-slate-100 bg-slate-50 p-4">
-      <p className="text-sm font-bold text-[#0F172A]">Your recent rides</p>
+{rideStatus === "Completed" &&
+  pastRides.some(
+    (r) =>
+      String(r.rideStatus) === "Completed" &&
+      String(r.bookingId || "") !== String(bookingId || "")
+  ) && (
+<div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 text-left sm:p-5">
+    <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+      <p className="text-sm font-bold text-[#0F172A]">Past completed rides</p>
       <ul className="mt-2 space-y-3">
-        {pastRides.slice(0, 8).map((ride) => {
+        {pastRides
+          .filter(
+            (ride) =>
+              String(ride.rideStatus) === "Completed" &&
+              String(ride.bookingId || "") !== String(bookingId || "")
+          )
+          .slice(0, 8)
+          .map((ride) => {
           const existing = myReviews.find((row) => row.bookingId === ride.bookingId);
           return (
             <li key={String(ride.bookingId)} className="text-sm text-slate-700">
               <p className="font-medium">
-                {ride.bookingId} · {ride.rideStatus} · {ride.vehicleModel || "Scooter"}
+                {ride.bookingId} · {ride.vehicleModel || "Scooter"}
                 {ride.pickupCity ? ` · ${ride.pickupCity}` : ""}
               </p>
               {existing ? (
@@ -2839,9 +2851,12 @@ Payment Status
         })}
       </ul>
     </div>
-  ) : null}
-  {isRentToOwn ? (
-    <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+</div>
+)}
+
+{bookingDone && isRentToOwn && rideStatus !== "Cancelled" ? (
+    <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
       <p className="text-sm font-bold text-emerald-900">Your daily receipts</p>
       <p className="mt-1 text-xs text-emerald-800">
         Each day’s GST-included Rent to Own fare is recorded here and emailed/SMS’d to you as a receipt.
@@ -2859,9 +2874,8 @@ Payment Status
         <p className="mt-2 text-xs text-emerald-800">Receipts appear as soon as today’s payment is captured.</p>
       )}
     </div>
-  ) : null}
-</div>
-)}
+    </div>
+) : null}
               </div>
             )}
           </form>

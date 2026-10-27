@@ -163,6 +163,26 @@
   .ops-shell thead th,
   .ops-shell tbody td {
     padding: 0.7rem 0.75rem;
+    vertical-align: top;
+  }
+
+  .ops-shell table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .ops-shell thead th,
+  .ops-shell tbody td {
+    word-break: break-word;
+    hyphens: auto;
+  }
+
+  .ops-shell .ops-glass-card > .overflow-x-auto {
+    margin-left: -0.25rem;
+    margin-right: -0.25rem;
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
   }
 }
 
