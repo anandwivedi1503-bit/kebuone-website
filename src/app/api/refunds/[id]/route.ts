@@ -17,6 +17,7 @@ import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
 import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
+import { notifyRefundReceipt } from "@/lib/notify/refundNotify";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -729,11 +730,54 @@ void writeAudit({
   detail: refundMessage || refundChannel,
 });
 
+let notifyResult = { email: false, sms: false };
+if (
+  updatedRefund.refundStatus === "REFUNDED" &&
+  body.notifyRider !== false
+) {
+  const riderForNotify = (await Rider.findOne({
+    riderId: updatedRefund.riderId,
+  }).lean()) as {
+    fullName?: string;
+    phone?: string;
+    email?: string;
+  } | null;
+  const bookingForNotify = (await Booking.findOne({
+    bookingId: updatedRefund.bookingId,
+  }).lean()) as {
+    userName?: string;
+    userPhone?: string;
+    userEmail?: string;
+  } | null;
+  const deposit =
+    String(updatedRefund.refundSource || "").includes("Security") ||
+    /security deposit/i.test(String(updatedRefund.remarks || ""));
+  notifyResult = await notifyRefundReceipt({
+    refundId: String(updatedRefund.refundId),
+    bookingId: String(updatedRefund.bookingId),
+    riderName: String(
+      riderForNotify?.fullName || bookingForNotify?.userName || ""
+    ),
+    riderPhone: String(
+      riderForNotify?.phone || bookingForNotify?.userPhone || ""
+    )
+      .replace(/\D/g, "")
+      .slice(-10),
+    riderEmail: String(riderForNotify?.email || bookingForNotify?.userEmail || ""),
+    amount: Number(updatedRefund.amount),
+    paymentGateway: String(updatedRefund.paymentGateway || refundChannel),
+    gatewayTxnId: String(updatedRefund.gatewayTxnId || ""),
+    razorpayRefundId: String(updatedRefund.razorpayRefundId || ""),
+    isSecurityDeposit: deposit,
+  });
+}
+
 return NextResponse.json({
   success: true,
   data: updatedRefund,
   channel: refundChannel,
   message: refundMessage || undefined,
+  notify: notifyResult,
 });
 
 } catch (error) {
