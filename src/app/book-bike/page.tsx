@@ -48,7 +48,7 @@ export default function BookBikePage() {
       <div className="print:hidden">
         <Navbar />
       </div>
-      <div className="page-under-nav">
+      <div className="page-under-nav rider-flow-shell">
         <BikeBooking />
       </div>
       <div className="print:hidden">

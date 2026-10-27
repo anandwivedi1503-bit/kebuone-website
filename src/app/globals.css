@@ -480,6 +480,37 @@ span {
   }
 }
 
+.rider-flow-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+
+.rider-flow-shell table {
+  display: block;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 640px) {
+  .rider-flow-shell input,
+  .rider-flow-shell select,
+  .rider-flow-shell textarea {
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  .rider-flow-shell button:not(.nav-burger) {
+    min-height: 48px;
+  }
+
+  .page-under-nav {
+    padding-bottom: max(4.5rem, env(safe-area-inset-bottom));
+  }
+}
+
 @media print {
   .no-print {
     display: none !important;

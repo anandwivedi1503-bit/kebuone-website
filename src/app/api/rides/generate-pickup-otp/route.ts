@@ -97,14 +97,11 @@ export async function POST(req: Request) {
       await booking.save();
     }
 
-    const isSuper = gate.session?.role === "super";
     return NextResponse.json({
       success: true,
-      pickupOTP: isSuper ? otp : undefined,
       pickupOTPGenerated: true,
-      message: isSuper
-        ? "Pickup OTP generated successfully."
-        : "Pickup OTP is ready. Ask the rider for the code — do not share it from this screen.",
+      message:
+        "Pickup OTP is active on the rider's Book EV app. Enter the code they tell you — it is never shown here.",
     });
 
   } catch (error) {

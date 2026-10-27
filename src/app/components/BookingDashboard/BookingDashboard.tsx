@@ -18,15 +18,9 @@ import { downloadHtmlFile } from "@/lib/dashboardExport";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 import CashCollectForm from "../YardRideDesk/CashCollectForm";
+import { maskOtpDigits } from "@/lib/maskOtp";
 
-type BookingDashboardProps = {
-  /** Super admin only — yard staff must enter OTP from the rider, never read it from CRM. */
-  revealPickupOtp?: boolean;
-};
-
-export default function BookingDashboard({
-  revealPickupOtp = false,
-}: BookingDashboardProps) {
+export default function BookingDashboard() {
 
 const [bookings,setBookings]=useState<any[]>([]);
 const nextCursorRef=useRef("");
@@ -202,16 +196,11 @@ setProcessingId("");
 
     }
 
-    if (data.pickupOTP && revealPickupOtp) {
-      setGeneratedPickupOTP((prev) => ({
-        ...prev,
-        [booking._id]: data.pickupOTP,
-      }));
-      alert("Pickup OTP generated successfully.");
-    } else if (data.pickupOTPGenerated || data.success) {
+    if (data.pickupOTPGenerated || data.success) {
+      setGeneratedPickupOTP((prev) => ({ ...prev, [booking._id]: "ready" }));
       alert(
         data.message ||
-          "Pickup OTP is active on the rider's Book EV app. Enter the code they tell you."
+          "Pickup OTP is active on Book EV. Enter the code the rider tells you — digits stay hidden here."
       );
       setSelectedRideBooking(booking);
       setEnteredPickupOTP("");
@@ -515,15 +504,11 @@ const hubDisplay = (booking: any) => {
 };
 
 const pickupOtpReady = (booking: any) =>
-  revealPickupOtp
-    ? Boolean(
-        booking.pickupOTP ||
-          booking.pickupOTPGenerated ||
-          generatedPickupOTP[booking._id]
-      )
-    : Boolean(
-        booking.pickupOTPGenerated || Number(booking.receivedAmount || 0) >= 1
-      );
+  Boolean(
+    booking.pickupOTPGenerated ||
+      generatedPickupOTP[booking._id] ||
+      Number(booking.receivedAmount || 0) >= 1
+  );
 
 return(
 
@@ -554,7 +539,7 @@ title="Bookings"
 value={totalBookings}
 subtitle="Total"
 icon="📋"
-color="pink"
+color="green"
 selected={statusFilter === "ALL" && paymentFilter === "ALL" && extraFilter === "NONE"}
 onClick={() => {
   setStatusFilter("ALL");
@@ -660,7 +645,7 @@ title="Partial Payments"
 value={partialPayments}
 subtitle="Advance Paid"
 icon="🟣"
-color="pink"
+color="green"
 selected={paymentFilter === "Partial"}
 onClick={() => {
   setStatusFilter("ALL");
@@ -712,13 +697,13 @@ className="
 w-full
 rounded-2xl
 border
-border-pink-100
+border-emerald-100
 bg-white
 px-5
 py-4
 focus:outline-none
 focus:ring-2
-focus:ring-pink-200
+focus:ring-emerald-200
 "
 
 />
@@ -757,9 +742,9 @@ transition
 ${
 statusFilter===status
 
-? "bg-[#FF165E] text-white"
+? "bg-[#18B368] text-white"
 
-: "bg-gray-100 hover:bg-pink-100"
+: "bg-gray-100 hover:bg-emerald-100"
 
 }
 
@@ -875,7 +860,7 @@ Loading Bookings...
 
 <thead>
 
-<tr className="bg-pink-50 border-b border-pink-100">
+<tr className="bg-emerald-50 border-b border-emerald-100">
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Booking ID
@@ -990,7 +975,7 @@ key={booking._id}
 className="
 border-b
 border-pink-50
-hover:bg-pink-50/40
+hover:bg-emerald-50/40
 transition
 "
 >
@@ -1328,106 +1313,36 @@ disabled:cursor-not-allowed
 {booking.rideStatus === "Ready For Pickup" && (
 
 <>
-{revealPickupOtp && generatedPickupOTP[booking._id] ? (
-
-<>
-
-<div className="rounded-lg bg-yellow-100 p-2 text-center border">
-
-<div className="text-xs text-gray-600">
-Pickup OTP
-</div>
-
-<div className="text-2xl font-bold tracking-widest">
-
-{booking.pickupOTP || generatedPickupOTP[booking._id]}
-
-</div>
-
-</div>
-
-<button
-disabled={processingId===booking._id}
-onClick={() => {
-
-setSelectedRideBooking(booking);
-
-setEnteredPickupOTP("");
-
-setOtpModalOpen(true);
-
-}}
-className="
-rounded-lg
-bg-green-600
-px-3
-py-2
-text-white
-font-semibold
-disabled:opacity-50
-disabled:cursor-not-allowed
-"
->
-
-{processingId===booking._id
-? "Starting..."
-: "Start Ride"}
-
-</button>
-
-</>
-
-) : !pickupOtpReady(booking) ? (
+{!pickupOtpReady(booking) ? (
 
 <button
 disabled={processingId===booking._id}
 onClick={()=>generatePickupOTP(booking)}
-className="
-rounded-lg
-bg-blue-600
-px-3
-py-2
-text-white
-font-semibold
-disabled:opacity-50
-disabled:cursor-not-allowed
-"
+className="rounded-lg bg-[#0A1134] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
 >
 
-{processingId===booking._id
-? "Loading..."
-: "Prepare pickup OTP"}
+{processingId===booking._id ? "Loading..." : "Prepare pickup OTP"}
 
 </button>
 
 ) : (
 
+<div className="flex min-w-[140px] flex-col gap-2">
+<p className="rounded-lg border border-[#18B368]/25 bg-[#E8F8F0] px-2 py-1.5 text-center text-xs font-semibold tracking-[0.2em] text-[#0A1134]">
+  {maskOtpDigits()}
+</p>
 <button
 disabled={processingId===booking._id}
 onClick={() => {
-  if (revealPickupOtp && !generatedPickupOTP[booking._id]) {
-    void generatePickupOTP(booking);
-    return;
-  }
   setSelectedRideBooking(booking);
   setEnteredPickupOTP("");
   setOtpModalOpen(true);
 }}
-className="
-rounded-lg
-bg-green-600
-px-3
-py-2
-text-white
-font-semibold
-disabled:opacity-50
-disabled:cursor-not-allowed
-"
+className="rounded-lg bg-[#18B368] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
 >
-
-{revealPickupOtp ? "Show / start ride" : "Enter rider pickup OTP"}
-
+Enter rider OTP
 </button>
+</div>
 
 )}
 
@@ -1526,7 +1441,7 @@ View
     <button
       type="button"
       onClick={() => void fetchBookings("append")}
-      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+      className="rounded-xl border border-emerald-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-emerald-50"
     >
       Load more
     </button>
@@ -1617,7 +1532,7 @@ Close
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Rider Details
 </h3>
 
@@ -1633,7 +1548,7 @@ Rider Details
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Vehicle Details
 </h3>
 
@@ -1651,7 +1566,7 @@ Vehicle Details
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Booking Details
 </h3>
 
@@ -1684,7 +1599,7 @@ Booking Details
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Payment Details
 </h3>
 
@@ -1807,7 +1722,7 @@ selectedBooking.paymentVerifiedAt
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Refund Details
 </h3>
 
@@ -1830,25 +1745,17 @@ Refund Details
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 OTP Details
 </h3>
 
 <p>
   <b>Pickup OTP :</b>{" "}
-  {revealPickupOtp
-    ? generatedPickupOTP[selectedBooking._id] ||
-      selectedBooking.pickupOTP ||
-      (selectedBooking.pickupOTPGenerated
-        ? "Generated — use Show Pickup OTP on the row"
-        : Number(selectedBooking.receivedAmount || 0) > 0
-          ? "Ready — use Show Pickup OTP on the row"
-          : "After first payment")
-    : selectedBooking.pickupOTPVerified
-      ? "Verified at yard"
-      : selectedBooking.pickupOTPGenerated
-        ? "Hidden — yard enters code from rider"
-        : "After first payment"}
+  {selectedBooking.pickupOTPVerified
+    ? "Verified at yard"
+    : pickupOtpReady(selectedBooking)
+      ? maskOtpDigits()
+      : "After first payment"}
 </p>
 
 <p>
@@ -1871,7 +1778,7 @@ OTP Details
 
 <p>
   <b>Ride End OTP :</b>{" "}
-  {revealPickupOtp ? selectedBooking.rideEndOTP || "-" : "Hidden — yard enters code from rider"}
+  {selectedBooking.rideEndOTP ? maskOtpDigits(selectedBooking.rideEndOTP) : "—"}
 </p>
 
 <p>
@@ -1885,7 +1792,7 @@ OTP Details
 
 <div className="rounded-2xl border p-5">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Ride Timeline
 </h3>
 
@@ -1999,7 +1906,7 @@ return (
 
 <div className="rounded-2xl border p-5 md:col-span-2">
 
-<h3 className="mb-4 text-xl font-bold text-[#FF165E]">
+<h3 className="mb-4 text-xl font-bold text-[#18B368]">
 Booking Remarks
 </h3>
 
@@ -2057,7 +1964,7 @@ border
 p-4
 outline-none
 focus:ring-2
-focus:ring-pink-400
+focus:ring-emerald-400
 "
 />
 
@@ -2159,7 +2066,7 @@ border
 p-4
 outline-none
 focus:ring-2
-focus:ring-pink-400
+focus:ring-emerald-400
 "
 />
 
@@ -2185,7 +2092,7 @@ border
 p-4
 outline-none
 focus:ring-2
-focus:ring-pink-400
+focus:ring-emerald-400
 "
 />
 

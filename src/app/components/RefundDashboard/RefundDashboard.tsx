@@ -312,6 +312,14 @@ subtitle="Deposit and cancellation refunds. Razorpay returns money to the origin
 
 />
 
+<div className="mb-6 rounded-2xl border border-[#18B368]/20 bg-[#E8F8F0] px-4 py-4 text-sm leading-6 text-[#0A1134] sm:px-5">
+  <strong className="text-[#18B368]">Lucknow operations</strong> — refunds and yard pickup run on live
+  Lucknow hubs today. When we open more cities, they appear on the homepage map and in registration.
+  Security deposit refunds need a successful <strong>Razorpay</strong> capture on the booking; otherwise use{" "}
+  <strong>Credit wallet</strong>. Razorpay refunds are sent from the merchant account to the rider&apos;s
+  same UPI/card (not a checkout popup).
+</div>
+
 <OpsMoneyStrip />
 
 <KPIGrid>
@@ -321,7 +329,7 @@ title="Refund Amount"
 value={`₹${totalRefundAmount.toLocaleString("en-IN")}`}
 subtitle="Total"
 icon="💸"
-color="pink"
+color="green"
 />
 
 <KPICard

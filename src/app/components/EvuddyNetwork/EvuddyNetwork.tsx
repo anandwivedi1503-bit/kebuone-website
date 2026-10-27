@@ -6,6 +6,7 @@ import { KeyRound, MapPin, Navigation, Radio, ShieldCheck, Store, Warehouse } fr
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import HubMapPreview from "./HubMapPreview";
 import NetworkExperienceStrip from "./NetworkExperienceStrip";
+import OperatingCitiesNotice from "../Brand/OperatingCitiesNotice";
 import { INDIA_PATH, INDIA_VIEWBOX } from "./indiaOutline";
 import { openGoogleMaps } from "./maps";
 
@@ -174,12 +175,16 @@ export default function EvuddyNetwork() {
 
   const networkPath = marks.map((city, i) => `${i === 0 ? "M" : "L"} ${city.x} ${city.y}`).join(" ");
   const liveHubTotal = liveHubs.length || marks.reduce((n, city) => n + city.hubCount, 0);
-  const tickerItems = marks.map((city) => ({
-    city: city.name,
-    hubs: city.hubs,
-    count: city.hubCount,
-  }));
-  const tickerLoop = [...tickerItems, ...tickerItems];
+  const capabilityStrip = [
+    "IoT GPS on every ride",
+    "Yard-verified OTP",
+    "Razorpay + GST receipts",
+    "Hub charge & swap",
+    marks.length === 1
+      ? `Live in ${marks[0]?.name || "Lucknow"}`
+      : `${marks.length} cities on the map`,
+  ];
+  const tickerLoop = [...capabilityStrip, ...capabilityStrip];
 
   const onMapMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
@@ -208,6 +213,9 @@ export default function EvuddyNetwork() {
             <p className="mt-4 max-w-xl text-[15px] leading-8 text-[#5C635E]">
               Tap a live city. Open Google Maps to the hub. Pay, show OTP, ride — return when remaining rent is ₹0.
             </p>
+            <div className="mt-5 max-w-xl">
+              <OperatingCitiesNotice compact />
+            </div>
           </div>
           <div className="grid grid-cols-3 gap-6 border-t border-[#E4DDD2] pt-6 lg:min-w-[320px] lg:border-t-0 lg:pt-0">
             {[
@@ -426,20 +434,17 @@ export default function EvuddyNetwork() {
 
         <NetworkExperienceStrip />
 
-        <div className="relative mt-12 overflow-hidden rounded-2xl border border-[#E4DDD2] bg-white/70 py-4 backdrop-blur-sm">
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#F7F4EE] to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#F7F4EE] to-transparent" />
-          <div className="evuddy-net-ticker flex w-max gap-12 whitespace-nowrap px-8">
-            {tickerLoop.map((item, i) => (
+        <div className="relative mt-12 overflow-hidden rounded-2xl border border-[#18B368]/15 bg-gradient-to-r from-[#0A1134] to-[#123a2a] py-4">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#0A1134] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#123a2a] to-transparent" />
+          <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-8">
+            {tickerLoop.map((line, i) => (
               <span
-                key={`${item.city}-${i}`}
-                className="inline-flex items-center gap-3 text-[12px] font-medium uppercase tracking-[0.14em] text-[#5C635E]"
+                key={`${line}-${i}`}
+                className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 sm:text-xs"
               >
-                <span className="inline-flex h-8 items-center rounded-full bg-[#E8F3EC] px-3 text-[#1F6B4A]">
-                  Live
-                </span>
-                <span className="text-[#1C1917]">{item.city}</span>
-                <span className="text-[#8A847A]">· {item.hubs}</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-[#F4C430]" />
+                {line}
               </span>
             ))}
           </div>
