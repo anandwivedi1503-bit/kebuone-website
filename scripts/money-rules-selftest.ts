@@ -274,6 +274,14 @@ assert.equal(
     rentalMode: "Rent To Own",
     receivedAmount: 280,
   }),
+  false
+);
+assert.equal(
+  bookingEligibleForReview({
+    rideStatus: "Completed",
+    rentalMode: "Rent To Own",
+    receivedAmount: 280,
+  }),
   true
 );
 
