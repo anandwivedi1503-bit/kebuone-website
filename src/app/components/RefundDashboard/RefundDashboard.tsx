@@ -719,13 +719,11 @@ refund.refundStatus === "APPROVED" ? (
 <button
 disabled={processingId===refund._id}
 onClick={()=>approveRefund(refund._id, true, refund.amount)}
-className="min-h-11 px-4 py-2 rounded-xl bg-[#0F172A] text-white text-sm font-semibold hover:bg-black transition"
+className="min-h-11 px-4 py-2 rounded-xl bg-gradient-to-r from-[#18B368] to-[#0A1134] text-white text-sm font-semibold shadow-sm transition hover:brightness-105"
 >
 {processingId===refund._id
 ? "Processing..."
-: refund.refundKind === "SecurityDeposit"
-  ? `Refund deposit · Shubhrax Razorpay ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`
-  : `Razorpay refund ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
+: `Refund securely with Razorpay · ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
 </button>
 {refund.failureReason ? (
   <p className="max-w-[220px] text-left text-[11px] font-medium text-rose-700">
@@ -1041,9 +1039,9 @@ Remarks
           type="button"
           disabled={Boolean(processingId)}
           onClick={() => void confirmRazorpayRefund()}
-          className="min-h-12 flex-1 rounded-xl bg-[#0F172A] text-sm font-bold text-white disabled:opacity-60"
+          className="min-h-12 flex-1 rounded-xl bg-gradient-to-r from-[#18B368] to-[#0A1134] text-sm font-bold text-white shadow-[0_10px_28px_rgba(24,179,104,0.35)] disabled:opacity-60"
         >
-          {processingId ? "Processing..." : "Confirm refund on Razorpay"}
+          {processingId ? "Processing..." : "Refund securely with Razorpay"}
         </button>
         <button
           type="button"

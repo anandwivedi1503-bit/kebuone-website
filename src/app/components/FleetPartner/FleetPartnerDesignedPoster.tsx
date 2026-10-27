@@ -15,7 +15,7 @@ export default function FleetPartnerDesignedPoster() {
       whileInView={reduceMotion ? undefined : { opacity: 1, scale: 1 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
-      className="relative overflow-hidden rounded-[28px] border border-[#E4DDD2] bg-[#0B1B16] shadow-[0_24px_60px_rgba(28,25,23,0.18)]"
+      className="relative overflow-hidden rounded-[32px] border border-[#18B368]/25 bg-[#0A1134] shadow-[0_28px_70px_rgba(10,17,52,0.28)]"
     >
       <div className="pointer-events-none absolute -left-20 top-0 h-56 w-56 rounded-full bg-[#1F6B4A]/40 blur-3xl" />
       <div className="pointer-events-none absolute -right-10 bottom-0 h-48 w-48 rounded-full bg-[#F4C430]/30 blur-3xl" />
@@ -24,9 +24,11 @@ export default function FleetPartnerDesignedPoster() {
           <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#A8E6C3]">
             {FLEET_INVESTMENT.company}
           </p>
-          <p className="mt-3 font-display text-3xl font-medium leading-[1.05] tracking-tight text-white sm:text-4xl">
+          <p className="mt-3 font-display text-3xl font-semibold leading-[1.05] tracking-tight text-white sm:text-[2.65rem]">
             Fleet partner
-            <span className="mt-1 block text-[#F4C430]">investment program</span>
+            <span className="mt-1 block bg-gradient-to-r from-[#F4C430] to-[#7ddea8] bg-clip-text text-transparent">
+              investment program
+            </span>
           </p>
           <p className="mt-4 max-w-md text-sm leading-7 text-white/75 sm:text-[15px]">
             Own the fleet. We operate everything — hubs, riders, GPS, charging and support on the

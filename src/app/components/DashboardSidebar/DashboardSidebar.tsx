@@ -85,7 +85,7 @@ export default function DashboardSidebar({
 
   return (
     <>
-      <header className="no-print fixed inset-x-0 top-0 z-[55] flex h-14 items-center gap-3 border-b border-[#18B368]/20 bg-white/90 px-3 backdrop-blur-md lg:hidden">
+      <header className="no-print fixed inset-x-0 top-0 z-[55] flex h-14 items-center gap-3 border-b border-[#18B368]/15 bg-white/90 px-3 backdrop-blur-md lg:hidden">
         <button
           type="button"
           onClick={() => setMobileOpen(true)}
@@ -109,29 +109,29 @@ export default function DashboardSidebar({
       ) : null}
 
       <aside
-        className={`no-print fixed inset-y-0 left-0 z-50 flex h-screen w-[272px] flex-col border-r border-[#18B368]/15 bg-gradient-to-b from-[#0A1134] via-[#0d1a42] to-[#071028] text-white shadow-[4px_0_32px_rgba(10,17,52,0.35)] transition-transform duration-300 ${
+        className={`no-print ops-sidebar fixed inset-y-0 left-0 z-50 flex h-screen w-[272px] flex-col transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
+        <div className="flex items-center gap-3 border-b border-[#18B368]/12 px-5 py-5">
           <Image
             src="/evuddy.jpeg"
             alt="EVUDDY"
             width={40}
             height={40}
             priority
-            className="rounded-xl ring-2 ring-[#18B368]/50"
+            className="rounded-xl ring-2 ring-[#18B368]/35"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-white">EVUDDY</h2>
-            <p className="text-[11px] font-medium tracking-[0.04em] text-[#7ddea8]">Operations CRM</p>
+            <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-[#0A1134]">EVUDDY</h2>
+            <p className="text-[11px] font-medium tracking-[0.04em] text-[#18B368]">Operations CRM</p>
           </div>
           <button type="button" onClick={() => setMobileOpen(false)} className="lg:hidden" aria-label="Close menu">
-            <X size={20} />
+            <X size={20} className="text-slate-700" />
           </button>
         </div>
 
-        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
+        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
           Desks
         </p>
 
@@ -147,10 +147,8 @@ export default function DashboardSidebar({
                   setActiveDashboard(menu.id);
                   setMobileOpen(false);
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition duration-200 ${
-                  active
-                    ? "bg-gradient-to-r from-[#18B368] to-[#14a05c] text-white shadow-[0_8px_24px_rgba(24,179,104,0.35)]"
-                    : "text-white/70 hover:bg-white/10 hover:text-white"
+                className={`ops-sidebar-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition duration-200 ${
+                  active ? "ops-sidebar-item-active" : ""
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -160,22 +158,22 @@ export default function DashboardSidebar({
           })}
         </nav>
 
-        <div className="border-t border-white/10 p-4">
-          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm">
-            <div className="h-0.5 w-full bg-gradient-to-r from-[#18B368] to-[#F4C430]" />
+        <div className="border-t border-[#18B368]/10 p-4">
+          <div className="overflow-hidden rounded-2xl border border-[#18B368]/15 bg-white/80 shadow-sm backdrop-blur-sm">
+            <div className="h-0.5 w-full bg-gradient-to-r from-[#18B368] to-[#0A1134]" />
             <div className="px-3 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                 Logged in as
               </p>
-              <p className="mt-1 truncate text-sm font-semibold tracking-tight text-white">
+              <p className="mt-1 truncate text-sm font-semibold tracking-tight text-[#0A1134]">
                 {sessionRole === "staff" ? sessionUsername || "Staff" : "EVUDDY Administrator"}
               </p>
-              <p className="mt-1 text-[11px] text-white/55">
+              <p className="mt-1 text-[11px] text-slate-500">
                 {sessionRole === "staff" ? "Staff access" : "Super admin"}
               </p>
               <a
                 href="/"
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:border-[#18B368]/50"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#F7FAF8] px-3 py-2 text-xs font-semibold text-[#0A1134] transition hover:border-[#18B368]/40"
               >
                 <Globe size={14} />
                 Back to website
@@ -193,7 +191,7 @@ export default function DashboardSidebar({
                   }
                   window.location.href = "/admin-login";
                 }}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#18B368] px-3 py-2 text-xs font-semibold text-[#0A1134] transition hover:bg-[#2dd4a0]"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#18B368] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#14a05c]"
               >
                 <LogOut size={14} />
                 Log out of CRM

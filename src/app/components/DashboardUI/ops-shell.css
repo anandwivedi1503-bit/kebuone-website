@@ -91,16 +91,41 @@
   letter-spacing: inherit;
 }
 
-.ops-shell .ops-saas-panel {
+.ops-shell .ops-sidebar {
+  border-right: 1px solid rgba(24, 179, 104, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 250, 248, 0.98) 100%);
+  backdrop-filter: blur(16px);
+  box-shadow: 4px 0 28px rgba(10, 17, 52, 0.06);
+}
+
+.ops-shell .ops-sidebar-item {
+  color: #475569;
+}
+
+.ops-shell .ops-sidebar-item:hover {
+  background: rgba(24, 179, 104, 0.08);
+  color: #0a1134;
+}
+
+.ops-shell .ops-sidebar-item-active {
+  color: #0a1134;
+  background: linear-gradient(90deg, rgba(24, 179, 104, 0.18), rgba(24, 179, 104, 0.06));
+  box-shadow: inset 3px 0 0 #18b368;
+  font-weight: 600;
+}
+
+.ops-shell .ops-glass-card {
   border: 1px solid rgba(24, 179, 104, 0.12);
-  border-radius: 1.35rem;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(255, 255, 255, 0.98) 100%
-  );
-  backdrop-filter: blur(12px);
-  animation: ops-desk-glow 8s ease-in-out infinite;
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 12px 40px rgba(10, 17, 52, 0.06);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.ops-shell .ops-glass-card:hover {
+  border-color: rgba(24, 179, 104, 0.28);
+  box-shadow: 0 16px 48px rgba(24, 179, 104, 0.1);
 }
 
 .ops-shell .ops-kpi-grid {

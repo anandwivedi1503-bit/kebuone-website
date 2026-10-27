@@ -29,8 +29,10 @@ export async function refundRazorpayAmountForBooking(
   const payments = await Transaction.find({
     bookingId,
     paymentMethod: "Razorpay",
-    transactionType: "Booking Payment",
     status: "Success",
+    transactionType: {
+      $in: ["Booking Payment", "Security Deposit Hold", "Partial Payment"],
+    },
   })
     .sort({ createdAt: 1 })
     .lean();

@@ -152,7 +152,7 @@ color="pink"
 <KPICard
 title="Capacity"
 value={totalCapacity}
-subtitle="Parking Slots"
+subtitle="Fleet slots (hubs)"
 icon="📍"
 color="blue"
 />

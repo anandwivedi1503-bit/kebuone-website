@@ -174,7 +174,12 @@ export default function EvuddyNetwork() {
 
   const networkPath = marks.map((city, i) => `${i === 0 ? "M" : "L"} ${city.x} ${city.y}`).join(" ");
   const liveHubTotal = liveHubs.length || marks.reduce((n, city) => n + city.hubCount, 0);
-  const ticker = [...marks, ...marks].map((city) => city.name);
+  const tickerItems = marks.map((city) => ({
+    city: city.name,
+    hubs: city.hubs,
+    count: city.hubCount,
+  }));
+  const tickerLoop = [...tickerItems, ...tickerItems];
 
   const onMapMove = (event: React.MouseEvent<HTMLDivElement>) => {
     const box = event.currentTarget.getBoundingClientRect();
@@ -421,12 +426,20 @@ export default function EvuddyNetwork() {
 
         <NetworkExperienceStrip />
 
-        <div className="relative mt-12 overflow-hidden border-y border-[#E4DDD2] py-3">
-          <div className="evuddy-net-ticker flex w-max gap-10 whitespace-nowrap px-6 text-[12px] font-medium uppercase tracking-[0.18em] text-[#8A847A]">
-            {ticker.map((name, i) => (
-              <span key={`${name}-${i}`} className="inline-flex items-center gap-2">
-                <span className="h-1 w-1 rounded-full bg-[#1F6B4A]" />
-                {name}
+        <div className="relative mt-12 overflow-hidden rounded-2xl border border-[#E4DDD2] bg-white/70 py-4 backdrop-blur-sm">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-[#F7F4EE] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-[#F7F4EE] to-transparent" />
+          <div className="evuddy-net-ticker flex w-max gap-12 whitespace-nowrap px-8">
+            {tickerLoop.map((item, i) => (
+              <span
+                key={`${item.city}-${i}`}
+                className="inline-flex items-center gap-3 text-[12px] font-medium uppercase tracking-[0.14em] text-[#5C635E]"
+              >
+                <span className="inline-flex h-8 items-center rounded-full bg-[#E8F3EC] px-3 text-[#1F6B4A]">
+                  Live
+                </span>
+                <span className="text-[#1C1917]">{item.city}</span>
+                <span className="text-[#8A847A]">· {item.hubs}</span>
               </span>
             ))}
           </div>
