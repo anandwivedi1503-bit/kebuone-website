@@ -109,11 +109,11 @@ export default function DashboardSidebar({
       ) : null}
 
       <aside
-        className={`no-print fixed inset-y-0 left-0 z-50 flex h-screen w-[272px] flex-col border-r border-[#E4DDD2] bg-[#FAFAF8] text-[#1C1917] shadow-[4px_0_24px_rgba(28,25,23,0.04)] transition-transform duration-300 ${
+        className={`no-print fixed inset-y-0 left-0 z-50 flex h-screen w-[272px] flex-col border-r border-[#18B368]/15 bg-gradient-to-b from-[#0A1134] via-[#0d1a42] to-[#071028] text-white shadow-[4px_0_32px_rgba(10,17,52,0.35)] transition-transform duration-300 ${
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className="flex items-center gap-3 border-b border-[#E4DDD2] px-5 py-5">
+        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
           <Image
             src="/evuddy.jpeg"
             alt="EVUDDY"
@@ -123,15 +123,15 @@ export default function DashboardSidebar({
             className="rounded-xl ring-2 ring-[#18B368]/50"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-[#1C1917]">EVUDDY</h2>
-            <p className="text-[11px] font-medium tracking-[0.04em] text-[#1F6B4A]">Operations CRM</p>
+            <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-white">EVUDDY</h2>
+            <p className="text-[11px] font-medium tracking-[0.04em] text-[#7ddea8]">Operations CRM</p>
           </div>
           <button type="button" onClick={() => setMobileOpen(false)} className="lg:hidden" aria-label="Close menu">
             <X size={20} />
           </button>
         </div>
 
-        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8A847A]">
+        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45">
           Desks
         </p>
 
@@ -149,8 +149,8 @@ export default function DashboardSidebar({
                 }}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition duration-200 ${
                   active
-                    ? "bg-[#1F6B4A] text-white shadow-[0_8px_20px_rgba(31,107,74,0.22)]"
-                    : "text-[#5C635E] hover:bg-[#E8F3EC] hover:text-[#1C1917]"
+                    ? "bg-gradient-to-r from-[#18B368] to-[#14a05c] text-white shadow-[0_8px_24px_rgba(24,179,104,0.35)]"
+                    : "text-white/70 hover:bg-white/10 hover:text-white"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -160,22 +160,22 @@ export default function DashboardSidebar({
           })}
         </nav>
 
-        <div className="border-t border-[#E4DDD2] p-4">
-          <div className="overflow-hidden rounded-2xl border border-[#E4DDD2] bg-white shadow-sm">
-            <div className="h-0.5 w-full bg-gradient-to-r from-[#1F6B4A] to-[#F4C430]" />
+        <div className="border-t border-white/10 p-4">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5 shadow-sm backdrop-blur-sm">
+            <div className="h-0.5 w-full bg-gradient-to-r from-[#18B368] to-[#F4C430]" />
             <div className="px-3 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8A847A]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
                 Logged in as
               </p>
-              <p className="mt-1 truncate text-sm font-semibold tracking-tight text-[#1C1917]">
+              <p className="mt-1 truncate text-sm font-semibold tracking-tight text-white">
                 {sessionRole === "staff" ? sessionUsername || "Staff" : "EVUDDY Administrator"}
               </p>
-              <p className="mt-1 text-[11px] text-[#6B736E]">
+              <p className="mt-1 text-[11px] text-white/55">
                 {sessionRole === "staff" ? "Staff access" : "Super admin"}
               </p>
               <a
                 href="/"
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-[#E4DDD2] bg-[#F7F4EE] px-3 py-2 text-xs font-semibold text-[#1C1917] transition hover:border-[#1F6B4A]/40"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:border-[#18B368]/50"
               >
                 <Globe size={14} />
                 Back to website
@@ -193,7 +193,7 @@ export default function DashboardSidebar({
                   }
                   window.location.href = "/admin-login";
                 }}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1F6B4A] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#18573c]"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#18B368] px-3 py-2 text-xs font-semibold text-[#0A1134] transition hover:bg-[#2dd4a0]"
               >
                 <LogOut size={14} />
                 Log out of CRM

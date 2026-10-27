@@ -172,6 +172,15 @@ const data = await res.json();
 await fetchRefunds();
 
 if (!data.success) {
+  if (data.suggestWallet && sendToRazorpay) {
+    const tryWallet = confirm(
+      `${data.message || "Razorpay could not complete this refund."}\n\nCredit the rider wallet now instead?`
+    );
+    if (tryWallet) {
+      await runApproveRefund(id, false, notifyRider);
+      return;
+    }
+  }
 
   alert(
     data.message ||
@@ -180,7 +189,6 @@ if (!data.success) {
   );
 
   return;
-
 }
 
 const row = data.data || refunds.find((r) => r._id === id);

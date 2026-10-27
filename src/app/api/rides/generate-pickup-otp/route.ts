@@ -97,10 +97,14 @@ export async function POST(req: Request) {
       await booking.save();
     }
 
+    const isSuper = gate.session?.role === "super";
     return NextResponse.json({
       success: true,
-      pickupOTP: otp,
-      message: "Pickup OTP generated successfully.",
+      pickupOTP: isSuper ? otp : undefined,
+      pickupOTPGenerated: true,
+      message: isSuper
+        ? "Pickup OTP generated successfully."
+        : "Pickup OTP is ready. Ask the rider for the code — do not share it from this screen.",
     });
 
   } catch (error) {

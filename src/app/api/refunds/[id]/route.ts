@@ -12,6 +12,7 @@ import Rider from "@/models/Rider";
 import mongoose from "mongoose";
 import { money } from "@/lib/gst";
 import { listBookingRazorpayPaymentIds } from "@/lib/razorpay/bookingRazorpayCaptures";
+import { formatRazorpayError } from "@/lib/razorpay/formatRazorpayError";
 import { refundRazorpayAmountForBooking } from "@/lib/razorpay/refundRazorpayPayment";
 import { appendBoundedText } from "@/lib/listQuery";
 import { writeAudit } from "@/lib/writeAudit";
@@ -378,7 +379,19 @@ if (sendToRazorpay) {
         paymentId
       );
       if (razorpayRefund.refunded <= 0.009) {
-        throw new Error("No Razorpay payment left to refund.");
+        await Refund.updateOne(
+          { _id: id, refundStatus: { $in: ["PROCESSING", "PENDING", "APPROVED"] } },
+          { $set: { refundStatus: "APPROVED" } }
+        );
+        return NextResponse.json(
+          {
+            success: false,
+            suggestWallet: true,
+            message:
+              "No refundable Razorpay capture on this booking (often cash or wallet-only). Use “Credit wallet” to complete this refund.",
+          },
+          { status: 409 }
+        );
       }
       gatewayId = razorpayRefund.ids[0] || razorpayRefund.lastPaymentId;
       updateData.razorpayRefundId = gatewayId;
@@ -402,7 +415,11 @@ if (sendToRazorpay) {
     }
   } catch (error) {
     console.error("RAZORPAY REFUND ERROR:", error);
-    const detail = error instanceof Error ? error.message : String(error || "Razorpay refund failed");
+    const detail = formatRazorpayError(error);
+    const suggestWallet =
+      /no razorpay|no refundable|not captured|invalid id|does not exist|already refunded/i.test(
+        detail
+      );
     await Refund.updateOne(
       { _id: id, refundStatus: { $in: ["PROCESSING", "PENDING", "APPROVED"] } },
       {
@@ -415,7 +432,8 @@ if (sendToRazorpay) {
     return NextResponse.json(
       {
         success: false,
-        message: `Razorpay could not refund this payment (${detail}). Status is Approved — retry Razorpay, or credit wallet only if this was cash/offline.`,
+        suggestWallet,
+        message: `Razorpay could not refund this payment (${detail}). Status stays Approved — retry Razorpay, or use Credit wallet for cash/offline.`,
       },
       { status: 502 }
     );
