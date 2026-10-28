@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import Navbar from "@/app/Navbar/Navbar";
 import Footer from "@/app/components/Footer/Footer";
+import RiderIdleGuard from "@/app/components/RiderIdleGuard/RiderIdleGuard";
 import BikeBooking from "@/app/components/BikeBooking/BikeBooking";
 import { getChosenPlan, hasRiderPlanReady, riderResumeHref, setChosenPlan } from "@/lib/riderPlanGate";
 
@@ -49,6 +50,7 @@ export default function BookBikePage() {
         <Navbar />
       </div>
       <div className="page-under-nav rider-flow-shell">
+        <RiderIdleGuard />
         <BikeBooking />
       </div>
       <div className="print:hidden">

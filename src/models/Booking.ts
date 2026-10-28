@@ -268,6 +268,14 @@ rentalEndDate: {
   required: true,
 },
 
+/** Hourly plans: number of hours booked (GST-inclusive rate × hours). */
+rentalHours: {
+  type: Number,
+  default: 1,
+  min: 1,
+  max: 72,
+},
+
     actualRideStart: Date,
 
 actualRideEnd: Date,

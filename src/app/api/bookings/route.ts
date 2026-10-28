@@ -221,6 +221,11 @@ const hubAliases = Array.from(
   )
 );
     const rentalMode = clean(body.rentalMode);
+    const rentalHoursRaw = Number(body.rentalHours);
+    const rentalHours =
+      rentalMode === "Hourly"
+        ? Math.min(72, Math.max(1, Math.round(rentalHoursRaw) || 1))
+        : 1;
     const referenceBy = clean(body.referenceBy).slice(0, 80);
     const isAdminRequest = await isAdminAuthenticated().catch(
       () => false
@@ -751,7 +756,7 @@ await session.endSession();
 
 const rentalAmount =
   rentalMode === "Hourly"
-    ? catalogRate("Hourly", vehicle.hourlyRate)
+    ? money(catalogRate("Hourly", vehicle.hourlyRate) * rentalHours)
     : rentalMode === "Daily"
     ? catalogRate("Daily", vehicle.dailyRate)
     : rentalMode === "Weekly"
@@ -767,7 +772,7 @@ const rentalEndDate = new Date(rentalStartDate);
 switch (rentalMode) {
   case "Hourly":
     rentalEndDate.setHours(
-      rentalEndDate.getHours() + 1
+      rentalEndDate.getHours() + rentalHours
     );
     break;
 
@@ -880,6 +885,8 @@ new mongoose.Types.ObjectId().toString(),
         "RTO",
 
       rentalMode,
+
+      rentalHours: rentalMode === "Hourly" ? rentalHours : undefined,
 
 dailyRate:
   catalogRate("Daily", vehicle.dailyRate),

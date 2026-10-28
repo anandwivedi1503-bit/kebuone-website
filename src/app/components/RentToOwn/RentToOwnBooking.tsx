@@ -1016,19 +1016,9 @@ export default function RentToOwnBooking() {
                   ? "Processing..."
                   : `Pay ${formatINR(pendingAmount || payableAmount)} with Razorpay`}
               </button>
-              <button
-                type="button"
-                disabled={
-                  paymentLoading ||
-                  walletAvailable < Number(pendingAmount || payableAmount)
-                }
-                onClick={() => void payWithWallet()}
-                className="h-14 w-full rounded-full border border-[#18B368] bg-white font-bold text-[#0F172A] disabled:opacity-50"
-              >
-                {walletAvailable < Number(pendingAmount || payableAmount)
-                  ? `Wallet ${formatINR(walletAvailable)} — not enough`
-                  : `Pay ${formatINR(pendingAmount || payableAmount)} from wallet`}
-              </button>
+              <p className="text-center text-xs text-slate-500">
+                Pay with Razorpay only. Wallet is for returned deposit hold, not daily Rent to Own fare.
+              </p>
               </>
             ) : (
               <div className="rounded-2xl bg-emerald-50 p-5">
