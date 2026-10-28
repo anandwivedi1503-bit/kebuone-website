@@ -40,26 +40,7 @@ type RazorpayInstance = {
   on: (event: string, handler: (response: { error?: { description?: string } }) => void) => void;
 };
 
-type RazorpayOptions = {
-  key: string;
-  amount: number;
-  currency: string;
-  name: string;
-  description: string;
-  image?: string;
-  order_id: string;
-  prefill: { name: string; contact: string };
-  notes: Record<string, string>;
-  theme: { color: string };
-  handler: (response: RazorpayResponse) => void;
-  modal: { ondismiss: () => void };
-};
-
-declare global {
-  interface Window {
-    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance;
-  }
-}
+type RazorpayOptions = import("@/types/razorpay-window").RazorpayCheckoutOptions;
 
 type Vehicle = {
   _id: string;
