@@ -16,10 +16,10 @@ import Footer from "@/app/components/Footer/Footer";
 import OperatingCitiesNotice from "@/app/components/Brand/OperatingCitiesNotice";
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
+import RiderIdleGuard from "@/app/components/RiderIdleGuard/RiderIdleGuard";
 import { readSmsOtpCode } from "@/lib/webOtpAutofill";
 import {
   markRiderPlanReady,
-  hasBookEvOtpSession,
   markBookEvOtpSession,
   rememberRiderProfile,
   resetRiderBookingChoice,
@@ -37,7 +37,8 @@ const formatINR = (amount: number) =>
   }).format(amount);
 
 const phoneRegex = /^[6-9]\d{9}$/;
-const OTP_COOLDOWN_SECONDS = 60;
+const OTP_COOLDOWN_SECONDS = 90;
+const MAX_OTP_SENDS_PER_VISIT = 4;
 
 const firebaseOtpError = (error: unknown) => {
   const code =
@@ -97,6 +98,7 @@ export default function RideOptionsPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpCooldown, setOtpCooldown] = useState(0);
+  const [otpSendCount, setOtpSendCount] = useState(0);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [riderId, setRiderId] = useState("");
@@ -121,16 +123,38 @@ export default function RideOptionsPage() {
 
       if (storedPhone) setPhone(storedPhone);
 
-      if (user && storedPhone && hasBookEvOtpSession()) {
+      if (user && storedPhone && phoneRegex.test(storedPhone)) {
         try {
           const token = await user.getIdToken();
           const response = await fetch(`/api/riders?phone=${storedPhone}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = await response.json();
-          if (!cancelled) await applyRiderResult(data);
-          resolving = false;
-          return;
+          if (!cancelled && data.success && data.data) {
+            if (data.data.riderId) {
+              rememberRiderProfile({
+                riderId: data.data.riderId,
+                phone: data.data.phone,
+                name: data.data.fullName,
+              });
+              setRiderId(data.data.riderId);
+            }
+            if (isRiderApproved(data.data)) {
+              markBookEvOtpSession();
+              await routeApprovedRider(data.data);
+              resolving = false;
+              return;
+            }
+            if (
+              data.data.approvalStatus === "Under Review" ||
+              (data.data.approvalStatus === "Approved" && !isRiderApproved(data.data))
+            ) {
+              setView("pending");
+              setRideOptionsView("pending");
+              resolving = false;
+              return;
+            }
+          }
         } catch {
           // Fall through to OTP.
         }
@@ -300,6 +324,21 @@ export default function RideOptionsPage() {
         return;
       }
 
+      if (otpSendCount >= MAX_OTP_SENDS_PER_VISIT) {
+        setError("Too many OTP requests this visit. Wait a few minutes or log out and try again.");
+        return;
+      }
+
+      const currentUser = auth.currentUser;
+      const sessionPhone = currentUser?.phoneNumber?.replace(/\D/g, "").slice(-10) || "";
+      if (sessionPhone && sessionPhone !== validPhone) {
+        try {
+          await auth.signOut();
+        } catch {
+          // continue
+        }
+      }
+
       setPhone(validPhone);
       setOtp("");
       setOtpLoading(true);
@@ -324,6 +363,7 @@ export default function RideOptionsPage() {
 
       setOtpSent(true);
       setOtpCooldown(OTP_COOLDOWN_SECONDS);
+      setOtpSendCount((count) => count + 1);
       setMessage("OTP sent successfully. Tap the OTP field if autofill does not appear.");
       window.setTimeout(() => {
         void readSmsOtpCode().then((code) => {
@@ -377,6 +417,7 @@ export default function RideOptionsPage() {
 
   return (
     <main>
+      <RiderIdleGuard />
       <Navbar />
       {view === "boot" && <section className="min-h-[40vh]" />}
 

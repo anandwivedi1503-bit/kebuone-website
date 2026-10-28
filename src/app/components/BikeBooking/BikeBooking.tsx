@@ -204,6 +204,11 @@ const [loading, setLoading] = useState(true);
   const [rentalMode, setRentalMode] = useState<
     "Hourly" | "Daily" | "Weekly" | "Monthly"
   >(() => loadRentalDraft()?.rentalMode || "Daily");
+  const [rentalHours, setRentalHours] = useState(() => {
+    const draft = loadRentalDraft()?.rentalHours;
+    const n = Number(draft);
+    return Number.isFinite(n) && n >= 1 && n <= 72 ? Math.round(n) : 1;
+  });
   const [referenceBy, setReferenceBy] = useState(() => loadRentalDraft()?.referenceBy || "");
 
   const [bookingId, setBookingId] = useState("");
@@ -333,7 +338,7 @@ const [pickupOtp, setPickupOtp] = useState("");
     markRiderBookingLock();
     setMessage(
       pending > 0.009
-        ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here (Razorpay/wallet) or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
+        ? `Open booking ${active.bookingId}. Paid ${received}. Pending ${pending}. Pay remaining here with Razorpay or give cash to the yard manager. Ride end OTP is issued only after remaining is ₹0.`
         : `Open booking ${active.bookingId}. Payment for this cycle is complete.`
     );
   };
@@ -440,10 +445,11 @@ useEffect(() => {
     hub,
     selectedBike,
     rentalMode,
+    rentalHours: rentalMode === "Hourly" ? rentalHours : 1,
     bikeSearch,
     referenceBy,
   });
-}, [step, city, hub, selectedBike, rentalMode, bikeSearch, referenceBy, bookingDone, rideStatus]);
+}, [step, city, hub, selectedBike, rentalMode, rentalHours, bikeSearch, referenceBy, bookingDone, rideStatus]);
 
 useEffect(() => {
   if (!city) return;
@@ -563,6 +569,20 @@ useEffect(() => {
       if (!data.success) return;
 
       const rider = data.data;
+      const riderPhoneNorm = normalizeIndianPhone(rider.phone || phone);
+      const sessionPhoneNorm = normalizeIndianPhone(phone);
+
+      if (
+        riderPhoneNorm &&
+        sessionPhoneNorm &&
+        riderPhoneNorm !== sessionPhoneNorm
+      ) {
+        setError(
+          "This login does not match the rider on this phone. Log out, verify the correct mobile on Book EV, then try again."
+        );
+        setRiderId("");
+        return;
+      }
 
       setRiderName(rider.fullName || "");
       setRiderPhone(rider.phone || "");
@@ -788,7 +808,10 @@ useEffect(() => {
 }, [filteredBikes, selectedBike, bookingDone]);
 
 const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
-  if (mode === "Hourly") return catalogRate("Hourly", bike?.hourlyRate);
+  if (mode === "Hourly") {
+    const perHour = catalogRate("Hourly", bike?.hourlyRate);
+    return Number((perHour * rentalHours).toFixed(2));
+  }
   if (mode === "Daily") return catalogRate("Daily", bike?.dailyRate);
   if (mode === "Weekly") return catalogRate("Weekly", bike?.weeklyRate);
   return catalogRate("Monthly", bike?.monthlyRate);
@@ -973,6 +996,11 @@ setStep(2);
         return;
       }
 
+      if (rentalMode === "Hourly" && (rentalHours < 1 || rentalHours > 72)) {
+        setError("Choose between 1 and 72 hours for hourly rental.");
+        return;
+      }
+
       setFirebaseIdToken(token);
       setRiderPhone(normalizedPhone);
 
@@ -1003,6 +1031,7 @@ hubAliases: [
 city,
 pickupCity: city,
 rentalMode,
+rentalHours: rentalMode === "Hourly" ? rentalHours : undefined,
 referenceBy,
           firebaseIdToken: token,
           paymentMode: "Razorpay",
@@ -1720,11 +1749,11 @@ gap-4
           </div>
         )}
 
-        {message && (
+        {message && rideStatus !== "Completed" ? (
           <div className="mb-5 rounded-2xl border border-green-100 bg-green-50 p-4 font-semibold text-green-700 print:hidden">
             {message}
           </div>
-        )}
+        ) : null}
 
         <div className="mb-10 print:hidden">
   <div className="flex items-start justify-between gap-1 sm:gap-2">
@@ -2040,6 +2069,33 @@ cursor-pointer
                     </button>
                   ))}
                 </div>
+
+                {rentalMode === "Hourly" ? (
+                  <div className="mb-5 rounded-2xl border border-[#18B368]/15 bg-[#F4FFF8] px-4 py-4">
+                    <p className="text-sm font-semibold text-[#0F172A]">How many hours?</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {formatINR(catalogRate("Hourly", currentBike?.hourlyRate))} per hour (GST included) × hours you choose.
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <input
+                        type="number"
+                        min={1}
+                        max={72}
+                        value={rentalHours}
+                        onChange={(e) => {
+                          const n = Math.round(Number(e.target.value));
+                          if (!Number.isFinite(n)) return;
+                          setRentalHours(Math.min(72, Math.max(1, n)));
+                        }}
+                        className="h-12 w-28 rounded-2xl border border-slate-200 px-4 text-lg font-bold text-[#16A34A] outline-none focus:border-[#18B368]"
+                      />
+                      <span className="text-sm font-semibold text-slate-600">hours</span>
+                      <span className="ml-auto text-sm font-black text-[#16A34A]">
+                        Rental total {formatINR(getPlanRate(currentBike, "Hourly"))}
+                      </span>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="mb-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
                   This path is hourly / daily / weekly / monthly rental. Rent to Own is the other card on Book EV.
@@ -2410,6 +2466,10 @@ text-[#0F172A]
 
     <Summary label="Rental Mode" value={rentalMode} />
 
+    {rentalMode === "Hourly" ? (
+      <Summary label="Hours booked" value={String(rentalHours)} />
+    ) : null}
+
     <Summary
       label="Rental (GST included)"
       value={formatINR(tax.totalWithGst)}
@@ -2605,25 +2665,8 @@ focus:ring-[#18B368]/10
  : "Pay Securely with Razorpay"}
                 </button>
 
-                <button
-                  type="button"
-                  disabled={
-                    amountDue <= 0 ||
-                    paymentLoading ||
-                    !walletCoversPay
-                  }
-                  onClick={() => void payWithWallet()}
-                  className={`${BOOKING_BTN_OUTLINE} mt-3`}
-                >
-                  <Wallet size={18} />
-                  {walletAvailable < 1
-                    ? "Wallet ₹0.00 — use Razorpay"
-                    : walletCoversPay
-                    ? `Pay ${formatINR(walletPayNow)} from wallet`
-                    : `Wallet ${formatINR(walletAvailable)} — not enough for this amount`}
-                </button>
-                <p className="mt-2 text-center text-xs text-slate-500">
-                  Wallet is EVUDDY credit (returned deposits and admin top-ups), not UPI/card. Razorpay is the normal online path. You can also hand cash to the yard manager — they record it on Hub/Booking and must handover that cash to the company.
+                <p className="mt-3 text-center text-xs leading-5 text-slate-500">
+                  Ride fare is paid with Razorpay or cash at the yard. Wallet on EVUDDY is only for returned security deposit hold — not for booking payments.
                 </p>
                 </>
                 ) : null}

@@ -27,6 +27,7 @@ export type RentalWizardDraft = {
   hub: string;
   selectedBike: string;
   rentalMode: RentalModeDraft;
+  rentalHours?: number;
   bikeSearch: string;
   referenceBy: string;
 };
@@ -252,6 +253,11 @@ export function resetRiderBookingChoice() {
 export function loadRegistrationDraft(): RegistrationDraft | null {
   const draft = readJson<RegistrationDraft>(REGISTRATION_DRAFT_KEY);
   if (!draft || ![1, 2, 3, 4].includes(Number(draft.step))) return null;
+  const age = Date.now() - Number(draft.savedAt || 0);
+  if (!Number.isFinite(age) || age > 10 * 60 * 1000) {
+    clearRegistrationDraft();
+    return null;
+  }
   return draft;
 }
 

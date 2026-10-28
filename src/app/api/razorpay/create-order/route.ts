@@ -262,6 +262,18 @@ export async function POST(req: Request) {
     }
 
     if (wantsWallet) {
+      const adminSession = await isAdminAuthenticated().catch(() => false);
+      if (!adminSession) {
+        return NextResponse.json(
+          {
+            success: false,
+            message:
+              "Wallet is for returned deposit hold only — not for ride fare. Pay with Razorpay or cash at the yard.",
+          },
+          { status: 400 }
+        );
+      }
+
       const walletResult = await applyWalletBookingPayment({
         bookingMongoId,
         paidAmount: amount,

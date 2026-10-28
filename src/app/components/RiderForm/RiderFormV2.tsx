@@ -8,6 +8,7 @@ import {
   hasRiderPlanReady,
   loadRegistrationDraft,
   markRiderPlanReady,
+  markBookEvOtpSession,
   riderResumeHref,
   saveRegistrationDraft,
 } from "@/lib/riderPlanGate";
@@ -204,7 +205,9 @@ useEffect(() => {
 
   clearInterval(interval);
   markRiderPlanReady();
-  window.location.href = riderResumeHref();
+  markBookEvOtpSession();
+  clearRegistrationDraft();
+  window.location.replace("/ride-options");
 }
 
     } catch {}
