@@ -506,6 +506,12 @@ span {
     min-height: 48px;
   }
 
+  .rider-flow-shell .booking-summary-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
   .page-under-nav {
     padding-bottom: max(4.5rem, env(safe-area-inset-bottom));
   }

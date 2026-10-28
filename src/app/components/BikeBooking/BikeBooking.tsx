@@ -181,6 +181,11 @@ const normalizeText = (value: unknown) =>
     .toLowerCase()
     .replace(/\s+/g, " ");
 
+const normalizeBookingId = (value: unknown) =>
+  String(value || "")
+    .trim()
+    .toUpperCase();
+
 export default function BikeBooking() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(() => loadRentalDraft()?.step || 1);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
@@ -259,6 +264,7 @@ const [pickupOtp, setPickupOtp] = useState("");
       pickupCity?: string;
       canReview?: boolean;
       reviewStars?: number | null;
+      reviewStatus?: string | null;
       completedAt?: string;
     }>
   >([]);
@@ -1577,7 +1583,8 @@ blur-[140px]
 />
 </div>
       <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="mb-16 text-center print:hidden">
+        {!(step === 4 && rideStatus === "Completed") ? (
+        <div className="mb-10 text-center print:hidden sm:mb-16">
 
 <div
 className="
@@ -1705,6 +1712,7 @@ gap-4
 </div>
 
 </div>
+        ) : null}
 
         {error && (
           <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4 font-semibold text-red-700 print:hidden">
@@ -1811,7 +1819,7 @@ step > index + 1
   </div>
 </div>
           
-<div className="grid gap-10 lg:grid-cols-[1.38fr_0.62fr]">
+<div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.38fr_0.62fr] lg:gap-10">
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -2462,13 +2470,12 @@ text-[#0F172A]
 
             {step === 4 && (
               <div className="min-w-0">
+                {rideStatus !== "Completed" ? (
                 <div className="mb-6 sm:mb-8">
 <div className="inline-flex items-center gap-3 rounded-full bg-[#F4FFF8] px-5 py-2">
 <div className="h-2.5 w-2.5 rounded-full bg-[#18B368]" />
 <span className="text-sm font-bold uppercase tracking-[0.15em] text-[#18B368]">
-{rideStatus === "Completed"
-  ? "RIDE COMPLETE"
-  : paymentSuccess
+{paymentSuccess
     ? "BOOKING CONFIRMED"
     : remainingPayLocked
       ? "REMAINING PAYMENT"
@@ -2476,18 +2483,14 @@ text-[#0F172A]
 </span>
 </div>
 <h2 className="mt-5 text-2xl font-black tracking-[-0.03em] text-[#0F172A] sm:text-4xl">
-{rideStatus === "Completed"
-  ? "Thank you for riding with EVUDDY"
-  : paymentSuccess
+{paymentSuccess
     ? "You're booked"
     : remainingPayLocked
       ? "Pay the remaining amount"
       : "Complete your payment"}
 </h2>
-<p className="mt-3 max-w-2xl text-[17px] leading-8 text-slate-500">
-{rideStatus === "Completed"
-  ? "The yard has taken the scooter back. Rate your trip in the thank-you card below."
-  : paymentSuccess
+<p className="mt-3 max-w-2xl text-base leading-7 text-slate-500 sm:text-[17px] sm:leading-8">
+{paymentSuccess
     ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
     : remainingPayLocked
       ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
@@ -2496,6 +2499,7 @@ text-[#0F172A]
         : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
 </p>
 </div>
+                ) : null}
 
 {!paymentSuccess && rideStatus !== "Completed" && rideStatus !== "Cancelled" ? (
 <div
@@ -2625,20 +2629,27 @@ focus:ring-[#18B368]/10
                 ) : null}
 
                 {bookingDone && rideStatus === "Completed" ? (
-                  <div className="mt-4 space-y-3">
-                    <div className="overflow-hidden rounded-[32px] border border-emerald-200/80 bg-[radial-gradient(circle_at_top_right,_rgba(24,179,104,0.18),_transparent_42%),linear-gradient(180deg,#06281c_0%,#0B1B16_55%,#10231c_100%)] px-6 py-8 text-left text-white shadow-[0_30px_80px_rgba(11,27,22,0.28)] sm:px-8">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6EE7A8]">
-                          Ride complete
-                        </p>
-                        <p className="mt-3 text-3xl font-black tracking-[-0.04em] sm:text-4xl">
+                  <div className="mt-2 space-y-4 sm:mt-4">
+                    <div className="overflow-hidden rounded-[28px] border border-emerald-200/80 bg-[radial-gradient(circle_at_top_right,_rgba(24,179,104,0.22),_transparent_45%),linear-gradient(165deg,#042117_0%,#0B1B16_48%,#0f2a22_100%)] px-4 py-7 text-left text-white shadow-[0_24px_70px_rgba(11,27,22,0.32)] sm:rounded-[32px] sm:px-7 sm:py-9">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="inline-flex items-center gap-2 rounded-full border border-[#6EE7A8]/30 bg-[#6EE7A8]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.22em] text-[#6EE7A8]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#6EE7A8]" />
+                            Ride complete
+                          </span>
+                          {bookingId ? (
+                            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/80">
+                              {bookingId}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-4 text-2xl font-black leading-tight tracking-[-0.04em] sm:text-4xl">
                           Thank you for riding with EVUDDY
                         </p>
-                        <p className="mt-3 max-w-xl text-sm leading-7 text-white/70">
+                        <p className="mt-3 max-w-xl text-sm leading-7 text-white/72 sm:text-[15px]">
                           The yard has taken the scooter back. Your trip is closed on our books.
-                          If a security deposit is due back, ops refunds it on the original Razorpay
-                          payment — not as a leftover booking screen.
+                          Deposit refunds, if any, go back on the original Razorpay payment.
                         </p>
-                        <div className="mt-6">
+                        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                           <button
                             type="button"
                             onClick={() => {
@@ -2649,23 +2660,31 @@ focus:ring-[#18B368]/10
                           >
                             Book another ride
                           </button>
-                          <p className="mt-3 text-sm text-white/60">
-                            To leave the app, use <strong className="text-white/80">Log out</strong> or{" "}
-                            <strong className="text-white/80">Back to website</strong> in the menu (top right).
+                          <p className="text-xs leading-6 text-white/55 sm:max-w-xs sm:text-sm">
+                            Log out or Back to website from the menu (top right) when you are done.
                           </p>
                         </div>
                         {firebaseIdToken && bookingId ? (
-                          <div className="mt-6">
+                          <div className="mt-7 border-t border-white/10 pt-6">
                             <RideReviewCard
                               bookingId={bookingId}
                               token={firebaseIdToken}
+                              layout="hero"
                               existing={
-                                myReviews.find((row) => row.bookingId === bookingId) || null
+                                myReviews.find(
+                                  (row) =>
+                                    normalizeBookingId(row.bookingId) ===
+                                    normalizeBookingId(bookingId)
+                                ) || null
                               }
                               onSaved={(review) =>
                                 setMyReviews((rows) => [
                                   { ...review, bookingId },
-                                  ...rows.filter((row) => row.bookingId !== bookingId),
+                                  ...rows.filter(
+                                    (row) =>
+                                      normalizeBookingId(row.bookingId) !==
+                                      normalizeBookingId(bookingId)
+                                  ),
                                 ])
                               }
                             />
@@ -2805,47 +2824,48 @@ Payment Status
   pastRides.some(
     (r) =>
       String(r.rideStatus) === "Completed" &&
-      String(r.bookingId || "") !== String(bookingId || "")
+      normalizeBookingId(r.bookingId) !== normalizeBookingId(bookingId)
   ) && (
 <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-4 text-left sm:p-5">
     <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-      <p className="text-sm font-bold text-[#0F172A]">Past completed rides</p>
-      <ul className="mt-2 space-y-3">
+      <p className="text-sm font-bold text-[#0F172A]">Your ride history</p>
+      <p className="mt-1 text-xs text-slate-500">
+        Ratings for past trips appear here after you submit them on the ride-complete screen.
+      </p>
+      <ul className="mt-3 divide-y divide-slate-200/80">
         {pastRides
           .filter(
             (ride) =>
               String(ride.rideStatus) === "Completed" &&
-              String(ride.bookingId || "") !== String(bookingId || "")
+              normalizeBookingId(ride.bookingId) !== normalizeBookingId(bookingId)
           )
           .slice(0, 8)
           .map((ride) => {
-          const existing = myReviews.find((row) => row.bookingId === ride.bookingId);
+          const existing = myReviews.find(
+            (row) => normalizeBookingId(row.bookingId) === normalizeBookingId(ride.bookingId)
+          );
+          const stars = Number(existing?.stars || ride.reviewStars || 0);
           return (
-            <li key={String(ride.bookingId)} className="text-sm text-slate-700">
-              <p className="font-medium">
-                {ride.bookingId} · {ride.vehicleModel || "Scooter"}
+            <li
+              key={String(ride.bookingId)}
+              className="flex flex-col gap-1 py-3 text-sm text-slate-700 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <p className="min-w-0 font-medium">
+                <span className="text-[#0F172A]">{ride.bookingId}</span>
+                <span className="text-slate-400"> · </span>
+                {ride.vehicleModel || "Scooter"}
                 {ride.pickupCity ? ` · ${ride.pickupCity}` : ""}
               </p>
-              {existing ? (
-                <p className="text-amber-700">
-                  Rated {"★".repeat(Number(existing.stars || ride.reviewStars || 0))} ({existing.status})
+              {stars > 0 ? (
+                <p className="shrink-0 text-amber-700">
+                  {"★".repeat(Math.min(5, stars))}{" "}
+                  <span className="text-xs text-slate-500">
+                    ({existing?.status || ride.reviewStatus || "Rated"})
+                  </span>
                 </p>
-              ) : ride.canReview && firebaseIdToken && ride.bookingId ? (
-                <div className="mt-2">
-                  <RideReviewCard
-                    bookingId={ride.bookingId}
-                    token={firebaseIdToken}
-                    onSaved={(review) =>
-                      setMyReviews((rows) => [
-                        { ...review, bookingId: ride.bookingId },
-                        ...rows.filter((row) => row.bookingId !== ride.bookingId),
-                      ])
-                    }
-                  />
-                </div>
-              ) : ride.reviewStars ? (
-                <p className="text-amber-700">Rated {"★".repeat(Number(ride.reviewStars))}</p>
-              ) : null}
+              ) : (
+                <p className="shrink-0 text-xs text-slate-500">Not rated</p>
+              )}
             </li>
           );
         })}
@@ -2880,16 +2900,22 @@ Payment Status
             )}
           </form>
 
-          <aside id="booking-print-summary" className="space-y-6 lg:sticky lg:top-24 xl:top-28 self-start">
+          <aside
+            id="booking-print-summary"
+            className="min-w-0 space-y-6 lg:sticky lg:top-24 lg:self-start xl:top-28"
+          >
             <div
 className="
-rounded-[36px]
+rounded-[28px]
 border
 border-slate-200
 bg-white/95
 backdrop-blur-xl
-p-8
+p-4
 shadow-[0_35px_90px_rgba(15,23,42,.10)]
+sm:rounded-[36px]
+sm:p-6
+lg:p-8
 "
 >
               <div className="mb-6 flex items-start justify-between gap-4">
@@ -3306,6 +3332,7 @@ function Summary({
   return (
     <div
 className="
+booking-summary-row
 flex
 items-start
 justify-between
