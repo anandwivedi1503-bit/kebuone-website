@@ -99,6 +99,7 @@ export async function applyCapturedRazorpayPayment(
       if (remainingOnBooking <= 0.009) {
         return { ok: false, status: 400, message: "Booking payment order mismatch." };
       }
+      booking.razorpayOrderId = razorpayOrderId;
     }
 
     const rider = await findBookingRider(booking);

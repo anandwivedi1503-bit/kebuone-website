@@ -75,7 +75,7 @@ type RazorpayInstance = {
 
 type RazorpayOptions = {
   key: string;
-  amount: number;
+  amount?: number;
   currency: string;
   name: string;
   description: string;
@@ -1112,11 +1112,13 @@ setStep(4);
       return;
     }
 
-    const payNow = remainingPayLocked
-      ? Number(pendingAmount)
-      : Number(paymentAmount || amountDue);
+    const payNow = Math.round(
+      (remainingPayLocked
+        ? Number(pendingAmount)
+        : Number(paymentAmount || amountDue)) * 100
+    ) / 100;
 
-    if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
+    if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue + 0.001) {
       setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
       return;
     }
@@ -1176,15 +1178,14 @@ setStep(4);
 
     const razorpay = new window.Razorpay({
       key: orderData.keyId,
-      amount: orderData.amount,
-      currency: orderData.currency,
+      currency: orderData.currency || "INR",
       name: orderData.name || "EVUDDY",
       image: orderData.image,
       description: `Booking Payment - ${bookingId}`,
       order_id: orderData.orderId,
       prefill: {
         name: riderName,
-        contact: riderPhone,
+        contact: String(riderPhone || "").replace(/\D/g, "").slice(-10),
       },
       notes: {
         bookingId,
@@ -1195,12 +1196,14 @@ setStep(4);
 },
       handler: async (response) => {
         setPaymentMessage("Verifying payment...");
+        const freshToken =
+          (await auth.currentUser?.getIdToken(true)) || token;
         const verifyBody = {
           bookingMongoId,
           razorpay_order_id: response.razorpay_order_id,
           razorpay_payment_id: response.razorpay_payment_id,
           razorpay_signature: response.razorpay_signature,
-          firebaseIdToken: token,
+          firebaseIdToken: freshToken,
         };
         try {
           let verifyData: { success?: boolean; message?: string } | null = null;
@@ -1209,7 +1212,7 @@ setStep(4);
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${freshToken}`,
               },
               body: JSON.stringify(verifyBody),
             });
@@ -1222,20 +1225,20 @@ setStep(4);
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${freshToken}`,
               },
               body: JSON.stringify({
                 bookingMongoId,
                 recover: true,
                 razorpay_order_id: response.razorpay_order_id,
-                firebaseIdToken: token,
+                firebaseIdToken: freshToken,
               }),
             });
             verifyData = await recoverRes.json();
           }
           if (!verifyData?.success) {
             const mineRes = await fetch("/api/bookings/mine", {
-              headers: { Authorization: `Bearer ${token}` },
+              headers: { Authorization: `Bearer ${freshToken}` },
               cache: "no-store",
             });
             const mineData = await mineRes.json();

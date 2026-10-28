@@ -26,6 +26,7 @@ import {
   sanitizeReviewComment,
 } from "../src/lib/reviews";
 import { getBookingRemainingAmount, gstBreakdownInclusive } from "../src/lib/gst";
+import { normalizePayAmountInr, paiseToInr, inrToPaise } from "../src/lib/razorpay/moneyAmount";
 import {
   isRecentCompletedRide,
   isUnpaidGhostAfterCompleted,
@@ -325,5 +326,9 @@ assert.equal(
 assert.equal(isRazorpayPaymentId("pay_AbCd123"), true);
 assert.equal(isRazorpayPaymentId("order_AbCd123"), false);
 assert.equal(isRazorpayPaymentId(""), false);
+
+assert.equal(inrToPaise(2750.005), 275001);
+assert.equal(paiseToInr(275001), 2750.01);
+assert.equal(normalizePayAmountInr(99.999), 100);
 
 console.log("money-rules self-test ok");

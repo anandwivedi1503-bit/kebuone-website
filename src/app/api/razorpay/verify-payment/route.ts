@@ -11,6 +11,7 @@ import {
   riderPayUnauthorizedResponse,
 } from "@/lib/requestAuth";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
+import { razorpaySignaturesMatch } from "@/lib/razorpay/signature";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 
@@ -21,13 +22,7 @@ function clean(value: unknown) {
 }
 
 function signaturesMatch(expected: string, received: string) {
-  const expectedBuffer = Buffer.from(expected);
-  const receivedBuffer = Buffer.from(received);
-
-  return (
-    expectedBuffer.length === receivedBuffer.length &&
-    crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
-  );
+  return razorpaySignaturesMatch(expected, received);
 }
 
 function sleep(ms: number) {
@@ -221,10 +216,22 @@ export async function POST(req: Request) {
       booking.razorpayOrderId &&
       booking.razorpayOrderId !== razorpayOrderId
     ) {
-      return NextResponse.json(
-        { success: false, message: "Booking payment order mismatch." },
-        { status: 400 }
-      );
+      const order = (await razorpay.orders.fetch(razorpayOrderId)) as {
+        notes?: Record<string, string | number | boolean>;
+      };
+      const noteBooking = String(order.notes?.bookingMongoId || "");
+      if (noteBooking && noteBooking === bookingMongoId) {
+        booking.razorpayOrderId = razorpayOrderId;
+        await booking.save();
+      } else {
+        return NextResponse.json(
+          { success: false, message: "Booking payment order mismatch." },
+          { status: 400 }
+        );
+      }
+    } else if (!booking.razorpayOrderId) {
+      booking.razorpayOrderId = razorpayOrderId;
+      await booking.save();
     }
 
     const payment = await waitForCapturedPayment(

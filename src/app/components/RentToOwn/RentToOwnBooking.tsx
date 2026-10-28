@@ -501,7 +501,7 @@ export default function RentToOwnBooking() {
     setError("");
     setPaymentLoading(true);
     try {
-      const payNow = Number(pendingAmount || payableAmount);
+      const payNow = Math.round(Number(pendingAmount || payableAmount) * 100) / 100;
       const token =
         (await auth.currentUser?.getIdToken(true)) || firebaseIdToken || "";
       if (!token) {
@@ -562,27 +562,30 @@ export default function RentToOwnBooking() {
 
       const keyId = orderData.keyId || orderData.data?.keyId;
       const orderId = orderData.orderId || orderData.data?.orderId;
-      const orderAmount = orderData.amount || orderData.data?.amount;
 
       const openCheckout = () => {
         const razorpay = new window.Razorpay!({
           key: keyId,
-          amount: orderAmount,
           currency: orderData.currency || "INR",
           name: orderData.name || "EVUDDY Rent to Own",
           image: orderData.image,
           description: bookingId,
           order_id: orderId,
-          prefill: { name: riderName, contact: riderPhone },
+          prefill: {
+            name: riderName,
+            contact: String(riderPhone || "").replace(/\D/g, "").slice(-10),
+          },
           notes: { bookingMongoId },
           theme: { color: "#18B368" },
           handler: async (response: RazorpayResponse) => {
+            const freshToken =
+              (await auth.currentUser?.getIdToken(true)) || token;
             const verifyBody = {
               bookingMongoId,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,
-              firebaseIdToken: token,
+              firebaseIdToken: freshToken,
             };
             let verifyData: {
               success?: boolean;
@@ -597,7 +600,7 @@ export default function RentToOwnBooking() {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${freshToken}`,
                   },
                   body: JSON.stringify(verifyBody),
                 });
@@ -610,13 +613,13 @@ export default function RentToOwnBooking() {
                   method: "POST",
                   headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${freshToken}`,
                   },
                   body: JSON.stringify({
                     bookingMongoId,
                     recover: true,
                     razorpay_order_id: response.razorpay_order_id,
-                    firebaseIdToken: token,
+                    firebaseIdToken: freshToken,
                   }),
                 });
                 verifyData = await recoverRes.json();
