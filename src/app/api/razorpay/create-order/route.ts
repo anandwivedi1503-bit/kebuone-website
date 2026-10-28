@@ -19,6 +19,7 @@ import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
+import { normalizePayAmountInr, paiseToInr } from "@/lib/razorpay/moneyAmount";
 
 function clean(value: unknown) {
   return String(value || "").trim();
@@ -60,7 +61,7 @@ async function withTimeout<T>(promise: Promise<T>, ms = 6000): Promise<T> {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    if (!(await rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 60, 10 * 60 * 1000))) {
+    if (!(await rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 120, 10 * 60 * 1000))) {
       return NextResponse.json(
         { success: false, message: "Too many payment attempts. Please wait." },
         { status: 429 }
@@ -226,26 +227,27 @@ export async function POST(req: Request) {
       );
     }
 
-    const amount = requestedAmount || remainingAmount;
+    const amountInr = normalizePayAmountInr(requestedAmount || remainingAmount, remainingAmount);
+    const amountPaise = Math.round(amountInr * 100);
 
-    if (
-      booking.rentalMode === "Rent To Own" &&
-      Number(amount.toFixed(2)) !== Number(remainingAmount.toFixed(2))
-    ) {
+    if (amountInr < 1 || amountInr > remainingAmount + 0.001) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rent to Own requires today’s full GST-included amount in one payment.",
+          message: `Enter a valid amount between INR 1 and INR ${remainingAmount.toFixed(2)}.`,
         },
         { status: 400 }
       );
     }
 
-    if (amount < 1 || amount > remainingAmount) {
+    if (
+      booking.rentalMode === "Rent To Own" &&
+      amountInr !== normalizePayAmountInr(remainingAmount, remainingAmount)
+    ) {
       return NextResponse.json(
         {
           success: false,
-          message: `Enter a valid amount between INR 1 and INR ${remainingAmount}.`,
+          message: "Rent to Own requires today’s full GST-included amount in one payment.",
         },
         { status: 400 }
       );
@@ -276,7 +278,7 @@ export async function POST(req: Request) {
 
       const walletResult = await applyWalletBookingPayment({
         bookingMongoId,
-        paidAmount: amount,
+        paidAmount: amountInr,
       });
 
       if (!walletResult.ok) {
@@ -319,7 +321,7 @@ export async function POST(req: Request) {
 
     const razorpay = getRazorpayClient();
 
-    const amountPaise = Math.round(amount * 100);
+    const amountPaiseForOrder = amountPaise;
     const existingOrderId = clean(booking.razorpayOrderId);
     if (existingOrderId) {
       try {
@@ -340,7 +342,7 @@ export async function POST(req: Request) {
         const status = String(existing.status || "");
 
         if (
-          existingAmount === amountPaise &&
+          existingAmount === amountPaiseForOrder &&
           (status === "created" || status === "attempted")
         ) {
           return NextResponse.json({
@@ -357,7 +359,7 @@ export async function POST(req: Request) {
           });
         }
 
-        if (existingAmount === amountPaise) {
+        if (existingAmount === amountPaiseForOrder) {
           const payments = (await withTimeout(
             razorpay.orders.fetchPayments(existingOrderId) as Promise<{
               items?: Array<{ id?: string; status?: string; amount?: number }>;
@@ -367,7 +369,7 @@ export async function POST(req: Request) {
           };
           const captured = (payments.items || []).find((item) => item.status === "captured");
           if (captured?.id) {
-            const paidAmount = Number(captured.amount || existing.amount || amountPaise) / 100;
+            const paidAmount = Number(captured.amount || existing.amount || amountPaiseForOrder) / 100;
             const applied = await applyCapturedRazorpayPayment({
               bookingMongoId,
               razorpayOrderId: existingOrderId,
@@ -422,7 +424,7 @@ export async function POST(req: Request) {
     }
 
     const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100),
+      amount: amountPaiseForOrder,
       currency: "INR",
       payment_capture: true,
       receipt: String(`booking_${booking.bookingId}_${Date.now()}`).slice(

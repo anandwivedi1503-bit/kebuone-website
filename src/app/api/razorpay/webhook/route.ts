@@ -17,14 +17,7 @@ type PaymentEntity = {
   notes?: Record<string, string>;
 };
 
-function signaturesMatch(expected: string, received: string) {
-  const expectedBuffer = Buffer.from(expected);
-  const receivedBuffer = Buffer.from(received);
-  return (
-    expectedBuffer.length === receivedBuffer.length &&
-    crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
-  );
-}
+import { razorpaySignaturesMatch } from "@/lib/razorpay/signature";
 
 export async function POST(req: Request) {
   const loaded = getRazorpayConfig();
@@ -56,7 +49,7 @@ export async function POST(req: Request) {
     .update(rawBody)
     .digest("hex");
 
-  if (!signaturesMatch(expected, signature)) {
+  if (!razorpaySignaturesMatch(expected, signature)) {
     return NextResponse.json({ success: false, message: "Invalid webhook signature." }, { status: 400 });
   }
 
