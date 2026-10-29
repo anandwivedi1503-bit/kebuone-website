@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -12,15 +13,20 @@ jobs:
     steps:
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.2.0
-
+        env:
+          MAPS_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-
+          envs: MAPS_KEY
           script: |
             cd ~/kebuone-website
-
+            touch .env.local
+            grep -v '^NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=' .env.local > .env.local.new || true
+            mv .env.local.new .env.local 2>/dev/null || true
+            if [ -n "$MAPS_KEY" ]; then
+              printf 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=%s\n' "$MAPS_KEY" >> .env.local
+            fi
             chmod +x deploy.sh
-
             ./deploy.sh
