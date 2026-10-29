@@ -535,6 +535,26 @@ remarks: {
   default: "",
 },
 
+/** Rider app phone GPS (safety) — visible on admin IoT / CRM. */
+riderPhoneLat: {
+  type: Number,
+  default: null,
+},
+riderPhoneLng: {
+  type: Number,
+  default: null,
+},
+riderPhoneAccuracyM: {
+  type: Number,
+  default: null,
+},
+riderPhoneUpdatedAt: {
+  type: Date,
+},
+riderEndReminderSentAt: {
+  type: Date,
+},
+
 reviewId: {
   type: String,
   trim: true,

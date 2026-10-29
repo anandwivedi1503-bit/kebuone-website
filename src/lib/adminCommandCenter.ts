@@ -27,6 +27,7 @@ import Transaction from "@/models/Transaction";
 import Vehicle from "@/models/Vehicle";
 import Wallet from "@/models/Wallet";
 import Review from "@/models/Review";
+import { listRiderSafetyForAdmin, type RiderSafetyRow } from "@/lib/riderSafetyOps";
 
 export type CommandCenterCounts = {
   riders: number;
@@ -338,7 +339,9 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     partners: recentPartners as Array<Record<string, unknown>>,
   };
 
-  return filterCommandCenterForSession(session, { counts, recent });
+  const riderSafety = await listRiderSafetyForAdmin(session);
+
+  return filterCommandCenterForSession(session, { counts, recent, riderSafety });
 }
 
 function emptyIf(allowed: boolean, rows: Array<Record<string, unknown>>) {
@@ -347,9 +350,13 @@ function emptyIf(allowed: boolean, rows: Array<Record<string, unknown>>) {
 
 function filterCommandCenterForSession(
   session: AdminSessionInfo,
-  snapshot: { counts: CommandCenterCounts; recent: CommandCenterRecent }
+  snapshot: {
+    counts: CommandCenterCounts;
+    recent: CommandCenterRecent;
+    riderSafety: RiderSafetyRow[];
+  }
 ) {
-  const { counts, recent } = snapshot;
+  const { counts, recent, riderSafety } = snapshot;
   const canBookings = sessionHasAnyDashboard(session, ...API_DASHBOARDS.bookingsRead);
   const canTickets = sessionHasAnyDashboard(session, ...API_DASHBOARDS.tickets);
   const canReviews = sessionHasAnyDashboard(session, ...API_DASHBOARDS.reviews);
@@ -419,7 +426,10 @@ function filterCommandCenterForSession(
   if (!canTx && !canWallet) counts.totalRevenue = 0;
   recent.transactions = emptyIf(canTx, recent.transactions);
 
-  return { counts, recent };
+  const safety =
+    canBookings || canIot ? riderSafety : [];
+
+  return { counts, recent, riderSafety: safety };
 }
 
 export async function searchCommandCenter(

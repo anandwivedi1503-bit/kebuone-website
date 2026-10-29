@@ -1608,6 +1608,9 @@ export async function GET(req: Request) {
               "bookingEnabled",
               "blacklisted",
               "status",
+              "profilePhotoUrl",
+              "instagramId",
+              "facebookId",
               "rejectedReason",
             ].join(" ")
           )
