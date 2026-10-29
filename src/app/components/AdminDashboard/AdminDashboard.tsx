@@ -12,6 +12,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import RiderSafetyBoard from "./RiderSafetyBoard";
 
 type CommandCenterCounts = {
   riders: number;
@@ -66,6 +67,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
   const [bookings, setBookings] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [partners, setPartners] = useState<any[]>([]);
+  const [riderSafety, setRiderSafety] = useState<any[]>([]);
   const [searchHits, setSearchHits] = useState<
     Array<{ id: string; title: string; subtitle: string; dashboard: string }>
   >([]);
@@ -86,6 +88,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
       setBookings(data.recent?.bookings || []);
       setTickets(data.recent?.tickets || []);
       setPartners(data.recent?.partners || []);
+      setRiderSafety(Array.isArray(data.riderSafety) ? data.riderSafety : []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -266,6 +269,15 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
           onClick={() => openDashboard("partner")}
         />
       </KPIGrid>
+
+      <SectionHeader
+        title="Rider safety · live countdown"
+        subtitle="Phone GPS from the rider app and rental end timers. Siren rows are within 1 hour of return — same alerts riders see on their phones."
+      />
+      <RiderSafetyBoard
+        rows={riderSafety}
+        onOpenIot={() => openDashboard("iot")}
+      />
 
       <SectionHeader
         title="Find a record"

@@ -20,6 +20,7 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 export default function IoTDashboard(){
 
 const [iotData,setIotData]=useState<any[]>([]);
+const [riderSafety,setRiderSafety]=useState<any[]>([]);
 const [googleMapsApiKey, setGoogleMapsApiKey] = useState(
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
 );
@@ -103,6 +104,13 @@ useEffect(() => {
     const response = await fetch("/api/iot");
     const data = await response.json();
     setIotData(data.data || []);
+    try {
+      const safetyRes = await fetch("/api/admin/rider-safety", { cache: "no-store" });
+      const safetyJson = await safetyRes.json();
+      setRiderSafety(Array.isArray(safetyJson.data) ? safetyJson.data : []);
+    } catch {
+      setRiderSafety([]);
+    }
   };
 
   loadIotData();
@@ -116,8 +124,13 @@ useEffect(() => {
     if (!mapRef.current) return;
 
     if (validLocations.length === 0) {
-      setMapStatus("No valid vehicle GPS locations available.");
-      return;
+      const phonePins = riderSafety.filter(
+        (r) => r.hasPhoneGps && r.riderPhoneLat && r.riderPhoneLng
+      );
+      if (phonePins.length === 0) {
+        setMapStatus("No vehicle IoT GPS yet. Rider phone GPS appears when a trip is active in the app.");
+        return;
+      }
     }
 
     const loaded = await loadGoogleMapsScript();
@@ -128,10 +141,15 @@ useEffect(() => {
 
     setMapStatus("");
 
-    const center = {
-  lat: parseFloat(String(validLocations[0].currentLat)),
-  lng: parseFloat(String(validLocations[0].currentLng)),
-};
+    const center = validLocations.length
+      ? {
+          lat: parseFloat(String(validLocations[0].currentLat)),
+          lng: parseFloat(String(validLocations[0].currentLng)),
+        }
+      : {
+          lat: Number(riderSafety[0]?.riderPhoneLat) || 26.8467,
+          lng: Number(riderSafety[0]?.riderPhoneLng) || 80.9462,
+        };
 
     if (!googleMapRef.current) {
       googleMapRef.current = new window.google.maps.Map(mapRef.current, {
@@ -201,7 +219,41 @@ useEffect(() => {
       bounds.extend(position);
     });
 
-    if (validLocations.length > 1) {
+    riderSafety
+      .filter((r) => r.hasPhoneGps && r.riderPhoneLat && r.riderPhoneLng)
+      .forEach((r) => {
+        const position = {
+          lat: Number(r.riderPhoneLat),
+          lng: Number(r.riderPhoneLng),
+        };
+        const marker = new window.google.maps.Marker({
+          position,
+          map: googleMapRef.current,
+          title: `${r.bookingId} phone GPS`,
+          icon: {
+            path: window.google.maps.SymbolPath.CIRCLE,
+            scale: 11,
+            fillColor: r.alertLevel === "siren" ? "#DC2626" : "#2563EB",
+            fillOpacity: 1,
+            strokeColor: "#ffffff",
+            strokeWeight: 3,
+          },
+        });
+        const infoWindow = new window.google.maps.InfoWindow({
+          content: `<div style="font-family:Arial,sans-serif;min-width:200px">
+<strong>Rider phone · ${r.bookingId}</strong>
+<div>${r.userName || "Rider"} · +91${r.userPhone || ""}</div>
+<div>${r.rentalMode} · ~${r.minutesUntilEnd} min to end</div>
+<div>GPS via rider app (safety)</div></div>`,
+        });
+        marker.addListener("click", () => {
+          infoWindow.open(googleMapRef.current, marker);
+        });
+        markerRefs.current.push(marker);
+        bounds.extend(position);
+      });
+
+    if (validLocations.length + riderSafety.length > 1) {
       googleMapRef.current.fitBounds(bounds);
     } else {
       googleMapRef.current.setCenter(center);
@@ -210,7 +262,7 @@ useEffect(() => {
   };
 
   renderMap();
-}, [iotData, googleMapsApiKey]);
+}, [iotData, riderSafety, googleMapsApiKey]);
 
 
 
