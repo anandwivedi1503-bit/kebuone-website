@@ -25,11 +25,16 @@ const notoDeva = Noto_Sans_Devanagari({
   weight: ["400", "600", "700"],
 });
 
+
 export const metadata: Metadata = {
   title: "EVUDDY | Electric Scooter Rentals",
   description:
     "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own, with live tracking across Indian cities.",
+  verification: {
+    google: "p_vF69h8Tf42bdkYn55Q2Pup0QAMwisuiV63Jt8K_qA",
+  },
 };
+
 
 export const viewport: Viewport = {
   width: "device-width",
