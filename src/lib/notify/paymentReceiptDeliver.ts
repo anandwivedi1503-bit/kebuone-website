@@ -27,10 +27,10 @@ async function sendDetailedEmail(opts: {
   gst: ReturnType<typeof gstBreakdownInclusive>;
 }) {
   const resend = env("RESEND_API_KEY");
-  const from = env("NOTIFY_FROM_EMAIL") || "EVUDDY <noreply@evuddy.com>";
+  const from = env("NOTIFY_FROM_EMAIL") || "Evuddy <noreply@evuddy.com>";
   if (!resend) return false;
   const html = `<div style="font-family:Arial,sans-serif;max-width:560px;color:#0f172a">
-<p style="color:#18B368;font-weight:800;letter-spacing:.12em;font-size:11px">EVUDDY PAYMENT RECEIPT</p>
+<p style="color:#18B368;font-weight:800;letter-spacing:.12em;font-size:11px">Evuddy payment receipt</p>
 <h1 style="font-size:22px">₹${opts.amount.toLocaleString("en-IN")} received</h1>
 <table style="width:100%;border-collapse:collapse">
 <tr><td style="padding:8px 0;font-weight:700;color:#64748b">Booking</td><td>${opts.bookingId}</td></tr>
@@ -41,7 +41,7 @@ async function sendDetailedEmail(opts: {
 <tr><td style="padding:8px 0;font-weight:700;color:#64748b">Taxable</td><td>₹${opts.gst.taxableAmount.toFixed(2)}</td></tr>
 <tr><td style="padding:8px 0;font-weight:700;color:#64748b">GST (5%)</td><td>₹${opts.gst.gstAmount.toFixed(2)}</td></tr>
 </table>
-<p style="font-size:12px;color:#64748b;margin-top:20px">Same record as evuddy.com admin CRM · helpdesk@kebuone.in</p>
+<p style="font-size:12px;color:#64748b;margin-top:20px">Same record as evuddy.com admin CRM · helpdesk@kebuone.in · +91 8726006519</p>
 </div>`;
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -53,7 +53,7 @@ async function sendDetailedEmail(opts: {
       body: JSON.stringify({
         from,
         to: [opts.to],
-        subject: `EVUDDY receipt · ${opts.bookingId} · ₹${opts.amount}`,
+        subject: `Evuddy receipt · ${opts.bookingId} · ₹${opts.amount}`,
         html,
       }),
     });

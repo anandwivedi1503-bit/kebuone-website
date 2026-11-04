@@ -1,4 +1,5 @@
 import { notifyOpsAlert } from "@/lib/notify/opsAlert";
+import { HELPDESK_EMAIL, HELPDESK_PHONE_DISPLAY } from "@/lib/contact";
 
 function env(name: string) {
   return String(process.env[name] || "").trim();
@@ -62,7 +63,7 @@ async function sendSms(phone10: string, message: string) {
 
 async function sendEmail(to: string, subject: string, text: string) {
   const resend = env("RESEND_API_KEY");
-  const from = env("NOTIFY_FROM_EMAIL") || "EVUDDY <noreply@evuddy.com>";
+  const from = env("NOTIFY_FROM_EMAIL") || "Evuddy <noreply@evuddy.com>";
   if (!to || !resend) return false;
   try {
     const res = await fetch("https://api.resend.com/emails", {
@@ -85,15 +86,15 @@ export async function notifyRentalEndReminder(input: RentalEndReminderInput) {
     input.duration && input.units
       ? `${input.duration} (${input.units} units)`
       : input.duration || "rental";
-  const smsText = `EVUDDY ALERT: Booking ${input.bookingId} (${plan}) ends around ${ends}. Return the scooter on time. Help: 8726006512`;
-  const emailText = `Hello ${input.riderName || "rider"},\n\nYour EVUDDY booking ${input.bookingId} (${plan}) is scheduled to end around ${ends} (IST).\n\nPlease plan your return to the hub.\n\n— EVUDDY\nhelpdesk@kebuone.in · +91 8726006512`;
+  const smsText = `Evuddy alert: Booking ${input.bookingId} (${plan}) ends around ${ends}. Return the scooter on time. Help: ${HELPDESK_PHONE_DISPLAY.replace("+91 ", "")}`;
+  const emailText = `Hello ${input.riderName || "rider"},\n\nYour Evuddy booking ${input.bookingId} (${plan}) is scheduled to end around ${ends} (IST).\n\nPlease plan your return to the hub.\n\n— Evuddy\n${HELPDESK_EMAIL} · ${HELPDESK_PHONE_DISPLAY}`;
 
   const phone = String(input.riderPhone || "").replace(/\D/g, "").slice(-10);
   const email = String(input.riderEmail || "").trim();
 
   const [smsSent, emailSent] = await Promise.all([
     phone.length === 10 ? sendSms(phone, smsText) : Promise.resolve(false),
-    email ? sendEmail(email, `EVUDDY · ${input.bookingId} ending soon`, emailText) : Promise.resolve(false),
+    email ? sendEmail(email, `Evuddy · ${input.bookingId} ending soon`, emailText) : Promise.resolve(false),
   ]);
 
   await notifyOpsAlert(

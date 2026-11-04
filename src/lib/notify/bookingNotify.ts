@@ -24,7 +24,7 @@ function messageFor(input: BookingNotifyInput) {
     const day = input.receiptDay || 1;
     const inv = input.invoiceNumber ? ` Receipt ${input.invoiceNumber}.` : "";
     const gst = input.gstAmount ? ` GST INR ${input.gstAmount}.` : "";
-    return `EVUDDY Rent to Own daily receipt.${inv} ${input.bookingId} day ${day}. Paid INR ${input.amount} via ${input.paymentMethod}.${gst} Thank you. https://www.evuddy.com/rent-to-own`;
+    return `Evuddy Rent to Own daily receipt.${inv} ${input.bookingId} day ${day}. Paid INR ${input.amount} via ${input.paymentMethod}.${gst} Thank you. https://www.evuddy.com/rent-to-own`;
   }
   const otpLine = input.rideEndOTP
     ? ` Ride end OTP: ${input.rideEndOTP}. Tell this to the yard when you return the scooter.`
@@ -33,18 +33,18 @@ function messageFor(input: BookingNotifyInput) {
     : input.pendingAmount > 0
       ? ` Pending: INR ${input.pendingAmount}. Pay remaining before ride end OTP is issued.`
       : "";
-  return `EVUDDY booking ${input.bookingId} is ${input.paymentStatus}. Paid INR ${input.amount} via ${input.paymentMethod}.${otpLine} https://www.evuddy.com/book-bike`;
+  return `Evuddy booking ${input.bookingId} is ${input.paymentStatus}. Paid INR ${input.amount} via ${input.paymentMethod}.${otpLine} https://www.evuddy.com/book-bike`;
 }
 
 function smsBodyFor(input: BookingNotifyInput) {
   if (input.pickupOTP && input.rideEndOTP) {
-    return `EVUDDY ${input.bookingId} Pickup OTP ${input.pickupOTP}. Ride end OTP ${input.rideEndOTP}. Tell the yard.`;
+    return `Evuddy ${input.bookingId} Pickup OTP ${input.pickupOTP}. Ride end OTP ${input.rideEndOTP}. Tell the yard.`;
   }
   if (input.rideEndOTP) {
-    return `EVUDDY Ride End OTP ${input.rideEndOTP} for ${input.bookingId}. Tell the yard to return the scooter.`;
+    return `Evuddy Ride End OTP ${input.rideEndOTP} for ${input.bookingId}. Tell the yard to return the scooter.`;
   }
   if (input.pickupOTP) {
-    return `EVUDDY Pickup OTP ${input.pickupOTP} for ${input.bookingId}. Tell the yard to unlock.`;
+    return `Evuddy Pickup OTP ${input.pickupOTP} for ${input.bookingId}. Tell the yard to unlock.`;
   }
   return messageFor(input).slice(0, 300);
 }
@@ -52,7 +52,7 @@ function smsBodyFor(input: BookingNotifyInput) {
 async function sendEmail(input: BookingNotifyInput, text: string) {
   const to = String(input.riderEmail || "").trim();
   const resend = env("RESEND_API_KEY");
-  const from = env("NOTIFY_FROM_EMAIL") || "EVUDDY <noreply@evuddy.com>";
+  const from = env("NOTIFY_FROM_EMAIL") || "Evuddy <noreply@evuddy.com>";
   if (!to || !resend) return false;
 
   const res = await fetch("https://api.resend.com/emails", {
@@ -65,17 +65,17 @@ async function sendEmail(input: BookingNotifyInput, text: string) {
       from,
       to: [to],
       subject: input.rideEndOTP
-        ? `EVUDDY ride end OTP ${input.bookingId}`
+        ? `Evuddy ride end OTP ${input.bookingId}`
         : input.pickupOTP
-        ? `EVUDDY pickup OTP ${input.bookingId}`
+        ? `Evuddy pickup OTP ${input.bookingId}`
         : input.rentalMode === "Rent To Own"
-        ? `EVUDDY daily receipt ${input.bookingId}${input.receiptDay ? ` · day ${input.receiptDay}` : ""}`
-        : `EVUDDY booking ${input.bookingId} payment`,
+        ? `Evuddy daily receipt ${input.bookingId}${input.receiptDay ? ` · day ${input.receiptDay}` : ""}`
+        : `Evuddy booking ${input.bookingId} payment`,
       text,
       html:
         input.rentalMode === "Rent To Own" && !input.pickupOTP && !input.rideEndOTP
           ? `<div style="font-family:Arial,sans-serif;max-width:520px;color:#0f172a">
-<p style="letter-spacing:.16em;font-size:11px;color:#18B368">EVUDDY RECEIPT</p>
+<p style="letter-spacing:.16em;font-size:11px;color:#18B368">Evuddy RECEIPT</p>
 <h1 style="font-size:22px">Rent to Own daily receipt</h1>
 <p>Hello ${input.riderName || "rider"},</p>
 <p>We recorded today’s payment for booking <strong>${input.bookingId}</strong>.</p>

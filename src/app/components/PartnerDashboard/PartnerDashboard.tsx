@@ -19,6 +19,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import BusinessPlannerPanel from "./BusinessPlannerPanel";
 
 type ChannelFilter = PartnerSegmentId;
 
@@ -105,6 +106,8 @@ export default function PartnerDashboard() {
         title="Partner Applications"
         subtitle="Dealer, distributor and franchise forms land here. Approve, reject and contact from one desk."
       />
+
+      <BusinessPlannerPanel />
 
       <DashboardActions
         filename={sheetName}
