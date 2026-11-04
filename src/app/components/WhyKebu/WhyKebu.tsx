@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowRight, HeartHandshake, Leaf, MapPinned, ShieldCheck } from "lucide-react";
 import { BRAND } from "@/lib/brandMedia";
+import { HELPDESK_PHONE_DISPLAY } from "@/lib/contact";
 import HomeImg from "../HomeMedia/HomeImg";
 
 const features = [
@@ -24,7 +25,7 @@ const features = [
   {
     icon: HeartHandshake,
     title: "24×7 rider helpdesk",
-    text: "helpdesk@kebuone.in · +91 8726006519 · Rider complaint ticket under payment.",
+    text: `helpdesk@kebuone.in · ${HELPDESK_PHONE_DISPLAY} · Rider complaint ticket under payment.`,
   },
 ];
 
