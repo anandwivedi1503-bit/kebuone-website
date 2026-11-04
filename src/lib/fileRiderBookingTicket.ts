@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/mongodb";
 import { nextSeqId } from "@/lib/nextSeqId";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { firebaseUserOwnsRider, type VerifiedFirebaseUser } from "@/lib/requestAuth";
+import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
 import { writeAudit } from "@/lib/writeAudit";
 import { findBookingRider } from "@/lib/findBookingRider";
 import Booking from "@/models/Booking";
@@ -108,6 +109,10 @@ export async function fileRiderBookingTicket(params: {
     bookingId,
     detail: category,
   });
+
+  if (category === "REFUND_REQUEST") {
+    await queueDepositRefundIfEligible(booking);
+  }
 
   return { ok: true as const, ticketId: String(ticket.ticketId), category };
 }

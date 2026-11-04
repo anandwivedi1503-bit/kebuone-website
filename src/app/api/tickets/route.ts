@@ -24,6 +24,7 @@ import {
   scopedBookingIds,
 } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
+import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
 import Booking from "@/models/Booking";
 import { findBookingRider } from "@/lib/findBookingRider";
 import Ticket from "@/models/Ticket";
@@ -368,6 +369,10 @@ export async function POST(req: Request) {
       bookingId,
       detail: category,
     });
+
+    if (category === "REFUND_REQUEST") {
+      await queueDepositRefundIfEligible(booking);
+    }
 
     return NextResponse.json(
       {
