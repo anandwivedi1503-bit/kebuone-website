@@ -49,7 +49,7 @@ function PosterArt({
         </div>
       </header>
 
-      <div className="evuddy-welcome-poster__zypp">
+      <div className="evuddy-welcome-poster__offers">
         <div className="evuddy-welcome-poster__panel evuddy-welcome-poster__panel--green">
           <p className="evuddy-welcome-poster__stat">
             <span>{left.prefix}</span>
@@ -69,16 +69,17 @@ function PosterArt({
         <span className="evuddy-welcome-poster__plus" aria-hidden>
           +
         </span>
-        <div className="evuddy-welcome-poster__scooter">
-          <Image
-            src={YELLOW_SCOOTER_CUTOUT}
-            alt="EVUDDY yellow electric scooter"
-            width={520}
-            height={390}
-            className="h-full w-full object-contain object-bottom"
-            priority
-          />
-        </div>
+      </div>
+
+      <div className="evuddy-welcome-poster__scooter-strip">
+        <Image
+          src={YELLOW_SCOOTER_CUTOUT}
+          alt="EVUDDY yellow electric scooter"
+          width={520}
+          height={390}
+          className="evuddy-welcome-poster__scooter-img"
+          priority
+        />
       </div>
 
       <div className="evuddy-welcome-poster__copy">

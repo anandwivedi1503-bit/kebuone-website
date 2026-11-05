@@ -1,6 +1,6 @@
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 
-/** Premium Diwali poster — Zypp-style dual offer, EVUDDY catalog facts only. */
+/** Diwali modal poster — EVUDDY catalog rates only. */
 export const FESTIVE_POSTER = {
   badge: "Diwali Dhamaka",
   badgeHi: "शुभ Deepawali",
