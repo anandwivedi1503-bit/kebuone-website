@@ -210,7 +210,10 @@
 }
 
 .evuddy-welcome-poster__prop--crackers img {
-  object-position: 85% center;
+  object-fit: cover;
+  object-position: 58% 42%;
+  transform: scale(1.65);
+  transform-origin: center;
 }
 
 .evuddy-welcome-poster__prop span {
@@ -295,33 +298,11 @@
   border-radius: 0 14px 0 0;
 }
 
-.evuddy-welcome-poster__stat-bg {
-  position: absolute;
-  top: 0.35rem;
-  font-size: clamp(3.5rem, 14vw, 5rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.06em;
-  pointer-events: none;
-  user-select: none;
-  opacity: 0.2;
-}
-
-.evuddy-welcome-poster__panel--green .evuddy-welcome-poster__stat-bg {
-  left: 0.25rem;
-  color: #fff;
-}
-
-.evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__stat-bg {
-  right: 0.25rem;
-  color: #78350f;
-}
-
 .evuddy-welcome-poster__offer {
   position: relative;
   z-index: 1;
-  margin-top: 2.5rem;
   max-width: 100%;
+  padding-top: 0.25rem;
 }
 
 .evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__offer {
@@ -530,10 +511,6 @@
 }
 
 @media (max-width: 420px) {
-  .evuddy-welcome-poster__offer {
-    margin-top: 2rem;
-  }
-
   .evuddy-welcome-poster__offer-line2 {
     font-size: 9px;
   }

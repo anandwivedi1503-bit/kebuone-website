@@ -37,9 +37,6 @@ function OfferPanel({
     <div
       className={`evuddy-welcome-poster__panel evuddy-welcome-poster__panel--${side === "green" ? "green" : "gold"}`}
     >
-      <span className="evuddy-welcome-poster__stat-bg" aria-hidden>
-        {stat}
-      </span>
       <div className="evuddy-welcome-poster__offer">
         <div className="evuddy-welcome-poster__offer-stat">
           <span className="evuddy-welcome-poster__offer-prefix">{prefix}</span>
