@@ -27,7 +27,13 @@ const [googleMapsApiKey, setGoogleMapsApiKey] = useState(
 const mapRef = useRef<HTMLDivElement | null>(null);
 const googleMapRef = useRef<any>(null);
 const markerRefs = useRef<any[]>([]);
+const mapBoundsInitialized = useRef(false);
 const [mapStatus, setMapStatus] = useState("");
+const [focusTarget, setFocusTarget] = useState<{
+  lat: number;
+  lng: number;
+  label: string;
+} | null>(null);
 
 useEffect(() => {
   const loadMapsKey = async () => {
@@ -254,15 +260,24 @@ useEffect(() => {
       });
 
     if (validLocations.length + riderSafety.length > 1) {
-      googleMapRef.current.fitBounds(bounds);
-    } else {
+      if (!mapBoundsInitialized.current) {
+        googleMapRef.current.fitBounds(bounds);
+        mapBoundsInitialized.current = true;
+      }
+    } else if (!mapBoundsInitialized.current) {
       googleMapRef.current.setCenter(center);
       googleMapRef.current.setZoom(15);
+      mapBoundsInitialized.current = true;
+    }
+
+    if (focusTarget) {
+      googleMapRef.current.setCenter({ lat: focusTarget.lat, lng: focusTarget.lng });
+      googleMapRef.current.setZoom(16);
     }
   };
 
   renderMap();
-}, [iotData, riderSafety, googleMapsApiKey]);
+}, [iotData, riderSafety, googleMapsApiKey, focusTarget]);
 
 
 
@@ -397,7 +412,7 @@ subtitle="Live IoT Feed"
 
 <thead>
 
-<tr className="bg-pink-50 border-b border-pink-100">
+<tr className="bg-[#18B368]/8 border-b border-[#18B368]/15">
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Vehicle ID
@@ -471,10 +486,7 @@ iotData.map((iot)=>(
 <tr
 key={iot._id}
 className="
-border-b
-border-pink-50
-hover:bg-pink-50/40
-transition
+border-b border-[#18B368]/10 hover:bg-[#18B368]/5 transition
 "
 >
 
@@ -643,7 +655,7 @@ subtitle="Real-time geofence events"
 
 <thead>
 
-<tr className="bg-pink-50 border-b border-pink-100">
+<tr className="bg-[#18B368]/8 border-b border-[#18B368]/15">
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Alert ID
@@ -699,10 +711,7 @@ iotData
 <tr
 key={iot._id}
 className="
-border-b
-border-pink-50
-hover:bg-pink-50/40
-transition
+border-b border-[#18B368]/10 hover:bg-[#18B368]/5 transition
 "
 >
 
@@ -758,7 +767,47 @@ title="Vehicle Map"
 subtitle="Interactive live fleet tracking"
 >
 
-<div className="relative overflow-hidden rounded-[28px] border border-pink-100 bg-gray-50">
+{riderSafety.filter((r) => r.hasPhoneGps && r.riderPhoneLat && r.riderPhoneLng).length > 0 ? (
+  <div className="mb-4 flex flex-wrap gap-2">
+    <p className="w-full text-xs font-bold uppercase tracking-widest text-slate-500">
+      Active rider phone GPS — click to focus map
+    </p>
+    {riderSafety
+      .filter((r) => r.hasPhoneGps && r.riderPhoneLat && r.riderPhoneLng)
+      .map((r) => (
+        <button
+          key={String(r.bookingId)}
+          type="button"
+          onClick={() =>
+            setFocusTarget({
+              lat: Number(r.riderPhoneLat),
+              lng: Number(r.riderPhoneLng),
+              label: String(r.bookingId),
+            })
+          }
+          className={`rounded-full px-4 py-2 text-xs font-bold ${
+            r.alertLevel === "siren"
+              ? "bg-gradient-to-r from-rose-600 to-orange-500 text-white"
+              : "border border-sky-200 bg-sky-50 text-sky-900"
+          }`}
+        >
+          {r.bookingId} · {r.userName || "Rider"}
+        </button>
+      ))}
+    <button
+      type="button"
+      onClick={() => {
+        setFocusTarget(null);
+        mapBoundsInitialized.current = false;
+      }}
+      className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600"
+    >
+      Reset map zoom
+    </button>
+  </div>
+) : null}
+
+<div className="relative overflow-hidden rounded-[28px] border border-[#18B368]/15 bg-gray-50">
   <div
     ref={mapRef}
     className="h-[520px] w-full"

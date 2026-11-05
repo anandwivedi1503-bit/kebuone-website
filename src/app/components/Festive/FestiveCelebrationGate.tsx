@@ -1,18 +1,25 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { getActiveFestiveCampaign } from "@/lib/festiveCalendar";
-
-const FestiveCelebration = dynamic(() => import("./FestiveCelebration"), { ssr: false });
+import DiwaliCelebration from "../Diwali/DiwaliCelebration";
+import FestiveThemeExperience from "./FestiveThemeExperience";
 
 function isOpsPath(pathname: string) {
   return pathname.startsWith("/dashboard") || pathname === "/admin-login";
 }
 
-/** Seasonal marketing layer (IST calendar) on public pages only. */
+/** Calendar-driven festive layer (Diwali = full lights; other festivals = themed site + modal). */
 export default function FestiveCelebrationGate() {
   const pathname = usePathname() || "";
-  if (!getActiveFestiveCampaign() || isOpsPath(pathname)) return null;
-  return <FestiveCelebration />;
+  if (isOpsPath(pathname)) return null;
+
+  const campaign = getActiveFestiveCampaign();
+  if (!campaign) return null;
+
+  if (campaign.theme === "diwali") {
+    return <DiwaliCelebration />;
+  }
+
+  return <FestiveThemeExperience campaign={campaign} />;
 }

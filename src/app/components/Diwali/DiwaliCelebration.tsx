@@ -183,6 +183,7 @@ export default function DiwaliCelebration() {
   useEffect(() => {
     if (!isDiwaliSeason()) return;
     document.documentElement.dataset.evuddyDiwali = "1";
+    document.documentElement.dataset.evuddyFestive = "diwali";
     try {
       const seen = sessionStorage.getItem(DIWALI_SESSION_KEY);
       if (!seen) setShowWelcome(true);
@@ -191,6 +192,7 @@ export default function DiwaliCelebration() {
     }
     return () => {
       delete document.documentElement.dataset.evuddyDiwali;
+      delete document.documentElement.dataset.evuddyFestive;
     };
   }, []);
 

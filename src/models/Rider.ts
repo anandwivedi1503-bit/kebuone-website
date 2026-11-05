@@ -335,6 +335,13 @@ default: "",
       default: "",
     },
 
+    helpdeskNotes: {
+      type: String,
+      trim: true,
+      maxlength: 2000,
+      default: "",
+    },
+
     // References
     reference1Name: {
       type: String,

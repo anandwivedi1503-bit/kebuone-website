@@ -535,6 +535,19 @@ remarks: {
   default: "",
 },
 
+helpdeskNotes: {
+  type: String,
+  trim: true,
+  maxlength: 2000,
+  default: "",
+},
+
+cashHandoverPhotoUrl: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
 /** Rider app phone GPS (safety) — visible on admin IoT / CRM. */
 riderPhoneLat: {
   type: Number,

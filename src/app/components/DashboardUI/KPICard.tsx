@@ -60,7 +60,7 @@ export default function KPICard({
     },
   };
 
-  const className = `group relative overflow-hidden rounded-2xl border bg-white p-4 text-left shadow-[0_8px_24px_rgba(10,17,52,0.04)] transition duration-200 hover:-translate-y-0.5 sm:p-5 ${
+  const className = `group relative overflow-hidden rounded-2xl border bg-white/80 p-4 text-left shadow-[0_8px_32px_rgba(10,17,52,0.06)] backdrop-blur-md transition duration-200 hover:-translate-y-0.5 sm:p-5 ${
     selected
       ? "border-[#18B368] ring-2 ring-[#18B368]/30"
       : `border-slate-200/80 ${colors[color].hover}`

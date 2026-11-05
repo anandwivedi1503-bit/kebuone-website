@@ -207,6 +207,27 @@ export async function PATCH(
       return hubForbiddenResponse();
     }
 
+    const deskOnlyUpdate =
+      body &&
+      typeof body === "object" &&
+      Object.keys(body as object).every((key) =>
+        ["helpdeskNotes", "cashHandoverPhotoUrl"].includes(key)
+      );
+
+    if (deskOnlyUpdate) {
+      if (body.helpdeskNotes !== undefined) {
+        booking.helpdeskNotes = clean(body.helpdeskNotes).slice(0, 2000);
+      }
+      if (body.cashHandoverPhotoUrl !== undefined) {
+        booking.cashHandoverPhotoUrl = clean(body.cashHandoverPhotoUrl);
+      }
+      await booking.save({ session });
+      await session.commitTransaction();
+      session.endSession();
+      session = null;
+      return NextResponse.json({ success: true, data: booking });
+    }
+
     if (booking.rideStatus === "Completed") {
       await session.abortTransaction();
       session.endSession();
@@ -246,6 +267,8 @@ export async function PATCH(
     const paymentStatus = body.paymentStatus;
     const rideStatus = body.rideStatus;
     const remarks = body.remarks;
+    const helpdeskNotes = body.helpdeskNotes;
+    const cashHandoverPhotoUrl = body.cashHandoverPhotoUrl;
 
     if (receivedAmount !== undefined || paymentStatus !== undefined) {
       await session.abortTransaction();
@@ -696,6 +719,14 @@ export async function PATCH(
 
     if (remarks !== undefined) {
       booking.remarks = clean(remarks);
+    }
+
+    if (helpdeskNotes !== undefined) {
+      booking.helpdeskNotes = clean(helpdeskNotes).slice(0, 2000);
+    }
+
+    if (cashHandoverPhotoUrl !== undefined) {
+      booking.cashHandoverPhotoUrl = clean(cashHandoverPhotoUrl);
     }
 
     if (paymentMode !== undefined) {

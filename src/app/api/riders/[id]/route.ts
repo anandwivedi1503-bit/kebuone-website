@@ -704,6 +704,12 @@ export async function PATCH(
     const auditActor =
       "Admin";
 
+    if (body.helpdeskNotes !== undefined) {
+      rider.helpdeskNotes = String(body.helpdeskNotes || "")
+        .trim()
+        .slice(0, 2000);
+    }
+
     /* =====================================================
        UPDATE APPROVAL STATUS
     ===================================================== */

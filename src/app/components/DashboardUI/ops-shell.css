@@ -5,6 +5,9 @@
   --ev-surface: #ffffff;
   --ev-border: rgba(15, 23, 42, 0.08);
   --ev-glow: rgba(24, 179, 104, 0.35);
+  --ev-violet: #7c3aed;
+  --ev-sky: #0ea5e9;
+  --ev-amber: #f59e0b;
   color: var(--ev-navy);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -123,11 +126,18 @@
 }
 
 .ops-shell .ops-glass-card {
-  border: 1px solid rgba(24, 179, 104, 0.12);
+  border: 1px solid rgba(124, 58, 237, 0.08);
   border-radius: 1.25rem;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 12px 40px rgba(10, 17, 52, 0.06);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(240, 253, 250, 0.75) 45%,
+    rgba(239, 246, 255, 0.7) 100%
+  );
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.8) inset,
+    0 16px 48px rgba(10, 17, 52, 0.08);
   transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
 
