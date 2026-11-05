@@ -15,6 +15,7 @@ import {
   RIDER_SESSION_EVENT,
 } from "@/lib/riderPlanGate";
 import RiderAccountMenu from "@/app/components/RiderSession/RiderAccountMenu";
+import FestiveLogo from "@/app/components/Festive/FestiveLogo";
 import SessionExit from "@/app/components/SessionExit/SessionExit";
 import NavbarErrorBoundary from "./NavbarErrorBoundary";
 import { useEffect, useState } from "react";
@@ -111,7 +112,7 @@ function NavbarInner() {
     >
       <div className="nav-shell">
         <Link href="/" className="nav-logo">
-          <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" />
+          <FestiveLogo src="/Evuddy-logo-dark-E.png" alt="EVUDDY" />
         </Link>
 
         <div className="nav-desktop-row min-w-0 flex-1 items-center justify-center gap-[clamp(0.4rem,1vw,1.5rem)]">

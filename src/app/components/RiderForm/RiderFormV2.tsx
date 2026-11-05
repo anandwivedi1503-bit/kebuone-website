@@ -38,6 +38,7 @@ export default function RiderFormV2() {
 const [phone, setPhone] = useState("");
 const [email, setEmail] = useState("");
 const [comingThrough, setComingThrough] = useState<string>(DIRECT_THROUGH);
+const [pickupCityAck, setPickupCityAck] = useState<"" | "LUCKNOW" | "OTHER">("");
 
 const [otp, setOtp] = useState("");
 const [otpSent, setOtpSent] = useState(false);
@@ -127,6 +128,7 @@ useEffect(() => {
   if (draft.phone) setPhone(draft.phone);
   if (draft.email) setEmail(draft.email);
   if (draft.comingThrough) setComingThrough(draft.comingThrough);
+  if (draft.pickupCityAck) setPickupCityAck(draft.pickupCityAck);
   if (draft.step) setStep(draft.step);
 }, []);
 
@@ -142,9 +144,10 @@ useEffect(() => {
     phone,
     email,
     comingThrough,
+    pickupCityAck,
     savedAt: Date.now(),
   });
-}, [step, fullName, phone, email, comingThrough, submitted]);
+}, [step, fullName, phone, email, comingThrough, pickupCityAck, submitted]);
 
 useEffect(() => {
   if (submitted) clearRegistrationDraft();
@@ -605,6 +608,7 @@ profilePhotoUrl: profileUrl,
         facebookId,
 
         comingThrough,
+        pickupCityAck,
 
         reference1Name,
         reference1Phone,
@@ -998,6 +1002,11 @@ const validateStep = () => {
 
     if (!emailRegex.test(validEmail)) {
       setError("Enter a valid email address");
+      return false;
+    }
+
+    if (pickupCityAck !== "LUCKNOW" && pickupCityAck !== "OTHER") {
+      setError("Please confirm whether you are in Lucknow or another city");
       return false;
     }
 
@@ -2015,6 +2024,50 @@ before:to-[#18B368]
                         setError("");
                       }}
                     />
+                    <fieldset className="rounded-2xl border border-[#18B368]/25 bg-[#F4FAF7] px-4 py-4">
+                      <legend className="px-1 text-sm font-semibold text-[#0F172A]">
+                        Service city (required)
+                      </legend>
+                      <p className="mt-1 text-xs leading-5 text-[#5C635E]">
+                        EVUDDY operates in <strong>Lucknow only</strong> today. Pick the option that
+                        matches where you will pick up the scooter.
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent bg-white px-3 py-3 has-[:checked]:border-[#18B368]">
+                          <input
+                            type="radio"
+                            name="pickupCityAck"
+                            value="LUCKNOW"
+                            checked={pickupCityAck === "LUCKNOW"}
+                            onChange={() => {
+                              setPickupCityAck("LUCKNOW");
+                              setError("");
+                            }}
+                            className="mt-1"
+                          />
+                          <span className="text-sm text-[#0F172A]">
+                            I am in <strong>Lucknow</strong> (U.P.) and will use a Lucknow hub
+                          </span>
+                        </label>
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent bg-white px-3 py-3 has-[:checked]:border-[#18B368]">
+                          <input
+                            type="radio"
+                            name="pickupCityAck"
+                            value="OTHER"
+                            checked={pickupCityAck === "OTHER"}
+                            onChange={() => {
+                              setPickupCityAck("OTHER");
+                              setError("");
+                            }}
+                            className="mt-1"
+                          />
+                          <span className="text-sm text-[#0F172A]">
+                            I am in <strong>another city or state</strong> (register now; Book EV
+                            when we launch there)
+                          </span>
+                        </label>
+                      </div>
+                    </fieldset>
                   </div>
                 </>
               )}

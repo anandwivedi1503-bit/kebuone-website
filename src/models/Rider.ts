@@ -328,6 +328,13 @@ default: "",
       default: "Direct / EVUDDY",
     },
 
+    /** Rider confirmed service area at registration (Lucknow-only ops). */
+    pickupCityAck: {
+      type: String,
+      enum: ["LUCKNOW", "OTHER", ""],
+      default: "",
+    },
+
     // References
     reference1Name: {
       type: String,

@@ -418,7 +418,7 @@ focus:outline-none
 
 <thead>
 
-<tr className="bg-pink-50 border-b border-pink-100">
+<tr className="bg-[#18B368]/8 border-b border-[#18B368]/15">
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Ticket ID
@@ -510,9 +510,7 @@ key={ticket._id}
 onClick={()=>setSelectedTicket(ticket)}
 className="
 cursor-pointer
-border-b
-border-pink-50
-hover:bg-pink-50/40
+border-b border-[#18B368]/10 hover:bg-[#18B368]/5
 transition
 "
 >
@@ -701,7 +699,7 @@ Delete
     <button
       type="button"
       onClick={() => setTicketPages((pages) => pages + 1)}
-      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+      className="rounded-xl border border-[#18B368]/20 bg-white/90 px-6 py-3 font-bold text-[#0A1134] shadow-sm backdrop-blur-md hover:bg-[#18B368]/5"
     >
       Load more
     </button>
@@ -732,7 +730,7 @@ subtitle="Selected Ticket"
 
 <div className="grid md:grid-cols-2 gap-8">
 
-<div className="rounded-3xl border border-pink-100 bg-pink-50/40 p-8">
+<div className="rounded-3xl border border-[#18B368]/15 bg-white/70 p-8 shadow-sm backdrop-blur-md">
 
 <p className="text-sm font-semibold text-gray-500 mb-3">
 Description
@@ -744,7 +742,7 @@ Description
 
 </div>
 
-<div className="rounded-3xl border border-green-100 bg-green-50/40 p-8">
+<div className="rounded-3xl border border-[#18B368]/20 bg-[#18B368]/5 p-8 shadow-sm backdrop-blur-md">
 
 <p className="text-sm font-semibold text-gray-500 mb-3">
 Admin remarks (rider sees this on Book EV)
@@ -884,7 +882,7 @@ subtitle="Live Refund Records"
 
 <thead>
 
-<tr className="bg-pink-50 border-b border-pink-100">
+<tr className="bg-[#18B368]/8 border-b border-[#18B368]/15">
 
 <th className="px-6 py-5 text-left font-bold text-[#0A1134]">
 Refund ID
@@ -917,9 +915,7 @@ Status
 <tr
 key={refund._id}
 className="
-border-b
-border-pink-50
-hover:bg-pink-50/40
+border-b border-[#18B368]/10 hover:bg-[#18B368]/5
 transition
 "
 >
@@ -994,10 +990,10 @@ max-w-3xl
 max-h-[90vh]
 overflow-y-auto
 rounded-[32px]
-bg-white
+ops-glass-card
 border
-border-slate-200
-shadow-[0_40px_120px_rgba(0,0,0,0.25)]
+border-[#18B368]/20
+shadow-[0_40px_120px_rgba(10,17,52,0.22)]
 p-6
 md:p-8
 "

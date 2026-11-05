@@ -1,9 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { startOpsPoll } from "@/lib/opsPoll";
 
 type HelpTicket = {
   ticketId?: string;
+  bookingId?: string;
   category?: string;
   status?: string;
   description?: string;
@@ -56,6 +58,9 @@ export default function RiderComplaintTicket({
 
   useEffect(() => {
     void loadTickets();
+    return startOpsPoll(() => {
+      void loadTickets();
+    });
   }, [loadTickets]);
 
   const sendHelpTicket = async () => {
@@ -86,6 +91,7 @@ export default function RiderComplaintTicket({
             500
           ),
           firebaseIdToken: token,
+          ticketSource: "Book EV Web",
         }),
       });
       const data = await res.json();
@@ -162,7 +168,10 @@ export default function RiderComplaintTicket({
       ) : null}
       {helpTickets.length ? (
         <div className="mt-4 space-y-2">
-          {helpTickets.slice(0, 5).map((ticket) => (
+          {helpTickets
+            .filter((ticket) => !bookingId || ticket.bookingId === bookingId)
+            .slice(0, 5)
+            .map((ticket) => (
             <div
               key={String(ticket.ticketId)}
               className="rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 text-left text-sm"
@@ -172,10 +181,14 @@ export default function RiderComplaintTicket({
                 {String(ticket.category || "").replace(/_/g, " ")}
               </p>
               <p className="mt-1 text-slate-600">{ticket.description}</p>
-              {ticket.adminRemarks ? (
-                <p className="mt-2 text-emerald-800">Staff: {ticket.adminRemarks}</p>
+              {ticket.adminRemarks?.trim() ? (
+                <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 font-medium text-emerald-900">
+                  Support reply: {ticket.adminRemarks}
+                </p>
               ) : ticket.status === "OPEN" || ticket.status === "IN-PROGRESS" ? (
                 <p className="mt-2 text-amber-800">Hub staff are working on this.</p>
+              ) : ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? (
+                <p className="mt-2 text-slate-500">Resolved — check SMS or call helpdesk if you need more help.</p>
               ) : null}
             </div>
           ))}

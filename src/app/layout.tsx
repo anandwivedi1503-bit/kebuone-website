@@ -2,7 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
 import "./globals.css";
 import EvuddyAssistantGate from "./components/EvuddyAssistant/EvuddyAssistantGate";
-import DiwaliCelebrationGate from "./components/Diwali/DiwaliCelebrationGate";
+import FestiveCelebrationGate from "./components/Festive/FestiveCelebrationGate";
+import "./components/Festive/festive-themes.css";
 
 const display = Cormorant_Garamond({
   variable: "--font-display",
@@ -58,7 +59,7 @@ export default function RootLayout({
 >
       <body className={`${display.variable} ${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} min-h-full flex flex-col font-sans`}>
         {children}
-        <DiwaliCelebrationGate />
+        <FestiveCelebrationGate />
         <EvuddyAssistantGate />
       </body>
     </html>

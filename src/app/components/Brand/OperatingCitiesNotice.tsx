@@ -34,7 +34,7 @@ export default function OperatingCitiesNotice({ compact = false, className = "" 
         role="status"
       >
         <MapPin className="mr-1 inline h-3.5 w-3.5 text-[#18B368]" aria-hidden />
-        Live now: <strong className="text-[#0A1134]">{label}</strong>. More cities as we expand.
+        Operating in <strong className="text-[#0A1134]">{label} only</strong> today. More cities soon.
       </p>
     );
   }
@@ -48,9 +48,9 @@ export default function OperatingCitiesNotice({ compact = false, className = "" 
         Where we operate
       </p>
       <p className="mt-1 text-sm leading-6 text-[#0A1134] sm:text-[15px]">
-        EVUDDY bookings and yard pickup are live in{" "}
-        <strong>{label}</strong> today. Registering from another city is fine — you can complete KYC,
-        and Book EV will open when your city goes live on the map.
+        EVUDDY is <strong>operating only in {label}</strong> right now — bookings, hub pickup, and
+        on-road support are limited to this city until we expand. You may still register from other
+        places; KYC stays on file and Book EV unlocks when your city goes live on the map.
       </p>
     </div>
   );

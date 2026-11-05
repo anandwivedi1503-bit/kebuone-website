@@ -129,6 +129,7 @@ export async function POST(req: Request) {
       ? normalizeStatus(body.status || "OPEN")
       : "OPEN";
     const assignedTo = clean(body.assignedTo || "Admin");
+    const clientTicketSource = clean(body.ticketSource).slice(0, 40);
 
     const errors: string[] = [];
 
@@ -346,7 +347,11 @@ export async function POST(req: Request) {
           priority,
           status,
           assignedTo,
-          ticketSource: isAdminRequest ? "Admin Panel" : "Mobile App",
+          ticketSource: isAdminRequest
+            ? "Admin Panel"
+            : clientTicketSource === "Book EV Web"
+              ? "Book EV Web"
+              : "Mobile App",
           refundRequired: category === "REFUND_REQUEST",
           adminRemarks: "",
         },
