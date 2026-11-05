@@ -52,12 +52,6 @@ html[data-evuddy-festive] .page-under-nav {
   padding-top: calc(var(--evuddy-nav-block) + var(--evuddy-festive-band) + 0.5rem);
 }
 
-html[data-evuddy-diwali="1"] .nav-logo {
-  height: 3.85rem;
-  width: min(200px, 42vw);
-  max-width: 200px;
-}
-
 /* Fixed festive strip sits strictly below the navbar — never over the logo/links */
 .evuddy-festive-below-nav {
   position: fixed;
