@@ -18,9 +18,12 @@
 .evuddy-welcome-poster-modal-frame {
   position: relative;
   width: min(100%, 640px);
-  max-height: min(90svh, 680px);
   overflow: hidden;
   border-radius: 18px;
+}
+
+.evuddy-welcome-poster-modal-scale {
+  width: 100%;
 }
 
 .evuddy-welcome-poster__close {
@@ -118,28 +121,28 @@
   height: 0.35rem;
 }
 
-/* Zypp-style split + scooter (one block) */
-.evuddy-welcome-poster__zypp {
+/* Dual offer row — text only; scooter sits in its own row below */
+.evuddy-welcome-poster__offers {
   position: relative;
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: clamp(132px, 22svh, 168px);
-  overflow: hidden;
+  min-height: 7.25rem;
 }
 
 .evuddy-welcome-poster__panel {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 0.65rem 0.75rem 4.25rem;
+  padding: 0.65rem 0.75rem;
   z-index: 1;
-  overflow: visible;
+  min-width: 0;
 }
 
 .evuddy-welcome-poster__panel--green {
   background: linear-gradient(165deg, #134e33, var(--ev-green));
   color: #ecfdf5;
+  padding-right: 1.4rem;
 }
 
 .evuddy-welcome-poster__panel--gold {
@@ -147,6 +150,7 @@
   color: #422006;
   text-align: right;
   align-items: flex-end;
+  padding-left: 1.4rem;
 }
 
 .evuddy-welcome-poster__stat {
@@ -181,7 +185,7 @@
 .evuddy-welcome-poster__plus {
   position: absolute;
   left: 50%;
-  top: 38%;
+  top: 50%;
   z-index: 3;
   transform: translate(-50%, -50%);
   display: flex;
@@ -197,15 +201,23 @@
   box-shadow: 0 0 0 3px var(--ev-cream);
 }
 
-.evuddy-welcome-poster__scooter {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  z-index: 2;
-  transform: translateX(-50%);
-  width: min(72%, 240px);
-  height: clamp(72px, 14svh, 96px);
-  pointer-events: none;
+.evuddy-welcome-poster__scooter-strip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.35rem 0.75rem 0.5rem;
+  background: var(--ev-cream);
+}
+
+.evuddy-welcome-poster__scooter-img {
+  display: block;
+  width: auto;
+  max-width: min(92%, 280px);
+  height: auto;
+  max-height: 7.5rem;
+  object-fit: contain;
+  object-position: center bottom;
 }
 
 .evuddy-welcome-poster__copy {

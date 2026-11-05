@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 import { FESTIVE_POSTER } from "@/lib/festivePosterCopy";
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
+import FestivePosterModalFrame from "./FestivePosterModalFrame";
 import { PosterStringLights } from "./FestivePosterDecor";
 import "./festive-welcome-poster.css";
 
@@ -48,7 +49,7 @@ function PosterArt({
         </div>
       </header>
 
-      <div className="evuddy-welcome-poster__zypp">
+      <div className="evuddy-welcome-poster__offers">
         <div className="evuddy-welcome-poster__panel evuddy-welcome-poster__panel--green">
           <p className="evuddy-welcome-poster__stat">
             <span>{left.prefix}</span>
@@ -68,16 +69,17 @@ function PosterArt({
         <span className="evuddy-welcome-poster__plus" aria-hidden>
           +
         </span>
-        <div className="evuddy-welcome-poster__scooter">
-          <Image
-            src={YELLOW_SCOOTER_CUTOUT}
-            alt="EVUDDY yellow electric scooter"
-            width={520}
-            height={390}
-            className="h-full w-full object-contain object-bottom"
-            priority
-          />
-        </div>
+      </div>
+
+      <div className="evuddy-welcome-poster__scooter-strip">
+        <Image
+          src={YELLOW_SCOOTER_CUTOUT}
+          alt="EVUDDY yellow electric scooter"
+          width={520}
+          height={390}
+          className="evuddy-welcome-poster__scooter-img"
+          priority
+        />
       </div>
 
       <div className="evuddy-welcome-poster__copy">
@@ -130,20 +132,24 @@ export default function EvuddyFestiveWelcomePoster({
       aria-modal="true"
       aria-labelledby="evuddy-festive-poster-title"
     >
-      <div className="evuddy-welcome-poster-modal-frame">
-        <button
-          type="button"
-          onClick={onClose}
-          className="evuddy-welcome-poster__close"
-          aria-label="Close festive poster"
-        >
-          <X size={18} />
-        </button>
+      <FestivePosterModalFrame
+        remeasureKey={`${title}|${body}`}
+        closeButton={
+          <button
+            type="button"
+            onClick={onClose}
+            className="evuddy-welcome-poster__close"
+            aria-label="Close festive poster"
+          >
+            <X size={18} />
+          </button>
+        }
+      >
         <PosterArt title={title} body={body} onClose={onClose} showActions />
         <p id="evuddy-festive-poster-title" className="sr-only">
           {title}
         </p>
-      </div>
+      </FestivePosterModalFrame>
     </div>
   );
 }
