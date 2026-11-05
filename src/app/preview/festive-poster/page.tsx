@@ -20,7 +20,7 @@ export default function FestivePosterPreviewPage() {
         <p className="text-[11px] font-bold tracking-[0.24em] text-[#F4C430] uppercase">Internal preview</p>
         <h1 className="font-display mt-3 text-2xl font-semibold text-white">Diwali welcome poster</h1>
         <p className="mt-2 text-sm text-white/70">
-          This is how the popup appears on the live site during Diwali season (first visit per session).
+          Zypp-style dual offer: ₹250 daily rent + ₹300 Rent to Own — real catalog rates, Diwali skin.
         </p>
       </div>
 

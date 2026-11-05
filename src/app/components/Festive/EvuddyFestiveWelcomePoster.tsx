@@ -10,8 +10,8 @@ import "./festive-welcome-poster.css";
 
 function MiniDiya() {
   return (
-    <span className="inline-block h-3 w-4 rounded-b-full bg-gradient-to-b from-[#FF9933] to-[#C2410C]" aria-hidden>
-      <span className="relative -top-2.5 mx-auto block h-2 w-1.5 rounded-full bg-gradient-to-t from-[#F97316] to-[#FDE047] shadow-[0_0_8px_#FBBF24]" />
+    <span className="inline-block h-2.5 w-3.5 rounded-b-full bg-gradient-to-b from-[#FF9933] to-[#C2410C]" aria-hidden>
+      <span className="relative -top-2 mx-auto block h-1.5 w-1 rounded-full bg-gradient-to-t from-[#F97316] to-[#FDE047] shadow-[0_0_6px_#FBBF24]" />
     </span>
   );
 }
@@ -25,58 +25,97 @@ export type EvuddyFestiveWelcomePosterProps = {
   asModal?: boolean;
 };
 
-function PosterArt({ title, body }: { title: string; body: string }) {
+function OfferPanel({
+  side,
+  stat,
+  prefix,
+  line1,
+  line2,
+}: {
+  side: "green" | "gold";
+  stat: string;
+  prefix: string;
+  line1: string;
+  line2: string;
+}) {
   return (
-    <article className="evuddy-welcome-poster w-full max-w-2xl">
-      <div className="evuddy-welcome-poster__flatlay" aria-hidden>
-        <img src="/brand/diwali-sweets-flatlay.jpg" alt="" />
-      </div>
-
-      <div className="evuddy-welcome-poster__logo-row">
-        <div className="evuddy-welcome-poster__logo-chip">
-          <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" width={220} height={48} />
+    <div
+      className={`evuddy-welcome-poster__panel evuddy-welcome-poster__panel--${side === "green" ? "green" : "gold"}`}
+    >
+      <span className="evuddy-welcome-poster__stat-bg" aria-hidden>
+        {stat}
+      </span>
+      <div className="evuddy-welcome-poster__offer">
+        <div className="evuddy-welcome-poster__offer-stat">
+          <span className="evuddy-welcome-poster__offer-prefix">{prefix}</span>
+          <span>{stat}</span>
         </div>
-        <p className="text-center text-[11px] font-semibold tracking-[0.2em] text-[#78716C] uppercase">
-          {FESTIVE_POSTER.tagline}
-        </p>
+        <p className="evuddy-welcome-poster__offer-line1">{line1}</p>
+        <p className="evuddy-welcome-poster__offer-line2">{line2}</p>
+      </div>
+    </div>
+  );
+}
+
+function PosterArt({ title, body }: { title: string; body: string }) {
+  const { left, right } = FESTIVE_POSTER;
+
+  return (
+    <article className="evuddy-welcome-poster w-full max-w-3xl">
+      <span className="evuddy-welcome-poster__rangoli evuddy-welcome-poster__rangoli--tl" aria-hidden />
+      <span className="evuddy-welcome-poster__rangoli evuddy-welcome-poster__rangoli--br" aria-hidden />
+
+      <header className="evuddy-welcome-poster__top">
+        <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" width={200} height={44} />
         <p className="evuddy-welcome-poster__badge">
           <MiniDiya />
           {FESTIVE_POSTER.badge}
-          <span className="opacity-90">·</span>
+          <span className="opacity-80">·</span>
           {FESTIVE_POSTER.badgeHi}
           <MiniDiya />
         </p>
-      </div>
+        <p className="hidden text-[9px] font-bold tracking-[0.2em] text-[#78716C] uppercase sm:block">
+          {FESTIVE_POSTER.tagline}
+        </p>
+      </header>
+      <div className="evuddy-welcome-poster__festoon" aria-hidden />
 
       <div className="evuddy-welcome-poster__split">
-        <div className="evuddy-welcome-poster__panel evuddy-welcome-poster__panel--green">
-          <p className="evuddy-welcome-poster__panel-title">{FESTIVE_POSTER.leftHeadline}</p>
-          <p className="evuddy-welcome-poster__panel-sub">{FESTIVE_POSTER.leftSub}</p>
-        </div>
+        <OfferPanel
+          side="green"
+          stat={left.stat}
+          prefix={left.prefix}
+          line1={left.line1}
+          line2={left.line2}
+        />
         <span className="evuddy-welcome-poster__plus" aria-hidden>
           +
         </span>
-        <div className="evuddy-welcome-poster__panel evuddy-welcome-poster__panel--gold">
-          <p className="evuddy-welcome-poster__panel-title">{FESTIVE_POSTER.rightHeadline}</p>
-          <p className="evuddy-welcome-poster__panel-sub">{FESTIVE_POSTER.rightSub}</p>
-        </div>
+        <OfferPanel
+          side="gold"
+          stat={right.stat}
+          prefix={right.prefix}
+          line1={right.line1}
+          line2={right.line2}
+        />
         <div className="evuddy-welcome-poster__scooter">
           <Image
             src={YELLOW_SCOOTER_CUTOUT}
             alt="EVUDDY yellow electric scooter"
-            width={640}
-            height={480}
+            width={680}
+            height={510}
             className="h-auto w-full"
             priority
           />
         </div>
       </div>
 
-      <div className="evuddy-welcome-poster__title-block">
+      <div className="evuddy-welcome-poster__message">
         <h2>{title}</h2>
         <p>{body}</p>
-        <p className="mt-2 text-[12px] font-bold tracking-[0.18em] text-[#1F6B4A] uppercase">
-          {FESTIVE_POSTER.hashtag}
+        <p className="evuddy-welcome-poster__hook">{FESTIVE_POSTER.hook}</p>
+        <p className="evuddy-welcome-poster__tag">
+          {FESTIVE_POSTER.hashtag} · {FESTIVE_POSTER.footerAction}
         </p>
       </div>
 
@@ -110,7 +149,7 @@ export default function EvuddyFestiveWelcomePoster({
 
   if (!asModal) {
     return (
-      <div className="mx-auto w-full max-w-2xl">
+      <div className="mx-auto w-full max-w-3xl">
         <PosterArt title={title} body={body} />
         {actions}
       </div>
@@ -119,12 +158,12 @@ export default function EvuddyFestiveWelcomePoster({
 
   return (
     <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-[#0A1134]/65 p-3 backdrop-blur-md sm:p-4"
+      className="fixed inset-0 z-[1200] flex items-center justify-center bg-[#0A1134]/70 p-3 backdrop-blur-md sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="evuddy-festive-poster-title"
     >
-      <div className="evuddy-welcome-poster-modal relative w-full max-w-2xl">
+      <div className="evuddy-welcome-poster-modal relative w-full max-w-3xl">
         <button
           type="button"
           onClick={onClose}
@@ -137,7 +176,7 @@ export default function EvuddyFestiveWelcomePoster({
         <div id="evuddy-festive-poster-title" className="sr-only">
           {title}
         </div>
-        <div className="rounded-b-[24px] bg-[#FFFBEB] px-1 pb-1">{actions}</div>
+        <div className="rounded-b-[20px] bg-[#FFFBEB] px-1 pb-1">{actions}</div>
       </div>
     </div>
   );
