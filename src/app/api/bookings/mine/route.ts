@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { bookingBelongsToRiderFilter } from "@/lib/findBookingRider";
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import {
+  isUnpaidReserveTimedOut,
+  reserveExpiredMessage,
+} from "@/lib/bookingReserveTimeout";
+import { cancelUnpaidPrePaymentReserve } from "@/lib/cancelUnpaidPrePaymentReserve";
 import { isRecentCompletedRide, isUnpaidGhostAfterCompleted } from "@/lib/riderCompletion";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import {
@@ -82,9 +87,20 @@ export async function GET(req: Request) {
         ? completedDoc.toObject()
         : null;
 
+    let reserveExpired = false;
+
     let activeDoc = await Booking.findOne(activeFilter)
       .select(BOOKING_PUBLIC_SELECT)
       .sort({ createdAt: -1 });
+
+    if (activeDoc && isUnpaidReserveTimedOut(activeDoc.toObject())) {
+      await cancelUnpaidPrePaymentReserve(
+        String(activeDoc.bookingId),
+        "Payment window expired — start a fresh booking"
+      );
+      reserveExpired = true;
+      activeDoc = null;
+    }
 
     if (
       activeDoc &&
@@ -140,6 +156,8 @@ export async function GET(req: Request) {
       success: true,
       data: booking || null,
       lastCompleted,
+      reserveExpired,
+      reserveExpiredMessage: reserveExpired ? reserveExpiredMessage() : undefined,
     });
   } catch (error) {
     console.error("BOOKING MINE ERROR:", error);

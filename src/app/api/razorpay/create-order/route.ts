@@ -19,6 +19,7 @@ import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
+import { validateRiderPaymentAmount } from "@/lib/bookingReserveTimeout";
 import { normalizePayAmountInr, paiseToInr } from "@/lib/razorpay/moneyAmount";
 
 function clean(value: unknown) {
@@ -200,15 +201,23 @@ export async function POST(req: Request) {
       );
     }
 
-    if (
-      booking.rideStatus === "Cancelled"
-    ) {
+    if (booking.rideStatus === "Cancelled") {
       return NextResponse.json(
         {
           success: false,
           message: "Payment cannot be made for this booking.",
         },
         { status: 400 }
+      );
+    }
+
+    const { isUnpaidReserveTimedOut, reserveExpiredMessage } = await import(
+      "@/lib/bookingReserveTimeout"
+    );
+    if (isUnpaidReserveTimedOut(booking.toObject())) {
+      return NextResponse.json(
+        { success: false, message: reserveExpiredMessage() },
+        { status: 410 }
       );
     }
 
@@ -230,11 +239,22 @@ export async function POST(req: Request) {
     const amountInr = normalizePayAmountInr(requestedAmount || remainingAmount, remainingAmount);
     const amountPaise = Math.round(amountInr * 100);
 
+    const payCheck = validateRiderPaymentAmount(
+      booking.toObject() as Record<string, unknown>,
+      amountInr
+    );
+    if (!payCheck.ok) {
+      return NextResponse.json(
+        { success: false, message: payCheck.message },
+        { status: 400 }
+      );
+    }
+
     if (amountInr < 1 || amountInr > remainingAmount + 0.001) {
       return NextResponse.json(
         {
           success: false,
-          message: `Enter a valid amount between INR 1 and INR ${remainingAmount.toFixed(2)}.`,
+          message: `Enter a valid amount between INR ${payCheck.ok ? amountInr : 1} and INR ${remainingAmount.toFixed(2)}.`,
         },
         { status: 400 }
       );

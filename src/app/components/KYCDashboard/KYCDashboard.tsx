@@ -17,6 +17,7 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
+import OpsContactRail from "../DashboardUI/OpsContactRail";
 import {
   type PartnerSegmentId,
   RIDER_NETWORK_SEGMENTS,
@@ -78,6 +79,8 @@ type Rider = {
   approvedAt?: string;
 
   comingThrough?: string;
+
+  helpdeskNotes?: string;
 };
 
 /* =========================================================
@@ -226,6 +229,10 @@ function normalizeRider(
       value?.comingThrough ??
         ""
     ),
+
+    helpdeskNotes: value?.helpdeskNotes
+      ? String(value.helpdeskNotes)
+      : "",
   };
 }
 
@@ -283,6 +290,8 @@ export default function KYCDashboard() {
 
   const [search, setSearch] =
     useState(() => consumeOpsFocus());
+
+  const [deskRider, setDeskRider] = useState<Rider | null>(null);
 
   /* =======================================================
      LOAD RIDERS
@@ -856,6 +865,32 @@ export default function KYCDashboard() {
           TABLE
       =================================================== */}
 
+      {deskRider ? (
+        <OpsContactRail
+          title={`KYC · ${deskRider.fullName || deskRider.riderId}`}
+          phone={deskRider.phone}
+          email={deskRider.email}
+          entityLabel="Rider"
+          entityId={deskRider.riderId || deskRider._id}
+          notes={deskRider.helpdeskNotes || ""}
+          onSaveNotes={async (notes) => {
+            const res = await fetch(`/api/riders/${deskRider._id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ helpdeskNotes: notes }),
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error();
+            setDeskRider({ ...deskRider, helpdeskNotes: notes });
+            setRiders((rows) =>
+              rows.map((r) =>
+                riderApiId(r) === riderApiId(deskRider) ? { ...r, helpdeskNotes: notes } : r
+              )
+            );
+          }}
+        />
+      ) : null}
+
       <DashboardCard
         title="Verification Requests"
         subtitle="Live KYC Records"
@@ -1162,15 +1197,24 @@ export default function KYCDashboard() {
                       </td>
 
                       <td className="px-6 py-5 text-center">
-                        <button
-                          type="button"
-                          onClick={() =>
-                            openOpsDesk("users", rider.phone || rider.riderId)
-                          }
-                          className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
-                        >
-                          Open user
-                        </button>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setDeskRider(rider)}
+                            className="rounded-xl bg-violet-700 px-4 py-2 text-xs font-semibold text-white"
+                          >
+                            Helpdesk
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              openOpsDesk("users", rider.phone || rider.riderId)
+                            }
+                            className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-semibold text-white"
+                          >
+                            Open user
+                          </button>
+                        </div>
                       </td>
 
                       {/* ================================

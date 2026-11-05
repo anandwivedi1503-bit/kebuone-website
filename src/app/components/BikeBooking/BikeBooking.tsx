@@ -24,6 +24,11 @@ import RideReviewCard from "../RideReview/RideReviewCard";
 import { isRecentCompletedRide } from "@/lib/riderCompletion";
 import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
 import {
+  minRiderPaymentInr,
+  reserveExpiredMessage,
+  validateRiderPaymentAmount,
+} from "@/lib/bookingReserveTimeout";
+import {
   clearRentalDraft,
   clearRiderBookingLock,
   loadRentalDraft,
@@ -60,6 +65,10 @@ type MineBooking = {
   riderReturnedAt?: string;
   completedAt?: string;
   actualRideEnd?: string;
+  securityDeposit?: number;
+  rateApplied?: number;
+  totalAmount?: number;
+  gstAmount?: number;
 };
 
 type RazorpayResponse = {
@@ -277,7 +286,21 @@ const [pickupOtp, setPickupOtp] = useState("");
     setBookingTotal(due || received + pending);
     setPaidAmount(received);
     setPendingAmount(mode === "completed" ? 0 : pending);
-    setPaymentAmount(String(mode === "completed" ? 0 : pending > 0 ? pending : due || ""));
+    const payDue = mode === "completed" ? 0 : pending > 0.009 ? pending : due || 0;
+    if (mode !== "completed" && payDue > 0.009 && received <= 0.009) {
+      const bounds = minRiderPaymentInr({
+        paymentDue: due || payDue,
+        securityDeposit: active.securityDeposit,
+        receivedAmount: received,
+        pendingAmount: pending,
+        rateApplied: active.rateApplied,
+        totalAmount: active.totalAmount,
+        gstAmount: active.gstAmount,
+      });
+      setPaymentAmount(String(bounds.min > 0 ? bounds.min : payDue));
+    } else {
+      setPaymentAmount(String(payDue));
+    }
     setBookingPaymentStatus(String(active.paymentStatus || "Pending"));
     setPaymentSuccess(mode === "completed" || (pending <= 0.009 && received > 0));
     setRideStatus(ride);
@@ -450,6 +473,19 @@ useEffect(() => {
       const active = mineData.data as MineBooking | null;
       const lastCompleted = mineData.lastCompleted as MineBooking | null;
       if (!mineData.success) return;
+      if (mineData.reserveExpired) {
+        clearRiderBookingLock();
+        setBookingDone(false);
+        setBookingMongoId("");
+        setBookingId("");
+        bookingMongoIdRef.current = "";
+        bookingIdRef.current = "";
+        setStep(1);
+        setError(
+          mineData.reserveExpiredMessage || reserveExpiredMessage()
+        );
+        return;
+      }
       if (shouldAutoResumeOpenBooking(active)) {
       setPaidAmount(Number(active.receivedAmount || 0));
       setPendingAmount(Number(active.pendingAmount || 0));
@@ -576,23 +612,8 @@ useEffect(() => {
       const mineData = await mineRes.json();
       const active = mineData.data as MineBooking | null;
       const lastCompleted = mineData.lastCompleted as MineBooking | null;
-      const resumePayment =
-        typeof window !== "undefined" &&
-        new URLSearchParams(window.location.search).get("resume") === "1";
 
-      if (
-        mineData.success &&
-        isUnpaidPrePaymentReserve(active) &&
-        !resumePayment
-      ) {
-        try {
-          await fetch("/api/bookings/release-unpaid-reserve", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${token}` },
-          });
-        } catch {
-          // Still show the city/hub wizard even if release fails.
-        }
+      if (mineData.success && mineData.reserveExpired) {
         clearRiderBookingLock();
         clearRentalDraft();
         setBookingDone(false);
@@ -603,6 +624,15 @@ useEffect(() => {
         setReservedBike(null);
         setRideStatus("");
         setStep(1);
+        setError(
+          mineData.reserveExpiredMessage || reserveExpiredMessage()
+        );
+      } else if (
+        mineData.success &&
+        isUnpaidPrePaymentReserve(active)
+      ) {
+        syncPlanFromActiveBooking(String(active?.rentalMode || "Daily"));
+        hydrateFromMine(active as MineBooking, "open");
       } else if (mineData.success && shouldAutoResumeOpenBooking(active)) {
         if (String(active.rentalMode || "") === "Rent To Own") {
           syncPlanFromActiveBooking("Rent To Own");
@@ -800,6 +830,29 @@ const payableAmount =
     : Number((tax.totalWithGst + securityDeposit).toFixed(2));
 const amountDue = bookingDone ? pendingAmount : payableAmount;
 const remainingPayLocked = bookingDone && (paidAmount > 0 || isRentToOwn);
+const riderPayBounds = useMemo(() => {
+  if (remainingPayLocked) {
+    const rem = Number(pendingAmount || 0);
+    return { min: rem, max: rem, firstPayment: false as const };
+  }
+  return minRiderPaymentInr({
+    paymentDue: payableAmount,
+    securityDeposit,
+    receivedAmount: paidAmount,
+    pendingAmount,
+    rateApplied: rentalAmount,
+    totalAmount: rentalAmount,
+    gstAmount: tax.gstAmount,
+  });
+}, [
+  remainingPayLocked,
+  pendingAmount,
+  payableAmount,
+  securityDeposit,
+  paidAmount,
+  rentalAmount,
+  tax.gstAmount,
+]);
 const walletPayNow = remainingPayLocked
   ? Number(pendingAmount)
   : Number(paymentAmount || amountDue);
@@ -1043,7 +1096,18 @@ referenceBy,
       );
       setBookingTotal(reservedTotal);
       setPendingAmount(Number(bookingData.data.pendingAmount || reservedTotal));
-      setPaymentAmount(String(bookingData.data.pendingAmount || reservedTotal));
+      const firstBounds = minRiderPaymentInr({
+        paymentDue: reservedTotal,
+        securityDeposit: bookingData.data.securityDeposit ?? securityDeposit,
+        receivedAmount: 0,
+        pendingAmount: Number(bookingData.data.pendingAmount || reservedTotal),
+        rateApplied: bookingData.data.rateApplied ?? rentalAmount,
+        totalAmount: bookingData.data.totalAmount ?? rentalAmount,
+        gstAmount: bookingData.data.gstAmount ?? tax.gstAmount,
+      });
+      setPaymentAmount(
+        String(firstBounds.min > 0 ? firstBounds.min : reservedTotal)
+      );
       setPaidAmount(Number(bookingData.data.receivedAmount || 0));
       setBookingPaymentStatus(String(bookingData.data.paymentStatus || "Pending"));
       setReservedBike({
@@ -1064,8 +1128,10 @@ referenceBy,
         }
       );
       setBookingDone(true);
-setMessage("Scooter reserved. Pay any amount (minimum ₹1) to get your pickup OTP. Remaining can be paid during the ride or at ride end.");
-setStep(4);
+      setMessage(
+        `Scooter reserved for 30 minutes. First payment must be at least 50% of rental (₹${firstBounds.halfRental?.toFixed(2) ?? firstBounds.min.toFixed(2)}). Pickup OTP is issued after that payment.`
+      );
+      setStep(4);
     } catch (error) {
   console.error("CREATE BOOKING ERROR:", error);
   setError("Booking failed. Please check your connection and try again.");
@@ -1092,8 +1158,21 @@ setStep(4);
         : Number(paymentAmount || amountDue)) * 100
     ) / 100;
 
-    if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue + 0.001) {
-      setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
+    const payCheck = validateRiderPaymentAmount(
+      {
+        paymentDue: payableAmount,
+        securityDeposit,
+        receivedAmount: paidAmount,
+        pendingAmount,
+        rateApplied: rentalAmount,
+        totalAmount: rentalAmount,
+        gstAmount: tax.gstAmount,
+        rentalMode: isRentToOwn ? "Rent To Own" : rentalMode,
+      },
+      payNow
+    );
+    if (!payCheck.ok) {
+      setError(payCheck.message);
       return;
     }
 
@@ -1485,8 +1564,21 @@ setStep(4);
     const payNow = remainingPayLocked
       ? Number(pendingAmount)
       : Number(paymentAmount || amountDue);
-    if (!Number.isFinite(payNow) || payNow < 1 || payNow > amountDue) {
-      setError(`Enter a payment amount between INR 1 and ${formatINR(amountDue)}.`);
+    const payCheck = validateRiderPaymentAmount(
+      {
+        paymentDue: payableAmount,
+        securityDeposit,
+        receivedAmount: paidAmount,
+        pendingAmount,
+        rateApplied: rentalAmount,
+        totalAmount: rentalAmount,
+        gstAmount: tax.gstAmount,
+        rentalMode: isRentToOwn ? "Rent To Own" : rentalMode,
+      },
+      payNow
+    );
+    if (!payCheck.ok) {
+      setError(payCheck.message);
       setPaymentLoading(false);
       return;
     }
@@ -2570,7 +2662,9 @@ PAYMENT AMOUNT
 <p className="mt-2 text-sm text-slate-500">
 {remainingPayLocked
   ? "Remaining due only. This is the amount Razorpay will charge now."
-  : "First payment can be any amount from ₹1 up to the total. Pickup OTP is issued after the first payment."}
+  : riderPayBounds.firstPayment
+    ? `First payment must be at least 50% of rental (₹${(riderPayBounds.halfRental ?? riderPayBounds.min).toFixed(2)}), up to ₹${riderPayBounds.max.toFixed(2)}. Pickup OTP is issued after the first payment.`
+    : `Pay between ₹${riderPayBounds.min.toFixed(2)} and ₹${riderPayBounds.max.toFixed(2)}.`}
 </p>
 {remainingPayLocked ? (
   <div className="mt-4 flex h-16 items-center rounded-2xl border border-slate-200 bg-slate-50 px-6 text-[22px] font-black text-[#16A34A]">
@@ -2581,6 +2675,9 @@ PAYMENT AMOUNT
   type="number"
   value={paymentAmount}
   disabled={!bookingDone || paymentSuccess}
+  min={riderPayBounds.min}
+  max={riderPayBounds.max}
+  step="0.01"
   onChange={(e) => setPaymentAmount(e.target.value)}
   className="
 mt-4

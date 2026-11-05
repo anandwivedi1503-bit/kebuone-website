@@ -124,6 +124,29 @@ nav.fixed {
     gap: 10px;
   }
 
+  nav[data-compact-nav="false"] .nav-shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: clamp(0.75rem, 2vw, 1.5rem);
+  }
+
+  nav[data-compact-nav="false"] .nav-logo {
+    grid-column: 1;
+    justify-self: start;
+  }
+
+  nav[data-compact-nav="false"] .nav-shell > .nav-desktop-row:nth-child(2) {
+    grid-column: 2;
+    justify-self: center;
+    min-width: 0;
+  }
+
+  nav[data-compact-nav="false"] .nav-shell > .nav-desktop-row:nth-child(3) {
+    grid-column: 3;
+    justify-self: end;
+  }
+
   .nav-logo {
     width: 230px;
     max-width: 230px;

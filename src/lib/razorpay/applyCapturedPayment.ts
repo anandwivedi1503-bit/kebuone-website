@@ -1,3 +1,4 @@
+import { validateRiderPaymentAmount } from "@/lib/bookingReserveTimeout";
 import { CGST_RATE, SGST_RATE, getBookingRemainingAmount, gstShareForPayment } from "@/lib/gst";
 import { appendBoundedText } from "@/lib/listQuery";
 import Booking from "@/models/Booking";
@@ -169,7 +170,15 @@ export async function applyCapturedRazorpayPayment(
     const oldReceivedAmount = Number(booking.receivedAmount || 0);
     const remainingAmount = getBookingRemainingAmount(booking);
 
-    if (paidAmount < 1 || paidAmount > remainingAmount) {
+    const payCheck = validateRiderPaymentAmount(
+      booking.toObject() as Record<string, unknown>,
+      paidAmount
+    );
+    if (!payCheck.ok) {
+      return { ok: false, status: 400, message: payCheck.message };
+    }
+
+    if (paidAmount < 1 || paidAmount > remainingAmount + 0.001) {
       return {
         ok: false,
         status: 400,

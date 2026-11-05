@@ -108,7 +108,7 @@ function NavbarInner() {
   return (
     <nav
       data-compact-nav={compactNav ? "true" : "false"}
-      className="fixed inset-x-0 top-0 z-[1102] border-b border-[#E4DDD2] bg-white pt-[env(safe-area-inset-top)]"
+      className="fixed inset-x-0 top-0 z-[1200] border-b border-[#E4DDD2] bg-white pt-[env(safe-area-inset-top)]"
     >
       <div className="nav-shell">
         <Link href="/" className="nav-logo">

@@ -28,6 +28,12 @@ import {
 import { getBookingRemainingAmount, gstBreakdownInclusive } from "../src/lib/gst";
 import { normalizePayAmountInr, paiseToInr, inrToPaise } from "../src/lib/razorpay/moneyAmount";
 import {
+  minRiderPaymentInr,
+  validateRiderPaymentAmount,
+  isUnpaidReserveTimedOut,
+  UNPAID_RESERVE_TTL_MS,
+} from "../src/lib/bookingReserveTimeout";
+import {
   isRecentCompletedRide,
   isUnpaidGhostAfterCompleted,
 } from "../src/lib/riderCompletion";
@@ -330,5 +336,35 @@ assert.equal(isRazorpayPaymentId(""), false);
 assert.equal(inrToPaise(2750.005), 275001);
 assert.equal(paiseToInr(275001), 2750.01);
 assert.equal(normalizePayAmountInr(99.999), 100);
+
+const sampleBooking = {
+  paymentDue: 2800,
+  securityDeposit: 500,
+  receivedAmount: 0,
+  pendingAmount: 2800,
+  rateApplied: 2000,
+  totalAmount: 2000,
+  gstAmount: 300,
+};
+const firstPay = minRiderPaymentInr(sampleBooking);
+assert.ok(firstPay.halfRental !== undefined);
+assert.equal(firstPay.min, 1150);
+assert.ok(validateRiderPaymentAmount(sampleBooking, 1).ok === false);
+assert.ok(validateRiderPaymentAmount(sampleBooking, 1150).ok);
+assert.ok(
+  validateRiderPaymentAmount({ ...sampleBooking, receivedAmount: 1150, pendingAmount: 1650 }, 100).ok
+);
+assert.equal(
+  isUnpaidReserveTimedOut({
+    _id: "abc",
+    createdAt: new Date(Date.now() - UNPAID_RESERVE_TTL_MS - 1000),
+    receivedAmount: 0,
+    paymentStatus: "Pending",
+    rideStatus: "Booked",
+    bookingId: "B1",
+    vehicleId: "V1",
+  }),
+  true
+);
 
 console.log("money-rules self-test ok");
