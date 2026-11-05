@@ -18,9 +18,12 @@
 .evuddy-welcome-poster-modal-frame {
   position: relative;
   width: min(100%, 640px);
-  max-height: min(90svh, 680px);
   overflow: hidden;
   border-radius: 18px;
+}
+
+.evuddy-welcome-poster-modal-scale {
+  width: 100%;
 }
 
 .evuddy-welcome-poster__close {

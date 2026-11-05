@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 
 import { FESTIVE_POSTER } from "@/lib/festivePosterCopy";
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
+import FestivePosterModalFrame from "./FestivePosterModalFrame";
 import { PosterStringLights } from "./FestivePosterDecor";
 import "./festive-welcome-poster.css";
 
@@ -130,20 +131,24 @@ export default function EvuddyFestiveWelcomePoster({
       aria-modal="true"
       aria-labelledby="evuddy-festive-poster-title"
     >
-      <div className="evuddy-welcome-poster-modal-frame">
-        <button
-          type="button"
-          onClick={onClose}
-          className="evuddy-welcome-poster__close"
-          aria-label="Close festive poster"
-        >
-          <X size={18} />
-        </button>
+      <FestivePosterModalFrame
+        remeasureKey={`${title}|${body}`}
+        closeButton={
+          <button
+            type="button"
+            onClick={onClose}
+            className="evuddy-welcome-poster__close"
+            aria-label="Close festive poster"
+          >
+            <X size={18} />
+          </button>
+        }
+      >
         <PosterArt title={title} body={body} onClose={onClose} showActions />
         <p id="evuddy-festive-poster-title" className="sr-only">
           {title}
         </p>
-      </div>
+      </FestivePosterModalFrame>
     </div>
   );
 }
