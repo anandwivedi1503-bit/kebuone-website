@@ -1,0 +1,323 @@
+/* Premium EVUDDY festive welcome poster (Zypp / Blinkit inspired) */
+
+.evuddy-welcome-poster {
+  --poster-green: #1f6b4a;
+  --poster-gold: #f4c430;
+  --poster-amber: #ff9933;
+  --poster-ink: #0a1134;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background: #fffbeb;
+  box-shadow:
+    0 40px 100px rgba(10, 17, 52, 0.35),
+    0 0 0 1px rgba(255, 215, 0, 0.25);
+}
+
+.evuddy-welcome-poster__flatlay {
+  position: relative;
+  height: clamp(88px, 22vw, 132px);
+  overflow: hidden;
+}
+
+.evuddy-welcome-poster__flatlay img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 42%;
+}
+
+.evuddy-welcome-poster__flatlay::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 251, 235, 0.05) 0%,
+    rgba(255, 251, 235, 0.55) 55%,
+    #fffbeb 100%
+  );
+}
+
+.evuddy-welcome-poster__logo-row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: -2.75rem;
+  padding: 0 1.25rem;
+}
+
+.evuddy-welcome-poster__logo-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff7ed, #fef3c7);
+  border: 1px solid rgba(244, 196, 48, 0.45);
+  box-shadow: 0 12px 32px rgba(180, 83, 9, 0.12);
+}
+
+.evuddy-welcome-poster__logo-chip img {
+  height: clamp(2rem, 5vw, 2.65rem);
+  width: auto;
+  max-width: min(220px, 70vw);
+  object-fit: contain;
+}
+
+.evuddy-welcome-poster__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.65rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #fff7ed;
+  background: linear-gradient(90deg, #7c2d12, #b45309 45%, #1f6b4a);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+}
+
+.evuddy-welcome-poster__split {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: clamp(200px, 38vw, 260px);
+  margin-top: 0.75rem;
+}
+
+.evuddy-welcome-poster__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem 1rem 5.5rem;
+  overflow: hidden;
+}
+
+.evuddy-welcome-poster__panel--green {
+  background: linear-gradient(145deg, #18573c, var(--poster-green) 55%, #134e33);
+  color: #ecfdf5;
+}
+
+.evuddy-welcome-poster__panel--gold {
+  background: linear-gradient(145deg, #fde047, var(--poster-gold) 50%, var(--poster-amber));
+  color: #422006;
+}
+
+.evuddy-welcome-poster__panel::before {
+  content: "";
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  opacity: 0.22;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='none' stroke='%23FFD700' stroke-width='0.6'/%3E%3Cpath d='M50 2 L52 48 L50 50 L48 48 Z' fill='%23FFD700' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: contain;
+  pointer-events: none;
+}
+
+.evuddy-welcome-poster__panel--green::before {
+  left: -2rem;
+  bottom: -2rem;
+}
+
+.evuddy-welcome-poster__panel--gold::before {
+  right: -2rem;
+  top: -2rem;
+  transform: rotate(22deg);
+}
+
+.evuddy-welcome-poster__plus {
+  position: absolute;
+  left: 50%;
+  top: 38%;
+  z-index: 4;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff7ed;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  box-shadow:
+    0 0 0 4px rgba(255, 251, 235, 0.85),
+    0 12px 28px rgba(234, 88, 12, 0.45);
+}
+
+.evuddy-welcome-poster__panel-title {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display), "Times New Roman", serif;
+  font-size: clamp(1.15rem, 3.2vw, 1.45rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.evuddy-welcome-poster__panel-sub {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.45rem;
+  max-width: 11rem;
+  font-size: 11px;
+  line-height: 1.55;
+  opacity: 0.92;
+}
+
+.evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__panel-sub {
+  margin-left: auto;
+  text-align: right;
+}
+
+.evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__panel-title {
+  margin-left: auto;
+  text-align: right;
+}
+
+.evuddy-welcome-poster__scooter {
+  position: absolute;
+  left: 50%;
+  bottom: 0.35rem;
+  z-index: 5;
+  transform: translateX(-50%);
+  width: min(72%, 320px);
+  pointer-events: none;
+  filter: drop-shadow(0 18px 28px rgba(10, 17, 52, 0.35));
+}
+
+.evuddy-welcome-poster__scooter img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.evuddy-welcome-poster__title-block {
+  position: relative;
+  z-index: 2;
+  padding: 0 1.25rem 0.35rem;
+  text-align: center;
+}
+
+.evuddy-welcome-poster__title-block h2 {
+  font-family: var(--font-display), "Times New Roman", serif;
+  font-size: clamp(1.35rem, 4vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--poster-ink);
+}
+
+.evuddy-welcome-poster__title-block p {
+  margin-top: 0.35rem;
+  font-size: 13px;
+  line-height: 1.65;
+  color: #57534e;
+}
+
+.evuddy-welcome-poster__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  padding: 0.55rem 1rem;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #422006;
+  background: linear-gradient(90deg, #fde68a, #fcd34d);
+  border-top: 1px solid rgba(180, 83, 9, 0.2);
+}
+
+.evuddy-welcome-poster__footer span:last-child {
+  margin-left: auto;
+  opacity: 0.75;
+}
+
+.evuddy-welcome-poster__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem 1.25rem;
+}
+
+@media (min-width: 480px) {
+  .evuddy-welcome-poster__actions {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+.evuddy-welcome-poster__cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.5rem;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: linear-gradient(135deg, var(--poster-green), #18b368);
+  box-shadow: 0 10px 24px rgba(31, 107, 74, 0.35);
+  transition: filter 0.15s ease;
+}
+
+.evuddy-welcome-poster__cta-primary:hover {
+  filter: brightness(1.05);
+}
+
+.evuddy-welcome-poster__cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--poster-ink);
+  border: 1px solid rgba(10, 17, 52, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.evuddy-welcome-poster-modal {
+  animation: evuddy-poster-in 0.45s ease-out;
+}
+
+@keyframes evuddy-poster-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evuddy-welcome-poster-modal {
+    animation: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .evuddy-welcome-poster__panel {
+    padding-bottom: 5rem;
+  }
+
+  .evuddy-welcome-poster__panel-sub {
+    max-width: 9.5rem;
+    font-size: 10px;
+  }
+}

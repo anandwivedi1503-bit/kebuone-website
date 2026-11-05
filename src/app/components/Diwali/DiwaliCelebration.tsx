@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { X } from "lucide-react";
 import { DIWALI_SESSION_KEY, isDiwaliSeason } from "@/lib/festiveSeason";
 import type { FestiveCampaign } from "@/lib/festiveCalendar";
+import EvuddyFestiveWelcomePoster from "../Festive/EvuddyFestiveWelcomePoster";
 import "./diwali.css";
 
 const LIGHT_COLORS = ["#FF9933", "#FFD700", "#E11D48", "#1F6B4A", "#A855F7", "#F97316"];
@@ -77,97 +76,6 @@ function Sparkles() {
   );
 }
 
-function DiyaIcon({ className = "" }: { className?: string }) {
-  return (
-    <div className={`relative ${className}`} aria-hidden>
-      <div className="evuddy-diya-glow mx-auto h-3 w-8 rounded-b-full bg-gradient-to-b from-[#FF9933] to-[#C2410C]" />
-      <div className="evuddy-diya-flame absolute -top-3 left-1/2 h-4 w-3 rounded-full bg-gradient-to-t from-[#F97316] via-[#FDE047] to-[#FFF7ED] shadow-[0_0_12px_#FBBF24]" />
-    </div>
-  );
-}
-
-function WelcomePoster({
-  open,
-  onClose,
-  title,
-  body,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  body: string;
-}) {
-  if (!open) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-[1200] flex items-center justify-center bg-[#1C1917]/55 p-4 backdrop-blur-[2px]"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="evuddy-diwali-title"
-    >
-      <div className="relative max-w-lg overflow-hidden rounded-[28px] border border-[#FFD700]/35 bg-gradient-to-br from-[#1C1917] via-[#422006] to-[#1F6B4A] p-[1px] shadow-[0_32px_80px_rgba(0,0,0,0.45)]">
-        <div className="relative rounded-[27px] bg-gradient-to-br from-[#FFF7ED] via-[#FFFBEB] to-[#ECFDF5] px-6 py-8 sm:px-9 sm:py-10">
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute right-3 top-3 rounded-full p-2 text-[#78716C] transition hover:bg-[#1C1917]/5 hover:text-[#1C1917]"
-            aria-label="Close Diwali greeting"
-          >
-            <X size={20} />
-          </button>
-
-          <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[27px]" aria-hidden>
-            <span className="evuddy-firework-ring absolute left-[12%] top-[18%] h-16 w-16 rounded-full border-2 border-[#E11D48]/40" />
-            <span
-              className="evuddy-firework-ring absolute right-[10%] top-[28%] h-20 w-20 rounded-full border-2 border-[#FF9933]/35"
-              style={{ animationDelay: "0.9s" }}
-            />
-            <span
-              className="evuddy-firework-ring absolute bottom-[20%] left-[40%] h-14 w-14 rounded-full border-2 border-[#1F6B4A]/35"
-              style={{ animationDelay: "1.4s" }}
-            />
-          </div>
-
-          <div className="relative flex justify-center gap-6">
-            <DiyaIcon />
-            <DiyaIcon className="scale-110" />
-            <DiyaIcon />
-          </div>
-
-          <p className="mt-5 text-center text-[11px] font-medium uppercase tracking-[0.28em] text-[#B45309]">
-            EVUDDY wishes you
-          </p>
-          <h2
-            id="evuddy-diwali-title"
-            className="font-display mt-2 text-center text-4xl font-semibold tracking-[-0.03em] text-[#1C1917] sm:text-5xl"
-          >
-            {title}
-          </h2>
-          <p className="mt-3 text-center text-[15px] leading-7 text-[#57534E]">{body}</p>
-
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Link
-              href="/ride-options"
-              onClick={onClose}
-              className="inline-flex items-center justify-center bg-[#1F6B4A] px-7 py-3.5 text-[13px] font-medium tracking-[0.08em] text-white hover:bg-[#18573c]"
-            >
-              Book an EV ride
-            </Link>
-            <button
-              type="button"
-              onClick={onClose}
-              className="inline-flex items-center justify-center border border-[#1C1917]/15 px-7 py-3.5 text-[13px] font-medium text-[#1C1917]"
-            >
-              Continue browsing
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function FestiveRibbon({ text }: { text: string }) {
   return (
     <div className="flex justify-center px-3" aria-hidden>
@@ -188,14 +96,22 @@ function FestiveBelowNav({ ribbon }: { ribbon: string }) {
 }
 
 export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCampaign | null }) {
-  const [showWelcome, setShowWelcome] = useState(false);
+  const sessionKey = campaign?.sessionKey ?? DIWALI_SESSION_KEY;
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return !sessionStorage.getItem(sessionKey);
+    } catch {
+      return true;
+    }
+  });
 
   useEffect(() => {
     if (!isDiwaliSeason()) return;
     document.documentElement.dataset.evuddyDiwali = "1";
     document.documentElement.dataset.evuddyFestive = "diwali";
     try {
-      const seen = sessionStorage.getItem(DIWALI_SESSION_KEY);
+      const seen = sessionStorage.getItem(sessionKey);
       if (!seen) setShowWelcome(true);
     } catch {
       setShowWelcome(true);
@@ -204,12 +120,12 @@ export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCamp
       delete document.documentElement.dataset.evuddyDiwali;
       delete document.documentElement.dataset.evuddyFestive;
     };
-  }, []);
+  }, [sessionKey]);
 
   const closeWelcome = () => {
     setShowWelcome(false);
     try {
-      sessionStorage.setItem(DIWALI_SESSION_KEY, "1");
+      sessionStorage.setItem(sessionKey, "1");
     } catch {
       /* ignore */
     }
@@ -227,7 +143,7 @@ export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCamp
     <>
       <FestiveBelowNav ribbon={ribbon} />
       <Sparkles />
-      <WelcomePoster
+      <EvuddyFestiveWelcomePoster
         open={showWelcome}
         onClose={closeWelcome}
         title={welcomeTitle}
