@@ -1479,6 +1479,42 @@ View
   }}
 />
 
+<div className="mb-6 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/80 to-white p-4">
+  <p className="text-sm font-bold text-amber-900">Yard cash handover photo</p>
+  <p className="mt-1 text-xs text-amber-800/80">Upload proof when cash is collected at the hub (visible on this booking).</p>
+  <input
+    type="file"
+    accept="image/*"
+    className="mt-3 block w-full text-sm"
+    onChange={async (e) => {
+      const file = e.target.files?.[0];
+      if (!file || !selectedBooking?._id) return;
+      const body = new FormData();
+      body.append("file", file);
+      const up = await fetch("/api/upload", { method: "POST", body });
+      const upJson = await up.json();
+      const url = upJson.url || upJson.data?.url;
+      if (!url) return;
+      await fetch(`/api/bookings/${selectedBooking._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cashHandoverPhotoUrl: url }),
+      });
+      setSelectedBooking({ ...selectedBooking, cashHandoverPhotoUrl: url });
+    }}
+  />
+  {selectedBooking.cashHandoverPhotoUrl ? (
+    <a
+      href={selectedBooking.cashHandoverPhotoUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-2 inline-block text-sm font-semibold text-emerald-700 underline"
+    >
+      View uploaded handover photo
+    </a>
+  ) : null}
+</div>
+
 <div className="mb-8 flex items-center justify-between">
 
 <h2 className="text-3xl font-black text-[#0A1134]">
