@@ -37,6 +37,46 @@ html[data-evuddy-festive] body {
 html[data-evuddy-festive] nav.fixed {
   border-bottom: 1px solid color-mix(in srgb, var(--festive-accent) 35%, #e2e8f0);
   box-shadow: 0 8px 32px color-mix(in srgb, var(--festive-accent) 10%, transparent);
+  z-index: 1200;
+}
+
+html[data-evuddy-diwali="1"],
+html[data-evuddy-festive] {
+  --evuddy-nav-block: calc(5.25rem + env(safe-area-inset-top, 0px));
+  --evuddy-festive-band: 3.75rem;
+  scroll-padding-top: calc(var(--evuddy-nav-block) + var(--evuddy-festive-band) + 0.5rem);
+}
+
+html[data-evuddy-diwali="1"] .page-under-nav,
+html[data-evuddy-festive] .page-under-nav {
+  padding-top: calc(var(--evuddy-nav-block) + var(--evuddy-festive-band) + 0.5rem);
+}
+
+html[data-evuddy-diwali="1"] .nav-logo {
+  height: 3.85rem;
+  width: min(200px, 42vw);
+  max-width: 200px;
+}
+
+/* Fixed festive strip sits strictly below the navbar — never over the logo/links */
+.evuddy-festive-below-nav {
+  position: fixed;
+  inset-inline: 0;
+  top: var(--evuddy-nav-block);
+  z-index: 1190;
+  display: flex;
+  min-height: var(--evuddy-festive-band);
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0.35rem;
+  padding: 0.35rem 0 0.25rem;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--festive-accent) 6%, #ffffff) 0%,
+    transparent 85%
+  );
 }
 
 html[data-evuddy-festive] .nav-book-btn,

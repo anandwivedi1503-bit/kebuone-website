@@ -20,10 +20,7 @@ function StringLights() {
   );
 
   return (
-    <div
-      className="pointer-events-none fixed inset-x-0 top-[calc(5.25rem+env(safe-area-inset-top,0px))] z-[1101] hidden h-8 sm:block"
-      aria-hidden
-    >
+    <div className="relative hidden h-7 w-full sm:block" aria-hidden>
       <svg className="h-full w-full" viewBox="0 0 1200 32" preserveAspectRatio="none">
         <path
           d="M0 8 Q150 22 300 8 T600 8 T900 8 T1200 8"
@@ -173,13 +170,19 @@ function WelcomePoster({
 
 function FestiveRibbon({ text }: { text: string }) {
   return (
-    <div
-      className="pointer-events-none fixed inset-x-0 top-[calc(5.25rem+env(safe-area-inset-top,0px))] z-[1100] flex justify-center sm:top-[calc(5.25rem+env(safe-area-inset-top,0px)+2rem)]"
-      aria-hidden
-    >
-      <div className="mx-3 max-w-xl rounded-full border border-[#FFD700]/40 bg-gradient-to-r from-[#7C2D12]/90 via-[#B45309]/90 to-[#1F6B4A]/90 px-4 py-1.5 text-center text-[10px] font-medium tracking-[0.18em] text-[#FFFBEB] shadow-lg sm:text-[11px]">
+    <div className="flex justify-center px-3" aria-hidden>
+      <div className="max-w-xl rounded-full border border-[#FFD700]/40 bg-gradient-to-r from-[#7C2D12]/90 via-[#B45309]/90 to-[#1F6B4A]/90 px-4 py-1.5 text-center text-[10px] font-medium tracking-[0.18em] text-[#FFFBEB] shadow-lg sm:text-[11px]">
         {text}
       </div>
+    </div>
+  );
+}
+
+function FestiveBelowNav({ ribbon }: { ribbon: string }) {
+  return (
+    <div className="evuddy-festive-below-nav" aria-hidden>
+      <StringLights />
+      <FestiveRibbon text={ribbon} />
     </div>
   );
 }
@@ -222,8 +225,7 @@ export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCamp
 
   return (
     <>
-      <FestiveRibbon text={ribbon} />
-      <StringLights />
+      <FestiveBelowNav ribbon={ribbon} />
       <Sparkles />
       <WelcomePoster
         open={showWelcome}

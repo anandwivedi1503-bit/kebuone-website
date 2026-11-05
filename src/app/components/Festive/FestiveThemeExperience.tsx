@@ -12,7 +12,7 @@ function AnimatedRibbon({ text, accent }: { text: string; accent: string }) {
   const doubled = useMemo(() => `${text}   ·   ${text}   ·   `, [text]);
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-[calc(5.25rem+env(safe-area-inset-top,0px))] z-[1100] overflow-hidden border-y border-white/20 py-1.5 sm:top-[calc(5.25rem+env(safe-area-inset-top,0px)+1.75rem)]"
+      className="overflow-hidden border-y border-white/20 py-1.5"
       style={{
         background: `linear-gradient(90deg, color-mix(in srgb, ${accent} 92%, #0a1134), color-mix(in srgb, ${accent} 55%, #18b368), color-mix(in srgb, ${accent} 92%, #0a1134))`,
       }}
@@ -129,7 +129,9 @@ export default function FestiveThemeExperience({ campaign }: { campaign: Festive
 
   return (
     <>
-      <AnimatedRibbon text={campaign.ribbon.replace(/✦/g, "").trim()} accent={campaign.logoAccent} />
+      <div className="evuddy-festive-below-nav">
+        <AnimatedRibbon text={campaign.ribbon.replace(/✦/g, "").trim()} accent={campaign.logoAccent} />
+      </div>
       <WelcomePoster campaign={campaign} open={welcomeOpen} onClose={closeWelcome} />
     </>
   );
