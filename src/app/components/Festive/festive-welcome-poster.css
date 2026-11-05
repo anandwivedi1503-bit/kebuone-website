@@ -1,4 +1,4 @@
-/* EVUDDY Diwali poster — Blinkit festivity + Zypp offer split */
+/* EVUDDY Diwali poster — stacked layout, nothing clipped */
 
 .evuddy-welcome-poster {
   --poster-green: #1f6b4a;
@@ -7,155 +7,88 @@
   --poster-amber: #ff9933;
   --poster-ink: #0a1134;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 20px;
   background: #fffbeb;
   box-shadow:
     0 40px 100px rgba(10, 17, 52, 0.4),
-    0 0 0 1px rgba(255, 215, 0, 0.28),
-    0 0 48px rgba(255, 153, 51, 0.12);
+    0 0 0 1px rgba(255, 215, 0, 0.28);
 }
 
-/* —— Large sweets + crackers photo (Blinkit) —— */
+.evuddy-welcome-poster-modal-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Full flat-lay visible (no crop) */
 .evuddy-welcome-poster__festive-stage {
-  position: relative;
-  height: clamp(210px, 48vw, 300px);
-  overflow: hidden;
+  padding: 0.5rem 0.5rem 0;
   background: #fef3c7;
+  border-radius: 20px 20px 0 0;
 }
 
 .evuddy-welcome-poster__festive-photo {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center center;
+  height: auto;
+  max-height: none;
+  object-fit: contain;
+  object-position: center;
+  border-radius: 12px;
 }
 
-.evuddy-welcome-poster__festive-fade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    rgba(0, 0, 0, 0.06) 0%,
-    transparent 35%,
-    transparent 62%,
-    rgba(255, 251, 235, 0.55) 88%,
-    #fffbeb 100%
-  );
-}
-
-.evuddy-welcome-poster__festive-lights {
-  position: absolute;
-  top: 0.35rem;
-  left: 0;
-  right: 0;
-  z-index: 3;
-  display: flex;
-  justify-content: center;
-  padding: 0 0.75rem;
-}
-
-.evuddy-welcome-poster__festive-ui {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+.evuddy-welcome-poster__brand-block {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem 1.25rem;
-  gap: 0.55rem;
-  pointer-events: none;
-}
-
-.evuddy-welcome-poster__festive-ui .evuddy-welcome-poster__badge {
-  pointer-events: auto;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem 0.5rem;
+  background: linear-gradient(180deg, #fffbeb, #fef3c7);
 }
 
 .evuddy-welcome-poster__logo-plate {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.65rem 1.35rem 0.5rem;
-  border-radius: 16px;
-  background: rgba(255, 247, 237, 0.82);
+  padding: 0.55rem 1.25rem 0.45rem;
+  border-radius: 14px;
+  background: #fff7ed;
   border: 1px solid rgba(244, 196, 48, 0.55);
-  box-shadow: 0 16px 40px rgba(66, 32, 6, 0.18);
-  backdrop-filter: blur(4px);
+  box-shadow: 0 8px 24px rgba(180, 83, 9, 0.1);
 }
 
 .evuddy-welcome-poster__logo-plate img {
-  height: clamp(2rem, 5vw, 2.75rem);
+  height: clamp(1.85rem, 4.5vw, 2.5rem);
   width: auto;
   object-fit: contain;
 }
 
 .evuddy-welcome-poster__logo-tagline {
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
   font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   color: #78716c;
+  text-align: center;
 }
 
-/* Close-up mithai + cracker crops so props stay obvious on all screens */
-.evuddy-welcome-poster__prop-strip {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-  padding: 0.65rem 0.75rem 0.35rem;
-  background: linear-gradient(180deg, #fffbeb, #fef3c7);
-}
-
-.evuddy-welcome-poster__prop {
-  position: relative;
-  height: clamp(100px, 22vw, 130px);
-  overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid rgba(244, 196, 48, 0.45);
-  box-shadow: 0 8px 20px rgba(180, 83, 9, 0.1);
-}
-
-.evuddy-welcome-poster__prop img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.evuddy-welcome-poster__prop--sweets img {
-  object-position: 8% 42%;
-  transform: scale(1.35);
-}
-
-.evuddy-welcome-poster__prop--crackers img {
-  object-position: 72% 48%;
-  transform: scale(1.55);
-}
-
-.evuddy-welcome-poster__prop span {
-  position: absolute;
-  left: 0.45rem;
-  bottom: 0.35rem;
-  padding: 0.15rem 0.45rem;
+.evuddy-welcome-poster__badge {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0.35rem 0.45rem;
+  max-width: 100%;
+  padding: 0.35rem 0.85rem;
   border-radius: 999px;
   font-size: 9px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+  text-align: center;
   color: #fff7ed;
-  background: rgba(66, 32, 6, 0.72);
-}
-
-.evuddy-poster-diya-row {
-  display: flex;
-  gap: 0.65rem;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0.45rem 0 0.15rem;
-  background: #fffbeb;
+  background: linear-gradient(90deg, #7c2d12, #c2410c 38%, #1f6b4a);
+  border: 1px solid rgba(255, 215, 0, 0.5);
 }
 
 .evuddy-welcome-poster__badge-diya {
@@ -165,16 +98,22 @@
   border-radius: 0 0 999px 999px;
   background: linear-gradient(180deg, #fb923c, #c2410c);
   box-shadow: 0 -3px 6px rgba(251, 191, 36, 0.85);
-  vertical-align: middle;
+  flex-shrink: 0;
 }
 
-/* String lights (uses .evuddy-string-light from diwali.css) */
+.evuddy-poster-diya-row {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0.15rem 0 0;
+}
+
 .evuddy-poster-lights {
   position: relative;
   width: 100%;
   max-width: 520px;
   height: 1.25rem;
-  margin-bottom: 0.15rem;
 }
 
 .evuddy-poster-lights__wire {
@@ -204,19 +143,17 @@
   0%,
   100% {
     opacity: 0.65;
-    filter: brightness(0.9);
   }
   50% {
     opacity: 1;
-    filter: brightness(1.25);
   }
 }
-
 
 .evuddy-poster-diya {
   position: relative;
   width: 1.1rem;
-  height: 1rem;
+  height: 1.15rem;
+  flex-shrink: 0;
 }
 
 .evuddy-poster-diya__bowl {
@@ -243,138 +180,145 @@
   animation: evuddy-diya-flame 2s ease-in-out infinite;
 }
 
-.evuddy-welcome-poster__split-wrap {
+.evuddy-welcome-poster__prop-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  padding: 0.5rem 0.75rem;
+  background: #fef3c7;
+}
+
+.evuddy-welcome-poster__prop {
   position: relative;
-  padding: 0 0.35rem;
-}
-
-.evuddy-welcome-poster__sparkles {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
+  aspect-ratio: 4 / 3;
+  max-height: 120px;
   overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(244, 196, 48, 0.45);
+  background: #fef9c3;
 }
 
-.evuddy-poster-spark {
+.evuddy-welcome-poster__prop img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
+
+.evuddy-welcome-poster__prop--sweets img {
+  object-position: 15% center;
+}
+
+.evuddy-welcome-poster__prop--crackers img {
+  object-position: 85% center;
+}
+
+.evuddy-welcome-poster__prop span {
   position: absolute;
-  width: 4px;
-  height: 4px;
+  left: 0.45rem;
+  bottom: 0.35rem;
+  padding: 0.15rem 0.45rem;
   border-radius: 999px;
-  background: #fde047;
-  box-shadow: 0 0 6px #fbbf24;
-  animation: evuddy-poster-spark-twinkle 2.2s ease-in-out infinite;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff7ed;
+  background: rgba(66, 32, 6, 0.72);
 }
 
-@keyframes evuddy-poster-spark-twinkle {
-  0%,
-  100% {
-    opacity: 0.2;
-    transform: scale(0.6);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1);
-  }
+/* Offer + scooter — separate rows, no overlap */
+.evuddy-welcome-poster__offer-block {
+  position: relative;
+  padding: 0.35rem 0.65rem 0;
+  background: #fffbeb;
 }
 
 .evuddy-welcome-poster__rangoli {
   position: absolute;
-  width: clamp(88px, 22vw, 120px);
-  height: clamp(88px, 22vw, 120px);
-  opacity: 0.55;
+  width: 72px;
+  height: 72px;
+  opacity: 0.45;
   pointer-events: none;
   background-repeat: no-repeat;
   background-size: contain;
+  z-index: 0;
 }
 
 .evuddy-welcome-poster__rangoli--tl {
-  top: 0.15rem;
-  left: 0.15rem;
-  z-index: 2;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='none'%3E%3Cpath stroke='%23FFD700' stroke-width='0.65' d='M40 4v8M40 68v8M4 40h8M68 40h8'/%3E%3Ccircle cx='40' cy='40' r='28' stroke='%23FFD700' stroke-width='0.5'/%3E%3Ccircle cx='40' cy='40' r='18' stroke='%23FFD700' stroke-width='0.4'/%3E%3Cpath stroke='%23FFD700' stroke-width='0.45' d='M40 12l2 14-2 2-2-14M40 52l2 14-2 2-2-14M12 40l14 2 2-2-14-2M52 40l14 2 2-2-14-2'/%3E%3C/svg%3E");
+  top: 0.5rem;
+  left: 0.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='none'%3E%3Ccircle cx='40' cy='40' r='28' stroke='%23FFD700' stroke-width='0.6'/%3E%3Cpath stroke='%23FFD700' stroke-width='0.5' d='M40 12l2 14-2 2-2-14'/%3E%3C/svg%3E");
 }
 
 .evuddy-welcome-poster__rangoli--br {
-  right: 0.15rem;
-  bottom: 0.15rem;
-  z-index: 2;
+  right: 0.5rem;
+  top: 0.5rem;
   transform: rotate(180deg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='none'%3E%3Cpath stroke='%23B45309' stroke-width='0.65' d='M40 4v8M40 68v8M4 40h8M68 40h8'/%3E%3Ccircle cx='40' cy='40' r='28' stroke='%23B45309' stroke-width='0.5'/%3E%3Cpath stroke='%23FFD700' stroke-width='0.45' d='M40 12l2 14-2 2-2-14M40 52l2 14-2 2-2-14'/%3E%3C/svg%3E");
-}
-
-.evuddy-welcome-poster__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.85rem;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: #fff7ed;
-  background: linear-gradient(90deg, #7c2d12, #c2410c 38%, #1f6b4a);
-  border: 1px solid rgba(255, 215, 0, 0.5);
-  box-shadow: 0 6px 20px rgba(124, 45, 18, 0.25);
-  white-space: nowrap;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80' fill='none'%3E%3Ccircle cx='40' cy='40' r='28' stroke='%23B45309' stroke-width='0.6'/%3E%3C/svg%3E");
 }
 
 .evuddy-welcome-poster__split {
   position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: clamp(220px, 42vw, 280px);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 12px 40px rgba(10, 17, 52, 0.2);
+  gap: 0;
+  min-height: 0;
+  border-radius: 14px 14px 0 0;
+  overflow: visible;
+  box-shadow: 0 8px 28px rgba(10, 17, 52, 0.12);
 }
 
 .evuddy-welcome-poster__panel {
   position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  padding: 1.35rem 0.85rem 5.75rem;
-  overflow: hidden;
+  justify-content: flex-start;
+  padding: 1rem 0.75rem 1.1rem;
+  min-height: 7.5rem;
+  overflow: visible;
 }
 
 .evuddy-welcome-poster__panel--green {
-  background: linear-gradient(160deg, var(--poster-green-deep), var(--poster-green) 50%, #134e33);
+  background: linear-gradient(160deg, var(--poster-green-deep), var(--poster-green));
   color: #fff;
+  border-radius: 14px 0 0 0;
 }
 
 .evuddy-welcome-poster__panel--gold {
-  background: linear-gradient(160deg, #fde047, var(--poster-gold) 45%, var(--poster-amber));
+  background: linear-gradient(160deg, #fde047, var(--poster-gold) 50%, var(--poster-amber));
   color: #422006;
+  border-radius: 0 14px 0 0;
 }
 
 .evuddy-welcome-poster__stat-bg {
   position: absolute;
-  top: 50%;
-  transform: translateY(-58%);
-  font-size: clamp(5.5rem, 22vw, 8.5rem);
+  top: 0.35rem;
+  font-size: clamp(3.5rem, 14vw, 5rem);
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.06em;
   pointer-events: none;
   user-select: none;
+  opacity: 0.2;
 }
 
 .evuddy-welcome-poster__panel--green .evuddy-welcome-poster__stat-bg {
-  left: 0.15rem;
-  color: rgba(255, 255, 255, 0.12);
+  left: 0.25rem;
+  color: #fff;
 }
 
 .evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__stat-bg {
-  right: 0.15rem;
-  color: rgba(180, 83, 9, 0.18);
+  right: 0.25rem;
+  color: #78350f;
 }
 
 .evuddy-welcome-poster__offer {
   position: relative;
   z-index: 1;
-  max-width: 10.5rem;
+  margin-top: 2.5rem;
+  max-width: 100%;
 }
 
 .evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__offer {
@@ -388,91 +332,85 @@
   gap: 0.1rem;
   font-weight: 800;
   line-height: 1;
-  letter-spacing: -0.03em;
-}
-
-.evuddy-welcome-poster__panel--green .evuddy-welcome-poster__offer-stat {
-  font-size: clamp(1.85rem, 5.5vw, 2.35rem);
+  font-size: clamp(1.5rem, 4.5vw, 1.85rem);
 }
 
 .evuddy-welcome-poster__panel--gold .evuddy-welcome-poster__offer-stat {
   justify-content: flex-end;
-  font-size: clamp(1.85rem, 5.5vw, 2.35rem);
 }
 
 .evuddy-welcome-poster__offer-prefix {
   font-size: 0.55em;
-  margin-top: 0.15em;
-  opacity: 0.95;
+  margin-top: 0.12em;
 }
 
 .evuddy-welcome-poster__offer-line1 {
-  margin-top: 0.5rem;
-  font-size: clamp(0.95rem, 2.8vw, 1.1rem);
+  margin-top: 0.4rem;
+  font-size: clamp(0.85rem, 2.5vw, 1rem);
   font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  line-height: 1.25;
 }
 
 .evuddy-welcome-poster__offer-line2 {
-  margin-top: 0.35rem;
+  margin-top: 0.3rem;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.45;
-  opacity: 0.88;
+  opacity: 0.92;
 }
 
 .evuddy-welcome-poster__plus {
-  position: absolute;
-  left: 50%;
-  top: 42%;
-  z-index: 4;
-  transform: translate(-50%, -50%);
+  position: relative;
+  z-index: 2;
   display: flex;
+  width: fit-content;
+  margin: -1.1rem auto 0;
   align-items: center;
   justify-content: center;
-  width: clamp(2.5rem, 7vw, 3.25rem);
-  height: clamp(2.5rem, 7vw, 3.25rem);
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 999px;
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: 1.65rem;
   font-weight: 800;
   line-height: 1;
   color: #fff7ed;
   background: radial-gradient(circle at 30% 30%, #fb923c, #ea580c 70%);
   box-shadow:
-    0 0 0 4px rgba(255, 251, 235, 0.9),
-    0 0 24px rgba(249, 115, 22, 0.55),
-    0 12px 28px rgba(234, 88, 12, 0.4);
+    0 0 0 4px #fffbeb,
+    0 8px 20px rgba(234, 88, 12, 0.35);
 }
 
-.evuddy-welcome-poster__scooter {
-  position: absolute;
-  left: 50%;
-  bottom: -0.15rem;
-  z-index: 5;
-  transform: translateX(-50%);
-  width: min(78%, 340px);
-  pointer-events: none;
-  filter: drop-shadow(0 20px 32px rgba(10, 17, 52, 0.45));
+.evuddy-welcome-poster__scooter-row {
+  position: relative;
+  z-index: 1;
+  margin-top: 0.35rem;
+  padding: 0.5rem 0.75rem 0.75rem;
+  text-align: center;
+  background: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+  border-radius: 0 0 14px 14px;
+  border: 1px solid rgba(244, 196, 48, 0.35);
+  border-top: none;
 }
 
-.evuddy-welcome-poster__scooter img {
-  width: 100%;
+.evuddy-welcome-poster__scooter-img {
+  display: block;
+  width: min(100%, 320px);
   height: auto;
+  max-height: 200px;
+  margin: 0 auto;
   object-fit: contain;
+  object-position: center bottom;
 }
 
 .evuddy-welcome-poster__message {
-  position: relative;
-  z-index: 2;
-  padding: 0.85rem 1.15rem 0.5rem;
+  padding: 0.85rem 1rem 0.55rem;
   text-align: center;
-  background: linear-gradient(180deg, #fffbeb, #fff7ed);
+  background: #fffbeb;
 }
 
 .evuddy-welcome-poster__message h2 {
   font-family: var(--font-display), "Times New Roman", serif;
-  font-size: clamp(1.2rem, 3.5vw, 1.55rem);
+  font-size: clamp(1.15rem, 3.2vw, 1.45rem);
   font-weight: 600;
   letter-spacing: -0.03em;
   color: var(--poster-ink);
@@ -485,20 +423,22 @@
   color: #57534e;
 }
 
-.evuddy-welcome-poster__message .evuddy-welcome-poster__hook {
-  margin-top: 0.5rem;
+.evuddy-welcome-poster__hook {
+  margin-top: 0.45rem;
   font-size: 11px;
   font-weight: 600;
   color: #1f6b4a;
 }
 
-.evuddy-welcome-poster__message .evuddy-welcome-poster__tag {
-  margin-top: 0.45rem;
-  font-size: 10px;
+.evuddy-welcome-poster__tag {
+  margin-top: 0.4rem;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #78716c;
+  line-height: 1.5;
+  word-break: break-word;
 }
 
 .evuddy-welcome-poster__footer {
@@ -510,16 +450,15 @@
   padding: 0.55rem 1rem;
   font-size: 8.5px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #422006;
   background: linear-gradient(90deg, #fde68a, #fcd34d);
-  border-top: 1px solid rgba(180, 83, 9, 0.22);
+  border-radius: 0 0 20px 20px;
 }
 
 .evuddy-welcome-poster__footer span:last-child {
   margin-left: auto;
-  opacity: 0.8;
 }
 
 .evuddy-welcome-poster__actions {
@@ -543,16 +482,11 @@
   padding: 0.85rem 1.5rem;
   font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #fff;
   background: linear-gradient(135deg, var(--poster-green), #18b368);
-  box-shadow: 0 10px 24px rgba(31, 107, 74, 0.35);
-  transition: filter 0.15s ease;
-}
-
-.evuddy-welcome-poster__cta-primary:hover {
-  filter: brightness(1.05);
+  box-shadow: 0 8px 20px rgba(31, 107, 74, 0.3);
 }
 
 .evuddy-welcome-poster__cta-secondary {
@@ -564,7 +498,7 @@
   font-weight: 600;
   color: var(--poster-ink);
   border: 1px solid rgba(10, 17, 52, 0.12);
-  background: rgba(255, 255, 255, 0.85);
+  background: #fff;
 }
 
 .evuddy-welcome-poster-modal {
@@ -574,7 +508,7 @@
 @keyframes evuddy-poster-in {
   from {
     opacity: 0;
-    transform: scale(0.96) translateY(12px);
+    transform: scale(0.98) translateY(8px);
   }
   to {
     opacity: 1;
@@ -588,22 +522,21 @@
   }
 
   .evuddy-poster-light-bulb,
-  .evuddy-poster-diya__flame,
-  .evuddy-poster-spark {
+  .evuddy-poster-diya__flame {
     animation: none !important;
   }
 }
 
 @media (max-width: 420px) {
-  .evuddy-welcome-poster__panel {
-    padding-bottom: 5.25rem;
+  .evuddy-welcome-poster__offer {
+    margin-top: 2rem;
   }
 
   .evuddy-welcome-poster__offer-line2 {
     font-size: 9px;
   }
 
-  .evuddy-welcome-poster__prop {
-    height: 64px;
+  .evuddy-welcome-poster__scooter-img {
+    max-height: 160px;
   }
 }
