@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { getActiveFestiveCampaign } from "@/lib/festiveCalendar";
+import { getActiveFestiveCampaign, resolveFestivePresentation } from "@/lib/festiveCalendar";
 import DiwaliCelebration from "../Diwali/DiwaliCelebration";
 import FestiveThemeExperience from "./FestiveThemeExperience";
 
@@ -14,11 +14,13 @@ export default function FestiveCelebrationGate() {
   const pathname = usePathname() || "";
   if (isOpsPath(pathname)) return null;
 
-  const campaign = getActiveFestiveCampaign();
-  if (!campaign) return null;
+  const base = getActiveFestiveCampaign();
+  if (!base) return null;
+
+  const campaign = resolveFestivePresentation(base);
 
   if (campaign.theme === "diwali") {
-    return <DiwaliCelebration />;
+    return <DiwaliCelebration campaign={campaign} />;
   }
 
   return <FestiveThemeExperience campaign={campaign} />;

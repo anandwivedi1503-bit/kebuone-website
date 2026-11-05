@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { DIWALI_SESSION_KEY, isDiwaliSeason } from "@/lib/festiveSeason";
+import type { FestiveCampaign } from "@/lib/festiveCalendar";
 import "./diwali.css";
 
 const LIGHT_COLORS = ["#FF9933", "#FFD700", "#E11D48", "#1F6B4A", "#A855F7", "#F97316"];
@@ -88,7 +89,17 @@ function DiyaIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function WelcomePoster({ open, onClose }: { open: boolean; onClose: () => void }) {
+function WelcomePoster({
+  open,
+  onClose,
+  title,
+  body,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  body: string;
+}) {
   if (!open) return null;
 
   return (
@@ -134,13 +145,9 @@ function WelcomePoster({ open, onClose }: { open: boolean; onClose: () => void }
             id="evuddy-diwali-title"
             className="font-display mt-2 text-center text-4xl font-semibold tracking-[-0.03em] text-[#1C1917] sm:text-5xl"
           >
-            <span className="text-[#C2410C]">शुभ</span>{" "}
-            <span className="italic text-[#1F6B4A]">Deepawali</span>
+            {title}
           </h2>
-          <p className="mt-3 text-center text-[15px] leading-7 text-[#57534E]">
-            Light up the city with a safe electric ride. Happy Diwali from the EVUDDY family —
-            may your journeys stay bright, smooth, and pollution-free.
-          </p>
+          <p className="mt-3 text-center text-[15px] leading-7 text-[#57534E]">{body}</p>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
@@ -164,20 +171,20 @@ function WelcomePoster({ open, onClose }: { open: boolean; onClose: () => void }
   );
 }
 
-function FestiveRibbon() {
+function FestiveRibbon({ text }: { text: string }) {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 top-[calc(5.25rem+env(safe-area-inset-top,0px))] z-[1100] flex justify-center sm:top-[calc(5.25rem+env(safe-area-inset-top,0px)+2rem)]"
       aria-hidden
     >
       <div className="mx-3 max-w-xl rounded-full border border-[#FFD700]/40 bg-gradient-to-r from-[#7C2D12]/90 via-[#B45309]/90 to-[#1F6B4A]/90 px-4 py-1.5 text-center text-[10px] font-medium tracking-[0.18em] text-[#FFFBEB] shadow-lg sm:text-[11px]">
-        ✦ शुभ दीपावली · Happy Diwali · Ride electric, ride bright ✦
+        {text}
       </div>
     </div>
   );
 }
 
-export default function DiwaliCelebration() {
+export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCampaign | null }) {
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
@@ -207,12 +214,23 @@ export default function DiwaliCelebration() {
 
   if (!isDiwaliSeason()) return null;
 
+  const ribbon = campaign?.ribbon ?? "✦ शुभ दीपावली · Happy Diwali · Ride electric, ride bright ✦";
+  const welcomeTitle = campaign?.welcomeTitle ?? "शुभ Deepawali";
+  const welcomeBody =
+    campaign?.welcomeBody ??
+    "Light up the city with a safe electric ride. Happy Diwali from the EVUDDY family — may your journeys stay bright, smooth, and pollution-free.";
+
   return (
     <>
-      <FestiveRibbon />
+      <FestiveRibbon text={ribbon} />
       <StringLights />
       <Sparkles />
-      <WelcomePoster open={showWelcome} onClose={closeWelcome} />
+      <WelcomePoster
+        open={showWelcome}
+        onClose={closeWelcome}
+        title={welcomeTitle}
+        body={welcomeBody}
+      />
     </>
   );
 }

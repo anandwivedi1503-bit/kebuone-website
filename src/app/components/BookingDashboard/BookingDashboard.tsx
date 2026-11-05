@@ -1233,6 +1233,16 @@ booking.actualRideEnd
 
 <td className="px-6 py-5 text-center">
 {booking.paymentMode || "-"}
+{booking.cashHandoverPhotoUrl ? (
+  <a
+    href={booking.cashHandoverPhotoUrl}
+    target="_blank"
+    rel="noreferrer"
+    className="mt-1 block text-[10px] font-semibold text-emerald-700 underline"
+  >
+    Cash photo
+  </a>
+) : null}
 </td>
 
 <td className="px-6 py-5">

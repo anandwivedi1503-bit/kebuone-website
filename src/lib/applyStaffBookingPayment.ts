@@ -2,6 +2,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { isMongoTransactionUnsupported } from "@/lib/mongoTransaction";
 
+import { validateRiderPaymentAmount } from "@/lib/bookingReserveTimeout";
 import { CGST_RATE, SGST_RATE, getBookingRemainingAmount, gstShareForPayment } from "@/lib/gst";
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
@@ -48,6 +49,7 @@ export async function applyStaffBookingPayment(
     paidAmount: number;
     collectedBy: string;
     notes?: string;
+    cashHandoverPhotoUrl?: string;
   },
   useTxn = true
 ) {
@@ -55,10 +57,18 @@ export async function applyStaffBookingPayment(
   const paidAmount = Number(Number(input.paidAmount).toFixed(2));
   const collectedBy = String(input.collectedBy || "yard").trim().slice(0, 80) || "yard";
   const notes = String(input.notes || "").trim().slice(0, 200);
+  const cashHandoverPhotoUrl = String(input.cashHandoverPhotoUrl || "").trim();
   let session: mongoose.ClientSession | null = null;
 
   if (!bookingId) {
     return { ok: false as const, status: 400, message: "Booking ID is required." };
+  }
+  if (!cashHandoverPhotoUrl) {
+    return {
+      ok: false as const,
+      status: 400,
+      message: "Upload a photo of cash received before recording payment.",
+    };
   }
   if (!Number.isFinite(paidAmount) || paidAmount < 1) {
     return { ok: false as const, status: 400, message: "Cash amount must be at least ₹1." };
@@ -111,6 +121,15 @@ export async function applyStaffBookingPayment(
         status: 400,
         message: `Cash cannot exceed remaining ₹${remainingAmount.toFixed(2)}.`,
       };
+    }
+
+    const payCheck = validateRiderPaymentAmount(
+      booking.toObject() as Record<string, unknown>,
+      paidAmount
+    );
+    if (!payCheck.ok) {
+      await rollback(session);
+      return { ok: false as const, status: 400, message: payCheck.message };
     }
 
     if (
@@ -227,6 +246,7 @@ export async function applyStaffBookingPayment(
           paymentVerifiedAt: new Date(),
           invoiceNumber,
           invoiceGenerated: true,
+          cashHandoverPhotoUrl,
           ...rtoPatch,
         },
       },

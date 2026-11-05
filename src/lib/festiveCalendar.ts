@@ -29,6 +29,11 @@ export type FestiveCampaign = {
   /** Accent for logo glow (hex). */
   logoAccent: string;
   sessionKey: string;
+  /** Optional IST date (YYYY-MM-DD) overrides inside the campaign window. */
+  dayThemes?: Record<
+    string,
+    { ribbon?: string; welcomeTitle?: string; welcomeBody?: string; logoAccent?: string }
+  >;
 };
 
 /**
@@ -125,6 +130,45 @@ const CAMPAIGNS: FestiveCampaign[] = [
       "Light up the city with a safe electric ride. Wishing you and your family a bright Diwali.",
     logoAccent: "#FFD700",
     sessionKey: "evuddy-diwali-welcome-2026",
+    dayThemes: {
+      "2026-10-15": {
+        ribbon: "✦ Dhanteras · Prosperity & safe electric rides ✦",
+        welcomeTitle: "Shubh Dhanteras",
+        logoAccent: "#F59E0B",
+      },
+      "2026-10-16": {
+        ribbon: "✦ Choti Diwali · Light the way with EVUDDY ✦",
+        welcomeTitle: "Choti Diwali wishes",
+        logoAccent: "#FB923C",
+      },
+      "2026-10-17": {
+        ribbon: "✦ Naraka Chaturdashi · Ride bright, ride safe ✦",
+        welcomeTitle: "Naraka Chaturdashi",
+        logoAccent: "#F97316",
+      },
+      "2026-10-18": {
+        ribbon: "✦ Lakshmi Puja · Happy Diwali from EVUDDY ✦",
+        welcomeTitle: "Happy Diwali",
+        welcomeBody:
+          "May your home and streets glow with joy. Book EV in Lucknow for safe festive rides.",
+        logoAccent: "#FFD700",
+      },
+      "2026-10-19": {
+        ribbon: "✦ Govardhan Puja · Gratitude & green mobility ✦",
+        welcomeTitle: "Happy Govardhan Puja",
+        logoAccent: "#22C55E",
+      },
+      "2026-10-20": {
+        ribbon: "✦ Bhai Dooj · Celebrate together, ride electric ✦",
+        welcomeTitle: "Happy Bhai Dooj",
+        logoAccent: "#F472B6",
+      },
+      "2026-11-05": {
+        ribbon: "✦ Diwali week · EVUDDY Lucknow rides ✦",
+        welcomeTitle: "Festive rides in Lucknow",
+        logoAccent: "#FFD700",
+      },
+    },
   },
   {
     id: "christmas-2026",
@@ -169,4 +213,21 @@ export function getActiveFestiveCampaign(now = new Date()): FestiveCampaign | nu
 
 export function listFestiveCampaigns() {
   return CAMPAIGNS.slice();
+}
+
+/** Merge campaign defaults with IST day-specific copy when configured. */
+export function resolveFestivePresentation(
+  campaign: FestiveCampaign,
+  now = new Date()
+): FestiveCampaign {
+  const day = istDateKey(now);
+  const overlay = campaign.dayThemes?.[day];
+  if (!overlay) return campaign;
+  return {
+    ...campaign,
+    ribbon: overlay.ribbon ?? campaign.ribbon,
+    welcomeTitle: overlay.welcomeTitle ?? campaign.welcomeTitle,
+    welcomeBody: overlay.welcomeBody ?? campaign.welcomeBody,
+    logoAccent: overlay.logoAccent ?? campaign.logoAccent,
+  };
 }

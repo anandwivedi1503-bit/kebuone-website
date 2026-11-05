@@ -2,6 +2,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import { isMongoTransactionUnsupported } from "@/lib/mongoTransaction";
 
+import { validateRiderPaymentAmount } from "@/lib/bookingReserveTimeout";
 import { CGST_RATE, SGST_RATE, getBookingRemainingAmount, gstShareForPayment } from "@/lib/gst";
 import { writeAudit } from "@/lib/writeAudit";
 import { notifyBookingPayment } from "@/lib/notify/bookingNotify";
@@ -136,6 +137,15 @@ export async function applyWalletBookingPayment(
     if (paidAmount < 1 || paidAmount > remainingAmount) {
       await rollback(session);
       return { ok: false as const, status: 400, message: "Payment amount does not match booking balance." };
+    }
+
+    const payCheck = validateRiderPaymentAmount(
+      booking.toObject() as Record<string, unknown>,
+      paidAmount
+    );
+    if (!payCheck.ok) {
+      await rollback(session);
+      return { ok: false as const, status: 400, message: payCheck.message };
     }
 
     if (

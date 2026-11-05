@@ -49,14 +49,24 @@ export async function GET(req: Request) {
         },
       ],
     })
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1, createdAt: -1 })
       .limit(20)
       .select(
-        "ticketId bookingId category status description adminRemarks createdAt resolvedAt closedAt"
+        "ticketId bookingId category status description adminRemarks createdAt updatedAt resolvedAt closedAt"
       )
       .lean();
 
-    return NextResponse.json({ success: true, data: tickets });
+    const data = tickets.map((row) => {
+      const remarks = String(row.adminRemarks || "").trim();
+      return {
+        ...row,
+        supportReply: remarks || undefined,
+        hasSupportReply: remarks.length > 0,
+        supportReplyAt: remarks ? row.updatedAt : undefined,
+      };
+    });
+
+    return NextResponse.json({ success: true, data });
   } catch (error) {
     console.error("TICKETS MINE ERROR:", error);
     return NextResponse.json(

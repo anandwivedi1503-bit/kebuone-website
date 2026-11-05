@@ -64,18 +64,18 @@ export async function POST(req: Request) {
     const fullName = clean(body.fullName, 80);
     const phone = clean(body.phone).replace(/\D/g, "");
     const email = clean(body.email, 120).toLowerCase();
-    const organizationName = clean(body.organizationName, 120);
+    const organizationName = clean(body.organizationName, 120) || fullName;
     const state = clean(body.state, 80);
     const city = clean(body.city, 80);
-    const territory = clean(body.territory, 120);
+    const territory = clean(body.territory, 120) || city;
     const partnerType = clean(body.partnerType, 120);
     const comingThroughRaw = clean(body.comingThrough, 80);
     const comingThrough = comingThroughRaw || DIRECT_THROUGH;
     const investmentCapacity = clean(body.investmentCapacity, 80);
-    const propertyAvailable = clean(body.propertyAvailable, 20);
-    const availableSpace = clean(body.availableSpace, 80);
-    const businessExperience = clean(body.businessExperience, 80);
-    const plannedFleetSize = clean(body.plannedFleetSize, 80);
+    const propertyAvailable = clean(body.propertyAvailable, 20) || "No";
+    const availableSpace = clean(body.availableSpace, 80) || "Below 500 Sq Ft";
+    const businessExperience = clean(body.businessExperience, 80) || "Fresher";
+    const plannedFleetSize = clean(body.plannedFleetSize, 80) || "1 - 10 Vehicles";
     const message = clean(body.message, 800);
     const consentAccepted = Boolean(body.consentAccepted);
 

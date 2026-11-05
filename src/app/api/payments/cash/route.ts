@@ -33,6 +33,7 @@ export async function POST(req: Request) {
       paidAmount: Number(body.amount ?? body.paidAmount),
       collectedBy: session.username,
       notes: String(body.notes || ""),
+      cashHandoverPhotoUrl: String(body.cashHandoverPhotoUrl || ""),
     });
 
     if (!result.ok) {
