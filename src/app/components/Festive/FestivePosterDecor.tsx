@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-const LIGHT_COLORS = ["#FF9933", "#FFD700", "#E11D48", "#1F6B4A", "#F97316", "#A855F7"];
+const LIGHT_COLORS = ["#F4C430", "#1F6B4A", "#FFD700", "#18573C"];
 
 /** Mini string lights for the welcome poster header */
 export function PosterStringLights() {

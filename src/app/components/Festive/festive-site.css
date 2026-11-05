@@ -6,11 +6,17 @@ html[data-evuddy-festive] {
   --festive-surface: #fffbf5;
 }
 
+/* Same palette as the Diwali welcome poster — chrome follows automatically */
 html[data-evuddy-festive="diwali"],
 html[data-evuddy-diwali="1"] {
-  --festive-accent: #c2410c;
-  --festive-accent-2: #1f6b4a;
-  --festive-surface: #fffbeb;
+  --ev-green: #1f6b4a;
+  --ev-green-dark: #18573c;
+  --ev-cream: #f7f4ee;
+  --ev-ink: #0a1134;
+  --ev-gold: #f4c430;
+  --festive-accent: var(--ev-gold);
+  --festive-accent-2: var(--ev-green);
+  --festive-surface: var(--ev-cream);
 }
 
 html[data-evuddy-festive="holi"] {

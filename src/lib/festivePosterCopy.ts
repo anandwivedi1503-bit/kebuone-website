@@ -1,25 +1,23 @@
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 
-/** Diwali modal poster — EVUDDY catalog rates only. */
+/** Diwali welcome poster — EVUDDY catalog rates and Lucknow-only copy. */
 export const FESTIVE_POSTER = {
-  badge: "Diwali Dhamaka",
-  badgeHi: "शुभ Deepawali",
-  tagline: "Smart. Electric. Mobility.",
+  kicker: "शुभ दीपावली",
+  kickerEn: "Happy Diwali",
+  city: "Lucknow",
   left: {
     stat: String(CATALOG_RATES.Daily),
     prefix: "₹",
-    line1: "Pay daily rent",
-    line2: "GST included · hourly to monthly",
+    line1: "Daily rent",
+    line2: "GST included",
   },
   right: {
     stat: String(RTO_PLAN.dailyRate),
     prefix: "₹",
     line1: "Rent to Own",
-    line2: `${RTO_PLAN.tenureMonths} months · then yours`,
+    line2: `${RTO_PLAN.tenureMonths} months`,
   },
-  hook: "Rent by the day or pay toward ownership — your Lucknow hub.",
-  footerCities: "Applicable in Lucknow only",
-  footerAction: "Book EV on evuddy.com",
+  footerCities: "Lucknow hubs only",
   hashtag: "#safeRideWithEvuddy",
   ctaPrimary: "Book an EV ride",
   ctaSecondary: "Continue browsing",
