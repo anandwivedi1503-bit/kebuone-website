@@ -7,13 +7,11 @@ import { X } from "lucide-react";
 
 import { FESTIVE_POSTER } from "@/lib/festivePosterCopy";
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
-import {
-  PosterCrackerArt,
-  PosterDiyaRow,
-  PosterStringLights,
-} from "./FestivePosterDecor";
+import { PosterDiyaRow, PosterStringLights } from "./FestivePosterDecor";
 import "../Diwali/diwali.css";
 import "./festive-welcome-poster.css";
+
+const FESTIVE_FLATLAY = "/brand/diwali-sweets-flatlay.jpg";
 
 export type EvuddyFestiveWelcomePosterProps = {
   open: boolean;
@@ -40,13 +38,6 @@ function OfferPanel({
     <div
       className={`evuddy-welcome-poster__panel evuddy-welcome-poster__panel--${side === "green" ? "green" : "gold"}`}
     >
-      {side === "green" ? (
-        <div className="evuddy-welcome-poster__corner-sweets" aria-hidden>
-          <img src="/brand/diwali-sweets-flatlay.jpg" alt="" />
-        </div>
-      ) : (
-        <PosterCrackerArt className="evuddy-welcome-poster__corner-crackers" />
-      )}
       <span className="evuddy-welcome-poster__stat-bg" aria-hidden>
         {stat}
       </span>
@@ -76,14 +67,21 @@ function PosterArt({ title, body }: { title: string; body: string }) {
 
   return (
     <article className="evuddy-welcome-poster w-full max-w-3xl">
-      <div className="evuddy-welcome-poster__hero-band">
-        <div className="evuddy-welcome-poster__flatlay" aria-hidden>
-          <img src="/brand/diwali-sweets-flatlay.jpg" alt="" />
-        </div>
-        <div className="evuddy-welcome-poster__hero-overlay">
+      {/* Full sweets + crackers photo — must stay clearly visible (Blinkit-style) */}
+      <div className="evuddy-welcome-poster__festive-stage">
+        <img
+          className="evuddy-welcome-poster__festive-photo"
+          src={FESTIVE_FLATLAY}
+          alt=""
+          aria-hidden
+        />
+        <div className="evuddy-welcome-poster__festive-fade" aria-hidden />
+        <div className="evuddy-welcome-poster__festive-lights">
           <PosterStringLights />
-          <div className="evuddy-welcome-poster__logo-float">
-            <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" width={220} height={52} />
+        </div>
+        <div className="evuddy-welcome-poster__festive-ui">
+          <div className="evuddy-welcome-poster__logo-plate">
+            <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" width={240} height={56} />
             <p className="evuddy-welcome-poster__logo-tagline">{FESTIVE_POSTER.tagline}</p>
           </div>
           <p className="evuddy-welcome-poster__badge">
@@ -93,7 +91,19 @@ function PosterArt({ title, body }: { title: string; body: string }) {
             {FESTIVE_POSTER.badgeHi}
             <span className="evuddy-welcome-poster__badge-diya" aria-hidden />
           </p>
-          <PosterDiyaRow />
+        </div>
+      </div>
+
+      <PosterDiyaRow />
+
+      <div className="evuddy-welcome-poster__prop-strip" aria-hidden>
+        <div className="evuddy-welcome-poster__prop evuddy-welcome-poster__prop--sweets">
+          <img src={FESTIVE_FLATLAY} alt="" />
+          <span>Mithai</span>
+        </div>
+        <div className="evuddy-welcome-poster__prop evuddy-welcome-poster__prop--crackers">
+          <img src={FESTIVE_FLATLAY} alt="" />
+          <span>Crackers</span>
         </div>
       </div>
 
