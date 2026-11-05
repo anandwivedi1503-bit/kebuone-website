@@ -111,17 +111,17 @@
 }
 
 .evuddy-welcome-poster__logo-chip {
-  padding: 0.45rem 0.95rem 0.4rem;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(31, 107, 74, 0.14);
-  box-shadow: 0 10px 28px rgba(10, 17, 52, 0.12);
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
 }
 
 .evuddy-welcome-poster__logo-chip img {
   display: block;
-  height: 1.45rem;
+  height: 1.7rem;
   width: auto;
+  filter: drop-shadow(0 2px 8px rgba(247, 244, 238, 0.9));
 }
 
 .evuddy-welcome-poster__kicker {
@@ -146,7 +146,7 @@
   position: absolute;
   z-index: 4;
   left: 50%;
-  bottom: -0.85rem;
+  bottom: -1.45rem;
   display: block;
   width: auto;
   max-width: 72%;
@@ -164,7 +164,7 @@
   display: flex;
   justify-content: center;
   gap: 0.7rem;
-  padding: 0.85rem 0 0.2rem;
+  padding: 1.15rem 0 0.2rem;
 }
 
 .evuddy-poster-diya {
