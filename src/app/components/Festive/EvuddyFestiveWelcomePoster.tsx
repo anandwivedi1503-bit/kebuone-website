@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 import { FESTIVE_POSTER } from "@/lib/festivePosterCopy";
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import FestivePosterModalFrame from "./FestivePosterModalFrame";
-import { PosterCrackerArt, PosterDiyaRow, PosterStringLights } from "./FestivePosterDecor";
+import { PosterDiyaRow, PosterStringLights } from "./FestivePosterDecor";
 import "./festive-welcome-poster.css";
 
 const FESTIVE_FLATLAY = "/brand/diwali-sweets-flatlay.jpg";
@@ -35,29 +35,26 @@ function PosterArt({
 
   return (
     <article className="evuddy-welcome-poster">
-      <PosterStringLights />
-
-      <div className="evuddy-welcome-poster__brand">
-        <div className="evuddy-welcome-poster__logo-chip">
-          <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" width={200} height={44} />
-        </div>
-        <p className="evuddy-welcome-poster__kicker">
-          {FESTIVE_POSTER.kicker}
-          <span> · {FESTIVE_POSTER.kickerEn} · {FESTIVE_POSTER.city}</span>
-        </p>
-      </div>
-
-      <div className="evuddy-welcome-poster__stage">
+      <div className="evuddy-welcome-poster__hero">
         <img
-          className="evuddy-welcome-poster__sweet"
+          className="evuddy-welcome-poster__hero-photo"
           src={FESTIVE_FLATLAY}
-          alt=""
-          aria-hidden
+          alt="Diwali sweets, marigolds and rose petals"
         />
-        <PosterCrackerArt className="evuddy-welcome-poster__crackers" />
-        <span className="evuddy-welcome-poster__petal evuddy-welcome-poster__petal--a" aria-hidden />
-        <span className="evuddy-welcome-poster__petal evuddy-welcome-poster__petal--b" aria-hidden />
-        <span className="evuddy-welcome-poster__petal evuddy-welcome-poster__petal--c" aria-hidden />
+        <div className="evuddy-welcome-poster__hero-fade" aria-hidden />
+        <PosterStringLights />
+        <div className="evuddy-welcome-poster__brand">
+          <div className="evuddy-welcome-poster__logo-chip">
+            <img src="/Evuddy-logo-dark-E.png" alt="EVUDDY" width={200} height={44} />
+          </div>
+          <p className="evuddy-welcome-poster__kicker">
+            {FESTIVE_POSTER.kicker}
+            <span>
+              {" "}
+              · {FESTIVE_POSTER.kickerEn}
+            </span>
+          </p>
+        </div>
         <Image
           src={YELLOW_SCOOTER_CUTOUT}
           alt="EVUDDY yellow electric scooter"
@@ -66,8 +63,8 @@ function PosterArt({
           className="evuddy-welcome-poster__scooter-img"
           priority
         />
-        <PosterDiyaRow />
       </div>
+      <PosterDiyaRow />
 
       <div className="evuddy-welcome-poster__copy">
         <h2>{title}</h2>
