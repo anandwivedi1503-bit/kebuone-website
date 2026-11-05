@@ -18,6 +18,7 @@ import { downloadHtmlFile } from "@/lib/dashboardExport";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 import CashCollectForm from "../YardRideDesk/CashCollectForm";
+import OpsContactRail from "../DashboardUI/OpsContactRail";
 import { maskOtpDigits } from "@/lib/maskOtp";
 
 export default function BookingDashboard() {
@@ -1458,6 +1459,25 @@ View
 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6">
 
 <div className="max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-3xl bg-white p-6 md:p-8">
+
+<OpsContactRail
+  title={`Booking · ${selectedBooking.userName || selectedBooking.bookingId}`}
+  phone={selectedBooking.userPhone}
+  email={selectedBooking.userEmail}
+  entityLabel="Booking"
+  entityId={selectedBooking.bookingId}
+  notes={selectedBooking.helpdeskNotes || ""}
+  onSaveNotes={async (notes) => {
+    const res = await fetch(`/api/bookings/${selectedBooking._id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ helpdeskNotes: notes }),
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error();
+    setSelectedBooking({ ...selectedBooking, helpdeskNotes: notes });
+  }}
+/>
 
 <div className="mb-8 flex items-center justify-between">
 

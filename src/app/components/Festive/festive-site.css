@@ -1,0 +1,74 @@
+/* Site-wide festive tokens — public marketing only (html[data-evuddy-festive]) */
+
+html[data-evuddy-festive] {
+  --festive-accent: var(--evuddy-festive-accent, #18b368);
+  --festive-accent-2: #0a1134;
+  --festive-surface: #fffbf5;
+}
+
+html[data-evuddy-festive="diwali"],
+html[data-evuddy-diwali="1"] {
+  --festive-accent: #c2410c;
+  --festive-accent-2: #1f6b4a;
+  --festive-surface: #fffbeb;
+}
+
+html[data-evuddy-festive="holi"] {
+  --festive-accent: #e11d48;
+  --festive-accent-2: #2563eb;
+  --festive-surface: #fdf2f8;
+}
+
+html[data-evuddy-festive="republic"],
+html[data-evuddy-festive="independence"] {
+  --festive-accent: #ff9933;
+  --festive-accent-2: #138808;
+  --festive-surface: #fff7ed;
+}
+
+html[data-evuddy-festive] body {
+  background:
+    radial-gradient(ellipse 90% 50% at 50% -10%, color-mix(in srgb, var(--festive-accent) 12%, transparent), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 20%, color-mix(in srgb, var(--festive-accent-2) 8%, transparent), transparent 50%),
+    var(--festive-surface);
+  transition: background 800ms ease;
+}
+
+html[data-evuddy-festive] nav.fixed {
+  border-bottom: 1px solid color-mix(in srgb, var(--festive-accent) 35%, #e2e8f0);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--festive-accent) 10%, transparent);
+}
+
+html[data-evuddy-festive] .nav-book-btn,
+html[data-evuddy-festive] a[href="/ride-options"].nav-book-btn {
+  background: linear-gradient(
+    135deg,
+    var(--festive-accent-2),
+    color-mix(in srgb, var(--festive-accent) 70%, var(--festive-accent-2))
+  ) !important;
+}
+
+html[data-evuddy-festive] ::selection {
+  background: color-mix(in srgb, var(--festive-accent) 85%, #000);
+}
+
+@keyframes evuddy-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.evuddy-festive-marquee-track {
+  display: flex;
+  width: max-content;
+  animation: evuddy-marquee 28s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evuddy-festive-marquee-track {
+    animation: none;
+  }
+}

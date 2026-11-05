@@ -4,6 +4,7 @@ import "./globals.css";
 import EvuddyAssistantGate from "./components/EvuddyAssistant/EvuddyAssistantGate";
 import FestiveCelebrationGate from "./components/Festive/FestiveCelebrationGate";
 import "./components/Festive/festive-themes.css";
+import "./components/Festive/festive-site.css";
 
 const display = Cormorant_Garamond({
   variable: "--font-display",

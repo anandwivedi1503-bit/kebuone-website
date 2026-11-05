@@ -13,6 +13,7 @@ import DashboardActions from "../DashboardUI/DashboardActions";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import RiderSafetyBoard from "./RiderSafetyBoard";
+import PhoneBookingLeadsPanel from "./PhoneBookingLeadsPanel";
 
 type CommandCenterCounts = {
   riders: number;
@@ -279,6 +280,8 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
         onOpenIot={() => openDashboard("iot")}
       />
 
+      <PhoneBookingLeadsPanel />
+
       <SectionHeader
         title="Find a record"
         subtitle="Search riders, bookings, tickets or wallets. Click a row to open that desk."
@@ -287,14 +290,14 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         placeholder="Search rider, booking, ticket, vehicle..."
-        className="mb-6 h-14 w-full rounded-2xl border border-pink-100 bg-white px-5 outline-none focus:ring-2 focus:ring-pink-200"
+        className="mb-6 h-14 w-full rounded-2xl border border-[#18B368]/20 bg-white/90 px-5 shadow-sm backdrop-blur-md outline-none focus:ring-2 focus:ring-[#18B368]/25"
       />
       {searchHits.length > 0 ? (
         <DashboardCard title="Search results" subtitle="Opens the matching desk">
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
-                <tr className="border-b border-pink-100 bg-pink-50">
+                <tr className="border-b border-[#18B368]/10 bg-[#18B368]/5">
                   <th className="px-6 py-4 text-left font-bold">Record</th>
                   <th className="px-6 py-4 text-left font-bold">Detail</th>
                   <th className="px-6 py-4 text-left font-bold">Desk</th>
@@ -304,7 +307,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
                 {searchHits.map((hit) => (
                   <tr
                     key={`${hit.dashboard}-${hit.id}`}
-                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    className="cursor-pointer border-b border-[#18B368]/10 hover:bg-[#18B368]/5"
                     onClick={() => openDashboard(hit.dashboard)}
                   >
                     <td className="px-6 py-4 font-semibold">{hit.title}</td>
@@ -323,7 +326,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b border-pink-100 bg-pink-50">
+              <tr className="border-b border-[#18B368]/10 bg-[#18B368]/5">
                 <th className="px-6 py-4 text-left font-bold">Booking</th>
                 <th className="px-6 py-4 text-left font-bold">Rider</th>
                 <th className="px-6 py-4 text-left font-bold">Vehicle</th>
@@ -344,7 +347,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
                 bookings.map((booking) => (
                   <tr
                     key={booking._id || booking.bookingId}
-                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    className="cursor-pointer border-b border-[#18B368]/10 hover:bg-[#18B368]/5"
                     onClick={() => openDashboard("bookings")}
                   >
                     <td className="px-6 py-4 font-semibold">{booking.bookingId || "—"}</td>
@@ -374,7 +377,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b border-pink-100 bg-pink-50">
+              <tr className="border-b border-[#18B368]/10 bg-[#18B368]/5">
                 <th className="px-6 py-4 text-left font-bold">Ticket</th>
                 <th className="px-6 py-4 text-left font-bold">Category</th>
                 <th className="px-6 py-4 text-left font-bold">Priority</th>
@@ -392,7 +395,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
                 tickets.map((ticket) => (
                   <tr
                     key={ticket._id || ticket.ticketId}
-                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    className="cursor-pointer border-b border-[#18B368]/10 hover:bg-[#18B368]/5"
                     onClick={() => openDashboard("support")}
                   >
                     <td className="px-6 py-4 font-semibold">{ticket.ticketId || "—"}</td>
@@ -412,7 +415,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b border-pink-100 bg-pink-50">
+              <tr className="border-b border-[#18B368]/10 bg-[#18B368]/5">
                 <th className="px-6 py-4 text-left font-bold">Name</th>
                 <th className="px-6 py-4 text-left font-bold">Type</th>
                 <th className="px-6 py-4 text-left font-bold">City</th>
@@ -430,7 +433,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
                 partners.map((partner) => (
                   <tr
                     key={partner._id}
-                    className="cursor-pointer border-b border-pink-50 hover:bg-pink-50/40"
+                    className="cursor-pointer border-b border-[#18B368]/10 hover:bg-[#18B368]/5"
                     onClick={() => openDashboard("partner")}
                   >
                     <td className="px-6 py-4 font-semibold">{partner.fullName || "—"}</td>

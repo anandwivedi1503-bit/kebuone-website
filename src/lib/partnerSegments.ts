@@ -8,6 +8,8 @@ export const DIRECT_THROUGH = "Direct / EVUDDY";
 
 export const COMING_THROUGH_OPTIONS = [
   DIRECT_THROUGH,
+  "Meta Ads",
+  "Google Ads",
   "Flipkart Minutes",
   "Zomato",
   "Swiggy",
@@ -22,6 +24,8 @@ export type ComingThrough = (typeof COMING_THROUGH_OPTIONS)[number];
 export type PartnerSegmentId =
   | "ALL"
   | "DIRECT"
+  | "META_ADS"
+  | "GOOGLE_ADS"
   | "FLIPKART"
   | "ZOMATO"
   | "SWIGGY"
@@ -59,6 +63,24 @@ export const PARTNER_SEGMENTS: Array<{
     color: "pink",
     kind: "network",
     comingThrough: DIRECT_THROUGH,
+  },
+  {
+    id: "META_ADS",
+    label: "Meta Ads",
+    subtitle: "Facebook / Instagram leads",
+    icon: "📣",
+    color: "blue",
+    kind: "network",
+    comingThrough: "Meta Ads",
+  },
+  {
+    id: "GOOGLE_ADS",
+    label: "Google Ads",
+    subtitle: "Search & display leads",
+    icon: "🔍",
+    color: "green",
+    kind: "network",
+    comingThrough: "Google Ads",
   },
   {
     id: "FLIPKART",
