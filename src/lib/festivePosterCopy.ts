@@ -17,7 +17,7 @@ export const FESTIVE_POSTER = {
     line1: "Rent to Own",
     line2: `${RTO_PLAN.tenureMonths} months · then yours`,
   },
-  hook: "Two ways to ride this Diwali — rent by the day or pay toward ownership.",
+  hook: "Rent by the day or pay toward ownership — your Lucknow hub.",
   footerCities: "Applicable in Lucknow only",
   footerAction: "Book EV on evuddy.com",
   hashtag: "#safeRideWithEvuddy",
