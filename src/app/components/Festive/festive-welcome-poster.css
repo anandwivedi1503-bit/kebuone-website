@@ -45,7 +45,7 @@
 .evuddy-welcome-poster__hero {
   position: relative;
   isolation: isolate;
-  min-height: 15.5rem;
+  min-height: 16.75rem;
   background: #f5c518;
 }
 
@@ -119,7 +119,7 @@
 
 .evuddy-welcome-poster__logo-chip img {
   display: block;
-  height: 1.7rem;
+  height: 2.15rem;
   width: auto;
   filter: drop-shadow(0 2px 8px rgba(247, 244, 238, 0.9));
 }
@@ -146,12 +146,12 @@
   position: absolute;
   z-index: 4;
   left: 50%;
-  bottom: -1.45rem;
+  bottom: -1.7rem;
   display: block;
   width: auto;
-  max-width: 72%;
+  max-width: 84%;
   height: auto;
-  max-height: 7.6rem;
+  max-height: 9.15rem;
   object-fit: contain;
   object-position: center bottom;
   transform: translateX(-50%);
@@ -164,7 +164,7 @@
   display: flex;
   justify-content: center;
   gap: 0.7rem;
-  padding: 1.15rem 0 0.2rem;
+  padding: 1.4rem 0 0.2rem;
 }
 
 .evuddy-poster-diya {
