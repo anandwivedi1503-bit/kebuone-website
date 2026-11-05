@@ -6,7 +6,7 @@ import type { FestiveCampaign } from "@/lib/festiveCalendar";
 import EvuddyFestiveWelcomePoster from "../Festive/EvuddyFestiveWelcomePoster";
 import "./diwali.css";
 
-const LIGHT_COLORS = ["#FF9933", "#FFD700", "#E11D48", "#1F6B4A", "#A855F7", "#F97316"];
+const LIGHT_COLORS = ["#F4C430", "#1F6B4A", "#FFD700", "#18573C"];
 
 function StringLights() {
   const bulbs = useMemo(
@@ -79,7 +79,7 @@ function Sparkles() {
 function FestiveRibbon({ text }: { text: string }) {
   return (
     <div className="flex justify-center px-3" aria-hidden>
-      <div className="max-w-xl rounded-full border border-[#FFD700]/40 bg-gradient-to-r from-[#7C2D12]/90 via-[#B45309]/90 to-[#1F6B4A]/90 px-4 py-1.5 text-center text-[10px] font-medium tracking-[0.18em] text-[#FFFBEB] shadow-lg sm:text-[11px]">
+      <div className="max-w-xl rounded-full border border-[#F4C430]/50 bg-gradient-to-r from-[#1F6B4A] via-[#18573C] to-[#F4C430] px-4 py-1.5 text-center text-[10px] font-medium tracking-[0.18em] text-[#FFFBEB] shadow-lg sm:text-[11px]">
         {text}
       </div>
     </div>
@@ -110,6 +110,8 @@ export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCamp
     if (!isDiwaliSeason()) return;
     document.documentElement.dataset.evuddyDiwali = "1";
     document.documentElement.dataset.evuddyFestive = "diwali";
+    const accent = campaign?.logoAccent ?? "#F4C430";
+    document.documentElement.style.setProperty("--evuddy-festive-accent", accent);
     try {
       const seen = sessionStorage.getItem(sessionKey);
       if (!seen) setShowWelcome(true);
@@ -119,8 +121,9 @@ export default function DiwaliCelebration({ campaign }: { campaign?: FestiveCamp
     return () => {
       delete document.documentElement.dataset.evuddyDiwali;
       delete document.documentElement.dataset.evuddyFestive;
+      document.documentElement.style.removeProperty("--evuddy-festive-accent");
     };
-  }, [sessionKey]);
+  }, [sessionKey, campaign?.logoAccent]);
 
   const closeWelcome = () => {
     setShowWelcome(false);

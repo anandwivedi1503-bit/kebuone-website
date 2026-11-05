@@ -7,7 +7,7 @@ import { X } from "lucide-react";
 import { FESTIVE_POSTER } from "@/lib/festivePosterCopy";
 import { YELLOW_SCOOTER_CUTOUT } from "@/lib/scooterAssets";
 import FestivePosterModalFrame from "./FestivePosterModalFrame";
-import { PosterStringLights } from "./FestivePosterDecor";
+import { PosterDiyaRow, PosterStringLights } from "./FestivePosterDecor";
 import "./festive-welcome-poster.css";
 
 const FESTIVE_FLATLAY = "/brand/diwali-sweets-flatlay.jpg";
@@ -81,6 +81,7 @@ function PosterArt({
           priority
         />
       </div>
+      <PosterDiyaRow />
 
       <div className="evuddy-welcome-poster__copy">
         <h2>{title}</h2>

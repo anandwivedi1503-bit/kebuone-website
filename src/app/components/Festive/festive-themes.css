@@ -2,6 +2,10 @@ html[data-evuddy-festive] {
   --evuddy-festive-accent: #18b368;
 }
 
+html[data-evuddy-festive="diwali"] {
+  --evuddy-festive-accent: #f4c430;
+}
+
 html[data-evuddy-festive="holi"] body {
   background-image:
     radial-gradient(circle at 10% 0%, rgba(225, 29, 72, 0.08), transparent 40%),
