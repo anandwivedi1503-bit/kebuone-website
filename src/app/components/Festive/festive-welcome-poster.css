@@ -105,14 +105,14 @@
 .evuddy-welcome-poster__prop-strip {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  padding: 0.5rem 0.65rem 0;
-  background: #fffbeb;
+  gap: 0.65rem;
+  padding: 0.65rem 0.75rem 0.35rem;
+  background: linear-gradient(180deg, #fffbeb, #fef3c7);
 }
 
 .evuddy-welcome-poster__prop {
   position: relative;
-  height: clamp(72px, 18vw, 96px);
+  height: clamp(100px, 22vw, 130px);
   overflow: hidden;
   border-radius: 12px;
   border: 1px solid rgba(244, 196, 48, 0.45);
