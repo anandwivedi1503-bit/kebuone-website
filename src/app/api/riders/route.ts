@@ -124,6 +124,7 @@ type AdminRiderRecord = {
   profilePhotoUrl?: string;
 
   comingThrough?: string;
+  pickupCityAck?: string;
 
   createdAt?: Date;
 
@@ -390,6 +391,12 @@ export async function POST(req: Request) {
         ? comingThroughRaw || DIRECT_THROUGH
         : DIRECT_THROUGH;
 
+    const pickupCityAckRaw = clean(body.pickupCityAck).toUpperCase();
+    const pickupCityAck =
+      pickupCityAckRaw === "LUCKNOW" || pickupCityAckRaw === "OTHER"
+        ? pickupCityAckRaw
+        : "";
+
     /* =====================================================
        DOCUMENT URLS
     ===================================================== */
@@ -443,6 +450,10 @@ export async function POST(req: Request) {
       errors.push(
         "Aadhaar number must be exactly 12 digits."
       );
+    }
+
+    if (pickupCityAck !== "LUCKNOW" && pickupCityAck !== "OTHER") {
+      errors.push("Confirm whether you are in Lucknow or another city.");
     }
 
     /*
@@ -1096,6 +1107,8 @@ if (drivingLicense) {
           facebookId,
 
           comingThrough,
+
+          pickupCityAck,
 
           /* ==============================
              FIREBASE

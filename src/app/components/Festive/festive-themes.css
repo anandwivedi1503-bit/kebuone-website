@@ -1,0 +1,51 @@
+html[data-evuddy-festive] {
+  --evuddy-festive-accent: #18b368;
+}
+
+html[data-evuddy-festive="holi"] body {
+  background-image:
+    radial-gradient(circle at 10% 0%, rgba(225, 29, 72, 0.08), transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(34, 197, 94, 0.1), transparent 45%);
+}
+
+html[data-evuddy-festive="republic"] body,
+html[data-evuddy-festive="independence"] body {
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(255, 153, 51, 0.06) 0%,
+      transparent 28%,
+      rgba(255, 255, 255, 0) 28%,
+      rgba(19, 136, 8, 0.05) 100%
+    );
+}
+
+html[data-evuddy-festive="christmas"] body,
+html[data-evuddy-festive="newyear"] body {
+  background-image: radial-gradient(circle at 50% -10%, rgba(220, 38, 38, 0.07), transparent 55%);
+}
+
+.evuddy-festive-ribbon p {
+  animation: evuddy-ribbon-glow 4s ease-in-out infinite;
+}
+
+@keyframes evuddy-ribbon-glow {
+  0%,
+  100% {
+    box-shadow: 0 8px 24px rgba(10, 17, 52, 0.2);
+  }
+  50% {
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--evuddy-festive-accent) 45%, transparent);
+  }
+}
+
+.evuddy-festive-logo img {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--evuddy-festive-accent) 55%, transparent));
+  transition: filter 400ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evuddy-festive-ribbon p {
+    animation: none;
+  }
+}

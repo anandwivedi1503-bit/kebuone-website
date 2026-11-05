@@ -38,6 +38,7 @@ export type RegistrationDraft = {
   phone: string;
   email: string;
   comingThrough: string;
+  pickupCityAck?: "LUCKNOW" | "OTHER" | "";
   savedAt: number;
 };
 
