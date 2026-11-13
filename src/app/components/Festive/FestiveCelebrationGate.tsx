@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { getActiveFestiveCampaign, resolveFestivePresentation } from "@/lib/festiveCalendar";
+import ChhathCelebration from "../Chhath/ChhathCelebration";
 import DiwaliCelebration from "../Diwali/DiwaliCelebration";
 import FestiveThemeExperience from "./FestiveThemeExperience";
 
@@ -9,7 +10,7 @@ function isOpsPath(pathname: string) {
   return pathname.startsWith("/dashboard") || pathname === "/admin-login";
 }
 
-/** Calendar-driven festive layer (Diwali = full lights; other festivals = themed site + modal). */
+/** Calendar-driven festive layer (Diwali / Chhath = full poster + site skin; others = themed site + modal). */
 export default function FestiveCelebrationGate() {
   const pathname = usePathname() || "";
   if (isOpsPath(pathname)) return null;
@@ -21,6 +22,10 @@ export default function FestiveCelebrationGate() {
 
   if (campaign.theme === "diwali") {
     return <DiwaliCelebration campaign={campaign} />;
+  }
+
+  if (campaign.theme === "chhath") {
+    return <ChhathCelebration campaign={campaign} />;
   }
 
   return <FestiveThemeExperience campaign={campaign} />;

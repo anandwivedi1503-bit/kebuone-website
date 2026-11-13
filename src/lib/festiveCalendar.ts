@@ -23,7 +23,17 @@ export type FestiveCampaign = {
   welcomeTitle: string;
   welcomeBody: string;
   /** html[data-evuddy-festive] value — drives CSS theme tokens. */
-  theme: "diwali" | "holi" | "republic" | "independence" | "christmas" | "eid" | "navratri" | "rakhi" | "newyear";
+  theme:
+    | "diwali"
+    | "chhath"
+    | "holi"
+    | "republic"
+    | "independence"
+    | "christmas"
+    | "eid"
+    | "navratri"
+    | "rakhi"
+    | "newyear";
   start: string;
   end: string;
   /** Accent for logo glow (hex). */
@@ -123,7 +133,7 @@ const CAMPAIGNS: FestiveCampaign[] = [
     id: "diwali-2026",
     theme: "diwali",
     start: "2026-10-15",
-    end: "2026-11-20",
+    end: "2026-11-12",
     ribbon: "✦ शुभ दीपावली · Happy Diwali · Ride electric, ride bright ✦",
     welcomeTitle: "Happy Diwali from EVUDDY",
     welcomeBody:
@@ -167,6 +177,53 @@ const CAMPAIGNS: FestiveCampaign[] = [
         ribbon: "✦ Diwali week · EVUDDY Lucknow rides ✦",
         welcomeTitle: "Festive rides in Lucknow",
         logoAccent: "#FFD700",
+      },
+    },
+  },
+  {
+    id: "chhath-2026",
+    theme: "chhath",
+    start: "2026-11-13",
+    end: "2026-11-17",
+    ribbon: "✦ छठ पूजा · Chhath Puja · Safe electric rides to every ghat ✦",
+    welcomeTitle: "Chhath Puja wishes from EVUDDY",
+    welcomeBody:
+      "Offer your prayers with devotion — reach the ghat on time with a quiet, pollution-free EV ride. Warm wishes from the EVUDDY family across Lucknow.",
+    logoAccent: "#F97316",
+    sessionKey: "evuddy-chhath-welcome-2026",
+    dayThemes: {
+      "2026-11-13": {
+        ribbon: "✦ नहाय खाय · Start Chhath with a clean ride ✦",
+        welcomeTitle: "Shubh Nahay Khay",
+        welcomeBody:
+          "Begin the sacred festival with purity. EVUDDY hubs are open for your first ride of Chhath Puja week.",
+        logoAccent: "#EA580C",
+      },
+      "2026-11-14": {
+        ribbon: "✦ खरना · Strength for the vrat, safe rides from EVUDDY ✦",
+        welcomeTitle: "Kharna blessings",
+        welcomeBody:
+          "May your fast bring peace and prosperity. Book an electric scooter when you need a reliable ride.",
+        logoAccent: "#FB923C",
+      },
+      "2026-11-15": {
+        ribbon: "✦ संध्या अर्घ्य · Sandhya Arghya · Ride to the river, ride electric ✦",
+        welcomeTitle: "Sandhya Arghya",
+        welcomeBody:
+          "As the Sun sets, we wish you a blessed evening offering. Travel safely to and from the ghat with EVUDDY.",
+        logoAccent: "#F97316",
+      },
+      "2026-11-16": {
+        ribbon: "✦ उषा अर्घ्य · Usha Arghya · Greet Surya Dev with gratitude ✦",
+        welcomeTitle: "Usha Arghya",
+        welcomeBody:
+          "Welcome the rising Sun with devotion. Early-morning hub pickups are ready when you are.",
+        logoAccent: "#FBBF24",
+      },
+      "2026-11-17": {
+        ribbon: "✦ छठ पूजा समापन · Thank you for riding with EVUDDY ✦",
+        welcomeTitle: "Chhath blessings",
+        logoAccent: "#F59E0B",
       },
     },
   },
