@@ -1,0 +1,349 @@
+/* EVUDDY Chhath Puja poster — sunrise ghat hero, scooter as hero, river hues */
+
+.evuddy-chhath-poster {
+  --chhath-saffron: #f97316;
+  --chhath-sun: #fbbf24;
+  --chhath-water: #0e7490;
+  --chhath-ink: #0a1134;
+  --chhath-cream: #fff8f0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 20px;
+  background: var(--chhath-cream);
+  box-shadow: 0 28px 70px rgba(10, 17, 52, 0.32);
+}
+
+.evuddy-chhath-poster__hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 18.75rem;
+  background: linear-gradient(180deg, #1e3a5f 0%, #f97316 42%, #fbbf24 68%, #fef3c7 100%);
+}
+
+.evuddy-chhath-poster__hero-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 55%;
+}
+
+.evuddy-chhath-poster__hero-fade {
+  position: absolute;
+  inset: auto 0 0;
+  height: 4.2rem;
+  background: linear-gradient(180deg, transparent, var(--chhath-cream));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.evuddy-chhath-poster__water-shimmer {
+  position: absolute;
+  inset: auto 0 2.5rem;
+  height: 3.5rem;
+  z-index: 1;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--chhath-water) 35%, transparent) 40%,
+    color-mix(in srgb, var(--chhath-water) 55%, #0e7490) 100%
+  );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.evuddy-chhath-sun {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  top: 1.25rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  transform: translateX(-50%);
+}
+
+.evuddy-chhath-sun__disc {
+  position: absolute;
+  inset: 0.55rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 35% 35%, #fff7ed, var(--chhath-sun) 55%, var(--chhath-saffron));
+  box-shadow: 0 0 28px rgba(251, 191, 36, 0.75);
+  animation: evuddy-chhath-sun-pulse 3.2s ease-in-out infinite;
+}
+
+.evuddy-chhath-sun__ray {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 3px;
+  height: 1.4rem;
+  margin-left: -1.5px;
+  transform-origin: 50% 2.25rem;
+  border-radius: 2px;
+  opacity: 0.75;
+  animation: evuddy-chhath-ray 2.4s ease-in-out infinite;
+}
+
+.evuddy-chhath-poster__brand {
+  position: absolute;
+  z-index: 4;
+  inset: 4.5rem 0.75rem 6.2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.evuddy-chhath-poster__logo-chip img {
+  display: block;
+  height: 2.75rem;
+  width: auto;
+  filter: drop-shadow(0 2px 10px rgba(255, 247, 237, 0.95));
+}
+
+.evuddy-chhath-poster__kicker {
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7c2d12;
+  background: rgba(255, 248, 240, 0.94);
+  border: 1px solid rgba(249, 115, 22, 0.25);
+}
+
+.evuddy-chhath-poster__kicker span {
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #9a3412;
+}
+
+.evuddy-chhath-poster__scooter-img {
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: -2.05rem;
+  display: block;
+  width: auto;
+  max-width: 96%;
+  height: auto;
+  max-height: 11.5rem;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 12px 18px rgba(10, 17, 52, 0.25));
+}
+
+.evuddy-chhath-offerings {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: 1.75rem 0 0.1rem;
+}
+
+.evuddy-chhath-soop {
+  position: relative;
+  width: 0.85rem;
+  height: 1rem;
+}
+
+.evuddy-chhath-soop__basket {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0.55rem;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(180deg, #d97706, #92400e);
+  clip-path: polygon(8% 0%, 92% 0%, 100% 100%, 0% 100%);
+}
+
+.evuddy-chhath-soop__fruit {
+  position: absolute;
+  left: 50%;
+  bottom: 0.48rem;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: radial-gradient(circle at 30% 30%, #fde68a, #f97316);
+  transform: translateX(-50%);
+}
+
+.evuddy-chhath-marigold {
+  display: block;
+  width: min(88%, 16rem);
+  height: 0.65rem;
+  margin: 0.15rem auto 0;
+}
+
+.evuddy-chhath-poster__copy {
+  padding: 0.2rem 1rem 0.1rem;
+  text-align: center;
+}
+
+.evuddy-chhath-poster__copy h2 {
+  margin: 0;
+  font-family: var(--font-display), "Times New Roman", serif;
+  font-size: clamp(1.15rem, 3.4vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--chhath-ink);
+  line-height: 1.15;
+}
+
+.evuddy-chhath-poster__copy p {
+  margin: 0.35rem 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #57534e;
+}
+
+.evuddy-chhath-poster__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.45rem;
+  padding: 0.45rem 0.85rem 0.35rem;
+}
+
+.evuddy-chhath-poster__facts > div {
+  min-width: 0;
+  padding: 0.5rem 0.55rem 0.45rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(14, 116, 144, 0.14);
+  text-align: center;
+}
+
+.evuddy-chhath-poster__facts > div:last-child {
+  border-color: rgba(249, 115, 22, 0.35);
+  background: linear-gradient(180deg, #fff7ed, #fff);
+}
+
+.evuddy-chhath-poster__fact-label {
+  margin: 0;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #78716c;
+}
+
+.evuddy-chhath-poster__fact-stat {
+  margin: 0.15rem 0 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--chhath-water);
+  line-height: 1;
+}
+
+.evuddy-chhath-poster__facts > div:last-child .evuddy-chhath-poster__fact-stat {
+  color: #c2410c;
+}
+
+.evuddy-chhath-poster__fact-stat span {
+  font-size: 0.55em;
+  margin-right: 0.04em;
+}
+
+.evuddy-chhath-poster__fact-note {
+  margin: 0.2rem 0 0;
+  font-size: 10px;
+  color: #78716c;
+}
+
+.evuddy-chhath-poster__actions {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 0.4rem;
+  padding: 0.15rem 0.85rem 0.55rem;
+}
+
+.evuddy-chhath-poster__cta-primary,
+.evuddy-chhath-poster__cta-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.45rem;
+  padding: 0.35rem 0.45rem;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.evuddy-chhath-poster__cta-primary {
+  color: #fff;
+  background: linear-gradient(135deg, var(--chhath-saffron), #ea580c);
+}
+
+.evuddy-chhath-poster__cta-primary:hover {
+  background: linear-gradient(135deg, #ea580c, #c2410c);
+}
+
+.evuddy-chhath-poster__cta-secondary {
+  color: var(--chhath-ink);
+  background: #fff;
+  border: 1px solid rgba(10, 17, 52, 0.12);
+}
+
+.evuddy-chhath-poster__bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 0.5rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7c2d12;
+  background: linear-gradient(90deg, #fed7aa, var(--chhath-sun));
+  line-height: 1.35;
+}
+
+@keyframes evuddy-chhath-sun-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 24px rgba(251, 191, 36, 0.65);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 36px rgba(249, 115, 22, 0.75);
+  }
+}
+
+@keyframes evuddy-chhath-ray {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 380px) {
+  .evuddy-chhath-poster__actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evuddy-chhath-sun__disc,
+  .evuddy-chhath-sun__ray {
+    animation: none !important;
+  }
+}

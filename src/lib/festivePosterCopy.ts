@@ -1,10 +1,6 @@
 import { CATALOG_RATES, RTO_PLAN } from "@/lib/rentalPlans";
 
-/** Diwali welcome poster — EVUDDY catalog rates and Lucknow-only copy. */
-export const FESTIVE_POSTER = {
-  kicker: "शुभ दीपावली",
-  kickerEn: "Happy Diwali",
-  city: "Lucknow",
+const PRICING = {
   left: {
     stat: String(CATALOG_RATES.Daily),
     prefix: "₹",
@@ -22,4 +18,23 @@ export const FESTIVE_POSTER = {
   ctaPrimary: "Book an EV ride",
   ctaSecondary: "Continue browsing",
   tc: "T&C apply",
+} as const;
+
+/** Diwali welcome poster — EVUDDY catalog rates and Lucknow-only copy. */
+export const FESTIVE_POSTER = {
+  kicker: "शुभ दीपावली",
+  kickerEn: "Happy Diwali",
+  city: "Lucknow",
+  ...PRICING,
+} as const;
+
+/** Chhath Puja welcome poster — sunrise river motif, Bihar–UP cultural tone. */
+export const CHHATH_POSTER = {
+  kicker: "छठ पूजा",
+  kickerEn: "Chhath Puja",
+  city: "Lucknow",
+  ...PRICING,
+  hashtag: "#ChhathWithEvuddy",
+  ctaPrimary: "Book EV for the ghat",
+  ctaSecondary: "Continue browsing",
 } as const;

@@ -1,0 +1,57 @@
+@keyframes evuddy-chhath-glint {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-110vh) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes evuddy-chhath-wave {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scaleX(1.02);
+  }
+}
+
+.evuddy-chhath-glint {
+  animation: evuddy-chhath-glint linear infinite;
+}
+
+.evuddy-chhath-ribbon {
+  background: linear-gradient(
+    90deg,
+  color-mix(in srgb, var(--evuddy-festive-accent) 80%, #0e7490),
+  color-mix(in srgb, var(--evuddy-festive-accent) 92%, #fbbf24),
+  color-mix(in srgb, var(--evuddy-festive-accent) 75%, #0e7490)
+  );
+}
+
+.evuddy-chhath-wave-band {
+  animation: evuddy-chhath-wave 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .evuddy-chhath-glint,
+  .evuddy-chhath-wave-band {
+    animation: none !important;
+  }
+}
+
+html[data-evuddy-chhath="1"] body {
+  background-image:
+    radial-gradient(ellipse 100% 70% at 50% -15%, rgba(251, 191, 36, 0.2), transparent 58%),
+    radial-gradient(ellipse 80% 50% at 0% 30%, rgba(249, 115, 22, 0.08), transparent 50%),
+    radial-gradient(ellipse 70% 45% at 100% 25%, rgba(14, 116, 144, 0.1), transparent 48%),
+    radial-gradient(ellipse 90% 40% at 50% 100%, rgba(255, 248, 240, 0.95), transparent 42%);
+}
