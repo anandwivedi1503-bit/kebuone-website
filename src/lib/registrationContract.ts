@@ -15,17 +15,35 @@ export type RegistrationClient = {
   asksPickupCity: boolean;
 };
 
-export function readRegistrationClient(headers: Headers): RegistrationClient {
-  const kind = headers.get("x-evuddy-client")?.trim().toLowerCase();
-  const caps = (headers.get("x-evuddy-client-capabilities") || "")
+export function readClientCapabilities(headers: Headers): string[] {
+  return (headers.get("x-evuddy-client-capabilities") || "")
     .split(",")
     .map((part) => part.trim())
     .filter(Boolean);
+}
+
+export function readRegistrationClient(headers: Headers): RegistrationClient {
+  const kind = headers.get("x-evuddy-client")?.trim().toLowerCase();
+  const caps = readClientCapabilities(headers);
   if (kind === "web") return { kind: "web", asksPickupCity: true };
   if (kind === "app") {
     return { kind: "app", asksPickupCity: caps.includes("pickupCityAck") };
   }
   return { kind: "legacy", asksPickupCity: false };
+}
+
+/**
+ * The app already on phones offers a first payment from ₹1 and cannot be
+ * changed until a store build. The website, and an app build that names
+ * `firstPaymentHalfRental`, keep the 50% rental floor.
+ */
+export function enforcesHalfRentalFirstPayment(headers: Headers): boolean {
+  const client = readRegistrationClient(headers);
+  if (client.kind === "web") return true;
+  if (client.kind === "app") {
+    return readClientCapabilities(headers).includes("firstPaymentHalfRental");
+  }
+  return false;
 }
 
 export function normalizePickupCityAck(value: unknown): PickupCityAck {
@@ -42,6 +60,18 @@ export function pickupCityAckError(
   if (!client.asksPickupCity) return null;
   if (value === "LUCKNOW" || value === "OTHER") return null;
   return "Confirm whether you are in Lucknow or another city.";
+}
+
+/** What both clients can read when they want the same payment rule. */
+export function paymentContract() {
+  return {
+    version: 1,
+    firstRentalPayment: {
+      website: "half-of-rental",
+      capability: "firstPaymentHalfRental",
+      legacyApp: "from-one-rupee",
+    },
+  };
 }
 
 /** What both clients can read when they want the same question. */

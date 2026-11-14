@@ -350,6 +350,7 @@ const firstPay = minRiderPaymentInr(sampleBooking);
 assert.ok(firstPay.halfRental !== undefined);
 assert.equal(firstPay.min, 1150);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1).ok === false);
+assert.ok(validateRiderPaymentAmount(sampleBooking, 1, { halfRentalFirst: false }).ok);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1150).ok);
 assert.ok(
   validateRiderPaymentAmount({ ...sampleBooking, receivedAmount: 1150, pendingAmount: 1650 }, 100).ok

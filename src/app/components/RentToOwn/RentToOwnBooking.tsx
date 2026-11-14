@@ -500,6 +500,8 @@ export default function RentToOwnBooking() {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
+            "X-Evuddy-Client": "web",
+            "X-Evuddy-Client-Capabilities": "firstPaymentHalfRental",
           },
           body: JSON.stringify({
             bookingMongoId,
@@ -666,6 +668,8 @@ export default function RentToOwnBooking() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "X-Evuddy-Client": "web",
+          "X-Evuddy-Client-Capabilities": "firstPaymentHalfRental",
         },
         body: JSON.stringify({
           bookingMongoId,

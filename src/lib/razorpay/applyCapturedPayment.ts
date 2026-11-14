@@ -170,9 +170,12 @@ export async function applyCapturedRazorpayPayment(
     const oldReceivedAmount = Number(booking.receivedAmount || 0);
     const remainingAmount = getBookingRemainingAmount(booking);
 
+    // The order was already accepted for this client. Record the captured
+    // amount, including ₹1 from the app build already on phones.
     const payCheck = validateRiderPaymentAmount(
       booking.toObject() as Record<string, unknown>,
-      paidAmount
+      paidAmount,
+      { halfRentalFirst: false }
     );
     if (!payCheck.ok) {
       return { ok: false, status: 400, message: payCheck.message };

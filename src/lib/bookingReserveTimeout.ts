@@ -47,7 +47,10 @@ export function reserveExpiredMessage() {
   return "This booking timed out without payment. Start a fresh booking — your scooter hold was released.";
 }
 
-export function minRiderPaymentInr(booking: Record<string, unknown>) {
+export function minRiderPaymentInr(
+  booking: Record<string, unknown>,
+  options?: { halfRentalFirst?: boolean }
+) {
   const remaining = getBookingRemainingAmount(booking);
   if (remaining <= 0.009) {
     return { min: 0, max: 0, firstPayment: false as const };
@@ -62,7 +65,7 @@ export function minRiderPaymentInr(booking: Record<string, unknown>) {
   }
 
   const received = money(booking.receivedAmount);
-  if (received > 0.009) {
+  if (received > 0.009 || options?.halfRentalFirst === false) {
     return { min: 1, max: remaining, firstPayment: false as const };
   }
 
@@ -81,9 +84,10 @@ export function minRiderPaymentInr(booking: Record<string, unknown>) {
 
 export function validateRiderPaymentAmount(
   booking: Record<string, unknown>,
-  amountInr: number
+  amountInr: number,
+  options?: { halfRentalFirst?: boolean }
 ): { ok: true } | { ok: false; message: string } {
-  const { min, max, firstPayment, halfRental } = minRiderPaymentInr(booking);
+  const { min, max, firstPayment, halfRental } = minRiderPaymentInr(booking, options);
   const amount = money(amountInr);
 
   if (max <= 0.009) {

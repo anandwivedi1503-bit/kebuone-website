@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 
 import {
+  enforcesHalfRentalFirstPayment,
   normalizePickupCityAck,
   pickupCityAckError,
   readRegistrationClient,
@@ -33,5 +34,18 @@ assert.equal(pickupCityAckError("", oldAppShape), null);
 
 assert.equal(newApp.asksPickupCity, true);
 assert.equal(pickupCityAckError(normalizePickupCityAck("nope"), newApp) === null, false);
+
+assert.equal(enforcesHalfRentalFirstPayment(new Headers()), false);
+assert.equal(enforcesHalfRentalFirstPayment(new Headers({ "x-evuddy-client": "web" })), true);
+assert.equal(enforcesHalfRentalFirstPayment(new Headers({ "x-evuddy-client": "app" })), false);
+assert.equal(
+  enforcesHalfRentalFirstPayment(
+    new Headers({
+      "x-evuddy-client": "app",
+      "x-evuddy-client-capabilities": "pickupCityAck,firstPaymentHalfRental",
+    })
+  ),
+  true
+);
 
 console.log("registration-contract-selftest: ok");

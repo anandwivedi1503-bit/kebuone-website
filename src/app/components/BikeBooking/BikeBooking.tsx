@@ -1204,6 +1204,8 @@ referenceBy,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
+          "X-Evuddy-Client": "web",
+          "X-Evuddy-Client-Capabilities": "firstPaymentHalfRental",
         },
         body: JSON.stringify({
           bookingMongoId,
@@ -1606,6 +1608,8 @@ referenceBy,
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
+        "X-Evuddy-Client": "web",
+        "X-Evuddy-Client-Capabilities": "firstPaymentHalfRental",
       },
       body: JSON.stringify({
         bookingMongoId,

@@ -20,6 +20,7 @@ import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 import { validateRiderPaymentAmount } from "@/lib/bookingReserveTimeout";
+import { enforcesHalfRentalFirstPayment } from "@/lib/registrationContract";
 import { normalizePayAmountInr, paiseToInr } from "@/lib/razorpay/moneyAmount";
 
 function clean(value: unknown) {
@@ -64,7 +65,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     if (!(await rateLimitAllowed(`razorpay-order:${clientIp(req)}`, 120, 10 * 60 * 1000))) {
       return NextResponse.json(
-        { success: false, message: "Too many payment attempts. Please wait." },
+        { success: false, message: "Too many tries. Please wait a minute." },
         { status: 429 }
       );
     }
@@ -152,7 +153,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Too many payment attempts. Please wait.",
+          message: "Too many tries. Please wait a minute.",
         },
         { status: 429 }
       );
@@ -241,7 +242,8 @@ export async function POST(req: Request) {
 
     const payCheck = validateRiderPaymentAmount(
       booking.toObject() as Record<string, unknown>,
-      amountInr
+      amountInr,
+      { halfRentalFirst: enforcesHalfRentalFirstPayment(req.headers) }
     );
     if (!payCheck.ok) {
       return NextResponse.json(
@@ -267,7 +269,7 @@ export async function POST(req: Request) {
       return NextResponse.json(
         {
           success: false,
-          message: "Rent to Own requires today’s full GST-included amount in one payment.",
+          message: "Rent to Own needs today’s full GST-included amount in one charge.",
         },
         { status: 400 }
       );
@@ -290,7 +292,7 @@ export async function POST(req: Request) {
           {
             success: false,
             message:
-              "Wallet is for returned deposit hold only — not for ride fare. Pay with Razorpay or cash at the yard.",
+              "Wallet is for returned deposit hold only. Pay the fare in checkout or as cash at the yard.",
           },
           { status: 400 }
         );
@@ -484,7 +486,7 @@ export async function POST(req: Request) {
         success: false,
         message:
           getRazorpayErrorMessage(error) ||
-          "Unable to create Razorpay order.",
+          "Could not start checkout. Try again in a moment.",
       },
       { status: 500 }
     );
