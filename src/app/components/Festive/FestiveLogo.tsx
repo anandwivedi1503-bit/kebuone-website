@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getActiveFestiveCampaign } from "@/lib/festiveCalendar";
+import { useFestiveLive } from "./FestiveLive";
 
 type Props = {
   src: string;
@@ -11,11 +10,8 @@ type Props = {
 
 /** Applies calendar-driven glow to the EVUDDY lockup during active campaigns. */
 export default function FestiveLogo({ src, alt, className = "" }: Props) {
-  const [festive, setFestive] = useState(false);
-
-  useEffect(() => {
-    setFestive(Boolean(getActiveFestiveCampaign()));
-  }, []);
+  const { ready, campaign } = useFestiveLive();
+  const festive = ready && Boolean(campaign);
 
   return (
     <span className={festive ? "evuddy-festive-logo inline-flex" : "inline-flex"}>

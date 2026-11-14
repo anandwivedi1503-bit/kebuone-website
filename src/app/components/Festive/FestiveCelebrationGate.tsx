@@ -1,24 +1,20 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { getActiveFestiveCampaign, resolveFestivePresentation } from "@/lib/festiveCalendar";
 import ChhathCelebration from "../Chhath/ChhathCelebration";
 import DiwaliCelebration from "../Diwali/DiwaliCelebration";
 import FestiveThemeExperience from "./FestiveThemeExperience";
+import { useFestiveLive } from "./FestiveLive";
 
 function isOpsPath(pathname: string) {
   return pathname.startsWith("/dashboard") || pathname === "/admin-login";
 }
 
-/** Calendar-driven festive layer (Diwali / Chhath = full poster + site skin; others = themed site + modal). */
+/** Poster for the festival `/api/festive-today` resolved. The landing skin is CSS on that same theme. */
 export default function FestiveCelebrationGate() {
   const pathname = usePathname() || "";
-  if (isOpsPath(pathname)) return null;
-
-  const base = getActiveFestiveCampaign();
-  if (!base) return null;
-
-  const campaign = resolveFestivePresentation(base);
+  const { ready, campaign } = useFestiveLive();
+  if (!ready || !campaign || isOpsPath(pathname)) return null;
 
   if (campaign.theme === "diwali") {
     return <DiwaliCelebration campaign={campaign} />;

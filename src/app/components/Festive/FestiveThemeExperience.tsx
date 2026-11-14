@@ -1,30 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 
 import type { FestiveCampaign } from "@/lib/festiveCalendar";
 import "../Diwali/diwali.css";
 import "./festive-themes.css";
-
-function AnimatedRibbon({ text, accent }: { text: string; accent: string }) {
-  const doubled = useMemo(() => `${text}   ·   ${text}   ·   `, [text]);
-  return (
-    <div
-      className="overflow-hidden border-y border-white/20 py-1.5"
-      style={{
-        background: `linear-gradient(90deg, color-mix(in srgb, ${accent} 92%, #0a1134), color-mix(in srgb, ${accent} 55%, #18b368), color-mix(in srgb, ${accent} 92%, #0a1134))`,
-      }}
-      aria-hidden
-    >
-      <div className="evuddy-festive-marquee-track whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.22em] text-white sm:text-[11px]">
-        <span className="px-8">{doubled}</span>
-        <span className="px-8">{doubled}</span>
-      </div>
-    </div>
-  );
-}
 
 function WelcomePoster({
   campaign,
@@ -105,18 +87,12 @@ export default function FestiveThemeExperience({ campaign }: { campaign: Festive
   const [welcomeOpen, setWelcomeOpen] = useState(false);
 
   useEffect(() => {
-    document.documentElement.dataset.evuddyFestive = campaign.theme;
-    document.documentElement.style.setProperty("--evuddy-festive-accent", campaign.logoAccent);
     try {
-      if (!sessionStorage.getItem(campaign.sessionKey)) setWelcomeOpen(true);
+      setWelcomeOpen(!sessionStorage.getItem(campaign.sessionKey));
     } catch {
       setWelcomeOpen(true);
     }
-    return () => {
-      delete document.documentElement.dataset.evuddyFestive;
-      document.documentElement.style.removeProperty("--evuddy-festive-accent");
-    };
-  }, [campaign]);
+  }, [campaign.sessionKey]);
 
   const closeWelcome = () => {
     try {
@@ -127,12 +103,5 @@ export default function FestiveThemeExperience({ campaign }: { campaign: Festive
     setWelcomeOpen(false);
   };
 
-  return (
-    <>
-      <div className="evuddy-festive-below-nav">
-        <AnimatedRibbon text={campaign.ribbon.replace(/✦/g, "").trim()} accent={campaign.logoAccent} />
-      </div>
-      <WelcomePoster campaign={campaign} open={welcomeOpen} onClose={closeWelcome} />
-    </>
-  );
+  return <WelcomePoster campaign={campaign} open={welcomeOpen} onClose={closeWelcome} />;
 }

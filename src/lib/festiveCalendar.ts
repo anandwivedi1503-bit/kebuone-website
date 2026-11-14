@@ -238,17 +238,73 @@ const CAMPAIGNS: FestiveCampaign[] = [
     logoAccent: "#DC2626",
     sessionKey: "evuddy-festive-christmas-2026",
   },
+  {
+    id: "newyear-2027",
+    theme: "newyear",
+    start: "2026-12-28",
+    end: "2027-01-02",
+    ribbon: "✦ Happy New Year · Ride electric into 2027 ✦",
+    welcomeTitle: "Happy New Year from EVUDDY",
+    welcomeBody: "Start the year with clean rides and safe pickups. Wishing you a bright, electric 2027.",
+    logoAccent: "#FFD700",
+    sessionKey: "evuddy-festive-newyear-2027",
+  },
+  {
+    id: "republic-2027",
+    theme: "republic",
+    start: "2027-01-25",
+    end: "2027-01-27",
+    ribbon: "✦ Jai Hind · Happy Republic Day ✦",
+    welcomeTitle: "Happy Republic Day",
+    welcomeBody: "Proud to serve riders on India’s roads. Book EV, ride safe, ride electric.",
+    logoAccent: "#FF9933",
+    sessionKey: "evuddy-festive-republic-2027",
+  },
+  {
+    id: "independence-2027",
+    theme: "independence",
+    start: "2027-08-14",
+    end: "2027-08-16",
+    ribbon: "✦ Happy Independence Day · Ride free, ride electric ✦",
+    welcomeTitle: "Happy Independence Day",
+    welcomeBody: "Honouring India’s spirit with cleaner last-mile rides across our live cities.",
+    logoAccent: "#138808",
+    sessionKey: "evuddy-festive-independence-2027",
+  },
+  {
+    id: "christmas-2027",
+    theme: "christmas",
+    start: "2027-12-20",
+    end: "2027-12-27",
+    ribbon: "✦ Merry Christmas · Warm wishes from EVUDDY ✦",
+    welcomeTitle: "Merry Christmas",
+    welcomeBody: "Holiday errands and celebrations — your electric scooter is a tap away.",
+    logoAccent: "#DC2626",
+    sessionKey: "evuddy-festive-christmas-2027",
+  },
 ];
 
-function istDateKey(now = new Date()) {
+export function istDateKey(now = new Date()) {
   const { year, month, day } = istCalendarParts(now);
   const mm = String(month).padStart(2, "0");
   const dd = String(day).padStart(2, "0");
   return `${year}-${mm}-${dd}`;
 }
 
+/** Milliseconds until the next midnight in Asia/Kolkata. */
+export function msUntilNextIstMidnight(now = new Date()) {
+  const key = istDateKey(now);
+  const start = new Date(`${key}T00:00:00+05:30`).getTime();
+  const next = start + 24 * 60 * 60 * 1000;
+  return Math.max(1000, next - now.getTime());
+}
+
 function compareIso(a: string, b: string) {
   return a.localeCompare(b);
+}
+
+function campaignByTheme(theme: FestiveCampaign["theme"]) {
+  return CAMPAIGNS.find((c) => c.theme === theme) ?? null;
 }
 
 /** Highest-priority active campaign for today (IST), if any. */
@@ -259,13 +315,38 @@ export function getActiveFestiveCampaign(now = new Date()): FestiveCampaign | nu
     const match = CAMPAIGNS.find((c) => c.id === forced || c.theme === forced);
     if (match) return match;
   }
+  if (process.env.NEXT_PUBLIC_CHHATH_ON === "1") return campaignByTheme("chhath");
+  if (process.env.NEXT_PUBLIC_DIWALI_ON === "1") return campaignByTheme("diwali");
 
   const today = istDateKey(now);
-  const active = CAMPAIGNS.filter(
-    (c) => compareIso(c.start, today) <= 0 && compareIso(today, c.end) <= 0
-  );
+  const active = CAMPAIGNS.filter((c) => {
+    if (c.theme === "chhath" && process.env.NEXT_PUBLIC_CHHATH_OFF === "1") return false;
+    if (c.theme === "diwali" && process.env.NEXT_PUBLIC_DIWALI_OFF === "1") return false;
+    return compareIso(c.start, today) <= 0 && compareIso(today, c.end) <= 0;
+  });
   if (active.length === 0) return null;
   return active.sort((a, b) => compareIso(b.start, a.start))[0];
+}
+
+export type FestivePresentation = Omit<FestiveCampaign, "dayThemes"> & { date: string };
+
+/**
+ * What the site should show right now. Called on every festive-today request
+ * from the server clock (Asia/Kolkata). Day copy and the poster key change
+ * with the date, so a deploy is not required each morning.
+ */
+export function presentFestiveToday(now = new Date()): FestivePresentation | null {
+  const base = getActiveFestiveCampaign(now);
+  if (!base) return null;
+  const view = resolveFestivePresentation(base, now);
+  const date = istDateKey(now);
+  const { dayThemes, ...rest } = view;
+  void dayThemes;
+  return {
+    ...rest,
+    date,
+    sessionKey: `${view.sessionKey}:${date}`,
+  };
 }
 
 export function listFestiveCampaigns() {

@@ -61,7 +61,7 @@ html[data-evuddy-diwali="1"],
 html[data-evuddy-chhath="1"],
 html[data-evuddy-festive] {
   --evuddy-nav-block: calc(5.25rem + env(safe-area-inset-top, 0px));
-  --evuddy-festive-band: 3.75rem;
+  --evuddy-festive-band: 0px;
   scroll-padding-top: calc(var(--evuddy-nav-block) + var(--evuddy-festive-band) + 0.5rem);
 }
 

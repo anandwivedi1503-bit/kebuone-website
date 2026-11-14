@@ -8,6 +8,8 @@ import { ArrowRight } from "lucide-react";
 import { googleMapsUrl } from "../EvuddyNetwork/maps";
 import { useHomeCatalog } from "../HomeCatalog/useHomeCatalog";
 import HomeImg from "../HomeMedia/HomeImg";
+import FestiveHomeMast from "../Festive/FestiveHomeMast";
+import { useFestiveLive } from "../Festive/FestiveLive";
 
 const SLIDES = [
   { src: BRAND.cityCommute, kicker: "City commute", title: "Ride the city" },
@@ -25,6 +27,8 @@ type LiveHub = {
 
 export default function Hero() {
   const { catalog } = useHomeCatalog();
+  const { ready, campaign } = useFestiveLive();
+  const festive = ready ? campaign : null;
   const [slide, setSlide] = useState(0);
   const [hubs, setHubs] = useState<LiveHub[]>([]);
 
@@ -78,10 +82,12 @@ export default function Hero() {
         }
       `}</style>
 
-      <div className="page-under-nav mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 sm:px-8 lg:px-12 xl:grid-cols-[0.88fr_1.12fr]">
+      <div className="page-under-nav">
+        <FestiveHomeMast />
+        <div className="mx-auto grid max-w-[1440px] items-stretch gap-0 px-5 pb-0 sm:px-8 lg:px-12 xl:grid-cols-[0.88fr_1.12fr]">
         <div className="flex flex-col justify-center py-8 pr-0 lg:py-12 lg:pr-12">
           <p className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#5F6B63]">
-            India&apos;s smart EV rental
+            {festive ? festive.welcomeTitle : "India's smart EV rental"}
           </p>
           <h1 className="font-display mt-5 text-[clamp(2.6rem,7vw,4.6rem)] font-medium leading-[1.02] tracking-[-0.03em] text-[#1C1917]">
             Ride the city.
@@ -90,12 +96,12 @@ export default function Hero() {
           <p className="mt-6 max-w-md text-[15px] leading-7 text-[#5C635E] sm:text-base sm:leading-8">
             Book an EVUDDY scooter from a live hub — hourly to monthly, or Rent to Own.
             <span className="mt-2 block text-[#1F6B4A]">
-              Book in minutes. Ride the city. Make the ride yours.
+              {festive ? festive.welcomeBody : "Book in minutes. Ride the city. Make the ride yours."}
             </span>
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link href="/ride-options">
-              <span className="inline-flex min-h-12 w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c] sm:w-auto">
+              <span className="home-primary-cta inline-flex min-h-12 w-full items-center justify-center gap-2 bg-[#1F6B4A] px-8 text-[13px] font-medium tracking-[0.08em] text-white transition hover:bg-[#18573c] sm:w-auto">
                 Book an EV
                 <ArrowRight className="h-4 w-4" />
               </span>
@@ -108,7 +114,7 @@ export default function Hero() {
           </div>
         </div>
 
-        <div className="relative aspect-[4/3] min-h-[220px] overflow-hidden bg-[#EDE8DE] sm:aspect-[3/2] sm:min-h-0">
+        <div className="home-hero-media relative aspect-[4/3] min-h-[220px] overflow-hidden bg-[#EDE8DE] sm:aspect-[3/2] sm:min-h-0">
           {SLIDES.map((item, index) => {
             const prev = (slide + SLIDES.length - 1) % SLIDES.length;
             const visible = index === slide || (slide !== 0 && index === prev);
@@ -139,6 +145,7 @@ export default function Hero() {
               ))}
             </div>
           </div>
+        </div>
         </div>
       </div>
 
