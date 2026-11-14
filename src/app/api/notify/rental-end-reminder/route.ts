@@ -88,11 +88,28 @@ export async function POST(req: Request) {
       });
     }
 
+    if (String(booking.rideStatus || "") !== "In Ride") {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        message: "Reminder waits until the ride has started.",
+      });
+    }
+
     const endsAtIso =
       String(body.endsAt || "").trim() ||
       (booking.rentalEndDate
         ? new Date(booking.rentalEndDate).toISOString()
         : "");
+
+    const endMs = new Date(endsAtIso).getTime();
+    if (!Number.isFinite(endMs) || endMs - Date.now() > 70 * 60 * 1000) {
+      return NextResponse.json({
+        success: true,
+        skipped: true,
+        message: "Reminder is sent in the last hour of the ride.",
+      });
+    }
 
     const result = await notifyRentalEndReminder({
       bookingId,
