@@ -328,7 +328,15 @@ export function getActiveFestiveCampaign(now = new Date()): FestiveCampaign | nu
   return active.sort((a, b) => compareIso(b.start, a.start))[0];
 }
 
-export type FestivePresentation = Omit<FestiveCampaign, "dayThemes"> & { date: string };
+const FESTIVE_HERO: Partial<Record<FestiveCampaign["theme"], string>> = {
+  chhath: "/brand/chhath-sunrise-ghat.jpg",
+};
+
+export type FestivePresentation = Omit<FestiveCampaign, "dayThemes"> & {
+  date: string;
+  /** Public path on evuddy.com. Empty when this day has no shared poster photo. */
+  heroImage: string;
+};
 
 /**
  * What the site should show right now. Called on every festive-today request
@@ -346,6 +354,7 @@ export function presentFestiveToday(now = new Date()): FestivePresentation | nul
     ...rest,
     date,
     sessionKey: `${view.sessionKey}:${date}`,
+    heroImage: FESTIVE_HERO[view.theme] ?? "",
   };
 }
 
