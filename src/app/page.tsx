@@ -21,7 +21,7 @@ const RiderReviews = dynamic(() => import("./components/RiderReviews/RiderReview
 
 export default function Home() {
   return (
-    <main>
+    <main className="evuddy-home">
       <AnchorScroll />
       <HomeScrollLine />
       <Navbar />

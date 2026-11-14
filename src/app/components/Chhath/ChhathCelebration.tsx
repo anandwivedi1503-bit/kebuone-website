@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CHHATH_SESSION_KEY, isChhathSeason } from "@/lib/festiveSeason";
 import type { FestiveCampaign } from "@/lib/festiveCalendar";
 import EvuddyChhathWelcomePoster from "../Festive/EvuddyChhathWelcomePoster";
 import "./chhath.css";
@@ -37,53 +36,17 @@ function SunGlints() {
   );
 }
 
-function FestiveRibbon({ text }: { text: string }) {
-  return (
-    <div className="flex justify-center px-3" aria-hidden>
-      <div className="evuddy-chhath-ribbon evuddy-chhath-wave-band max-w-xl rounded-full border border-[#FBBF24]/45 px-4 py-1.5 text-center text-[10px] font-semibold tracking-[0.16em] text-[#FFFBEB] shadow-lg sm:text-[11px]">
-        {text}
-      </div>
-    </div>
-  );
-}
-
-function FestiveBelowNav({ ribbon }: { ribbon: string }) {
-  return (
-    <div className="evuddy-festive-below-nav" aria-hidden>
-      <FestiveRibbon text={ribbon} />
-    </div>
-  );
-}
-
-export default function ChhathCelebration({ campaign }: { campaign?: FestiveCampaign | null }) {
-  const sessionKey = campaign?.sessionKey ?? CHHATH_SESSION_KEY;
-  const [showWelcome, setShowWelcome] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      return !sessionStorage.getItem(sessionKey);
-    } catch {
-      return true;
-    }
-  });
+export default function ChhathCelebration({ campaign }: { campaign: FestiveCampaign }) {
+  const sessionKey = campaign.sessionKey;
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    if (!isChhathSeason()) return;
-    document.documentElement.dataset.evuddyChhath = "1";
-    document.documentElement.dataset.evuddyFestive = "chhath";
-    const accent = campaign?.logoAccent ?? "#F97316";
-    document.documentElement.style.setProperty("--evuddy-festive-accent", accent);
     try {
-      const seen = sessionStorage.getItem(sessionKey);
-      if (!seen) setShowWelcome(true);
+      setShowWelcome(!sessionStorage.getItem(sessionKey));
     } catch {
       setShowWelcome(true);
     }
-    return () => {
-      delete document.documentElement.dataset.evuddyChhath;
-      delete document.documentElement.dataset.evuddyFestive;
-      document.documentElement.style.removeProperty("--evuddy-festive-accent");
-    };
-  }, [sessionKey, campaign?.logoAccent]);
+  }, [sessionKey]);
 
   const closeWelcome = () => {
     setShowWelcome(false);
@@ -94,24 +57,14 @@ export default function ChhathCelebration({ campaign }: { campaign?: FestiveCamp
     }
   };
 
-  if (!isChhathSeason()) return null;
-
-  const ribbon =
-    campaign?.ribbon ?? "✦ छठ पूजा · Chhath Puja · Safe electric rides to every ghat ✦";
-  const welcomeTitle = campaign?.welcomeTitle ?? "Chhath Puja wishes from EVUDDY";
-  const welcomeBody =
-    campaign?.welcomeBody ??
-    "Offer your prayers with devotion — reach the ghat on time with a quiet, pollution-free EV ride. Warm wishes from the EVUDDY family.";
-
   return (
     <>
-      <FestiveBelowNav ribbon={ribbon} />
       <SunGlints />
       <EvuddyChhathWelcomePoster
         open={showWelcome}
         onClose={closeWelcome}
-        title={welcomeTitle}
-        body={welcomeBody}
+        title={campaign.welcomeTitle}
+        body={campaign.welcomeBody}
       />
     </>
   );

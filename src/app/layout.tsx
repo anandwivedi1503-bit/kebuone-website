@@ -3,8 +3,10 @@ import { Cormorant_Garamond, Geist, Geist_Mono, Noto_Sans_Devanagari } from "nex
 import "./globals.css";
 import EvuddyAssistantGate from "./components/EvuddyAssistant/EvuddyAssistantGate";
 import FestiveCelebrationGate from "./components/Festive/FestiveCelebrationGate";
+import FestiveLiveProvider from "./components/Festive/FestiveLive";
 import "./components/Festive/festive-themes.css";
 import "./components/Festive/festive-site.css";
+import "./components/Festive/festive-landing.css";
 
 const display = Cormorant_Garamond({
   variable: "--font-display",
@@ -59,9 +61,11 @@ export default function RootLayout({
   className={`${display.variable} ${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} h-full antialiased`}
 >
       <body className={`${display.variable} ${geistSans.variable} ${geistMono.variable} ${notoDeva.variable} min-h-full flex flex-col font-sans`}>
-        {children}
-        <FestiveCelebrationGate />
-        <EvuddyAssistantGate />
+        <FestiveLiveProvider>
+          {children}
+          <FestiveCelebrationGate />
+          <EvuddyAssistantGate />
+        </FestiveLiveProvider>
       </body>
     </html>
   );
