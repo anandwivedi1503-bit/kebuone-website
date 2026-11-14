@@ -28,6 +28,7 @@ import {
 import { getBookingRemainingAmount, gstBreakdownInclusive } from "../src/lib/gst";
 import { normalizePayAmountInr, paiseToInr, inrToPaise } from "../src/lib/razorpay/moneyAmount";
 import {
+  checkoutAmountInr,
   minRiderPaymentInr,
   validateRiderPaymentAmount,
   isUnpaidReserveTimedOut,
@@ -351,6 +352,9 @@ assert.ok(firstPay.halfRental !== undefined);
 assert.equal(firstPay.min, 1150);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1).ok === false);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1, { halfRentalFirst: false }).ok);
+assert.equal(checkoutAmountInr(sampleBooking, 1, { halfRentalFirst: false }), 1150);
+assert.equal(checkoutAmountInr(sampleBooking, 1, { halfRentalFirst: true }), 1);
+assert.equal(checkoutAmountInr(sampleBooking, 2000, { halfRentalFirst: false }), 2000);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1150).ok);
 assert.ok(
   validateRiderPaymentAmount({ ...sampleBooking, receivedAmount: 1150, pendingAmount: 1650 }, 100).ok

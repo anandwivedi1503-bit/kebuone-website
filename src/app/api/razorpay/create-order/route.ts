@@ -19,7 +19,10 @@ import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
-import { validateRiderPaymentAmount } from "@/lib/bookingReserveTimeout";
+import {
+  checkoutAmountInr,
+  validateRiderPaymentAmount,
+} from "@/lib/bookingReserveTimeout";
 import { enforcesHalfRentalFirstPayment } from "@/lib/registrationContract";
 import { normalizePayAmountInr, paiseToInr } from "@/lib/razorpay/moneyAmount";
 
@@ -237,14 +240,18 @@ export async function POST(req: Request) {
       );
     }
 
-    const amountInr = normalizePayAmountInr(requestedAmount || remainingAmount, remainingAmount);
+    const bookingRecord = booking.toObject() as Record<string, unknown>;
+    const halfRentalFirst = enforcesHalfRentalFirstPayment(req.headers);
+    const amountInr = checkoutAmountInr(
+      bookingRecord,
+      normalizePayAmountInr(requestedAmount || remainingAmount, remainingAmount),
+      { halfRentalFirst }
+    );
     const amountPaise = Math.round(amountInr * 100);
 
-    const payCheck = validateRiderPaymentAmount(
-      booking.toObject() as Record<string, unknown>,
-      amountInr,
-      { halfRentalFirst: enforcesHalfRentalFirstPayment(req.headers) }
-    );
+    const payCheck = validateRiderPaymentAmount(bookingRecord, amountInr, {
+      halfRentalFirst,
+    });
     if (!payCheck.ok) {
       return NextResponse.json(
         { success: false, message: payCheck.message },

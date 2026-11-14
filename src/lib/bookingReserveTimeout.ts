@@ -82,6 +82,24 @@ export function minRiderPaymentInr(
   };
 }
 
+/**
+ * The installed app always asks Razorpay for ₹1. That order opens Checkout,
+ * then Continue does nothing because card and UPI sheets reject a ₹1 charge.
+ * Raise that request to the same 50% rental floor the website already uses.
+ * The phone displays the order amount Razorpay returns.
+ */
+export function checkoutAmountInr(
+  booking: Record<string, unknown>,
+  requestedInr: number,
+  options?: { halfRentalFirst?: boolean }
+) {
+  const requested = money(requestedInr);
+  if (options?.halfRentalFirst !== false) return requested;
+  const strict = minRiderPaymentInr(booking, { halfRentalFirst: true });
+  if (strict.min > 0.009 && requested + 0.001 < strict.min) return strict.min;
+  return requested;
+}
+
 export function validateRiderPaymentAmount(
   booking: Record<string, unknown>,
   amountInr: number,
