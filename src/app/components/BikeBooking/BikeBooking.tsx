@@ -2624,7 +2624,7 @@ text-[#0F172A]
     : remainingPayLocked
       ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
       : bookingDone
-        ? "Your scooter is reserved. Pay any amount from ₹1 with Razorpay to get pickup OTP. Remaining can be paid during the ride."
+        ? "Your scooter is reserved. First payment must be at least 50% of the rental. Pickup OTP is issued after that payment. Remaining can be paid during the ride."
         : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
 </p>
 </div>
