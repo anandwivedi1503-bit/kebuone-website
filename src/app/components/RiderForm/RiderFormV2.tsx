@@ -581,6 +581,7 @@ if (profilePhoto) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Evuddy-Client": "web",
       },
 
       body: JSON.stringify({

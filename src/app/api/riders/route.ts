@@ -28,6 +28,11 @@ import {
 } from "@/lib/ensureRiderWallet";
 import { walletSpendable } from "@/lib/walletMoney";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import {
+  normalizePickupCityAck,
+  pickupCityAckError,
+  readRegistrationClient,
+} from "@/lib/registrationContract";
 import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
 
 export const runtime = "nodejs";
@@ -391,11 +396,8 @@ export async function POST(req: Request) {
         ? comingThroughRaw || DIRECT_THROUGH
         : DIRECT_THROUGH;
 
-    const pickupCityAckRaw = clean(body.pickupCityAck).toUpperCase();
-    const pickupCityAck =
-      pickupCityAckRaw === "LUCKNOW" || pickupCityAckRaw === "OTHER"
-        ? pickupCityAckRaw
-        : "";
+    const pickupCityAck = normalizePickupCityAck(body.pickupCityAck);
+    const registrationClient = readRegistrationClient(req.headers);
 
     /* =====================================================
        DOCUMENT URLS
@@ -452,9 +454,8 @@ export async function POST(req: Request) {
       );
     }
 
-    if (pickupCityAck !== "LUCKNOW" && pickupCityAck !== "OTHER") {
-      errors.push("Confirm whether you are in Lucknow or another city.");
-    }
+    const cityAckError = pickupCityAckError(pickupCityAck, registrationClient);
+    if (cityAckError) errors.push(cityAckError);
 
     /*
      * Driving license is optional.
