@@ -1129,7 +1129,7 @@ referenceBy,
       );
       setBookingDone(true);
       setMessage(
-        `Scooter reserved for 30 minutes. First payment must be at least 50% of rental (₹${firstBounds.halfRental?.toFixed(2) ?? firstBounds.min.toFixed(2)}). Pickup OTP is issued after that payment.`
+        `Scooter reserved for 30 minutes. First payment must be at least 50% of the total (₹${firstBounds.halfRental?.toFixed(2) ?? firstBounds.min.toFixed(2)}). Pickup OTP is issued after that payment.`
       );
       setStep(4);
     } catch (error) {
@@ -2628,7 +2628,7 @@ text-[#0F172A]
     : remainingPayLocked
       ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
       : bookingDone
-        ? "Your scooter is reserved. Pay any amount from ₹1 with Razorpay to get pickup OTP. Remaining can be paid during the ride."
+        ? "Your scooter is reserved. First payment must be at least 50% of the total. Pickup OTP is issued after that payment. Remaining can be paid during the ride."
         : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
 </p>
 </div>
@@ -2667,7 +2667,7 @@ PAYMENT AMOUNT
 {remainingPayLocked
   ? "Remaining due only. This is the amount Razorpay will charge now."
   : riderPayBounds.firstPayment
-    ? `First payment must be at least 50% of rental (₹${(riderPayBounds.halfRental ?? riderPayBounds.min).toFixed(2)}), up to ₹${riderPayBounds.max.toFixed(2)}. Pickup OTP is issued after the first payment.`
+    ? `First payment must be at least 50% of the total (₹${(riderPayBounds.halfRental ?? riderPayBounds.min).toFixed(2)}), up to ₹${riderPayBounds.max.toFixed(2)}. Pickup OTP is issued after the first payment.`
     : `Pay between ₹${riderPayBounds.min.toFixed(2)} and ₹${riderPayBounds.max.toFixed(2)}.`}
 </p>
 {remainingPayLocked ? (

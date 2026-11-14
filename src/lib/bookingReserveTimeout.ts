@@ -70,7 +70,7 @@ export function minRiderPaymentInr(
   }
 
   const rentalTotal = bookingRentalDueTotal(booking);
-  const halfRental = money(rentalTotal * 0.5);
+  const halfRental = money(remaining * 0.5);
   const min = Math.min(remaining, Math.max(halfRental, 1));
 
   return {
@@ -85,7 +85,7 @@ export function minRiderPaymentInr(
 /**
  * The installed app always asks Razorpay for ₹1. That order opens Checkout,
  * then Continue does nothing because card and UPI sheets reject a ₹1 charge.
- * Raise that request to the same 50% rental floor the website already uses.
+ * Raise that request to half of the total still due, fare plus deposit.
  * The phone displays the order amount Razorpay returns.
  */
 export function checkoutAmountInr(
@@ -116,7 +116,7 @@ export function validateRiderPaymentAmount(
     if (firstPayment && halfRental !== undefined) {
       return {
         ok: false,
-        message: `First payment must be at least 50% of rental (₹${halfRental.toFixed(2)}), up to ₹${max.toFixed(2)}.`,
+        message: `First payment must be at least 50% of the total (₹${halfRental.toFixed(2)}), up to ₹${max.toFixed(2)}.`,
       };
     }
     return {
