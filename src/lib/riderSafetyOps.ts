@@ -41,7 +41,7 @@ export async function listRiderSafetyForAdmin(session: AdminSessionInfo) {
   const filter = applyHubScope(
     {
       ...NOT_DELETED_FILTER,
-      rideStatus: { $in: ["In Ride", "Ready For Pickup", "Reserved"] },
+      rideStatus: "In Ride",
     },
     hubCodes,
     ["currentHub", "startHub"]

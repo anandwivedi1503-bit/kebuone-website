@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
 
+import { rentalEndFromRideStart } from "@/lib/bookingReserveTimeout";
+import { getBookingPayableAmount, money } from "@/lib/gst";
 import { connectDB } from "@/lib/mongodb";
 import { syncBookingRiderId } from "@/lib/findBookingRider";
 import { getOwnedActiveBooking } from "@/lib/ownedActiveBooking";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import { writeAudit } from "@/lib/writeAudit";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -53,15 +56,30 @@ export async function POST(req: Request) {
       );
     }
 
-    if (Number(booking.receivedAmount || 0) < 1) {
+    const received = money(booking.receivedAmount);
+    if (!isRentToOwnBooking(booking)) {
+      const total = getBookingPayableAmount(booking);
+      const half = money(total * 0.5);
+      if (received + 0.001 < half) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: "Pay 50% of the total before starting the ride.",
+          },
+          { status: 400 }
+        );
+      }
+    } else if (received < 1) {
       return NextResponse.json(
-        { success: false, message: "Pay at least ₹1 before starting." },
+        { success: false, message: "Pay the Rent to Own installment before starting." },
         { status: 400 }
       );
     }
 
+    const startedAt = new Date();
     booking.rideStatus = "In Ride";
-    booking.actualRideStart = booking.actualRideStart || new Date();
+    booking.actualRideStart = startedAt;
+    booking.rentalEndDate = rentalEndFromRideStart(booking, startedAt);
     await booking.save();
 
     await Vehicle.updateOne(

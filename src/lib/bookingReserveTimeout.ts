@@ -127,3 +127,30 @@ export function validateRiderPaymentAmount(
 
   return { ok: true };
 }
+
+/** Trip clock starts when the rider swipes Ride started, not when the booking is reserved. */
+export function rentalEndFromRideStart(
+  booking: {
+    rentalMode?: unknown;
+    rentalHours?: unknown;
+    rentToOwnMonths?: unknown;
+  },
+  start: Date
+) {
+  const end = new Date(start.getTime());
+  const mode = String(booking.rentalMode || "");
+  if (mode === "Hourly") {
+    const hours = Math.max(1, Math.min(72, Number(booking.rentalHours) || 1));
+    end.setHours(end.getHours() + hours);
+  } else if (mode === "Weekly") {
+    end.setDate(end.getDate() + 7);
+  } else if (mode === "Monthly") {
+    end.setMonth(end.getMonth() + 1);
+  } else if (mode === "Rent To Own") {
+    const months = Math.max(1, Number(booking.rentToOwnMonths) || 1);
+    end.setMonth(end.getMonth() + months);
+  } else {
+    end.setDate(end.getDate() + 1);
+  }
+  return end;
+}
