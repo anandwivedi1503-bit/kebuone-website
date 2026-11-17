@@ -94,6 +94,19 @@ export async function POST(req: Request) {
         ? new Date(booking.rentalEndDate).toISOString()
         : "");
 
+    const leadMinutes = Math.max(15, Number(body.leadMinutes) || 60);
+    if (endsAtIso) {
+      const endsMs = new Date(endsAtIso).getTime();
+      const minsUntilEnd = (endsMs - Date.now()) / 60_000;
+      if (Number.isFinite(minsUntilEnd) && minsUntilEnd > leadMinutes + 5) {
+        return NextResponse.json({
+          success: true,
+          deferred: true,
+          message: "Reminder is scheduled; SMS/email sends in the last hour.",
+        });
+      }
+    }
+
     const result = await notifyRentalEndReminder({
       bookingId,
       riderName: String(booking.userName || rider.fullName || ""),
@@ -102,7 +115,7 @@ export async function POST(req: Request) {
       endsAtIso,
       duration: String(body.rentalDuration || booking.rentalMode || ""),
       units: Number(body.rentalUnits) || undefined,
-      leadMinutes: Number(body.leadMinutes) || 60,
+      leadMinutes,
     });
 
     booking.riderEndReminderSentAt = new Date();
