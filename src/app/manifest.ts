@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
       "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own across Indian cities.",
     start_url: "/",
     display: "standalone",
-    background_color: "#ffffff",
-    theme_color: "#18B368",
+    background_color: "#F4C400",
+    theme_color: "#F4C400",
     icons: [
       {
         src: "/icon-192.png",
