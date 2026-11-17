@@ -16,6 +16,7 @@ import {
   getChosenPlan,
   getRiderProfile,
   hasRiderPlanReady,
+  isRiderLoggedIn,
   openRiderAccountMenu,
   riderResumeHref,
   RIDER_ACCOUNT_OPEN_EVENT,
@@ -59,14 +60,13 @@ export default function RiderAccountMenu({
   useEffect(() => {
     const refresh = () => {
       const profile = getRiderProfile();
-      const signedIn = Boolean(!firebaseAuth || firebaseAuth.currentUser);
       setPhone(profile.phone);
       setRiderId(profile.riderId);
       setName(profile.name);
       setPlan(getChosenPlan());
       setResumeHref(riderResumeHref());
       setPlanReady(
-        signedIn &&
+        isRiderLoggedIn() &&
           hasRiderPlanReady() &&
           Boolean(profile.phone || profile.riderId)
       );

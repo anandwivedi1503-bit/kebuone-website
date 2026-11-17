@@ -87,6 +87,7 @@ function isRiderApproved(rider?: RiderApprovalFields | null) {
   return (
     Boolean(rider.bookingEnabled) &&
     approval === "Approved" &&
+    kyc === "Approved" &&
     status === "Active"
   );
 }

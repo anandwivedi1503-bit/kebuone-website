@@ -122,7 +122,7 @@ type CityRecord = {
   status?: string;
 };
 
-const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,49}$/;
+const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
 
 const formatINR = (amount: number) =>
@@ -934,10 +934,16 @@ if (
   !data.data.phoneVerified ||
   data.data.approvalStatus !== "Approved" ||
   data.data.kycStatus !== "Approved" ||
+  !data.data.bookingEnabled ||
+  data.data.status !== "Active" ||
   data.data.blacklisted
 ) {
   setError(
-    "Your KYC or account has not been approved yet. Please wait for admin approval."
+    data.data.bookingEnabled === false
+      ? "Booking is not enabled for your account. Please contact support."
+      : data.data.status && data.data.status !== "Active"
+        ? "Your account is not active. Please contact support."
+        : "Your KYC or account has not been approved yet. Please wait for admin approval."
   );
   return;
 }
@@ -1030,6 +1036,11 @@ setStep(2);
 
       setFirebaseIdToken(token);
       setRiderPhone(normalizedPhone);
+
+      await fetch("/api/bookings/release-unpaid-reserve", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
 
       const bookingRes = await fetch("/api/bookings", {
         method: "POST",
