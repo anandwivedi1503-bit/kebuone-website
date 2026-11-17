@@ -24,9 +24,14 @@ function applyTheme(campaign: FestivePresentation | null) {
   delete root.dataset.evuddyChhath;
   delete root.dataset.evuddyDiwali;
   root.style.removeProperty("--evuddy-festive-accent");
-  if (!campaign) return;
+  if (!campaign) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    meta?.setAttribute("content", "#F4C400");
+    return;
+  }
   root.dataset.evuddyFestive = campaign.theme;
   root.style.setProperty("--evuddy-festive-accent", campaign.logoAccent);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", campaign.logoAccent);
   if (campaign.theme === "chhath") root.dataset.evuddyChhath = "1";
   if (campaign.theme === "diwali") root.dataset.evuddyDiwali = "1";
 }
