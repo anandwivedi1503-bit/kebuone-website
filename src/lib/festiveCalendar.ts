@@ -33,7 +33,8 @@ export type FestiveCampaign = {
     | "eid"
     | "navratri"
     | "rakhi"
-    | "newyear";
+    | "newyear"
+    | "childrens";
   start: string;
   end: string;
   /** Accent for logo glow (hex). */
@@ -62,6 +63,17 @@ const CAMPAIGNS: FestiveCampaign[] = [
       "Start the year with clean rides and safe pickups. Wishing you a bright, electric 2026.",
     logoAccent: "#FFD700",
     sessionKey: "evuddy-festive-newyear-2026",
+  },
+  {
+    id: "childrens-day-2026",
+    theme: "childrens",
+    start: "2026-11-14",
+    end: "2026-11-14",
+    ribbon: "✦ Happy Children’s Day · Safe electric rides for every family ✦",
+    welcomeTitle: "Happy Children’s Day",
+    welcomeBody: "A bright day for young riders and families. Book EVUDDY and ride with care.",
+    logoAccent: "#2563EB",
+    sessionKey: "evuddy-festive-childrens-2026",
   },
   {
     id: "republic-2026",
@@ -248,6 +260,17 @@ const CAMPAIGNS: FestiveCampaign[] = [
     welcomeBody: "Start the year with clean rides and safe pickups. Wishing you a bright, electric 2027.",
     logoAccent: "#FFD700",
     sessionKey: "evuddy-festive-newyear-2027",
+  },
+  {
+    id: "childrens-day-2027",
+    theme: "childrens",
+    start: "2027-11-14",
+    end: "2027-11-14",
+    ribbon: "✦ Happy Children’s Day · Safe electric rides for every family ✦",
+    welcomeTitle: "Happy Children’s Day",
+    welcomeBody: "A bright day for young riders and families. Book EVUDDY and ride with care.",
+    logoAccent: "#2563EB",
+    sessionKey: "evuddy-festive-childrens-2027",
   },
   {
     id: "republic-2027",
