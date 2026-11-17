@@ -32,6 +32,7 @@ const notoDeva = Noto_Sans_Devanagari({
 
 
 export const metadata: Metadata = {
+  applicationName: "EVUDDY",
   title: "EVUDDY | Electric Scooter Rentals",
   description:
     "Book EVUDDY electric scooters in minutes. Flexible rentals and Rent to Own, with live tracking across Indian cities.",
@@ -46,7 +47,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#ffffff",
+  themeColor: "#0a0a0a",
 };
 
 export default function RootLayout({
