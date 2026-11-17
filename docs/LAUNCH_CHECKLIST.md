@@ -2,7 +2,9 @@
 
 The rider app calls **`https://www.evuddy.com/api/*`** only. After merging this branch, deploy **`main`** to EC2.
 
-## 1. GitHub Actions secrets (fixes stale `unpaidSweep` on `/api/health`)
+## 1. GitHub Actions secrets (**required** — fixes stale `unpaidSweep` on `/api/health`)
+
+If `GET /api/health` shows `"unpaidJob":{"stale":true}`, unpaid bikes stay locked longer than 30 minutes and riders see “bike unavailable” even after abandoning checkout. Set `CRON_SECRET` **before** launch week.
 
 Repository **Settings → Secrets and variables → Actions**:
 
