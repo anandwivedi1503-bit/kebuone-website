@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Geist, Geist_Mono, Noto_Sans_Devanagari } from "next/font/google";
+import { presentFestiveToday } from "@/lib/festiveCalendar";
 import "./globals.css";
 import EvuddyAssistantGate from "./components/EvuddyAssistant/EvuddyAssistantGate";
 import FestiveCelebrationGate from "./components/Festive/FestiveCelebrationGate";
@@ -42,13 +43,16 @@ export const metadata: Metadata = {
 };
 
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
-  viewportFit: "cover",
-  themeColor: "#F4C400",
-};
+export function generateViewport(): Viewport {
+  const campaign = presentFestiveToday();
+  return {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    viewportFit: "cover",
+    themeColor: campaign?.logoAccent ?? "#F4C400",
+  };
+}
 
 export default function RootLayout({
   children,

@@ -1,0 +1,21 @@
+name: Brand calendar check
+
+on:
+  schedule:
+    - cron: "30 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify shared brand calendar API
+        env:
+          SITE_URL: ${{ secrets.SITE_URL }}
+        run: |
+          BASE="${SITE_URL:-https://www.evuddy.com}"
+          echo "Checking $BASE/api/brand-today"
+          BODY=$(curl -fsS "$BASE/api/brand-today")
+          echo "$BODY"
+          echo "$BODY" | grep -q '"timezone":"Asia/Kolkata"'
+          echo "$BODY" | grep -qE '"mode":"(campaign|normal)"'

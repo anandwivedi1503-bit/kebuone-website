@@ -54,6 +54,21 @@ await probe("health", async () => {
   };
 });
 
+await probe("festive-today + brand-today", async () => {
+  const fest = await get("/api/festive-today");
+  const brand = await get("/api/brand-today");
+  const modeOk =
+    fest.json?.mode === "campaign" || fest.json?.mode === "normal";
+  return {
+    ok:
+      fest.status === 200 &&
+      brand.status === 200 &&
+      modeOk &&
+      brand.json?.mode === fest.json?.mode,
+    detail: `mode=${fest.json?.mode} theme=${fest.json?.campaign?.theme ?? "normal"}`,
+  };
+});
+
 await probe("client-contract (app + web)", async () => {
   const { status, json } = await get("/api/client-contract");
   const pay = json?.payment?.firstRentalPayment;

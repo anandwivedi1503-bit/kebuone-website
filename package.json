@@ -9,7 +9,7 @@
     "lint": "eslint",
     "api-compat-smoke": "node scripts/api-compat-smoke.mjs",
     "icons": "python3 scripts/generate-site-icons.py",
-    "test": "npx tsx scripts/money-rules-selftest.ts && npx tsx scripts/assistant-selftest.ts && npx tsx scripts/partner-segments-selftest.ts && npx tsx scripts/digit-field-selftest.ts && npx tsx scripts/registration-contract-selftest.ts"
+    "test": "npx tsx scripts/money-rules-selftest.ts && npx tsx scripts/assistant-selftest.ts && npx tsx scripts/partner-segments-selftest.ts && npx tsx scripts/digit-field-selftest.ts && npx tsx scripts/registration-contract-selftest.ts && npx tsx scripts/festive-calendar-selftest.ts"
   },
   "dependencies": {
     "cloudinary": "^2.10.0",
