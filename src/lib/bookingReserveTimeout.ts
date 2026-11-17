@@ -95,8 +95,8 @@ export function checkoutAmountInr(
 ) {
   const requested = money(requestedInr);
   if (options?.halfRentalFirst !== false) return requested;
-  const strict = minRiderPaymentInr(booking, { halfRentalFirst: true });
-  if (strict.min > 0.009 && requested + 0.001 < strict.min) return strict.min;
+  // Installed app / legacy clients: honor the rider amount after validateRiderPaymentAmount (₹1 floor).
+  // Do not inflate to 50% here — that made Razorpay open the full fare when the UI showed ₹1.
   return requested;
 }
 
