@@ -14,6 +14,7 @@ import Vehicle from "@/models/Vehicle";
 
 const UNPAID_TTL_MS = 30 * 60 * 1000;
 const ABANDONED_PARTIAL_TTL_MS = 24 * 60 * 60 * 1000;
+const STALLED_PICKUP_TTL_MS = 2 * 60 * 60 * 1000;
 const HELD_PRE_RIDE = ["Booked", "Reserved", "Payment Pending", "Ready For Pickup"];
 
 const NOT_DELETED = {
@@ -23,6 +24,23 @@ const NOT_DELETED = {
 export async function releaseUnpaidBookings(limit = 50) {
   const unpaidCutoff = new Date(Date.now() - UNPAID_TTL_MS);
   const partialCutoff = new Date(Date.now() - ABANDONED_PARTIAL_TTL_MS);
+
+  const stalledCutoff = new Date(Date.now() - STALLED_PICKUP_TTL_MS);
+  const stalledPickup = await Booking.find({
+    $and: [
+      NOT_DELETED,
+      {
+        rideStatus: "Ready For Pickup",
+        pickupOTPVerified: true,
+        pickupOTPVerifiedAt: { $lte: stalledCutoff },
+        $or: [{ actualRideStart: null }, { actualRideStart: { $exists: false } }],
+      },
+    ],
+  })
+    .sort({ pickupOTPVerifiedAt: 1 })
+    .limit(limit)
+    .select("bookingId riderId vehicleId")
+    .lean();
 
   const stale = await Booking.find({
     ...NOT_DELETED,
@@ -48,15 +66,22 @@ export async function releaseUnpaidBookings(limit = 50) {
 
   let released = 0;
 
-  for (const row of stale) {
+  for (const row of [...stalledPickup, ...stale]) {
     const session = await startOptionalTransaction();
 
     try {
       const bookingQuery = Booking.findOne({
         bookingId: row.bookingId,
         rideStatus: { $in: HELD_PRE_RIDE },
-        pickupOTPVerified: { $ne: true },
         ...NOT_DELETED,
+        $or: [
+          { pickupOTPVerified: { $ne: true } },
+          {
+            pickupOTPVerified: true,
+            rideStatus: "Ready For Pickup",
+            pickupOTPVerifiedAt: { $lte: stalledCutoff },
+          },
+        ],
       });
       const booking = session ? await bookingQuery.session(session) : await bookingQuery;
 
@@ -108,9 +133,11 @@ export async function releaseUnpaidBookings(limit = 50) {
       const hadPayment = Number(booking.receivedAmount || 0) > 0.009;
       booking.rideStatus = "Cancelled";
       booking.cancelledBy = "System";
-      booking.cancellationReason = hadPayment
-        ? "Abandoned partial payment expired"
-        : "Unpaid reservation expired";
+      booking.cancellationReason = booking.pickupOTPVerified
+        ? "Pickup confirmed but the ride was not started"
+        : hadPayment
+          ? "Abandoned partial payment expired"
+          : "Unpaid reservation expired";
       booking.pickupOTP = "";
       booking.pickupOTPExpiry = null;
       booking.updatedBy = "System";

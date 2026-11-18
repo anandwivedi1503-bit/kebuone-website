@@ -212,6 +212,7 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [bookingPaymentStatus, setBookingPaymentStatus] = useState("");
   const [bookingTotal, setBookingTotal] = useState(0);
+  const [firstRideFree, setFirstRideFree] = useState(false);
   const [reservedBike, setReservedBike] = useState<Vehicle | null>(null);
   const [reservedHub, setReservedHub] = useState<Hub | null>(null);
 
@@ -605,6 +606,7 @@ useEffect(() => {
       });
       setWalletAvailable(Number(rider.walletAvailable ?? rider.walletBalance ?? 0));
       setWalletStatus(String(rider.walletStatus || ""));
+      setFirstRideFree(rider.firstRideFree === true);
       const mineRes = await fetch("/api/bookings/mine", {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
@@ -821,7 +823,8 @@ const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
   return catalogRate("Monthly", bike?.monthlyRate);
 };
 
-const rentalAmount = getPlanRate(currentBike, rentalMode);
+const rentalAmount =
+  firstRideFree && rentalMode !== "Rent To Own" ? 0 : getPlanRate(currentBike, rentalMode);
 const tax = gstBreakdownInclusive(rentalAmount);
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
 const payableAmount =
@@ -2907,7 +2910,7 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : bookingDone ? (
                   <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    Reserve is holding the scooter. Pay at least ₹1 to get pickup OTP.
+                    Reserve is holding the scooter. Pay the full fare and deposit to get pickup OTP. A partial payment keeps the scooter booked and does not unlock it.
                   </div>
                 ) : null}
 

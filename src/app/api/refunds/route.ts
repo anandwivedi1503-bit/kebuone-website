@@ -9,6 +9,7 @@ import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { attachBookingSnapshotsToRefunds } from "@/lib/opsMoneySummary";
 import { writeAudit } from "@/lib/writeAudit";
+import { handleRiderDepositRequest, isRiderDepositRequest } from "@/lib/riderDepositRequest";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -36,12 +37,15 @@ function normalizeStatus(value: unknown) {
 
 export async function POST(req: Request) {
   try {
+    const body = await req.json();
+    if (isRiderDepositRequest(body)) {
+      return handleRiderDepositRequest(req, body);
+    }
+
    const gate = await requireAdminDashboards(...API_DASHBOARDS.refunds);
     if (gate.error) return gate.error;
         
     await connectDB();
-
-    const body = await req.json();
 
     const refundId = clean(body.refundId);
     const ticketId = clean(body.ticketId);

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { readJobHeartbeat } from "@/lib/jobHeartbeat";
+import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 
 export async function GET(req: Request) {
   try {
@@ -18,6 +19,7 @@ export async function GET(req: Request) {
     }
 
     await connectDB();
+    void maybeSweepUnpaidBookings();
     const unpaidJob = await readJobHeartbeat("unpaidSweep").catch(() => null);
 
     return NextResponse.json({
