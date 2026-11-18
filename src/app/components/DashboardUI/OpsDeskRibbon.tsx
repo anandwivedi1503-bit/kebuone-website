@@ -38,7 +38,7 @@ export default function OpsDeskRibbon({
             key={item.id}
             type="button"
             onClick={() => onOpen(item.id)}
-            className="inline-flex shrink-0 items-center gap-2 rounded-full border border-[#E4DDD2] bg-white px-4 py-2.5 text-xs font-semibold text-[#1C1917] shadow-sm transition hover:border-[#1F6B4A]/40 hover:bg-[#F7FBF8] active:scale-[0.98]"
+            className="ops-shortcut inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-xs font-semibold transition active:scale-[0.98]"
           >
             <Icon size={14} className="text-[#1F6B4A]" />
             {item.label}
