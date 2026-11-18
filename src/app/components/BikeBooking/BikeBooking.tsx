@@ -823,8 +823,7 @@ const getPlanRate = (bike: Vehicle | undefined, mode: string) => {
   return catalogRate("Monthly", bike?.monthlyRate);
 };
 
-const rentalAmount =
-  firstRideFree && rentalMode !== "Rent To Own" ? 0 : getPlanRate(currentBike, rentalMode);
+const rentalAmount = firstRideFree ? 0 : getPlanRate(currentBike, rentalMode);
 const tax = gstBreakdownInclusive(rentalAmount);
 const securityDeposit = amount(currentBike?.securityDeposit) || COMPANY_SECURITY_DEPOSIT;
 const payableAmount =
