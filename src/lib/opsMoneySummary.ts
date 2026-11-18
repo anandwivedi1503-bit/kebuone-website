@@ -267,8 +267,30 @@ export async function attachLiveBookingsByRider(rows: Array<Record<string, unkno
     if (!latest.has(riderId)) latest.set(riderId, booking);
   }
 
+  const pendingRefunds = await Refund.find({
+    riderId: { $in: riderIds },
+    refundStatus: { $in: ["PENDING", "APPROVED", "PROCESSING"] },
+    $or: [
+      { refundSource: "Security Deposit" },
+      { remarks: /security deposit/i },
+    ],
+  })
+    .select("refundId bookingId riderId amount refundStatus refundSource")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  const pendingByRider = new Map<string, typeof pendingRefunds>();
+  for (const refund of pendingRefunds) {
+    const riderId = String(refund.riderId || "").toUpperCase();
+    const list = pendingByRider.get(riderId) || [];
+    list.push(refund);
+    pendingByRider.set(riderId, list);
+  }
+
   return rows.map((row) => {
-    const live = latest.get(String(row.riderId || "").toUpperCase());
+    const riderKey = String(row.riderId || "").toUpperCase();
+    const live = latest.get(riderKey);
+    const queued = pendingByRider.get(riderKey) || [];
     return {
       ...row,
       liveBooking: live
@@ -281,6 +303,13 @@ export async function attachLiveBookingsByRider(rows: Array<Record<string, unkno
             securityDeposit: Number(live.securityDeposit || 0),
           }
         : null,
+      pendingDepositRefunds: queued.map((refund) => ({
+        id: String(refund._id),
+        refundId: refund.refundId,
+        bookingId: refund.bookingId,
+        amount: Number(refund.amount || 0),
+        refundStatus: refund.refundStatus,
+      })),
     };
   });
 }

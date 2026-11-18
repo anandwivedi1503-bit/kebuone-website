@@ -731,7 +731,7 @@ className="min-h-11 px-4 py-2 rounded-xl bg-gradient-to-r from-[#18B368] to-[#0A
 >
 {processingId===refund._id
 ? "Processing..."
-: `Refund securely with Razorpay · ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
+: `${/security deposit/i.test(String(refund.refundSource || refund.remarks || "")) ? "Return security deposit via Razorpay" : "Refund securely with Razorpay"} · ₹${Number(refund.amount || 0).toLocaleString("en-IN")}`}
 </button>
 {refund.failureReason ? (
   <p className="max-w-[220px] text-left text-[11px] font-medium text-rose-700">
@@ -753,7 +753,9 @@ hover:bg-slate-50
 transition
 "
 >
-Wallet if no Razorpay capture
+{/security deposit/i.test(String(refund.refundSource || refund.remarks || ""))
+  ? "Credit security deposit to wallet"
+  : "Wallet if no Razorpay capture"}
 </button>
 </div>
 
