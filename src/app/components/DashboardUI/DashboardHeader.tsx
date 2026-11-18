@@ -42,8 +42,8 @@ export default function DashboardHeader({
   }, []);
 
   return (
-    <div className="mb-6 overflow-hidden rounded-2xl border border-[#18B368]/20 bg-white shadow-[0_8px_30px_rgba(10,17,52,0.05)] sm:mb-8 sm:rounded-3xl">
-      <div className="h-1 w-full bg-gradient-to-r from-[#18B368] via-[#2dd4a0] to-[#0A1134]" />
+    <div className="ops-glass-card mb-6 overflow-hidden sm:mb-8">
+      <div className="h-1 w-full bg-[#FFCC00]" />
       <div className="flex flex-col gap-5 p-4 sm:gap-6 sm:p-6 lg:flex-row lg:items-stretch lg:justify-between lg:p-8">
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium uppercase tracking-[0.2em] text-[#18B368]">

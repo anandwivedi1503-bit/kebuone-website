@@ -113,25 +113,25 @@ export default function DashboardSidebar({
           mobileOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
-        <div className="flex items-center gap-3 border-b border-[#18B368]/12 px-5 py-5">
+        <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
           <Image
             src="/evuddy.jpeg"
             alt="EVUDDY"
             width={40}
             height={40}
             priority
-            className="rounded-xl ring-2 ring-[#18B368]/35"
+            className="rounded-xl ring-2 ring-[#FFCC00]/70"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-[#0A1134]">EVUDDY</h2>
-            <p className="text-[11px] font-medium tracking-[0.04em] text-[#18B368]">Operations CRM</p>
+            <h2 className="text-[15px] font-semibold tracking-[-0.02em] text-white">EVUDDY</h2>
+            <p className="text-[11px] font-medium tracking-[0.04em] text-[#FFCC00]">Operations CRM</p>
           </div>
           <button type="button" onClick={() => setMobileOpen(false)} className="lg:hidden" aria-label="Close menu">
-            <X size={20} className="text-slate-700" />
+            <X size={20} className="text-white/80" />
           </button>
         </div>
 
-        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+        <p className="px-5 pb-2 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/40">
           Desks
         </p>
 
@@ -148,7 +148,7 @@ export default function DashboardSidebar({
                   setMobileOpen(false);
                 }}
                 className={`ops-sidebar-item flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[13px] tracking-tight transition duration-200 ${
-                  active ? "ops-sidebar-item-active" : "text-slate-600"
+                  active ? "ops-sidebar-item-active" : ""
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
@@ -158,22 +158,22 @@ export default function DashboardSidebar({
           })}
         </nav>
 
-        <div className="ops-sidebar-footer border-t border-[#18B368]/15 p-4">
-          <div className="overflow-hidden rounded-2xl border border-[#18B368]/20 bg-white/90 shadow-sm backdrop-blur-sm">
-            <div className="h-0.5 w-full bg-gradient-to-r from-[#18B368] to-[#0A1134]" />
+        <div className="ops-sidebar-footer border-t border-white/10 p-4">
+          <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/10 shadow-sm backdrop-blur-sm">
+            <div className="h-0.5 w-full bg-[#FFCC00]" />
             <div className="px-3 py-3">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-white/45">
                 Logged in as
               </p>
-              <p className="mt-1 truncate text-sm font-semibold tracking-tight text-[#0A1134]">
+              <p className="mt-1 truncate text-sm font-semibold tracking-tight text-white">
                 {sessionRole === "staff" ? sessionUsername || "Staff" : "EVUDDY Administrator"}
               </p>
-              <p className="mt-1 text-[11px] text-slate-500">
+              <p className="mt-1 text-[11px] text-white/55">
                 {sessionRole === "staff" ? "Staff access" : "Super admin"}
               </p>
               <a
                 href="/"
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-[#F7FAF8] px-3 py-2 text-xs font-semibold text-[#0A1134] transition hover:border-[#18B368]/40"
+                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/15"
               >
                 <Globe size={14} />
                 Back to website

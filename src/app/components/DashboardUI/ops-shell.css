@@ -14,10 +14,9 @@
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   letter-spacing: -0.011em;
   background:
-    radial-gradient(ellipse 120% 80% at 0% -20%, rgba(24, 179, 104, 0.28), transparent 55%),
-    radial-gradient(ellipse 90% 60% at 100% 0%, rgba(244, 196, 48, 0.14), transparent 50%),
-    radial-gradient(ellipse 70% 50% at 80% 100%, rgba(10, 17, 52, 0.06), transparent 55%),
-    linear-gradient(165deg, #f9f7f2 0%, #f4faf7 45%, #eef6f2 100%);
+    radial-gradient(ellipse 80% 50% at 100% -10%, rgba(255, 204, 0, 0.22), transparent 46%),
+    radial-gradient(ellipse 60% 40% at 0% 100%, rgba(24, 179, 104, 0.16), transparent 50%),
+    linear-gradient(180deg, #e7edf4 0%, #f4f7fb 48%, #eef2f6 100%);
   background-attachment: fixed;
 }
 
@@ -144,55 +143,67 @@
 }
 
 .ops-shell .ops-sidebar {
-  border-right: 1px solid rgba(24, 179, 104, 0.14);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(247, 250, 248, 0.98) 100%);
-  backdrop-filter: blur(16px);
-  box-shadow: 4px 0 28px rgba(10, 17, 52, 0.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background:
+    radial-gradient(ellipse 80% 40% at 0% 0%, rgba(255, 204, 0, 0.16), transparent 55%),
+    linear-gradient(180deg, #121826 0%, #0b1020 100%);
+  box-shadow: 12px 0 40px rgba(8, 12, 24, 0.18);
 }
 
 .ops-shell .ops-sidebar-item {
-  color: #475569;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .ops-shell .ops-sidebar-item:hover {
-  background: rgba(24, 179, 104, 0.08);
-  color: #0a1134;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  transform: translateX(3px);
 }
 
 .ops-shell .ops-sidebar-item-active {
-  color: #0a5c36;
-  background: linear-gradient(90deg, rgba(24, 179, 104, 0.28), rgba(232, 248, 240, 0.95));
-  box-shadow: inset 3px 0 0 #18b368;
-  font-weight: 600;
+  color: #121826;
+  background: #ffcc00;
+  box-shadow: none;
+  font-weight: 650;
 }
 
 .ops-shell .ops-sidebar-item-active svg {
-  color: #18b368;
+  color: #121826;
 }
 
 .ops-shell .ops-sidebar-footer {
-  background: linear-gradient(180deg, rgba(232, 248, 240, 0.5), rgba(255, 255, 255, 0.9));
+  background: transparent;
+}
+
+.ops-shell .ops-shortcut {
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.55);
+  color: #121826;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.ops-shell .ops-shortcut:hover {
+  background: #121826;
+  color: #ffcc00;
+  border-color: #121826;
 }
 
 .ops-shell .ops-glass-card {
-  border: 1px solid rgba(124, 58, 237, 0.08);
-  border-radius: 1.25rem;
-  background: linear-gradient(
-    145deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(240, 253, 250, 0.75) 45%,
-    rgba(239, 246, 255, 0.7) 100%
-  );
-  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 1.35rem;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(18px);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8) inset,
-    0 16px 48px rgba(10, 17, 52, 0.08);
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 40px rgba(15, 23, 42, 0.06);
   transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
 }
 
 .ops-shell .ops-glass-card:hover {
-  border-color: rgba(24, 179, 104, 0.28);
-  box-shadow: 0 16px 48px rgba(24, 179, 104, 0.1);
+  transform: translateY(-2px);
+  border-color: rgba(255, 204, 0, 0.85);
+  box-shadow: 0 22px 48px rgba(18, 24, 38, 0.1);
 }
 
 .ops-shell .ops-kpi-grid {

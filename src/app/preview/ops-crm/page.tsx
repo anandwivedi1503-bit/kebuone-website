@@ -41,8 +41,8 @@ export default function OpsCrmPreviewPage() {
   return (
     <div className="ops-shell min-h-screen">
       <aside className="ops-sidebar fixed inset-y-0 left-0 hidden w-[272px] p-5 lg:block">
-        <p className="text-xs font-semibold tracking-[0.22em] text-[#18B368]">EVUDDY OPS</p>
-        <p className="mt-2 text-lg font-medium text-[#0A1134]">Command center</p>
+        <p className="text-xs font-semibold tracking-[0.22em] text-[#FFCC00]">EVUDDY OPS</p>
+        <p className="mt-2 text-lg font-medium text-white">Command center</p>
         <div className="mt-6 space-y-1">
           {DESKS.map((item, itemIndex) => (
             <button
