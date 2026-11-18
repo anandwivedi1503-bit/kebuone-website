@@ -39,6 +39,52 @@ const [remarks,setRemarks]=useState("");
 const [loading,setLoading]=useState(false);
 const [history,setHistory]=useState<any[]>([]);
 const [pageLoading, setPageLoading] = useState(true);
+const [refundBusyId, setRefundBusyId] = useState("");
+
+const settleDepositRefund = async (
+  refund: { id: string; amount?: number; bookingId?: string },
+  sendToRazorpay: boolean
+) => {
+  const rupees = Number(refund.amount || 0).toLocaleString("en-IN");
+  const ok = confirm(
+    sendToRazorpay
+      ? `Return ₹${rupees} security deposit for ${refund.bookingId || "this booking"} to the original Razorpay payment?`
+      : `Credit ₹${rupees} security deposit to this rider wallet? Use this when there is no Razorpay capture.`
+  );
+  if (!ok) return;
+  setRefundBusyId(refund.id);
+  try {
+    const res = await fetch(`/api/refunds/${refund.id}`, {
+      method: "PATCH",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        refundStatus: "REFUNDED",
+        sendToRazorpay,
+        notifyRider: true,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      alert(data.message || "Could not return the security deposit.");
+      return;
+    }
+    alert(data.message || "Security deposit refund completed.");
+    setSelectedWallet((current: { pendingDepositRefunds?: Array<{ id: string }> } | null) =>
+      current
+        ? {
+            ...current,
+            pendingDepositRefunds: (current.pendingDepositRefunds || []).filter(
+              (row) => row.id !== refund.id
+            ),
+          }
+        : current
+    );
+    await loadWallets(false);
+  } finally {
+    setRefundBusyId("");
+  }
+};
 
 const createIdempotencyKey = () => {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -329,7 +375,7 @@ return(
 
 <DashboardHeader
 title="Wallet Dashboard"
-subtitle="Wallet holds the ₹2,500 security deposit only. It is not a recharge account. Refund deposits and cancelled/failed bookings from Refunds via Razorpay."
+subtitle="Wallet holds the ₹2,500 security deposit. After a completed ride, return that deposit from this rider card (Razorpay or wallet credit) or from Refunds."
 />
 
 <OpsMoneyStrip />
@@ -1045,6 +1091,41 @@ Wallet
 ) : (
   <p className="mt-3 text-sm font-semibold text-slate-500">No open booking. Wallet balance is EVUDDY credit only.</p>
 )}
+
+{Array.isArray(selectedWallet.pendingDepositRefunds) &&
+selectedWallet.pendingDepositRefunds.length > 0 ? (
+  <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3">
+    <p className="text-sm font-bold text-amber-950">Security deposit ready to return</p>
+    <p className="mt-1 text-xs text-amber-900">
+      Ride is complete and the refund is queued. Send it to the original Razorpay payment, or credit the wallet when the rider paid cash.
+    </p>
+    {selectedWallet.pendingDepositRefunds.map((refund: { id: string; refundId?: string; bookingId?: string; amount?: number; refundStatus?: string }) => (
+      <div key={refund.id} className="mt-3 flex flex-col gap-2">
+        <p className="text-sm font-semibold text-slate-800">
+          {refund.refundId || refund.id} · {refund.bookingId} · ₹{Number(refund.amount || 0).toLocaleString("en-IN")} · {refund.refundStatus}
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={refundBusyId === refund.id}
+            onClick={() => settleDepositRefund(refund, true)}
+            className="rounded-xl bg-[#0A1134] px-4 py-2 text-sm font-semibold text-white"
+          >
+            {refundBusyId === refund.id ? "Working..." : "Refund deposit via Razorpay"}
+          </button>
+          <button
+            type="button"
+            disabled={refundBusyId === refund.id}
+            onClick={() => settleDepositRefund(refund, false)}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+          >
+            Credit deposit to wallet
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+) : null}
 
 </div>
 

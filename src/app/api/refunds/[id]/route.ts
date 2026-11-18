@@ -19,6 +19,26 @@ import { writeAudit } from "@/lib/writeAudit";
 import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
 import { notifyRefundReceipt } from "@/lib/notify/refundNotify";
+import { sessionCanOpen } from "@/lib/adminCan";
+
+function isSecurityDepositRefund(refund: { refundSource?: unknown; remarks?: unknown }) {
+  return (
+    String(refund.refundSource || "") === "Security Deposit" ||
+    /security deposit/i.test(String(refund.remarks || ""))
+  );
+}
+
+/** Queue already stores the pending deposit on booking.refundAmount. */
+function applySettledRefundAmount(
+  booking: { refundAmount?: number },
+  amount: number,
+  depositRefund: boolean
+) {
+  const current = money(booking.refundAmount);
+  const next = money(amount);
+  if (depositRefund && current + 0.009 >= next) return;
+  booking.refundAmount = money(current + next);
+}
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -65,7 +85,10 @@ export async function PATCH(
 
   try {
 
-    const gate = await requireAdminDashboards(...API_DASHBOARDS.refunds);
+    const gate = await requireAdminDashboards(
+      ...API_DASHBOARDS.refunds,
+      ...API_DASHBOARDS.walletWrite
+    );
     if (gate.error) return gate.error;
 
     await connectDB();
@@ -222,6 +245,26 @@ if (!refund) {
 
 }
 
+const depositRefund = isSecurityDepositRefund(refund);
+const canRefundsDesk =
+  gate.session?.role === "super" ||
+  sessionCanOpen(gate.session, "refunds") ||
+  sessionCanOpen(gate.session, "support");
+const canWalletDesk =
+  gate.session?.role === "super" || sessionCanOpen(gate.session, "wallet");
+if (!canRefundsDesk && !(canWalletDesk && depositRefund)) {
+  await session.abortTransaction();
+  session.endSession();
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Wallet desk can only settle security-deposit refunds. Other refunds stay on the Refunds dashboard.",
+    },
+    { status: 403 }
+  );
+}
+
 if (refund.refundStatus === "REFUNDED") {
 
   await session.abortTransaction();
@@ -261,10 +304,7 @@ if (!booking) {
 
 }
 
-const refundSource = String(refund.refundSource || "");
-const isDepositRefund =
-  refundSource === "Security Deposit" ||
-  /security deposit/i.test(String(refund.remarks || ""));
+const isDepositRefund = depositRefund;
 
 const priorRefunded = money(
   (
@@ -465,9 +505,7 @@ if (sendToRazorpay) {
     );
   }
 
-  liveBooking.refundAmount = money(
-    Number(liveBooking.refundAmount || 0) + Number(liveRefund.amount)
-  );
+  applySettledRefundAmount(liveBooking, Number(liveRefund.amount), isDepositRefund);
   if (isDepositRefund) {
     liveBooking.securityDepositRefunded = true;
   }
@@ -526,9 +564,7 @@ if (sendToRazorpay) {
   }
 } else {
 
-booking.refundAmount = money(
-  Number(booking.refundAmount || 0) + Number(refund.amount)
-);
+applySettledRefundAmount(booking, Number(refund.amount), isDepositRefund);
 
 if (isDepositRefund) {
   booking.securityDepositRefunded = true;
