@@ -176,7 +176,8 @@ export default function DashboardContainer() {
           {!sessionReady ? (
             <p className="rounded-3xl bg-white p-8 text-slate-600">Loading ops access…</p>
           ) : (
-            <>
+            <div key={activeDashboard} className="ops-desk-stage">
+              <p className="ops-live-pill mb-3">Live · desks refresh on their own</p>
           {activeDashboard === "admin" && show("admin") && (
             <AdminDashboard setActiveDashboard={setActiveDashboard} />
           )}
@@ -219,7 +220,7 @@ export default function DashboardContainer() {
               This login has no dashboards assigned. Ask super admin to grant access.
             </p>
           ) : null}
-            </>
+            </div>
           )}
         </div>
       </main>

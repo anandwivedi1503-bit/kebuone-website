@@ -4,6 +4,7 @@ import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import IoT from "@/models/IoT";
+import Vehicle from "@/models/Vehicle";
 
 export async function PATCH(
   req: Request,
@@ -100,6 +101,16 @@ errors,
         runValidators:true,
        }
     );
+
+    if (
+      iot &&
+      (body.lockStatus === "Locked" || body.lockStatus === "Unlocked")
+    ) {
+      await Vehicle.updateOne(
+        { vehicleId: iot.vehicleId },
+        { $set: { lockStatus: body.lockStatus } }
+      );
+    }
 
     return NextResponse.json({
       success: true,

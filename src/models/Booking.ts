@@ -382,6 +382,11 @@ dropLongitude: {
       min: 0,
     },
 
+    firstRideFree: {
+      type: Boolean,
+      default: false,
+    },
+
     advancePaid: {
       type: Number,
       default: 0,

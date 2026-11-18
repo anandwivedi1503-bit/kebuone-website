@@ -46,14 +46,14 @@ assert.notEqual(unpaid.rideStatus, "Ready For Pickup");
 
 const partial = nextPaymentProgress({ rideStatus: "Booked" }, 500, 1500);
 assert.equal(partial.paymentStatus, "Partial");
-assert.equal(partial.rideStatus, "Ready For Pickup");
-assert.ok(partial.pickupOTP);
-assert.equal(partial.vehicleStatus, "Ready For Pickup");
+assert.equal(partial.rideStatus, "Booked");
+assert.equal(partial.pickupOTP, undefined);
+assert.equal(partial.vehicleStatus, "Booked");
 
 const reuse = nextPaymentProgress(
   { rideStatus: "Ready For Pickup", pickupOTP: "654321", pickupOTPExpiry: new Date() },
-  800,
-  1200
+  2000,
+  0
 );
 assert.equal(reuse.pickupOTP, "654321");
 

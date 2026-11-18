@@ -20,6 +20,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
+import { riderQualifiesForFirstRideFree } from "@/lib/firstRide";
 import { idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
 
 import {
@@ -1725,6 +1726,7 @@ export async function GET(req: Request) {
       const walletBalance = Number(wallet?.balance || 0);
       const walletFreeze = Number(wallet?.freezeAmount || 0);
       const walletAvailable = walletSpendable(wallet);
+      const firstRideFree = await riderQualifiesForFirstRideFree(rider.riderId);
 
       return NextResponse.json({
         success: true,
@@ -1735,6 +1737,7 @@ export async function GET(req: Request) {
           walletFreeze,
           walletAvailable,
           walletStatus: wallet?.adminBlocked ? "Blocked" : wallet?.status || "Blocked",
+          firstRideFree,
         },
       });
     }

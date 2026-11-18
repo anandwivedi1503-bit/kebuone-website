@@ -32,12 +32,15 @@ export function nextPaymentProgress(
   const inRide = ride === "In Ride";
   const completed = ride === "Completed";
   const paymentStatus = pendingAmount <= 0 ? "Paid" : "Partial";
+  const fullyPaid = pendingAmount <= 0.009 && receivedAmount > 0.009;
   const rideStatus =
     inRide || completed
       ? ride
-      : receivedAmount > 0
+      : fullyPaid
         ? "Ready For Pickup"
-        : ride;
+        : receivedAmount > 0
+          ? "Booked"
+          : ride;
 
   const bookingPatch: Record<string, unknown> = {
     receivedAmount,
@@ -47,13 +50,16 @@ export function nextPaymentProgress(
   };
 
   let pickupOTP: string | undefined;
-  // Business rule: any receivedAmount > 0 issues Pickup OTP (partial pay is allowed).
-  if (!completed && !inRide && !booking.pickupOTPVerified && receivedAmount > 0) {
+  // Pickup OTP only after fare + deposit are fully received. Partial pay keeps the scooter booked.
+  if (!completed && !inRide && !booking.pickupOTPVerified && fullyPaid) {
     const existing = String(booking.pickupOTP || "").trim();
     const otp = existing || generateSixDigitOtp();
     pickupOTP = otp;
     bookingPatch.pickupOTP = otp;
     bookingPatch.pickupOTPExpiry = booking.pickupOTPExpiry || pickupOtpExpiry();
+  } else if (!completed && !inRide && !booking.pickupOTPVerified) {
+    bookingPatch.pickupOTP = "";
+    bookingPatch.pickupOTPExpiry = null;
   }
 
   let rideEndOTP: string | undefined;
@@ -62,7 +68,7 @@ export function nextPaymentProgress(
     ? null
     : inRide
       ? "In Ride"
-      : receivedAmount > 0
+      : fullyPaid
         ? "Ready For Pickup"
         : "Booked";
 

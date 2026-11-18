@@ -31,6 +31,7 @@ import { writeAudit } from "@/lib/writeAudit";
 import { nextBookingId } from "@/lib/nextBookingId";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
+import { riderQualifiesForFirstRideFree } from "@/lib/firstRide";
 import { cancelUnpaidPrePaymentReserveInSession } from "@/lib/cancelUnpaidPrePaymentReserve";
 import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
 
@@ -754,7 +755,7 @@ await session.endSession();
 
     const rentalStartDate = new Date();
 
-const rentalAmount =
+const catalogRental =
   rentalMode === "Hourly"
     ? money(catalogRate("Hourly", vehicle.hourlyRate) * rentalHours)
     : rentalMode === "Daily"
@@ -766,6 +767,10 @@ const rentalAmount =
     : rentalMode === "Rent To Own"
     ? rtoInstallment(vehicle.rentToOwnDailyRate)
     : 0;
+const firstRideFree =
+  rentalMode !== "Rent To Own" &&
+  (await riderQualifiesForFirstRideFree(rider.riderId, session));
+const rentalAmount = firstRideFree ? 0 : catalogRental;
 
 const rentalEndDate = new Date(rentalStartDate);
 
@@ -824,7 +829,7 @@ const tax = gstBreakdownInclusive(rentalAmount);
 const payableAmount = money(tax.totalWithGst + securityDeposit);
 
 if (
-  rentalAmount <= 0 ||
+  (!firstRideFree && rentalAmount <= 0) ||
   payableAmount <= 0 ||
   rentalEndDate <= rentalStartDate
 ) {
@@ -954,6 +959,8 @@ pickupHubName:
         clean(body.city),
 
       securityDeposit,
+
+      firstRideFree,
 
       gstAmount: tax.gstAmount,
       cgstAmount: tax.cgstAmount,
