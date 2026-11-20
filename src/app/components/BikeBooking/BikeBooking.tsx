@@ -2909,7 +2909,7 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : bookingDone ? (
                   <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    Reserve is holding the scooter. Pay the full fare and deposit to get pickup OTP. A partial payment keeps the scooter booked and does not unlock it.
+                    Reserve is holding the scooter. Pay at least 50% of the total to get pickup OTP. The remaining balance can be paid during the ride.
                   </div>
                 ) : null}
 
