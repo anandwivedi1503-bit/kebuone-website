@@ -66,7 +66,7 @@ export function paymentContract() {
   return {
     version: 1,
     firstRentalPayment: {
-      website: "at-least-half-of-total",
+      website: "half-of-rental",
       capability: "firstPaymentHalfRental",
       legacyApp: "from-one-rupee",
     },
