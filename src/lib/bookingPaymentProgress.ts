@@ -40,7 +40,11 @@ export function nextPaymentProgress(
   const inRide = ride === "In Ride";
   const completed = ride === "Completed";
   const paymentStatus = pendingAmount <= 0 ? "Paid" : "Partial";
-  const totalPayable = getBookingPayableAmount(booking);
+  const totalPayable = getBookingPayableAmount({
+    ...booking,
+    receivedAmount,
+    pendingAmount,
+  });
   const minimumForPickup = isRentToOwnBooking(booking)
     ? totalPayable
     : Math.min(totalPayable, Math.max(1, money(totalPayable * 0.5)));
