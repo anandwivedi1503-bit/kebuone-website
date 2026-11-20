@@ -12,6 +12,7 @@ import { appendBoundedText } from "@/lib/listQuery";
 import { nextSeqId } from "@/lib/nextSeqId";
 import { writeAudit } from "@/lib/writeAudit";
 import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
+import { hasPickupPaymentMinimum } from "@/lib/pickupPaymentRule";
 
 const allowedStatuses = [
   "OPEN",
@@ -218,9 +219,7 @@ if (
       existingTicket.category === "UNLOCK_ISSUE" &&
       booking.rideStatus === "Ready For Pickup" &&
       !booking.pickupOTPVerified &&
-      (Number(booking.receivedAmount || 0) >= 1 ||
-        booking.paymentStatus === "Paid" ||
-        booking.paymentStatus === "Partial")
+      hasPickupPaymentMinimum(booking.toObject())
     ) {
       booking.pickupOTP = generateSixDigitOtp();
       booking.pickupOTPExpiry = pickupOtpExpiry();

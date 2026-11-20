@@ -5,6 +5,11 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 
 import { generateSixDigitOtp, isOtpExpired, pickupOtpExpiry } from "@/lib/otp";
+import {
+  hasPickupPaymentMinimum,
+  pickupPaymentThreshold,
+} from "@/lib/pickupPaymentRule";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import {
   hubForbiddenResponse,
@@ -56,11 +61,15 @@ export async function POST(req: Request) {
       return hubForbiddenResponse();
     }
 
-    if (Number(booking.receivedAmount || 0) < 1) {
+    const pickupPaymentBooking = booking.toObject();
+    const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
+    if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
       return NextResponse.json(
         {
           success: false,
-          message: "At least one payment is required before pickup OTP.",
+          message: isRentToOwnBooking(booking)
+            ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before pickup OTP.`
+            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before pickup OTP.`,
         },
         { status: 400 }
       );
@@ -68,7 +77,7 @@ export async function POST(req: Request) {
 
     if (
       booking.rideStatus !== "Ready For Pickup" &&
-      Number(booking.receivedAmount || 0) >= 1 &&
+      hasPickupPaymentMinimum(pickupPaymentBooking) &&
       ["Booked", "Reserved", "Payment Pending"].includes(String(booking.rideStatus))
     ) {
       booking.rideStatus = "Ready For Pickup";

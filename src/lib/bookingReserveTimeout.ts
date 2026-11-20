@@ -1,5 +1,6 @@
 import { getBookingPayableAmount, getBookingRemainingAmount, money } from "@/lib/gst";
 import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
+import { pickupPaymentThreshold } from "@/lib/pickupPaymentRule";
 import { isUnpaidPrePaymentReserve, type UnpaidReserveBooking } from "@/lib/unpaidPrePaymentReserve";
 
 export const UNPAID_RESERVE_TTL_MS = 30 * 60 * 1000;
@@ -65,13 +66,19 @@ export function minRiderPaymentInr(
   }
 
   const received = money(booking.receivedAmount);
-  if (received > 0.009 || options?.halfRentalFirst === false) {
+  if (options?.halfRentalFirst === false) {
     return { min: 1, max: remaining, firstPayment: false as const };
   }
 
   const rentalTotal = bookingRentalDueTotal(booking);
-  const halfRental = money(remaining * 0.5);
-  const min = Math.min(remaining, Math.max(halfRental, 1));
+  const halfRental = pickupPaymentThreshold(booking);
+  const topUp = money(Math.max(0, halfRental - received));
+
+  if (topUp <= 0.009) {
+    return { min: 1, max: remaining, firstPayment: false as const };
+  }
+
+  const min = Math.min(remaining, topUp);
 
   return {
     min,
@@ -114,9 +121,13 @@ export function validateRiderPaymentAmount(
 
   if (amount < min - 0.001 || amount > max + 0.001) {
     if (firstPayment && halfRental !== undefined) {
+      const alreadyReceived = money(booking.receivedAmount);
       return {
         ok: false,
-        message: `First payment must be at least 50% of the total (₹${halfRental.toFixed(2)}), up to ₹${max.toFixed(2)}.`,
+        message:
+          alreadyReceived > 0.009
+            ? `Pay at least ₹${min.toFixed(2)} more to reach 50% of the total (₹${halfRental.toFixed(2)}).`
+            : `First payment must be at least 50% of the total (₹${halfRental.toFixed(2)}), up to ₹${max.toFixed(2)}.`,
       };
     }
     return {

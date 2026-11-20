@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { syncBookingRiderId } from "@/lib/findBookingRider";
 import { getOwnedActiveBooking } from "@/lib/ownedActiveBooking";
+import {
+  hasPickupPaymentMinimum,
+  pickupPaymentThreshold,
+} from "@/lib/pickupPaymentRule";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import { writeAudit } from "@/lib/writeAudit";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -33,6 +38,20 @@ export async function POST(req: Request) {
       });
     }
 
+    const pickupPaymentBooking = booking.toObject();
+    const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
+    if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: isRentToOwnBooking(booking)
+            ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before starting.`
+            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before starting.`,
+        },
+        { status: 400 }
+      );
+    }
+
     if (!booking.pickupOTPVerified) {
       return NextResponse.json(
         {
@@ -49,13 +68,6 @@ export async function POST(req: Request) {
           success: false,
           message: "Booking is not ready for the rider to start.",
         },
-        { status: 400 }
-      );
-    }
-
-    if (Number(booking.receivedAmount || 0) < 1) {
-      return NextResponse.json(
-        { success: false, message: "Pay at least ₹1 before starting." },
         { status: 400 }
       );
     }

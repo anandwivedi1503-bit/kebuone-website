@@ -117,7 +117,7 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
     keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक", "ride end", "ride started", "शुरू"],
     href: "/book-bike",
     en: "After your first payment reaches at least 50% of the total, Book EV shows a Pickup OTP. Tell it to the yard. They unlock the scooter. Then swipe Ride started. For ride end: remaining rent ₹0, return to yard, swipe Ride end, tell that OTP to the yard. I cannot enter OTP for you.",
-    hi: "पिकअप फ्लो:\n1) पहली पेमेंट (≥ ₹1) के बाद Book EV पर Pickup OTP दिखेगा।\n2) हब/यार्ड पर OTP बताएँ — वे अनलॉक करेंगे।\n3) फिर “Ride started” स्वाइप करें।\nराइड खत्म: बाकी किराया ₹0 करें → यार्ड लौटें → “Ride end” → OTP बताएँ। OTP मैं चैट में नहीं डाल सकती।",
+    hi: "पिकअप फ्लो:\n1) कुल देय राशि का कम-से-कम 50% भुगतान होने के बाद Book EV पर Pickup OTP दिखेगा।\n2) हब/यार्ड पर OTP बताएँ — वे अनलॉक करेंगे।\n3) फिर “Ride started” स्वाइप करें।\nराइड खत्म: बाकी किराया ₹0 करें → यार्ड लौटें → “Ride end” → OTP बताएँ। OTP मैं चैट में नहीं डाल सकती।",
   },
   {
     keys: [

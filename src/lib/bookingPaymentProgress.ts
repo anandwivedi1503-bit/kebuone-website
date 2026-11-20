@@ -1,6 +1,5 @@
-import { getBookingPayableAmount, money } from "@/lib/gst";
 import { generateSixDigitOtp, isOtpExpired, pickupOtpExpiry } from "@/lib/otp";
-import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
+import { hasPickupPaymentMinimum } from "@/lib/pickupPaymentRule";
 
 type BookingLike = {
   rideStatus?: string;
@@ -40,16 +39,12 @@ export function nextPaymentProgress(
   const inRide = ride === "In Ride";
   const completed = ride === "Completed";
   const paymentStatus = pendingAmount <= 0 ? "Paid" : "Partial";
-  const totalPayable = getBookingPayableAmount({
+  const paymentSnapshot = {
     ...booking,
     receivedAmount,
     pendingAmount,
-  });
-  const minimumForPickup = isRentToOwnBooking(booking)
-    ? totalPayable
-    : Math.min(totalPayable, Math.max(1, money(totalPayable * 0.5)));
-  const pickupReady =
-    minimumForPickup > 0.009 && receivedAmount + 0.009 >= minimumForPickup;
+  };
+  const pickupReady = hasPickupPaymentMinimum(paymentSnapshot, receivedAmount);
   const rideStatus =
     inRide || completed
       ? ride

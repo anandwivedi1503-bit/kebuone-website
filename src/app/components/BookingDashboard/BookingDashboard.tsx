@@ -13,6 +13,10 @@ import DashboardCard from "../DashboardUI/DashboardCard";
 import SectionHeader from "../DashboardUI/SectionHeader";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { getBookingPayableAmount, money } from "@/lib/gst";
+import {
+  hasPickupPaymentMinimum,
+  pickupPaymentTopUp,
+} from "@/lib/pickupPaymentRule";
 import { bookingRentalCollected } from "@/lib/opsRevenue";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
@@ -504,11 +508,14 @@ const hubDisplay = (booking: any) => {
   return name || code || "-";
 };
 
+const pickupPaymentMet = (booking: any) =>
+  hasPickupPaymentMinimum(booking, booking.receivedAmount);
+
 const pickupOtpReady = (booking: any) =>
   Boolean(
     booking.pickupOTPGenerated ||
-      generatedPickupOTP[booking._id] ||
-      Number(booking.receivedAmount || 0) >= 1
+      booking.pickupOTP ||
+      generatedPickupOTP[booking._id]
   );
 
 return(
@@ -1133,11 +1140,11 @@ status="warning"
 label="Generated"
 />
 
-) : Number(booking.receivedAmount || 0) < 1 ? (
+) : !pickupPaymentMet(booking) ? (
 
 <StatusBadge
 status="inactive"
-label="After first pay"
+label={`Pay ${rupees(pickupPaymentTopUp(booking))} more`}
 />
 
 ) : (
@@ -1324,7 +1331,7 @@ disabled:cursor-not-allowed
 {booking.rideStatus === "Ready For Pickup" && (
 
 <>
-{!pickupOtpReady(booking) ? (
+{!pickupOtpReady(booking) && pickupPaymentMet(booking) ? (
 
 <button
 disabled={processingId===booking._id}
@@ -1336,7 +1343,7 @@ className="rounded-lg bg-[#0A1134] px-3 py-2 text-sm font-semibold text-white di
 
 </button>
 
-) : (
+  ) : pickupOtpReady(booking) ? (
 
 <div className="flex min-w-[140px] flex-col gap-2">
 <p className="rounded-lg border border-[#18B368]/25 bg-[#E8F8F0] px-2 py-1.5 text-center text-xs font-semibold tracking-[0.2em] text-[#0A1134]">
@@ -1354,6 +1361,11 @@ className="rounded-lg bg-[#18B368] px-3 py-2 text-sm font-semibold text-white di
 Enter rider OTP
 </button>
 </div>
+
+) : (
+  <p className="max-w-[160px] rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+    Collect {rupees(pickupPaymentTopUp(booking))} more before pickup OTP.
+  </p>
 
 )}
 
@@ -1821,7 +1833,9 @@ OTP Details
     ? "Verified at yard"
     : pickupOtpReady(selectedBooking)
       ? maskOtpDigits()
-      : "After first payment"}
+      : pickupPaymentMet(selectedBooking)
+        ? "Not generated yet"
+        : `Collect ${rupees(pickupPaymentTopUp(selectedBooking))} more before pickup OTP`}
 </p>
 
 <p>

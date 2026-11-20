@@ -18,6 +18,11 @@ import Vehicle from "@/models/Vehicle";
 
 import Refund from "@/models/Refund";
 import { getBookingPayableAmount } from "@/lib/gst";
+import {
+  hasPickupPaymentMinimum,
+  pickupPaymentThreshold,
+  pickupPaymentTopUp,
+} from "@/lib/pickupPaymentRule";
 import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
 import { queueCancellationRefundIfPaid } from "@/lib/queueCancellationRefund";
 import {
@@ -597,19 +602,31 @@ export async function PATCH(
     /* PAYMENT / READY-FOR-PICKUP RULE                                        */
     /* ---------------------------------------------------------------------- */
 
+    const pickupPaymentSnapshot = {
+      rentalMode: booking.rentalMode,
+      paymentDue: booking.paymentDue,
+      receivedAmount: finalReceivedAmount,
+      pendingAmount: finalPendingAmount,
+      rateApplied: booking.rateApplied,
+      totalAmount: booking.totalAmount,
+      gstAmount: booking.gstAmount,
+      securityDeposit: booking.securityDeposit,
+    };
+
     if (
       requestedRideStatus === "Ready For Pickup" &&
-      Number(booking.receivedAmount || finalReceivedAmount || 0) < 1
+      !hasPickupPaymentMinimum(pickupPaymentSnapshot, finalReceivedAmount)
     ) {
       await session.abortTransaction();
       session.endSession();
       session = null;
 
+      const threshold = pickupPaymentThreshold(pickupPaymentSnapshot);
+      const topUp = pickupPaymentTopUp(pickupPaymentSnapshot);
       return NextResponse.json(
         {
           success: false,
-          message:
-            "Booking cannot be marked Ready For Pickup until a payment is received.",
+          message: `Collect ₹${topUp.toFixed(2)} more to reach the ₹${threshold.toFixed(2)} pickup payment minimum before marking Ready For Pickup.`,
         },
         { status: 409 }
       );
