@@ -33,9 +33,8 @@ export function readRegistrationClient(headers: Headers): RegistrationClient {
 }
 
 /**
- * The app already on phones offers a first payment from ₹1 and cannot be
- * changed until a store build. The website, and an app build that names
- * `firstPaymentHalfRental`, keep the 50% rental floor.
+ * Older app builds may still offer a first payment from ₹1. The website and
+ * app builds that name `firstPaymentHalfRental` enforce a 50% total floor.
  */
 export function enforcesHalfRentalFirstPayment(headers: Headers): boolean {
   const client = readRegistrationClient(headers);
@@ -67,7 +66,7 @@ export function paymentContract() {
   return {
     version: 1,
     firstRentalPayment: {
-      website: "half-of-rental",
+      website: "at-least-half-of-total",
       capability: "firstPaymentHalfRental",
       legacyApp: "from-one-rupee",
     },

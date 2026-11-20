@@ -1,10 +1,18 @@
-import { generateSixDigitOtp, pickupOtpExpiry } from "@/lib/otp";
+import { getBookingPayableAmount, money } from "@/lib/gst";
+import { generateSixDigitOtp, isOtpExpired, pickupOtpExpiry } from "@/lib/otp";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 
 type BookingLike = {
   rideStatus?: string;
   paymentStatus?: string;
   pendingAmount?: number;
   receivedAmount?: number;
+  paymentDue?: number;
+  rateApplied?: number;
+  totalAmount?: number;
+  gstAmount?: number;
+  securityDeposit?: number;
+  rentalMode?: string;
   pickupOTP?: string;
   pickupOTPExpiry?: Date | string | null;
   pickupOTPVerified?: boolean;
@@ -32,11 +40,16 @@ export function nextPaymentProgress(
   const inRide = ride === "In Ride";
   const completed = ride === "Completed";
   const paymentStatus = pendingAmount <= 0 ? "Paid" : "Partial";
-  const fullyPaid = pendingAmount <= 0.009 && receivedAmount > 0.009;
+  const totalPayable = getBookingPayableAmount(booking);
+  const minimumForPickup = isRentToOwnBooking(booking)
+    ? totalPayable
+    : Math.min(totalPayable, Math.max(1, money(totalPayable * 0.5)));
+  const pickupReady =
+    minimumForPickup > 0.009 && receivedAmount + 0.009 >= minimumForPickup;
   const rideStatus =
     inRide || completed
       ? ride
-      : fullyPaid
+      : pickupReady
         ? "Ready For Pickup"
         : receivedAmount > 0
           ? "Booked"
@@ -50,13 +63,21 @@ export function nextPaymentProgress(
   };
 
   let pickupOTP: string | undefined;
-  // Pickup OTP only after fare + deposit are fully received. Partial pay keeps the scooter booked.
-  if (!completed && !inRide && !booking.pickupOTPVerified && fullyPaid) {
+  // Normal rentals issue pickup OTP after at least half the total is received.
+  // Rent to Own remains payable in full before pickup.
+  if (!completed && !inRide && !booking.pickupOTPVerified && pickupReady) {
     const existing = String(booking.pickupOTP || "").trim();
-    const otp = existing || generateSixDigitOtp();
+    const reusable = Boolean(
+      existing &&
+        booking.pickupOTPExpiry &&
+        !isOtpExpired(booking.pickupOTPExpiry)
+    );
+    const otp = reusable ? existing : generateSixDigitOtp();
     pickupOTP = otp;
     bookingPatch.pickupOTP = otp;
-    bookingPatch.pickupOTPExpiry = booking.pickupOTPExpiry || pickupOtpExpiry();
+    bookingPatch.pickupOTPExpiry = reusable
+      ? booking.pickupOTPExpiry
+      : pickupOtpExpiry();
   } else if (!completed && !inRide && !booking.pickupOTPVerified) {
     bookingPatch.pickupOTP = "";
     bookingPatch.pickupOTPExpiry = null;
@@ -68,7 +89,7 @@ export function nextPaymentProgress(
     ? null
     : inRide
       ? "In Ride"
-      : fullyPaid
+      : pickupReady
         ? "Ready For Pickup"
         : "Booked";
 
