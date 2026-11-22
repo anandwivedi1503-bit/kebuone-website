@@ -572,6 +572,9 @@ riderPhoneUpdatedAt: {
 riderEndReminderSentAt: {
   type: Date,
 },
+riderEndReminderClaimedAt: {
+  type: Date,
+},
 
 reviewId: {
   type: String,

@@ -7,6 +7,7 @@ import Vehicle from "@/models/Vehicle";
 import Booking from "@/models/Booking";
 import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { providedSecretMatches } from "@/lib/timingSafe";
+import { effectiveGpsStatus, hasRecentVehiclePing } from "@/lib/vehicleTelemetry";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
@@ -70,27 +71,31 @@ export async function GET() {
     const alertByVehicle = new Map<string, string>();
     for (const item of latestAlerts) {
       const id = String(item.vehicleId || "");
-      if (id && !alertByVehicle.has(id)) {
+      const alertIsFresh = hasRecentVehiclePing(item.updatedAt);
+      if (id && alertIsFresh && !alertByVehicle.has(id)) {
         alertByVehicle.set(id, item.alertType || "");
       }
     }
 
-    const iotData = vehicles.map((vehicle) => ({
-      _id: vehicle._id,
-      vehicleId: vehicle.vehicleId,
-      batteryPercentage: vehicle.batteryPercentage,
-      currentLat: vehicle.currentLatitude,
-      currentLng: vehicle.currentLongitude,
-      lockStatus: vehicle.lockStatus,
-      gpsStatus: vehicle.gpsStatus,
-      vehicleStatus: vehicle.vehicleStatus,
-      currentHub: vehicle.currentHub || "",
-      currentBatteryId: vehicle.currentBatteryId || "",
-      currentBookingId: vehicle.currentBookingId || "",
-      updatedAt: vehicle.lastPingTime,
-      createdAt: vehicle.createdAt,
-      alertType: alertByVehicle.get(vehicle.vehicleId) || "",
-    }));
+    const iotData = vehicles.map((vehicle) => {
+      const telemetryFresh = hasRecentVehiclePing(vehicle.lastPingTime);
+      return {
+        _id: vehicle._id,
+        vehicleId: vehicle.vehicleId,
+        batteryPercentage: telemetryFresh ? vehicle.batteryPercentage : null,
+        currentLat: telemetryFresh ? vehicle.currentLatitude : null,
+        currentLng: telemetryFresh ? vehicle.currentLongitude : null,
+        lockStatus: vehicle.lockStatus,
+        gpsStatus: effectiveGpsStatus(vehicle.gpsStatus, vehicle.lastPingTime),
+        telemetryFresh,
+        vehicleStatus: vehicle.vehicleStatus,
+        currentHub: vehicle.currentHub || "",
+        currentBatteryId: vehicle.currentBatteryId || "",
+        currentBookingId: vehicle.currentBookingId || "",
+        updatedAt: vehicle.lastPingTime || null,
+        alertType: telemetryFresh ? alertByVehicle.get(vehicle.vehicleId) || "" : "",
+      };
+    });
 
     return NextResponse.json({
       success: true,

@@ -515,7 +515,8 @@ const pickupOtpReady = (booking: any) =>
   Boolean(
     booking.pickupOTPGenerated ||
       booking.pickupOTP ||
-      generatedPickupOTP[booking._id]
+      generatedPickupOTP[booking._id] ||
+      pickupPaymentMet(booking)
   );
 
 return(

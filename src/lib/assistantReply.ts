@@ -116,8 +116,8 @@ const FAQ: { keys: string[]; href?: string; en: string; hi: string }[] = [
   {
     keys: ["pickup", "otp", "unlock", "yard", "पिकअप", "ओटीपी", "अनलॉक", "ride end", "ride started", "शुरू"],
     href: "/book-bike",
-    en: "After your first payment reaches at least 50% of the total, Book EV shows a Pickup OTP. Tell it to the yard. They unlock the scooter. Then swipe Ride started. For ride end: remaining rent ₹0, return to yard, swipe Ride end, tell that OTP to the yard. I cannot enter OTP for you.",
-    hi: "पिकअप फ्लो:\n1) कुल देय राशि का कम-से-कम 50% भुगतान होने के बाद Book EV पर Pickup OTP दिखेगा।\n2) हब/यार्ड पर OTP बताएँ — वे अनलॉक करेंगे।\n3) फिर “Ride started” स्वाइप करें।\nराइड खत्म: बाकी किराया ₹0 करें → यार्ड लौटें → “Ride end” → OTP बताएँ। OTP मैं चैट में नहीं डाल सकती।",
+    en: "For a rental, pay at least 50% of the total through Razorpay to get the Pickup OTP. Rent to Own requires the full daily amount. Show the OTP to yard staff; after they verify it, swipe Ride started. Before returning, pay the remaining rental due, return to the yard, swipe Ride end, then show the Ride End OTP to staff. I cannot enter OTPs for you.",
+    hi: "पिकअप फ्लो:\n1) सामान्य रेंटल के कुल किराये का कम से कम 50% Razorpay से दें। Rent to Own में पूरे दिन का किराया देना होगा।\n2) Pickup OTP हब/यार्ड के स्टाफ को दिखाएँ। वे OTP सत्यापित करेंगे।\n3) उसके बाद “Ride started” स्वाइप करें।\nवापसी से पहले बाकी किराया पूरा दें, यार्ड लौटें और “Ride end” स्वाइप करें। Ride End OTP स्टाफ को दिखाएँ। मैं OTP दर्ज नहीं कर सकती।",
   },
   {
     keys: [

@@ -359,7 +359,7 @@ assert.equal(checkoutAmountInr(sampleBooking, 2000, { halfRentalFirst: false }),
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1150).ok === false);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1400).ok);
 assert.ok(
-  validateRiderPaymentAmount({ ...sampleBooking, receivedAmount: 1150, pendingAmount: 1650 }, 100).ok
+  validateRiderPaymentAmount({ ...sampleBooking, receivedAmount: 1150, pendingAmount: 1650 }, 250).ok
 );
 assert.equal(
   isUnpaidReserveTimedOut({

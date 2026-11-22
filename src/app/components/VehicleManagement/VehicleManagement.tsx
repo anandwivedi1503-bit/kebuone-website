@@ -24,6 +24,7 @@ const [fleetStats, setFleetStats] = useState({
   available: 0,
   online: 0,
   locked: 0,
+  rto: 0,
 });
 
 useEffect(() => {
@@ -50,6 +51,7 @@ useEffect(() => {
         available: list.filter((item: { vehicleStatus?: string }) => item.vehicleStatus === "Available").length,
         online: list.filter((item: { gpsStatus?: string }) => String(item.gpsStatus || "").toUpperCase() === "ONLINE").length,
         locked: list.filter((item: { lockStatus?: string }) => item.lockStatus === "Locked").length,
+        rto: list.filter((item: { registrationType?: string }) => item.registrationType === "RTO").length,
       });
     } catch {
       /* keep last known stats */
@@ -87,9 +89,7 @@ rentToOwnMonths: 18,
 
 securityDeposit: COMPANY_SECURITY_DEPOSIT,
 
-batteryPercentage: 100,
-
-gpsStatus: "ONLINE",
+gpsStatus: "OFFLINE",
 
 lockStatus: "Locked",
 
@@ -202,9 +202,7 @@ rentToOwnMonths:18,
 
 securityDeposit: COMPANY_SECURITY_DEPOSIT,
 
-batteryPercentage:100,
-
-gpsStatus:"ONLINE",
+gpsStatus:"OFFLINE",
 
 lockStatus:"Locked",
 
@@ -275,9 +273,9 @@ color="pink"
 
 title="Registration"
 
-value="RTO"
+value={String(fleetStats.rto)}
 
-subtitle="Government Verified"
+subtitle="RTO vehicles in fleet"
 
 icon="📄"
 
@@ -335,8 +333,15 @@ subtitle="Every field is directly connected to your MongoDB architecture."
 
 onSubmit={handleSubmit}
 
-className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+className="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2"
 >
+
+<div className="lg:col-span-2">
+<SectionHeader
+  title="Vehicle identity & hub"
+  subtitle="Add the legal identity and starting hub before configuring operations."
+/>
+</div>
 
 <div>
 
@@ -622,6 +627,13 @@ focus:border-[#FF165E]
 
 </div>
 
+<div className="lg:col-span-2">
+<SectionHeader
+  title="Plans & fare settings"
+  subtitle="Company rental rates stay locked so rider checkout matches the app and website."
+/>
+</div>
+
 <div>
 
 <label className="block mb-3 font-bold text-[#0A1134]">
@@ -835,45 +847,11 @@ focus:border-[#FF165E]
 
 </div>
 
+<div className="lg:col-span-2">
 <SectionHeader
 title="Vehicle Status & IoT"
-subtitle="Configure battery, GPS and operational status."
+subtitle="Device telemetry supplies battery and GPS readings after the first authenticated check-in."
 />
-
-<div>
-
-<label className="block mb-3 font-bold text-[#0A1134]">
-Battery Percentage
-</label>
-
-<input
-type="number"
-value={formData.batteryPercentage}
-onChange={(e)=>
-setFormData({
-...formData,
-batteryPercentage: Math.max(
-0,
-Math.min(100, Number(e.target.value))
-),
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-pink-50/40
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
-focus:border-[#FF165E]
-transition
-"
-/>
-
 </div>
 
 <div>
@@ -882,34 +860,7 @@ transition
 GPS Status
 </label>
 
-<select
-value={formData.gpsStatus}
-onChange={(e)=>
-setFormData({
-...formData,
-gpsStatus:e.target.value,
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-white
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
-focus:border-[#FF165E]
-"
->
-
-<option value="ONLINE">Online</option>
-
-<option value="OFFLINE">Offline</option>
-
-</select>
+<div className="flex min-h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600">Waiting for first authenticated device ping</div><p className="mt-2 text-xs text-slate-500">A form entry cannot mark a scooter online.</p>
 
 </div>
 
@@ -919,34 +870,7 @@ focus:border-[#FF165E]
 Lock Status
 </label>
 
-<select
-value={formData.lockStatus}
-onChange={(e)=>
-setFormData({
-...formData,
-lockStatus:e.target.value,
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-white
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
-focus:border-[#FF165E]
-"
->
-
-<option>Locked</option>
-
-<option>Unlocked</option>
-
-</select>
+<div className="flex min-h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600">Locked at registration</div>
 
 </div>
 
@@ -956,65 +880,11 @@ focus:border-[#FF165E]
 Vehicle Status
 </label>
 
-<select
-value={formData.vehicleStatus}
-onChange={(e)=>
-setFormData({
-...formData,
-vehicleStatus:e.target.value,
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-white
- px-5
- "
- >
-
- <option>Available</option>
- <option>Maintenance</option>
- <option>Low Battery</option>
-
-</select>
+<div className="flex min-h-14 items-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-sm font-semibold text-slate-600">Available · battery unknown until device check-in</div>
 
 </div>
 
-<div>
 
-<label className="block mb-3 font-bold text-[#0A1134]">
-Assigned Rider
-</label>
-
-<input
-type="text"
-value={formData.assignedRider}
-onChange={(e)=>
-setFormData({
-...formData,
-assignedRider:e.target.value,
-})
-}
-className="
-w-full
-h-14
-rounded-2xl
-border
-border-pink-100
-bg-pink-50/40
-px-5
-focus:outline-none
-focus:ring-2
-focus:ring-pink-200
-focus:border-[#FF165E]
-transition
-"
-/>
-
-</div>
 
 <div>
 
@@ -1052,10 +922,12 @@ transition
 
 </div>
 
+<div className="lg:col-span-2">
 <SectionHeader
 title="Documents & Service Information"
 subtitle="Keep legal and maintenance records up to date."
 />
+</div>
 
 <div>
 

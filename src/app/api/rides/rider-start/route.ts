@@ -8,6 +8,7 @@ import {
   pickupPaymentThreshold,
 } from "@/lib/pickupPaymentRule";
 import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
+import { rentalEndAtStart } from "@/lib/rentalSchedule";
 import { writeAudit } from "@/lib/writeAudit";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -72,8 +73,25 @@ export async function POST(req: Request) {
       );
     }
 
+    const actualRideStart = booking.actualRideStart || new Date();
+    const rentalEndDate = rentalEndAtStart(
+      actualRideStart,
+      String(booking.rentalMode || ""),
+      Number(booking.rentalHours || 1),
+      Number(booking.rentToOwnMonths || 20)
+    );
+    if (!rentalEndDate) {
+      return NextResponse.json(
+        { success: false, message: "This booking has an unsupported rental plan." },
+        { status: 400 }
+      );
+    }
+
     booking.rideStatus = "In Ride";
-    booking.actualRideStart = booking.actualRideStart || new Date();
+    booking.actualRideStart = actualRideStart;
+    booking.rentalStartDate = actualRideStart;
+    booking.rentalEndDate = rentalEndDate;
+    booking.expectedReturnDate = rentalEndDate;
     await booking.save();
 
     await Vehicle.updateOne(
@@ -85,7 +103,7 @@ export async function POST(req: Request) {
           assignedRider: booking.riderId,
           currentBookingId: booking.bookingId,
           currentRiderId: booking.riderId,
-          rideStartedAt: new Date(),
+          rideStartedAt: actualRideStart,
         },
       }
     );

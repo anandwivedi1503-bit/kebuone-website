@@ -192,7 +192,7 @@ export default function VehicleRideOtpCell({
         </p>
       ) : pending <= 0.009 ? (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
-          Paid. Pickup OTP appears on Book EV after the first payment.
+          Pickup OTP appears on Book EV after the 50% rental minimum is paid (full daily amount for Rent to Own).
         </p>
       ) : null}
       {note ? <p className="text-xs text-slate-600">{note}</p> : null}

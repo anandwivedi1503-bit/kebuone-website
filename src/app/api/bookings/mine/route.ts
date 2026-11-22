@@ -10,6 +10,8 @@ import {
 import { cancelUnpaidPrePaymentReserve } from "@/lib/cancelUnpaidPrePaymentReserve";
 import { isRecentCompletedRide, isUnpaidGhostAfterCompleted } from "@/lib/riderCompletion";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
+import { isPickupOtpTestRider } from "@/lib/pickupPaymentRule";
+import { rentalEndAtStart } from "@/lib/rentalSchedule";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
@@ -150,6 +152,23 @@ export async function GET(req: Request) {
     if (activeDoc) {
       await openDueRtoInstallment(activeDoc);
       booking = activeDoc.toObject();
+      booking.pickupOtpTestMode = isPickupOtpTestRider({
+        userPhone: rider.phone || booking.userPhone,
+      });
+    }
+    if (
+      booking?.rideStatus === "In Ride" &&
+      booking.actualRideStart &&
+      booking.rentalMode !== "Rent To Own"
+    ) {
+      const actualEnd = rentalEndAtStart(
+        new Date(booking.actualRideStart),
+        String(booking.rentalMode || ""),
+        Number(booking.rentalHours || 1),
+        Number(booking.rentToOwnMonths || 20)
+      );
+      booking.rentalEndDate = actualEnd;
+      booking.expectedReturnDate = actualEnd;
     }
 
     return NextResponse.json({

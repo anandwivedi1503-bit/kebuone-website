@@ -83,8 +83,8 @@ async function sendEmail(to: string, subject: string, text: string) {
 export async function notifyRentalEndReminder(input: RentalEndReminderInput) {
   const ends = input.endsAtIso ? formatIst(input.endsAtIso) : "soon";
   const plan =
-    input.duration && input.units
-      ? `${input.duration} (${input.units} units)`
+    input.duration === "Hourly" && input.units
+      ? `${input.units} hour${input.units === 1 ? "" : "s"}`
       : input.duration || "rental";
   const smsText = `Evuddy alert: Booking ${input.bookingId} (${plan}) ends around ${ends}. Return the scooter on time. Help: ${HELPDESK_PHONE_DISPLAY.replace("+91 ", "")}`;
   const emailText = `Hello ${input.riderName || "rider"},\n\nYour Evuddy booking ${input.bookingId} (${plan}) is scheduled to end around ${ends} (IST).\n\nPlease plan your return to the hub.\n\n— Evuddy\n${HELPDESK_EMAIL} · ${HELPDESK_PHONE_DISPLAY}`;

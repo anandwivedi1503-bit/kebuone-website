@@ -89,7 +89,7 @@ const STEPS = [
 const PROOFS = [
   { icon: Radio, title: "IoT on every scooter", text: "Live GPS, lock and battery from the vehicle — same as ops." },
   { icon: MapPin, title: "Live GPS while you ride", text: "Same feed ops use — location, lock and battery on the scooter." },
-  { icon: ShieldCheck, title: "Yard-verified pickup", text: "OTP after first payment. No scooter leaves without it." },
+  { icon: ShieldCheck, title: "Yard-verified pickup", text: "Pickup OTP after the 50% rental minimum; Rent to Own requires its full daily payment. Yard staff verify it before handoff." },
 ];
 
 function CountUp({ value }: { value: number }) {
