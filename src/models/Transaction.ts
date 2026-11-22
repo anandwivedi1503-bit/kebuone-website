@@ -180,6 +180,12 @@ collectedAt: {
   type: Date,
 },
 
+cashHandoverPhotoUrl: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
 cashHandoverStatus: {
   type: String,
   enum: ["None", "DueToCompany", "HandedOver"],

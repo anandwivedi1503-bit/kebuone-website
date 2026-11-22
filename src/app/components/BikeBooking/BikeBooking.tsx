@@ -288,7 +288,7 @@ const [pickupOtp, setPickupOtp] = useState("");
     setPaidAmount(received);
     setPendingAmount(mode === "completed" ? 0 : pending);
     const payDue = mode === "completed" ? 0 : pending > 0.009 ? pending : due || 0;
-    if (mode !== "completed" && payDue > 0.009 && received <= 0.009) {
+    if (mode !== "completed" && payDue > 0.009) {
       const bounds = minRiderPaymentInr({
         paymentDue: due || payDue,
         securityDeposit: active.securityDeposit,
@@ -298,7 +298,9 @@ const [pickupOtp, setPickupOtp] = useState("");
         totalAmount: active.totalAmount,
         gstAmount: active.gstAmount,
       });
-      setPaymentAmount(String(bounds.min > 0 ? bounds.min : payDue));
+      setPaymentAmount(
+        String(bounds.firstPayment && bounds.min > 0 ? bounds.min : payDue)
+      );
     } else {
       setPaymentAmount(String(payDue));
     }
@@ -831,30 +833,25 @@ const payableAmount =
     ? bookingTotal
     : Number((tax.totalWithGst + securityDeposit).toFixed(2));
 const amountDue = bookingDone ? pendingAmount : payableAmount;
-const remainingPayLocked = bookingDone && (paidAmount > 0 || isRentToOwn);
-const riderPayBounds = useMemo(() => {
-  if (remainingPayLocked) {
-    const rem = Number(pendingAmount || 0);
-    return { min: rem, max: rem, firstPayment: false as const };
-  }
-  return minRiderPaymentInr({
-    paymentDue: payableAmount,
-    securityDeposit,
-    receivedAmount: paidAmount,
-    pendingAmount,
-    rateApplied: rentalAmount,
-    totalAmount: rentalAmount,
-    gstAmount: tax.gstAmount,
-  });
-}, [
-  remainingPayLocked,
-  pendingAmount,
-  payableAmount,
+const pickupPaymentBounds = minRiderPaymentInr({
+  paymentDue: payableAmount,
   securityDeposit,
-  paidAmount,
-  rentalAmount,
-  tax.gstAmount,
-]);
+  receivedAmount: paidAmount,
+  pendingAmount,
+  rateApplied: rentalAmount,
+  totalAmount: rentalAmount,
+  gstAmount: tax.gstAmount,
+});
+const pickupPaymentMet = !pickupPaymentBounds.firstPayment;
+const remainingPayLocked =
+  bookingDone && (isRentToOwn || pickupPaymentMet);
+const riderPayBounds = remainingPayLocked
+  ? {
+      min: Number(pendingAmount || 0),
+      max: Number(pendingAmount || 0),
+      firstPayment: false as const,
+    }
+  : pickupPaymentBounds;
 const walletPayNow = remainingPayLocked
   ? Number(pendingAmount)
   : Number(paymentAmount || amountDue);
@@ -1385,6 +1382,7 @@ referenceBy,
       vehicleNumber?: string;
       batteryPercentage?: number;
       pickupOTP?: string;
+      pickupOTPVerified?: boolean;
       rideEndOTP?: string;
     };
     data?: {
@@ -1396,6 +1394,7 @@ referenceBy,
       vehicleNumber?: string;
       batteryPercentage?: number;
       pickupOTP?: string;
+      pickupOTPVerified?: boolean;
       rideEndOTP?: string;
     };
   }) => {
@@ -1417,6 +1416,17 @@ referenceBy,
     const due = Number(
       data.paymentDue ?? bookingRecord.paymentDue ?? bookingTotal ?? payableAmount
     );
+    const nextPickupBounds = minRiderPaymentInr({
+      paymentDue: due,
+      securityDeposit,
+      receivedAmount: received,
+      pendingAmount: remaining,
+      rateApplied: rentalAmount,
+      totalAmount: rentalAmount,
+      gstAmount: tax.gstAmount,
+      rentalMode: isRentToOwn ? "Rent To Own" : rentalMode,
+    });
+    const pickupPaymentMetAfterPayment = !nextPickupBounds.firstPayment;
     if (Number.isFinite(due) && due > 0) {
       setBookingTotal(Number(due.toFixed(2)));
     }
@@ -1439,9 +1449,14 @@ referenceBy,
         ? String(data.paymentStatus || bookingRecord.paymentStatus || "Partial")
         : "Paid"
     );
-    const nextPickup = String(data.pickupOTP || bookingRecord.pickupOTP || "");
+    const nextPickup = pickupPaymentMetAfterPayment
+      ? String(data.pickupOTP || bookingRecord.pickupOTP || "")
+      : "";
     const nextRideEnd = String(data.rideEndOTP || bookingRecord.rideEndOTP || "");
-    if (nextPickup) setPickupOtp(nextPickup);
+    setPickupOtp(nextPickup);
+    setPickupOtpVerified(
+      pickupPaymentMetAfterPayment && Boolean(bookingRecord.pickupOTPVerified)
+    );
     if (nextRideEnd) setRideEndOtp(nextRideEnd);
     void (async () => {
       try {
@@ -1452,7 +1467,9 @@ referenceBy,
           cache: "no-store",
         });
         const mineData = await mineRes.json();
-        if (mineData.data?.pickupOTP) setPickupOtp(String(mineData.data.pickupOTP));
+        if (pickupPaymentMetAfterPayment && mineData.data?.pickupOTP) {
+          setPickupOtp(String(mineData.data.pickupOTP));
+        }
         if (mineData.data?.rideEndOTP) setRideEndOtp(String(mineData.data.rideEndOTP));
       } catch {}
     })();
@@ -1464,9 +1481,17 @@ referenceBy,
       setMessage(
         nextPickup
           ? `Pickup OTP ${nextPickup}. Tell this to the yard. Remaining ${formatINR(remaining)} must be paid before ride end OTP.`
-          : `Payment saved. Pickup OTP is shown below and sent to your registered mobile. Remaining ${formatINR(remaining)}.`
+          : pickupPaymentMetAfterPayment
+            ? `Payment saved. Pickup OTP is being prepared. The remaining ${formatINR(remaining)} can be paid during the ride.`
+            : `Payment saved. Pay at least ₹${nextPickupBounds.min.toFixed(2)} more to reach 50% of the total and unlock pickup OTP. The rest can be paid during the ride.`
       );
-      setPaymentAmount(String(Number(remaining.toFixed(2))));
+      setPaymentAmount(
+        String(
+          nextPickupBounds.firstPayment
+            ? nextPickupBounds.min
+            : Number(remaining.toFixed(2))
+        )
+      );
       if (nextPickup) {
         notifyBrowser("EVUDDY pickup OTP", `Pickup OTP ${nextPickup}`);
       }
@@ -2639,9 +2664,13 @@ text-[#0F172A]
 {paymentSuccess
     ? "Payment is complete. Use the OTP below at the selected yard. Download the summary if you want a copy."
     : remainingPayLocked
-      ? "Pickup OTP is already issued. Razorpay will charge only the remaining due."
+      ? pickupOtp || pickupOtpVerified
+        ? "Pickup OTP is issued. Razorpay will charge only the remaining due."
+        : "The 50% pickup payment is met. Pickup OTP is being prepared; the balance can be paid during the ride."
       : bookingDone
-        ? "Your scooter is reserved. First payment must be at least 50% of the total. Pickup OTP is issued after that payment. Remaining can be paid during the ride."
+        ? paidAmount > 0.009 && pickupPaymentBounds.firstPayment
+          ? `Pay at least ₹${pickupPaymentBounds.min.toFixed(2)} more to reach 50% of the total and unlock pickup OTP. The rest can be paid during the ride.`
+          : "Your scooter is reserved. First payment must be at least 50% of the total. Pickup OTP is issued after that payment. Remaining can be paid during the ride."
         : "Reserve a scooter first. Razorpay opens after the reservation is saved."}
 </p>
 </div>
@@ -2680,7 +2709,9 @@ PAYMENT AMOUNT
 {remainingPayLocked
   ? "Remaining due only. This is the amount Razorpay will charge now."
   : riderPayBounds.firstPayment
-    ? `First payment must be at least 50% of the total (₹${(riderPayBounds.halfRental ?? riderPayBounds.min).toFixed(2)}), up to ₹${riderPayBounds.max.toFixed(2)}. Pickup OTP is issued after the first payment.`
+    ? paidAmount > 0.009
+      ? `Pay at least ₹${riderPayBounds.min.toFixed(2)} more to reach 50% of the total (₹${(riderPayBounds.halfRental ?? riderPayBounds.min).toFixed(2)}). Pickup OTP is issued after that.`
+      : `First payment must be at least 50% of the total (₹${(riderPayBounds.halfRental ?? riderPayBounds.min).toFixed(2)}), up to ₹${riderPayBounds.max.toFixed(2)}. Pickup OTP is issued after the first payment.`
     : `Pay between ₹${riderPayBounds.min.toFixed(2)} and ₹${riderPayBounds.max.toFixed(2)}.`}
 </p>
 {remainingPayLocked ? (
@@ -2828,7 +2859,7 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : bookingDone && paidAmount > 0 ? (
                   <div className="mt-4 space-y-3">
-                    {pickupOtp && !pickupOtpVerified ? (
+                    {pickupOtp && pickupPaymentMet && !pickupOtpVerified ? (
                       <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-5">
                         <p className="text-xs font-bold uppercase tracking-widest text-green-800">
                           Pickup OTP — tell this to the yard
@@ -2850,17 +2881,19 @@ focus:ring-[#18B368]/10
                           <p className="mt-2 text-xs text-green-900">{otpSmsStatus}</p>
                         ) : null}
                       </div>
-                    ) : pickupOtpVerified && rideStatus !== "In Ride" ? (
+                    ) : pickupOtpVerified && pickupPaymentMet && rideStatus !== "In Ride" ? (
                       <div className="rounded-2xl border border-sky-200 bg-sky-50 px-5 py-4 text-sm text-sky-950">
                         Yard confirmed pickup and unlocked the scooter. Slide to start your ride.
                       </div>
                     ) : rideStatus === "In Ride" ? null : (
                       <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                        Pickup OTP is being prepared. Keep this page open — it appears here for the yard.
+                        {pickupPaymentMet
+                          ? "The 50% pickup payment is met. Pickup OTP is being prepared; keep this page open."
+                          : `Pay at least ₹${pickupPaymentBounds.min.toFixed(2)} more to reach 50% of the total and unlock pickup OTP.`}
                       </div>
                     )}
 
-                    {pickupOtpVerified && rideStatus !== "In Ride" && rideStatus !== "Completed" ? (
+                    {pickupPaymentMet && pickupOtpVerified && rideStatus !== "In Ride" && rideStatus !== "Completed" ? (
                       <RideSwipeControl
                         label="Slide to start ride"
                         hint="Yard has saved your pickup OTP. Slide to mark the ride as started."
@@ -2909,7 +2942,7 @@ focus:ring-[#18B368]/10
                   </div>
                 ) : bookingDone ? (
                   <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-                    Reserve is holding the scooter. Pay the full fare and deposit to get pickup OTP. A partial payment keeps the scooter booked and does not unlock it.
+                    Reserve is holding the scooter. Pay at least 50% of the total to get pickup OTP. The remaining balance can be paid during the ride.
                   </div>
                 ) : null}
 

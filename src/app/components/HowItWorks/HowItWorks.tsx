@@ -38,7 +38,7 @@ export default function HowItWorks() {
       n: "03",
       title: "Pay on Book EV",
       hi: "Razorpay / wallet",
-      text: "Pay the GST-included fare. First ₹1 issues pickup OTP.",
+      text: "Pay at least 50% of the rental total to get pickup OTP. Rent to Own requires the full daily amount.",
       icon: Wallet,
       image: BRAND.pay,
     },

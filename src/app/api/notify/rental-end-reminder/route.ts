@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 import { notifyRentalEndReminder } from "@/lib/notify/rentalEndReminder";
+import { rentalEndAtStart } from "@/lib/rentalSchedule";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import {
   firebaseUserOwnsRider,
@@ -88,38 +89,90 @@ export async function POST(req: Request) {
       });
     }
 
-    const endsAtIso =
-      String(body.endsAt || "").trim() ||
-      (booking.rentalEndDate
-        ? new Date(booking.rentalEndDate).toISOString()
-        : "");
-
-    const leadMinutes = Math.max(15, Number(body.leadMinutes) || 60);
-    if (endsAtIso) {
-      const endsMs = new Date(endsAtIso).getTime();
-      const minsUntilEnd = (endsMs - Date.now()) / 60_000;
-      if (Number.isFinite(minsUntilEnd) && minsUntilEnd > leadMinutes + 5) {
-        return NextResponse.json({
-          success: true,
-          deferred: true,
-          message: "Reminder is scheduled; SMS/email sends in the last hour.",
-        });
-      }
+    const endsAt = booking.actualRideStart
+      ? rentalEndAtStart(
+          new Date(booking.actualRideStart),
+          String(booking.rentalMode || ""),
+          Number(booking.rentalHours || 1),
+          Number(booking.rentToOwnMonths || 20)
+        )
+      : null;
+    const now = new Date();
+    if (
+      booking.rideStatus !== "In Ride" ||
+      !endsAt ||
+      endsAt <= now ||
+      endsAt.getTime() > now.getTime() + 65 * 60 * 1000
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Reminder is only available during an active ride's final hour." },
+        { status: 409 }
+      );
     }
 
-    const result = await notifyRentalEndReminder({
-      bookingId,
-      riderName: String(booking.userName || rider.fullName || ""),
-      riderPhone: String(body.phone || booking.userPhone || rider.phone || ""),
-      riderEmail: String(booking.userEmail || rider.email || ""),
-      endsAtIso,
-      duration: String(body.rentalDuration || booking.rentalMode || ""),
-      units: Number(body.rentalUnits) || undefined,
-      leadMinutes,
-    });
+    const claimedAt = new Date();
+    const claim = await Booking.findOneAndUpdate(
+      {
+        _id: booking._id,
+        rideStatus: "In Ride",
+        actualRideStart: booking.actualRideStart,
+        riderEndReminderSentAt: { $exists: false },
+        $or: [
+          { riderEndReminderClaimedAt: { $exists: false } },
+          { riderEndReminderClaimedAt: { $lt: new Date(now.getTime() - 15 * 60 * 1000) } },
+        ],
+      },
+      {
+        $set: {
+          riderEndReminderClaimedAt: claimedAt,
+          rentalEndDate: endsAt,
+          expectedReturnDate: endsAt,
+        },
+      },
+      { new: true }
+    );
+    if (!claim) {
+      return NextResponse.json({ success: true, message: "Reminder is already being processed." });
+    }
 
-    booking.riderEndReminderSentAt = new Date();
-    await booking.save();
+    const endsAtIso = claim.rentalEndDate
+      ? new Date(claim.rentalEndDate).toISOString()
+      : "";
+
+    let result: Awaited<ReturnType<typeof notifyRentalEndReminder>>;
+    try {
+      result = await notifyRentalEndReminder({
+        bookingId,
+        riderName: String(claim.userName || rider.fullName || ""),
+        riderPhone: String(claim.userPhone || rider.phone || ""),
+        riderEmail: String(claim.userEmail || rider.email || ""),
+        endsAtIso,
+        duration: String(claim.rentalMode || ""),
+        units:
+          claim.rentalMode === "Hourly"
+            ? Number(claim.rentalHours) || 1
+            : undefined,
+        leadMinutes: 60,
+      });
+    } catch (error) {
+      await Booking.updateOne(
+        { _id: claim._id, riderEndReminderClaimedAt: claimedAt },
+        { $unset: { riderEndReminderClaimedAt: 1 } }
+      );
+      throw error;
+    }
+
+    if (result.emailSent || result.smsSent) {
+      await Booking.updateOne(
+        { _id: claim._id, riderEndReminderClaimedAt: claimedAt },
+        { $set: { riderEndReminderSentAt: new Date() }, $unset: { riderEndReminderClaimedAt: 1 } }
+      );
+    } else {
+      await Booking.updateOne(
+        { _id: claim._id, riderEndReminderClaimedAt: claimedAt },
+        { $unset: { riderEndReminderClaimedAt: 1 } }
+      );
+    }
 
     return NextResponse.json({
       success: true,

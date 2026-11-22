@@ -3,6 +3,12 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { syncBookingRiderId } from "@/lib/findBookingRider";
 import { getOwnedActiveBooking } from "@/lib/ownedActiveBooking";
+import {
+  hasPickupPaymentMinimum,
+  pickupPaymentThreshold,
+} from "@/lib/pickupPaymentRule";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
+import { rentalEndAtStart } from "@/lib/rentalSchedule";
 import { writeAudit } from "@/lib/writeAudit";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -33,6 +39,20 @@ export async function POST(req: Request) {
       });
     }
 
+    const pickupPaymentBooking = booking.toObject();
+    const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
+    if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: isRentToOwnBooking(booking)
+            ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before starting.`
+            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before starting.`,
+        },
+        { status: 400 }
+      );
+    }
+
     if (!booking.pickupOTPVerified) {
       return NextResponse.json(
         {
@@ -53,15 +73,25 @@ export async function POST(req: Request) {
       );
     }
 
-    if (Number(booking.receivedAmount || 0) < 1) {
+    const actualRideStart = booking.actualRideStart || new Date();
+    const rentalEndDate = rentalEndAtStart(
+      actualRideStart,
+      String(booking.rentalMode || ""),
+      Number(booking.rentalHours || 1),
+      Number(booking.rentToOwnMonths || 20)
+    );
+    if (!rentalEndDate) {
       return NextResponse.json(
-        { success: false, message: "Pay at least ₹1 before starting." },
+        { success: false, message: "This booking has an unsupported rental plan." },
         { status: 400 }
       );
     }
 
     booking.rideStatus = "In Ride";
-    booking.actualRideStart = booking.actualRideStart || new Date();
+    booking.actualRideStart = actualRideStart;
+    booking.rentalStartDate = actualRideStart;
+    booking.rentalEndDate = rentalEndDate;
+    booking.expectedReturnDate = rentalEndDate;
     await booking.save();
 
     await Vehicle.updateOne(
@@ -73,7 +103,7 @@ export async function POST(req: Request) {
           assignedRider: booking.riderId,
           currentBookingId: booking.bookingId,
           currentRiderId: booking.riderId,
-          rideStartedAt: new Date(),
+          rideStartedAt: actualRideStart,
         },
       }
     );

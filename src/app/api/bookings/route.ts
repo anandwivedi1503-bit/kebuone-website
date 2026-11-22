@@ -34,6 +34,7 @@ import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { riderQualifiesForFirstRideFree } from "@/lib/firstRide";
 import { cancelUnpaidPrePaymentReserveInSession } from "@/lib/cancelUnpaidPrePaymentReserve";
 import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
+import { isPickupOtpTestRider } from "@/lib/pickupPaymentRule";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
@@ -76,6 +77,7 @@ function bookingClientPayload(booking: {
   rentalMode?: string;
   rideStatus?: string;
   pickupOTPVerified?: boolean;
+  userPhone?: string;
 }) {
   return {
     _id: booking._id,
@@ -91,6 +93,7 @@ function bookingClientPayload(booking: {
     rentalMode: booking.rentalMode,
     rideStatus: booking.rideStatus,
     pickupOTPVerified: booking.pickupOTPVerified,
+    pickupOtpTestMode: isPickupOtpTestRider({ userPhone: booking.userPhone }),
   };
 }
 
@@ -1035,7 +1038,10 @@ void writeAudit({
   message: "Booking created successfully.",
   bookingId: booking.bookingId,
   pendingAmount: booking.pendingAmount,
-  data: booking,
+  data: {
+    ...booking,
+    pickupOtpTestMode: isPickupOtpTestRider({ userPhone: booking.userPhone }),
+  },
 });
       } catch (error) {
   if (session) {

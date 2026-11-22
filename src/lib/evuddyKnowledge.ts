@@ -47,7 +47,7 @@ BOOK EV (normal rental):
 2. Book EV: city, hub, scooter, Hourly/Daily/Weekly/Monthly.
 3. Reserve locks that rider + vehicle.
 4. Pay GST-included fare + refundable security deposit (₹2,500; GST is NOT on deposit) via Razorpay UPI/card or EVUDDY wallet if balance is enough.
-5. First payment ≥ ₹1 (even partial) issues Pickup OTP → tell yard → they unlock → swipe Ride started on Book EV.
+5. For a normal rental, payment of at least 50% of the total through Razorpay or eligible Evuddy wallet credit is required before Pickup OTP is issued. Rent to Own requires the full due daily amount. Show the pickup OTP to yard staff for verification, then swipe Ride started on Book EV.
 6. Ride end: remaining rent ₹0, return to yard, swipe Ride end, give Ride-end OTP to yard.
 7. Deposit refund is staff-approved after return (usually EVUDDY wallet, or Razorpay — never both).
 Catalog rates (GST included, company list): Hourly ₹60, Daily ₹250, Weekly ₹1,750, Monthly ₹7,500. Refundable deposit ₹2,500.

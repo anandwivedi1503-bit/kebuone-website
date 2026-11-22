@@ -896,6 +896,27 @@ Invoice
 
 </div>
 
+{selectedTransaction.cashHandoverPhotoUrl ? (
+  <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-7 md:col-span-2">
+    <h3 className="mb-4 text-xl font-bold text-amber-900">Cash collection evidence</h3>
+    <a href={selectedTransaction.cashHandoverPhotoUrl} target="_blank" rel="noreferrer">
+      <img
+        src={selectedTransaction.cashHandoverPhotoUrl}
+        alt={`Cash evidence for ${selectedTransaction.bookingId || selectedTransaction.transactionId}`}
+        className="max-h-80 rounded-2xl border border-amber-200 object-contain"
+      />
+    </a>
+    <a
+      href={selectedTransaction.cashHandoverPhotoUrl}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-3 inline-flex text-sm font-bold text-amber-900 underline"
+    >
+      Open full photo
+    </a>
+  </div>
+) : null}
+
 <div className="
 rounded-[28px]
 border

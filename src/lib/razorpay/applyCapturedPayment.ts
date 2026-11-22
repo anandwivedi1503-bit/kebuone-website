@@ -15,6 +15,7 @@ import {
   nextPaymentProgress,
 } from "@/lib/bookingPaymentProgress";
 import { queueDepositRefundIfEligible } from "@/lib/queueDepositRefund";
+import { pickupPaymentTopUp } from "@/lib/pickupPaymentRule";
 import {
   gstOnRtoDailyPayment,
   isRentToOwnBooking,
@@ -458,6 +459,10 @@ export async function applyCapturedRazorpayPayment(
     const issuedPickupOtp = updatedBooking.pickupOTPVerified
       ? undefined
       : pickupOTP || String(updatedBooking.pickupOTP || "") || undefined;
+    const pickupOtpReady = Boolean(
+      issuedPickupOtp || updatedBooking.pickupOTPVerified
+    );
+    const pickupTopUp = pickupPaymentTopUp(updatedBooking.toObject());
 
     void writeAudit({
       actor: "System",
@@ -504,13 +509,17 @@ export async function applyCapturedRazorpayPayment(
           ? "Final daily payment received. This scooter is now yours. Thank you for riding with EVUDDY."
           : isRto
           ? "Daily Rent to Own received. Pickup OTP is ready if you have not collected yet. Tomorrow’s GST-included Rent to Own fare opens when due. Keep the scooter."
-          : nextPaymentStatus === "Paid"
-          ? nextRideStatus === "In Ride"
-            ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV — that generates the ride-end OTP the same way pickup OTP appeared after first payment."
-            : nextRideStatus === "Completed"
-            ? "Payment complete. Thank you for riding with EVUDDY."
-            : "Payment verified. Pickup OTP is ready."
-          : "Partial payment verified. Pickup OTP is ready. Remaining must be ₹0 before you swipe Ride end.",
+          : nextRideStatus === "In Ride"
+          ? nextPending <= 0.009
+            ? "Remaining is ₹0. Return to the yard and swipe Ride end on Book EV to generate the ride-end OTP."
+            : `Payment verified. Remaining ₹${nextPending.toFixed(2)} must be paid before ride-end OTP is issued.`
+          : nextRideStatus === "Completed"
+          ? "Payment complete. Thank you for riding with EVUDDY."
+          : pickupOtpReady
+          ? nextPaymentStatus === "Paid"
+            ? "Payment verified. Pickup OTP is ready."
+            : "Partial payment verified. Pickup OTP is ready. The remaining balance can be paid during the ride and must be ₹0 before ride-end OTP."
+          : `Payment verified. Pay at least ₹${pickupTopUp.toFixed(2)} more to get pickup OTP. The rest can be paid during the ride.`,
     };
   } catch (error) {
     console.error("APPLY CAPTURED PAYMENT ERROR:", error);

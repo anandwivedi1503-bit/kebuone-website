@@ -22,6 +22,7 @@ import {
   rtoTenureMonths,
 } from "@/lib/rentalPlans";
 import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
+import { effectiveGpsStatus, hasRecentVehiclePing } from "@/lib/vehicleTelemetry";
 
 const registrationTypes = [
   "RTO",
@@ -37,11 +38,6 @@ const vehicleTypes = [
 const batteryTypes = [
   "Chargeable",
   "Swappable",
-];
-
-const gpsStatuses = [
-  "ONLINE",
-  "OFFLINE",
 ];
 
 function clean(value: unknown) {
@@ -186,23 +182,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const batteryPercentage =
-      numberOrDefault(
-        body.batteryPercentage,
-        100
-      );
-
-    if (
-      !Number.isFinite(
-        batteryPercentage
-      ) ||
-      batteryPercentage < 0 ||
-      batteryPercentage > 100
-    ) {
-      errors.push(
-        "Battery percentage must be between 0 and 100."
-      );
-    }
+    // Battery state comes from the authenticated device, never a registration form.
+    const batteryPercentage = null;
 
     const hourlyRate =
       numberOrDefault(
@@ -308,20 +289,8 @@ export async function POST(req: Request) {
       );
     }
 
-    const gpsStatus =
-      clean(
-        body.gpsStatus || "ONLINE"
-      );
-
-    if (
-      !gpsStatuses.includes(
-        gpsStatus
-      )
-    ) {
-      errors.push(
-        "Invalid GPS status."
-      );
-    }
+    // GPS state must come from an authenticated device ping, never the form.
+    const gpsStatus = "OFFLINE";
 
     const lastServiceDate =
       optionalDate(
@@ -434,23 +403,7 @@ export async function POST(req: Request) {
      *
      * Client is NOT allowed to decide this.
      */
-    let vehicleStatus:
-      | "Available"
-      | "Maintenance"
-      | "Low Battery";
-
-    if (batteryPercentage === 0) {
-      vehicleStatus =
-        "Maintenance";
-    } else if (
-      batteryPercentage < 20
-    ) {
-      vehicleStatus =
-        "Low Battery";
-    } else {
-      vehicleStatus =
-        "Available";
-    }
+    const vehicleStatus = "Available" as const;
 
     /*
      * Only explicitly allowed fields
@@ -584,15 +537,23 @@ export async function GET(req: Request) {
 
       return NextResponse.json({
         success: true,
-        data: vehicles.map((vehicle) => ({
-          ...vehicle,
-          hourlyRate: catalogRate("Hourly", vehicle.hourlyRate),
-          dailyRate: catalogRate("Daily", vehicle.dailyRate),
-          weeklyRate: catalogRate("Weekly", vehicle.weeklyRate),
-          monthlyRate: catalogRate("Monthly", vehicle.monthlyRate),
-          rentToOwnDailyRate: rtoDailyRate(vehicle.rentToOwnDailyRate),
-          rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
-        })),
+        data: vehicles.map((vehicle) => {
+          const telemetryFresh = hasRecentVehiclePing(vehicle.lastPingTime);
+          return {
+            ...vehicle,
+            gpsStatus: effectiveGpsStatus(vehicle.gpsStatus, vehicle.lastPingTime),
+            telemetryFresh,
+            batteryPercentage: telemetryFresh ? vehicle.batteryPercentage : null,
+            currentLatitude: telemetryFresh ? vehicle.currentLatitude : null,
+            currentLongitude: telemetryFresh ? vehicle.currentLongitude : null,
+            hourlyRate: catalogRate("Hourly", vehicle.hourlyRate),
+            dailyRate: catalogRate("Daily", vehicle.dailyRate),
+            weeklyRate: catalogRate("Weekly", vehicle.weeklyRate),
+            monthlyRate: catalogRate("Monthly", vehicle.monthlyRate),
+            rentToOwnDailyRate: rtoDailyRate(vehicle.rentToOwnDailyRate),
+            rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
+          };
+        }),
       });
     }
 
@@ -676,15 +637,23 @@ export async function GET(req: Request) {
 
     return NextResponse.json({
       success: true,
-      data: vehicles.map((vehicle) => ({
-        ...vehicle,
-        hourlyRate: catalogRate("Hourly", vehicle.hourlyRate),
-        dailyRate: catalogRate("Daily", vehicle.dailyRate),
-        weeklyRate: catalogRate("Weekly", vehicle.weeklyRate),
-        monthlyRate: catalogRate("Monthly", vehicle.monthlyRate),
-        rentToOwnDailyRate: rtoDailyRate(vehicle.rentToOwnDailyRate),
-        rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
-      })),
+      data: vehicles.map((vehicle) => {
+        const telemetryFresh = hasRecentVehiclePing(vehicle.lastPingTime);
+        return {
+          ...vehicle,
+          telemetryFresh,
+          gpsStatus: effectiveGpsStatus(vehicle.gpsStatus, vehicle.lastPingTime),
+          batteryPercentage: telemetryFresh ? vehicle.batteryPercentage : null,
+          currentLatitude: telemetryFresh ? vehicle.currentLatitude : null,
+          currentLongitude: telemetryFresh ? vehicle.currentLongitude : null,
+          hourlyRate: catalogRate("Hourly", vehicle.hourlyRate),
+          dailyRate: catalogRate("Daily", vehicle.dailyRate),
+          weeklyRate: catalogRate("Weekly", vehicle.weeklyRate),
+          monthlyRate: catalogRate("Monthly", vehicle.monthlyRate),
+          rentToOwnDailyRate: rtoDailyRate(vehicle.rentToOwnDailyRate),
+          rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
+        };
+      }),
     });
   } catch (error) {
     console.error(

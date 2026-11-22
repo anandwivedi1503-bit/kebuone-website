@@ -12,6 +12,11 @@ import {
   staffCanAccessBooking,
 } from "@/lib/staffHubScope";
 import { isOtpExpired, otpMatches } from "@/lib/otp";
+import {
+  hasPickupPaymentMinimum,
+  pickupPaymentThreshold,
+} from "@/lib/pickupPaymentRule";
+import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
@@ -93,14 +98,18 @@ export async function POST(req: Request) {
       return hubForbiddenResponse();
     }
 
-    if (Number(booking.receivedAmount || 0) < 1) {
+    const pickupPaymentBooking = booking.toObject();
+    const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
+    if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
       await rollback(session);
       session = null;
 
       return NextResponse.json(
         {
           success: false,
-          message: "At least one payment is required before starting the ride.",
+          message: isRentToOwnBooking(booking)
+            ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before pickup.`
+            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before pickup.`,
         },
         { status: 400 }
       );

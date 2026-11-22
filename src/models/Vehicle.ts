@@ -159,7 +159,7 @@ const VehicleSchema = new mongoose.Schema(
     // Battery / IoT
     batteryPercentage: {
       type: Number,
-      default: 100,
+      default: null,
       min: 0,
       max: 100,
     },
@@ -178,7 +178,7 @@ const VehicleSchema = new mongoose.Schema(
     gpsStatus: {
       type: String,
       enum: ["ONLINE", "OFFLINE"],
-      default: "ONLINE",
+      default: "OFFLINE",
     },
 
     lockStatus: {
@@ -272,7 +272,6 @@ const VehicleSchema = new mongoose.Schema(
 
     lastPingTime: {
       type: Date,
-      default: Date.now,
     },
 
     // Lifecycle

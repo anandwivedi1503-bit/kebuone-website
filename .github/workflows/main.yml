@@ -15,12 +15,12 @@ jobs:
         uses: appleboy/ssh-action@v1.2.0
         env:
           MAPS_KEY: ${{ secrets.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY }}
+          PICKUP_OTP_TEST_PHONE: ${{ secrets.EVUDDY_PICKUP_OTP_TEST_PHONE }}
         with:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
-          envs: MAPS_KEY
-          command_timeout: 20m
+          envs: MAPS_KEY,PICKUP_OTP_TEST_PHONE
           script: |
             cd ~/kebuone-website
             touch .env.local
@@ -28,6 +28,11 @@ jobs:
             mv .env.local.new .env.local 2>/dev/null || true
             if [ -n "$MAPS_KEY" ]; then
               printf 'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=%s\n' "$MAPS_KEY" >> .env.local
+            fi
+            grep -v '^EVUDDY_PICKUP_OTP_TEST_PHONE=' .env.local > .env.local.new || true
+            mv .env.local.new .env.local 2>/dev/null || true
+            if [ -n "$PICKUP_OTP_TEST_PHONE" ]; then
+              printf 'EVUDDY_PICKUP_OTP_TEST_PHONE=%s\n' "$PICKUP_OTP_TEST_PHONE" >> .env.local
             fi
             chmod +x deploy.sh
             ./deploy.sh

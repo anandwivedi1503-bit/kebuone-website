@@ -171,6 +171,7 @@ export async function applyStaffBookingPayment(
       cgstRate: CGST_RATE,
       sgstRate: SGST_RATE,
       paymentMethod: "Cash",
+      cashHandoverPhotoUrl,
       transactionSource: "Admin Panel",
       transactionType: "Booking Payment",
       invoiceNumber,
