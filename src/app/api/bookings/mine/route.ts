@@ -10,7 +10,12 @@ import {
 import { cancelUnpaidPrePaymentReserve } from "@/lib/cancelUnpaidPrePaymentReserve";
 import { isRecentCompletedRide, isUnpaidGhostAfterCompleted } from "@/lib/riderCompletion";
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
-import { isPickupOtpTestRider } from "@/lib/pickupPaymentRule";
+import { generateSixDigitOtp, isOtpExpired, pickupOtpExpiry } from "@/lib/otp";
+import {
+  hasPickupPaymentMinimum,
+  isPickupOtpTestRider,
+  pickupPaymentTopUp,
+} from "@/lib/pickupPaymentRule";
 import { rentalEndAtStart } from "@/lib/rentalSchedule";
 import {
   firebaseUserOwnsRider,
@@ -152,9 +157,84 @@ export async function GET(req: Request) {
     if (activeDoc) {
       await openDueRtoInstallment(activeDoc);
       booking = activeDoc.toObject();
-      booking.pickupOtpTestMode = isPickupOtpTestRider({
-        userPhone: rider.phone || booking.userPhone,
-      });
+      const pickupPaymentBooking = {
+        ...booking,
+        userPhone: booking.userPhone || rider.phone,
+      };
+      const pickupOtpTestMode = isPickupOtpTestRider(pickupPaymentBooking);
+      const pickupPaymentMinimumMet = hasPickupPaymentMinimum(pickupPaymentBooking);
+      const bookingId = String(booking.bookingId || "").trim().toUpperCase();
+      const rideStatus = String(booking.rideStatus || "");
+      const otpActive =
+        Boolean(String(booking.pickupOTP || "").trim()) &&
+        !isOtpExpired(booking.pickupOTPExpiry);
+      const riderHasOtherActiveBooking =
+        Boolean(rider.activeRide) &&
+        String(rider.currentBookingId || "").trim().toUpperCase() !== bookingId;
+
+      if (
+        pickupPaymentMinimumMet &&
+        !riderHasOtherActiveBooking &&
+        !booking.pickupOTPVerified &&
+        !["In Ride", "Completed", "Cancelled"].includes(rideStatus)
+      ) {
+        const vehicleClaim = await Vehicle.updateOne(
+          {
+            vehicleId: booking.vehicleId,
+            vehicleStatus: { $nin: ["In Ride", "Maintenance", "Unavailable"] },
+            $or: [
+              { currentBookingId: "" },
+              { currentBookingId: booking.bookingId },
+              { currentBookingId: null },
+              { currentBookingId: { $exists: false } },
+            ],
+          },
+          {
+            $set: {
+              vehicleStatus: "Ready For Pickup",
+              lockStatus: "Locked",
+              assignedRider: rider.riderId,
+              currentBookingId: booking.bookingId,
+              currentRiderId: rider.riderId,
+            },
+          }
+        );
+
+        if (vehicleClaim.matchedCount > 0) {
+          if (String(activeDoc.rideStatus || "") !== "Ready For Pickup" || !otpActive) {
+            activeDoc.rideStatus = "Ready For Pickup";
+            if (!otpActive) {
+              activeDoc.pickupOTP = generateSixDigitOtp();
+              activeDoc.pickupOTPExpiry = pickupOtpExpiry();
+              activeDoc.pickupOTPVerified = false;
+              activeDoc.pickupOTPVerifiedAt = null;
+            }
+            if (!activeDoc.userPhone && rider.phone) activeDoc.userPhone = rider.phone;
+            await activeDoc.save();
+          }
+          await Rider.updateOne(
+            {
+              _id: rider._id,
+              $or: [
+                { currentBookingId: "" },
+                { currentBookingId: booking.bookingId },
+                { currentBookingId: null },
+                { currentBookingId: { $exists: false } },
+              ],
+            },
+            {
+              $set: {
+                activeRide: false,
+                currentBookingId: booking.bookingId,
+              },
+            }
+          );
+          booking = activeDoc.toObject();
+        }
+      }
+      booking.pickupOtpTestMode = pickupOtpTestMode;
+      booking.pickupPaymentMinimumMet = pickupPaymentMinimumMet;
+      booking.pickupPaymentTopUp = pickupPaymentTopUp(pickupPaymentBooking);
     }
     if (
       booking?.rideStatus === "In Ride" &&

@@ -76,8 +76,8 @@ await probe("client-contract (app + web)", async () => {
     ok:
       status === 200 &&
       json?.success &&
-      pay?.legacyApp === "from-one-rupee" &&
-      pay?.website === "half-of-rental",
+      pay?.legacyApp === "raised-to-server-minimum" &&
+      pay?.website === "server-enforced-pickup-minimum",
     detail: JSON.stringify(pay),
   };
 });

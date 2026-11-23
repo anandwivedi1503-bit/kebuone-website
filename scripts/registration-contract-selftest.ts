@@ -35,9 +35,9 @@ assert.equal(pickupCityAckError("", oldAppShape), null);
 assert.equal(newApp.asksPickupCity, true);
 assert.equal(pickupCityAckError(normalizePickupCityAck("nope"), newApp) === null, false);
 
-assert.equal(enforcesHalfRentalFirstPayment(new Headers()), false);
+assert.equal(enforcesHalfRentalFirstPayment(new Headers()), true);
 assert.equal(enforcesHalfRentalFirstPayment(new Headers({ "x-evuddy-client": "web" })), true);
-assert.equal(enforcesHalfRentalFirstPayment(new Headers({ "x-evuddy-client": "app" })), false);
+assert.equal(enforcesHalfRentalFirstPayment(new Headers({ "x-evuddy-client": "app" })), true);
 assert.equal(
   enforcesHalfRentalFirstPayment(
     new Headers({

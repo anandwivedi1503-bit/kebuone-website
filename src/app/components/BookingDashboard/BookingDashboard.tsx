@@ -15,7 +15,7 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 import { getBookingPayableAmount, money } from "@/lib/gst";
 import {
   hasPickupPaymentMinimum,
-  pickupPaymentTopUp,
+  pickupPaymentTopUp as calculatePickupPaymentTopUp,
 } from "@/lib/pickupPaymentRule";
 import { bookingRentalCollected } from "@/lib/opsRevenue";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
@@ -509,14 +509,20 @@ const hubDisplay = (booking: any) => {
 };
 
 const pickupPaymentMet = (booking: any) =>
-  hasPickupPaymentMinimum(booking, booking.receivedAmount);
+  typeof booking.pickupPaymentMinimumMet === "boolean"
+    ? booking.pickupPaymentMinimumMet
+    : hasPickupPaymentMinimum(booking, booking.receivedAmount);
+
+const pickupTopUpAmount = (booking: any) =>
+  booking.pickupPaymentTopUp !== undefined
+    ? Number(booking.pickupPaymentTopUp || 0)
+    : calculatePickupPaymentTopUp(booking);
 
 const pickupOtpReady = (booking: any) =>
   Boolean(
     booking.pickupOTPGenerated ||
       booking.pickupOTP ||
-      generatedPickupOTP[booking._id] ||
-      pickupPaymentMet(booking)
+    generatedPickupOTP[booking._id]
   );
 
 return(
@@ -1145,7 +1151,7 @@ label="Generated"
 
 <StatusBadge
 status="inactive"
-label={`Pay ${rupees(pickupPaymentTopUp(booking))} more`}
+label={`Pay ${rupees(pickupTopUpAmount(booking))} more`}
 />
 
 ) : (
@@ -1329,10 +1335,48 @@ disabled:cursor-not-allowed
 
 )}
 
+{["Booked", "Reserved", "Payment Pending"].includes(String(booking.rideStatus || "")) && (
+  booking.pickupOTPVerified ? (
+    <p className="rounded-lg bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
+      Pickup OTP verified. The rider can swipe Ride started in Book EV.
+    </p>
+  ) : pickupPaymentMet(booking) ? (
+    pickupOtpReady(booking) ? (
+      <button
+        disabled={processingId === booking._id}
+        onClick={() => {
+          setSelectedRideBooking(booking);
+          setEnteredPickupOTP("");
+          setOtpModalOpen(true);
+        }}
+        className="rounded-lg bg-[#18B368] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+      >
+        Enter rider OTP
+      </button>
+    ) : (
+      <button
+        disabled={processingId === booking._id}
+        onClick={() => void generatePickupOTP(booking)}
+        className="rounded-lg bg-[#0A1134] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+      >
+        {processingId === booking._id ? "Preparing..." : "Prepare pickup OTP"}
+      </button>
+    )
+  ) : (
+    <p className="max-w-[180px] rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+      Collect {rupees(pickupTopUpAmount(booking))} more before pickup OTP.
+    </p>
+  )
+)}
+
 {booking.rideStatus === "Ready For Pickup" && (
 
 <>
-{!pickupOtpReady(booking) && pickupPaymentMet(booking) ? (
+{booking.pickupOTPVerified ? (
+<p className="rounded-lg bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
+  Pickup OTP verified. The rider can swipe Ride started in Book EV.
+</p>
+) : !pickupOtpReady(booking) && pickupPaymentMet(booking) ? (
 
 <button
 disabled={processingId===booking._id}
@@ -1365,7 +1409,7 @@ Enter rider OTP
 
 ) : (
   <p className="max-w-[160px] rounded-lg bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-    Collect {rupees(pickupPaymentTopUp(booking))} more before pickup OTP.
+    Collect {rupees(pickupTopUpAmount(booking))} more before pickup OTP.
   </p>
 
 )}
@@ -1836,7 +1880,7 @@ OTP Details
       ? maskOtpDigits()
       : pickupPaymentMet(selectedBooking)
         ? "Not generated yet"
-        : `Collect ${rupees(pickupPaymentTopUp(selectedBooking))} more before pickup OTP`}
+        : `Collect ${rupees(pickupTopUpAmount(selectedBooking))} more before pickup OTP`}
 </p>
 
 <p>

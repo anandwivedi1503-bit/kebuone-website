@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import { useState, type FormEvent } from "react";
-import { ArrowLeft } from "lucide-react";
 
 import { BRAND } from "@/lib/brandMedia";
 import {
@@ -123,13 +121,6 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
     <section className="page-under-nav bg-[#F7F4EE] pb-24">
       <div className="mx-auto grid max-w-[1200px] gap-10 px-5 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:px-12">
         <div>
-          <Link
-            href="/partners#dealer-network"
-            className="inline-flex items-center gap-2 text-[13px] font-medium tracking-[0.08em] text-[#1F6B4A]"
-          >
-            <ArrowLeft size={16} />
-            All partner paths
-          </Link>
           <p className="mt-8 text-[11px] font-medium uppercase tracking-[0.26em] text-[#5F6B63]">
             {isDealer ? "Dealer application" : "Distributor application"}
           </p>
@@ -156,15 +147,6 @@ export default function ChannelApplyForm({ channel }: { channel: "dealer" | "dis
               className="aspect-[16/10] w-full object-contain object-center"
             />
           </div>
-          <p className="mt-6 text-sm text-[#5C635E]">
-            Need the other path?{" "}
-            <Link
-              href={isDealer ? "/partners/distributor" : "/partners/dealer"}
-              className="font-medium text-[#1F6B4A] underline-offset-4 hover:underline"
-            >
-              {isDealer ? "Open the distributor form" : "Open the dealer form"}
-            </Link>
-          </p>
         </div>
 
         <div className="rounded-[32px] border border-[#E6EBE7] bg-white p-6 shadow-[0_24px_80px_rgba(28,25,23,0.06)] sm:p-10">

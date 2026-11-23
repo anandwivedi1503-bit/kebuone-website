@@ -8,10 +8,12 @@ type BookingLite = {
   pendingAmount?: number;
   paymentStatus?: string;
   rideStatus?: string;
+  pickupOTPGenerated?: boolean;
+  pickupPaymentMinimumMet?: boolean;
+  pickupPaymentTopUp?: number;
   startHub?: string;
   pickupHubName?: string;
   pickupOTPVerified?: boolean;
-  pickupOTPGenerated?: boolean;
   rideEndOTPGenerated?: boolean;
   riderReturnedAt?: string | Date;
   rentalMode?: string;
@@ -36,13 +38,14 @@ export default function VehicleRideOtpCell({
 }) {
   const [pickupOtp, setPickupOtp] = useState("");
   const [rideEndOtp, setRideEndOtp] = useState("");
+  const [showPickupOtpForm, setShowPickupOtpForm] = useState(false);
   const [endHub, setEndHub] = useState(
     String(booking?.startHub || booking?.pickupHubName || vehicle.currentHub || "")
   );
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
 
-  const status = String(vehicle.vehicleStatus || booking?.rideStatus || "");
+  const status = String(booking?.rideStatus || vehicle.vehicleStatus || "");
   const bookingId = booking?.bookingId || vehicle.currentBookingId || "";
   const pending = Number(booking?.pendingAmount || 0);
   const pickupVerified = Boolean(booking?.pickupOTPVerified);
@@ -56,6 +59,14 @@ export default function VehicleRideOtpCell({
     "Ready For Pickup",
     "In Ride",
   ];
+  const pickupEligible = Boolean(booking?.pickupPaymentMinimumMet);
+  const pickupGenerated = Boolean(booking?.pickupOTPGenerated);
+  const canPreparePickup =
+    pickupEligible &&
+    !pickupVerified &&
+    ["Booked", "Reserved", "Payment Pending", "Ready For Pickup"].includes(status);
+  const needsPickupPreparation =
+    canPreparePickup && (status !== "Ready For Pickup" || !pickupGenerated);
 
   if (!bookingId || !deskStatuses.includes(status)) {
     return <span className="text-slate-400">—</span>;
@@ -70,6 +81,18 @@ export default function VehicleRideOtpCell({
       setBusy(false);
     }
   };
+
+  const preparePickup = () =>
+    run(async () => {
+      const res = await fetch("/api/rides/generate-pickup-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bookingId }),
+      });
+      const data = await res.json();
+      setNote(data.message || (data.success ? "Pickup OTP prepared." : "Unable to prepare OTP."));
+      if (data.success) onDone?.();
+    });
 
   const confirmPickup = () => {
     if (!pickupOtp.trim()) {
@@ -128,22 +151,46 @@ export default function VehicleRideOtpCell({
       {pending > 0.009 ? (
         <CashCollectForm bookingId={bookingId} pendingAmount={pending} onDone={onDone} />
       ) : null}
-      {status === "Ready For Pickup" && !pickupVerified ? (
+      {needsPickupPreparation ? (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void preparePickup()}
+          className="h-10 w-full rounded-xl bg-[#0A1134] text-sm font-bold text-white disabled:opacity-60"
+        >
+          {busy ? "Preparing..." : "Prepare pickup OTP"}
+        </button>
+      ) : null}
+      {status === "Ready For Pickup" && !pickupVerified && pickupGenerated ? (
         <>
-          <input
-            value={pickupOtp}
-            onChange={(e) => setPickupOtp(e.target.value)}
-            placeholder="Pickup OTP"
-            className="h-10 w-full rounded-xl border px-3 text-sm"
-          />
-          <button
-            type="button"
-            disabled={busy}
-            onClick={() => void confirmPickup()}
-            className="h-10 w-full rounded-xl bg-[#16A34A] text-sm font-bold text-white disabled:opacity-60"
-          >
-            {busy ? "Saving..." : "Save pickup OTP"}
-          </button>
+          {!showPickupOtpForm ? (
+            <button
+              type="button"
+              onClick={() => setShowPickupOtpForm(true)}
+              className="h-10 w-full rounded-xl bg-[#16A34A] text-sm font-bold text-white"
+            >
+              Start ride · enter pickup OTP
+            </button>
+          ) : (
+            <>
+              <input
+                value={pickupOtp}
+                onChange={(e) => setPickupOtp(e.target.value)}
+                placeholder="Pickup OTP from rider"
+                inputMode="numeric"
+                maxLength={6}
+                className="h-10 w-full rounded-xl border px-3 text-sm"
+              />
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void confirmPickup()}
+                className="h-10 w-full rounded-xl bg-[#16A34A] text-sm font-bold text-white disabled:opacity-60"
+              >
+                {busy ? "Verifying..." : "Verify OTP and unlock"}
+              </button>
+            </>
+          )}
         </>
       ) : status === "Ready For Pickup" && pickupVerified ? (
         <p className="rounded-xl bg-sky-50 px-3 py-2 text-xs font-semibold text-sky-900">
@@ -189,6 +236,12 @@ export default function VehicleRideOtpCell({
       ) : status === "Completed" ? (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">
           Thank you — scooter is back in the yard. See you next ride.
+        </p>
+      ) : ["Booked", "Reserved", "Payment Pending"].includes(status) &&
+        !pickupEligible &&
+        pending > 0.009 ? (
+        <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+          Pay ₹{Number(booking?.pickupPaymentTopUp || 0).toFixed(2)} more before pickup OTP.
         </p>
       ) : pending <= 0.009 ? (
         <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-900">

@@ -28,7 +28,6 @@ import {
 import { getBookingRemainingAmount, gstBreakdownInclusive } from "../src/lib/gst";
 import { normalizePayAmountInr, paiseToInr, inrToPaise } from "../src/lib/razorpay/moneyAmount";
 import {
-  checkoutAmountInr,
   minRiderPaymentInr,
   validateRiderPaymentAmount,
   isUnpaidReserveTimedOut,
@@ -347,15 +346,43 @@ const sampleBooking = {
   totalAmount: 2000,
   gstAmount: 300,
 };
+
+const priorTestPhone = process.env.EVUDDY_PICKUP_OTP_TEST_PHONE;
+process.env.EVUDDY_PICKUP_OTP_TEST_PHONE = "8726006519";
+const testPhoneBooking = {
+  rideStatus: "Booked",
+  paymentDue: 2750,
+  pendingAmount: 2750,
+  userPhone: "8726006519",
+};
+const otherRiderBooking = {
+  rideStatus: "Booked",
+  paymentDue: 2750,
+  pendingAmount: 2750,
+  userPhone: "9876543210",
+};
+assert.ok(validateRiderPaymentAmount(testPhoneBooking, 1).ok);
+assert.equal(validateRiderPaymentAmount(otherRiderBooking, 1).ok, false);
+assert.equal(minRiderPaymentInr(testPhoneBooking).min, 1);
+assert.equal(minRiderPaymentInr(otherRiderBooking).min, 1375);
+const testPhoneProgress = nextPaymentProgress(testPhoneBooking, 1, 2749);
+assert.equal(testPhoneProgress.rideStatus, "Ready For Pickup");
+assert.match(String(testPhoneProgress.pickupOTP || ""), /^\d{6}$/);
+const otherRiderProgress = nextPaymentProgress(otherRiderBooking, 1, 2749);
+assert.equal(otherRiderProgress.rideStatus, "Booked");
+assert.equal(otherRiderProgress.pickupOTP, undefined);
+if (priorTestPhone === undefined) {
+  delete process.env.EVUDDY_PICKUP_OTP_TEST_PHONE;
+} else {
+  process.env.EVUDDY_PICKUP_OTP_TEST_PHONE = priorTestPhone;
+}
+
 const firstPay = minRiderPaymentInr(sampleBooking);
 assert.ok(firstPay.halfRental !== undefined);
 assert.equal(firstPay.min, 1400);
 assert.equal(firstPay.halfRental, 1400);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1).ok === false);
-assert.ok(validateRiderPaymentAmount(sampleBooking, 1, { halfRentalFirst: false }).ok);
-assert.equal(checkoutAmountInr(sampleBooking, 1, { halfRentalFirst: false }), 1);
-assert.equal(checkoutAmountInr(sampleBooking, 1, { halfRentalFirst: true }), 1);
-assert.equal(checkoutAmountInr(sampleBooking, 2000, { halfRentalFirst: false }), 2000);
+assert.ok(validateRiderPaymentAmount(sampleBooking, 1, { allowLegacyCapturedPayment: true }).ok);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1150).ok === false);
 assert.ok(validateRiderPaymentAmount(sampleBooking, 1400).ok);
 assert.ok(

@@ -136,12 +136,6 @@ export default function ContactUs() {
             >
               Book an EV <ArrowRight size={16} />
             </Link>
-            <Link
-              href="/partners#dealer-network"
-              className="inline-flex w-full items-center justify-center border border-[#1C1917]/15 px-8 py-3.5 text-[13px] font-medium text-[#1C1917] sm:w-auto"
-            >
-              Become a dealer
-            </Link>
           </div>
         </div>
 

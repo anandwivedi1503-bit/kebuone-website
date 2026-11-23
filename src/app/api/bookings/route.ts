@@ -34,7 +34,11 @@ import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 import { riderQualifiesForFirstRideFree } from "@/lib/firstRide";
 import { cancelUnpaidPrePaymentReserveInSession } from "@/lib/cancelUnpaidPrePaymentReserve";
 import { isUnpaidPrePaymentReserve } from "@/lib/unpaidPrePaymentReserve";
-import { isPickupOtpTestRider } from "@/lib/pickupPaymentRule";
+import {
+  hasPickupPaymentMinimum,
+  isPickupOtpTestRider,
+  pickupPaymentTopUp,
+} from "@/lib/pickupPaymentRule";
 
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
@@ -174,10 +178,39 @@ export async function GET(req: Request) {
         .limit(limit + 1)
         .lean();
 
+    const riderIds = Array.from(
+      new Set(
+        bookings
+          .map((booking) => String(booking.riderId || "").trim())
+          .filter(Boolean)
+      )
+    );
+    const riderPhones = riderIds.length
+      ? await Rider.find({
+          $and: [NOT_DELETED_FILTER, { riderId: { $in: riderIds } }],
+        })
+          .select("riderId phone")
+          .lean()
+      : [];
+    const phoneByRiderId = new Map(
+      riderPhones.map((rider) => [String(rider.riderId || ""), String(rider.phone || "")])
+    );
+
     const payload = listResponseFromPage(
-        bookings.map((booking) =>
-          redactBookingOtps(booking as Record<string, unknown>)
-        ),
+        bookings.map((row) => {
+          const booking = row as Record<string, unknown>;
+          const paymentBooking = {
+            ...booking,
+            userPhone:
+              booking.userPhone || phoneByRiderId.get(String(booking.riderId || "")) || "",
+          };
+          return {
+            ...redactBookingOtps(booking),
+            pickupOtpTestMode: isPickupOtpTestRider(paymentBooking),
+            pickupPaymentMinimumMet: hasPickupPaymentMinimum(paymentBooking),
+            pickupPaymentTopUp: pickupPaymentTopUp(paymentBooking),
+          };
+        }),
         cursor ? 1 : page,
         limit
       );

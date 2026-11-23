@@ -98,7 +98,11 @@ export async function POST(req: Request) {
       return hubForbiddenResponse();
     }
 
-    const pickupPaymentBooking = booking.toObject();
+    const paymentRider = await findBookingRider(booking, session);
+    const pickupPaymentBooking = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || paymentRider?.phone,
+    };
     const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
     if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
       await rollback(session);
@@ -109,7 +113,7 @@ export async function POST(req: Request) {
           success: false,
           message: isRentToOwnBooking(booking)
             ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before pickup.`
-            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before pickup.`,
+            : `Pay at least ₹${pickupThreshold.toFixed(2)} before pickup.`,
         },
         { status: 400 }
       );

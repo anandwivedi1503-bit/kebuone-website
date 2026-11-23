@@ -50,7 +50,7 @@ export function reserveExpiredMessage() {
 
 export function minRiderPaymentInr(
   booking: Record<string, unknown>,
-  options?: { halfRentalFirst?: boolean }
+  options?: { pickupOtpTestMode?: boolean }
 ) {
   const remaining = getBookingRemainingAmount(booking);
   if (remaining <= 0.009) {
@@ -66,12 +66,12 @@ export function minRiderPaymentInr(
   }
 
   const received = money(booking.receivedAmount);
-  if (options?.halfRentalFirst === false) {
-    return { min: 1, max: remaining, firstPayment: false as const };
-  }
-
   const rentalTotal = bookingRentalDueTotal(booking);
-  const halfRental = pickupPaymentThreshold(booking);
+  const halfRental = pickupPaymentThreshold({
+    ...booking,
+    pickupOtpTestMode:
+      options?.pickupOtpTestMode ?? booking.pickupOtpTestMode === true,
+  });
   const topUp = money(Math.max(0, halfRental - received));
 
   if (topUp <= 0.009) {
@@ -89,30 +89,20 @@ export function minRiderPaymentInr(
   };
 }
 
-/**
- * The installed app always asks Razorpay for ₹1. That order opens Checkout,
- * then Continue does nothing because card and UPI sheets reject a ₹1 charge.
- * Raise that request to half of the total still due, fare plus deposit.
- * The phone displays the order amount Razorpay returns.
- */
-export function checkoutAmountInr(
-  booking: Record<string, unknown>,
-  requestedInr: number,
-  options?: { halfRentalFirst?: boolean }
-) {
-  const requested = money(requestedInr);
-  if (options?.halfRentalFirst !== false) return requested;
-  // Installed app / legacy clients: honor the rider amount after validateRiderPaymentAmount (₹1 floor).
-  // Do not inflate to 50% here — that made Razorpay open the full fare when the UI showed ₹1.
-  return requested;
-}
-
 export function validateRiderPaymentAmount(
   booking: Record<string, unknown>,
   amountInr: number,
-  options?: { halfRentalFirst?: boolean }
+  options?: { pickupOtpTestMode?: boolean; allowLegacyCapturedPayment?: boolean }
 ): { ok: true } | { ok: false; message: string } {
-  const { min, max, firstPayment, halfRental } = minRiderPaymentInr(booking, options);
+  const { min: pickupMinimum, max, firstPayment, halfRental } = minRiderPaymentInr(
+    booking,
+    options
+  );
+  // A payment captured against an order created by an older app build still
+  // has to be recorded, but nextPaymentProgress never grants pickup below the
+  // server's rider-specific threshold.
+  const min = options?.allowLegacyCapturedPayment ? Math.min(1, max) : pickupMinimum;
+  const minimumIsMet = options?.allowLegacyCapturedPayment || firstPayment;
   const amount = money(amountInr);
 
   if (max <= 0.009) {
@@ -120,7 +110,7 @@ export function validateRiderPaymentAmount(
   }
 
   if (amount < min - 0.001 || amount > max + 0.001) {
-    if (firstPayment && halfRental !== undefined) {
+    if (minimumIsMet && halfRental !== undefined && !options?.allowLegacyCapturedPayment) {
       const alreadyReceived = money(booking.receivedAmount);
       return {
         ok: false,
