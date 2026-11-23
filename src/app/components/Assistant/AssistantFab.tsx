@@ -10,6 +10,7 @@ type Props = {
   label: string;
   ariaLabel: string;
   tone?: "rider" | "ops";
+  compactOnMobile?: boolean;
 };
 
 /** Single floating control — logo + label in one pill (no duplicate orb + chip). */
@@ -19,6 +20,7 @@ export default function AssistantFab({
   label,
   ariaLabel,
   tone = "rider",
+  compactOnMobile = false,
 }: Props) {
   const accent = tone === "ops" ? "from-[#0B1B16] to-[#10241c]" : "from-[#1F6B4A] to-[#15803D]";
 
@@ -28,7 +30,7 @@ export default function AssistantFab({
       onClick={onClick}
       aria-label={ariaLabel}
       aria-expanded={open}
-      className={`pointer-events-auto group flex items-center gap-0 overflow-hidden rounded-full bg-gradient-to-r ${accent} p-1 pr-4 text-white shadow-[0_14px_40px_rgba(31,107,74,0.35)] transition hover:shadow-[0_18px_48px_rgba(31,107,74,0.42)] hover:brightness-105 active:scale-[0.98] sm:pr-5`}
+      className={`pointer-events-auto group flex items-center gap-0 overflow-hidden rounded-full bg-gradient-to-r ${accent} p-1 ${compactOnMobile ? "pr-1 sm:pr-5" : "pr-4 sm:pr-5"} text-white shadow-[0_14px_40px_rgba(31,107,74,0.35)] transition hover:shadow-[0_18px_48px_rgba(31,107,74,0.42)] hover:brightness-105 active:scale-[0.98]`}
     >
       <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-white/15 ring-1 ring-white/25">
         {open ? (
@@ -41,7 +43,7 @@ export default function AssistantFab({
         )}
       </span>
       {!open ? (
-        <span className="flex items-center gap-1.5 pl-2 text-sm font-semibold tracking-[0.02em]">
+        <span className={`items-center gap-1.5 pl-2 text-sm font-semibold tracking-[0.02em] ${compactOnMobile ? "hidden sm:flex" : "flex"}`}>
           <MessageCircle size={15} className="opacity-90" aria-hidden />
           {label}
         </span>

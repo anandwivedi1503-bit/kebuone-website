@@ -227,32 +227,94 @@
 .ops-shell .overflow-x-auto,
 .ops-shell .overflow-x-scroll {
   -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  overscroll-behavior-x: contain;
+  scrollbar-color: #8dc9a8 transparent;
+  scrollbar-width: thin;
+}
+
+.ops-shell .overflow-x-auto > table,
+.ops-shell .overflow-x-scroll > table {
+  width: max-content;
+  min-width: 100%;
+  max-width: none;
+  table-layout: auto;
+}
+
+.ops-shell .overflow-x-auto > table thead th,
+.ops-shell .overflow-x-scroll > table thead th {
+  white-space: nowrap;
+}
+
+.ops-shell .ops-glass-card > div:last-child {
+  min-width: 0;
+}
+
+.ops-shell .ops-bookings-table {
+  min-width: 1800px;
+}
+
+.ops-shell .ops-bookings-table th:last-child,
+.ops-shell .ops-bookings-table td:last-child {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: #fff;
+  box-shadow: -8px 0 12px rgba(15, 23, 42, 0.06);
+}
+
+.ops-shell .ops-bookings-table th:last-child {
+  z-index: 2;
+  background: #f4fbf7;
+}
+
+.ops-shell .ops-bookings-table tbody td:last-child > div:first-child {
+  min-width: 220px;
+  max-width: 260px;
 }
 
 @media (max-width: 1023px) {
   .ops-shell thead th,
   .ops-shell tbody td {
-    padding: 0.7rem 0.75rem;
+    padding: 0.65rem 0.7rem;
     vertical-align: top;
   }
 
-  .ops-shell table {
-    display: block;
-    width: 100%;
-    overflow-x: auto;
+  .ops-shell .ops-bookings-table {
+    min-width: 1450px;
   }
 
-  .ops-shell thead th,
-  .ops-shell tbody td {
-    word-break: break-word;
-    hyphens: auto;
+  .ops-shell .ops-bookings-table th:nth-child(2),
+  .ops-shell .ops-bookings-table td:nth-child(2),
+  .ops-shell .ops-bookings-table th:nth-child(6),
+  .ops-shell .ops-bookings-table td:nth-child(6),
+  .ops-shell .ops-bookings-table th:nth-child(11),
+  .ops-shell .ops-bookings-table td:nth-child(11),
+  .ops-shell .ops-bookings-table th:nth-child(12),
+  .ops-shell .ops-bookings-table td:nth-child(12),
+  .ops-shell .ops-bookings-table th:nth-child(16),
+  .ops-shell .ops-bookings-table td:nth-child(16),
+  .ops-shell .ops-bookings-table th:nth-child(17),
+  .ops-shell .ops-bookings-table td:nth-child(17) {
+    display: none;
   }
 
-  .ops-shell .ops-glass-card > .overflow-x-auto {
-    margin-left: -0.25rem;
-    margin-right: -0.25rem;
-    padding-left: 0.25rem;
-    padding-right: 0.25rem;
+  .ops-shell .ops-bookings-table tbody td:last-child > div:first-child {
+    min-width: 200px;
+    max-width: 220px;
+  }
+}
+
+@media (max-width: 639px) {
+  .ops-shell .ops-bookings-table {
+    min-width: 1080px;
+  }
+
+  .ops-shell .ops-bookings-table th:nth-child(4),
+  .ops-shell .ops-bookings-table td:nth-child(4),
+  .ops-shell .ops-bookings-table th:nth-child(14),
+  .ops-shell .ops-bookings-table td:nth-child(14) {
+    display: none;
   }
 }
 

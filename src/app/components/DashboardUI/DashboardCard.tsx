@@ -32,7 +32,7 @@ export default function DashboardCard({
           {rightContent ? <div className="shrink-0">{rightContent}</div> : null}
         </div>
       )}
-      <div className="overflow-x-auto p-4 sm:p-6">{children}</div>
+      <div className="min-w-0 p-4 sm:p-6">{children}</div>
     </div>
   );
 }
