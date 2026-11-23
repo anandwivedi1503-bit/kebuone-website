@@ -21,6 +21,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           envs: MAPS_KEY,PICKUP_OTP_TEST_PHONE
+          command_timeout: 20m
           script: |
             cd ~/kebuone-website
             touch .env.local
