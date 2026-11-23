@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Camera, ImagePlus, X } from "lucide-react";
+import { optimizeCashPhoto } from "@/lib/optimizeCashPhoto";
 
 export default function CashCollectForm({
   bookingId,
@@ -20,6 +21,12 @@ export default function CashCollectForm({
   const [photoUrl, setPhotoUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState("");
+  const [recorded, setRecorded] = useState(false);
+  const [receipt, setReceipt] = useState<{
+    transactionId: string;
+    amount: number;
+    pendingAmount: number;
+  } | null>(null);
   const photoInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -32,6 +39,13 @@ export default function CashCollectForm({
     return () => URL.revokeObjectURL(url);
   }, [photo]);
 
+  useEffect(() => {
+    if (!recorded || !receipt) return;
+    if (Math.abs(Number(pendingAmount || 0) - receipt.pendingAmount) < 0.01) return;
+    setRecorded(false);
+    setAmount(pendingAmount > 0 ? String(Number(pendingAmount.toFixed(2))) : "");
+  }, [pendingAmount, recorded, receipt]);
+
   const pending = Number(pendingAmount || 0);
   if (!bookingId || pending <= 0.009) return null;
 
@@ -39,6 +53,10 @@ export default function CashCollectForm({
     const paid = Number(amount);
     if (!Number.isFinite(paid) || paid < 1) {
       setNote("Enter at least ₹1.");
+      return;
+    }
+    if (paid > pending + 0.009) {
+      setNote(`Cash cannot exceed the current remaining amount of ₹${pending.toFixed(2)}.`);
       return;
     }
     if (!photo) {
@@ -52,18 +70,41 @@ export default function CashCollectForm({
       form.set("bookingId", bookingId);
       form.set("amount", String(paid));
       form.set("notes", notes);
-      form.set("photo", photo);
+      const preparedPhoto = await optimizeCashPhoto(photo);
+      if (preparedPhoto.size > 5 * 1024 * 1024) {
+        setNote("Photo must be 5 MB or smaller. Retake it at a lower resolution.");
+        return;
+      }
+      form.set("photo", preparedPhoto);
       const res = await fetch("/api/payments/cash", {
         method: "POST",
         body: form,
       });
-      const data = await res.json();
-      setNote(data.message || (data.success ? "Cash recorded." : "Failed."));
-      if (data.success) {
-        onDone?.();
+      const data = await res.json().catch(() => null);
+      if (!data) {
+        setNote(`Cash could not be recorded (server response ${res.status}). Check Transactions before retrying.`);
+        return;
       }
+      if (!res.ok || !data.success) {
+        setNote(data.message || `Cash could not be recorded (server response ${res.status}).`);
+        return;
+      }
+      const payment = data.data || {};
+      const receiptId = String(payment.transactionId || "");
+      setReceipt({
+        transactionId: receiptId,
+        amount: Number(payment.paidAmount || paid),
+        pendingAmount: Number(payment.pendingAmount || 0),
+      });
+      setRecorded(true);
+      setPhoto(null);
+      const compressionNote = preparedPhoto.size < photo.size
+        ? ` · photo reduced from ${(photo.size / 1024).toFixed(0)} KB to ${(preparedPhoto.size / 1024).toFixed(0)} KB`
+        : "";
+      setNote(`${receiptId ? `Cash recorded · receipt ${receiptId}` : "Cash recorded successfully."}${compressionNote}`);
+      onDone?.();
     } catch {
-      setNote("Unable to record cash.");
+      setNote("Connection failed. Check the booking in Transactions before retrying to avoid recording cash twice.");
     } finally {
       setBusy(false);
     }
@@ -80,12 +121,14 @@ export default function CashCollectForm({
         step="0.01"
         max={pending}
         value={amount}
+        disabled={recorded}
         onChange={(e) => setAmount(e.target.value)}
         className="h-10 w-full rounded-xl border bg-white px-3 text-sm"
         placeholder="Amount received"
       />
       <input
         value={notes}
+        disabled={recorded}
         onChange={(e) => setNotes(e.target.value)}
         className="h-10 w-full rounded-xl border bg-white px-3 text-sm"
         placeholder="Optional note"
@@ -122,7 +165,7 @@ export default function CashCollectForm({
       ) : null}
       <button
         type="button"
-        disabled={busy}
+        disabled={busy || recorded}
         onClick={() => photoInput.current?.click()}
         className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-amber-300 bg-white text-sm font-bold text-amber-950 hover:bg-amber-100 disabled:opacity-60"
       >
@@ -131,15 +174,22 @@ export default function CashCollectForm({
       </button>
       <button
         type="button"
-        disabled={busy || !photo}
+        disabled={busy || !photo || recorded}
         onClick={() => void submit()}
         className="h-10 w-full rounded-xl bg-[#0A1134] text-sm font-bold text-white disabled:opacity-60"
       >
-        {busy ? "Saving..." : "Record cash"}
+        {busy ? "Saving..." : recorded ? "Cash recorded" : "Record cash"}
       </button>
+      {receipt ? (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs font-semibold text-emerald-900">
+          <p className="font-black">Latest cash receipt</p>
+          <p>Receipt: {receipt.transactionId || "created"}</p>
+          <p>Collected: ₹{receipt.amount.toFixed(2)} · Remaining: ₹{receipt.pendingAmount.toFixed(2)}</p>
+        </div>
+      ) : null}
       {note ? <p className="text-xs font-semibold text-slate-700">{note}</p> : null}
       <p className="text-[11px] font-medium text-amber-900">
-        Photo evidence is saved with the transaction. You must later mark this cash as handed to the company on Transactions.
+        Cash stays due to the company until the yard records a matching handover count on Transactions.
       </p>
     </div>
   );

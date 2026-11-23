@@ -19,9 +19,11 @@ import {
 } from "@/lib/pickupPaymentRule";
 import { bookingRentalCollected } from "@/lib/opsRevenue";
 import { downloadHtmlFile } from "@/lib/dashboardExport";
+import { optimizeCashPhoto } from "@/lib/optimizeCashPhoto";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 import CashCollectForm from "../YardRideDesk/CashCollectForm";
+import CashHandoverPanel from "../TransactionDashboard/CashHandoverPanel";
 import OpsContactRail from "../DashboardUI/OpsContactRail";
 import { maskOtpDigits } from "@/lib/maskOtp";
 
@@ -539,6 +541,7 @@ subtitle="Same live booking ledger as Wallet, Refunds, Transactions and Hub. Raz
 
 <OpsMoneyStrip />
 <YardQueueStrip />
+<CashHandoverPanel onDone={() => void fetchBookings("poll")} />
 
 
 {loadError ? (
@@ -1247,9 +1250,9 @@ booking.actualRideEnd
 
 <td className="px-6 py-5 text-center">
 {booking.paymentMode || "-"}
-{booking.cashHandoverPhotoUrl ? (
+{booking.cashHandoverPhotoUrl || booking.cashHandoverPhotoPublicId ? (
   <a
-    href={booking.cashHandoverPhotoUrl}
+    href={`/api/payments/cash/evidence?bookingId=${encodeURIComponent(booking.bookingId)}`}
     target="_blank"
     rel="noreferrer"
     className="mt-1 block text-[10px] font-semibold text-emerald-700 underline"
@@ -1548,31 +1551,50 @@ View
 
 <div className="mb-6 rounded-2xl border border-amber-200/80 bg-gradient-to-r from-amber-50/80 to-white p-4">
   <p className="text-sm font-bold text-amber-900">Yard cash handover photo</p>
-  <p className="mt-1 text-xs text-amber-800/80">Upload proof when cash is collected at the hub (visible on this booking).</p>
+  <p className="mt-1 text-xs text-amber-800/80">Attach private proof when cash is handed over at the hub. Only staff assigned to this booking’s hub can view it.</p>
   <input
     type="file"
-    accept="image/*"
+    accept="image/jpeg,image/png,image/webp"
     className="mt-3 block w-full text-sm"
     onChange={async (e) => {
-      const file = e.target.files?.[0];
+      const input = e.currentTarget;
+      const file = input.files?.[0];
       if (!file || !selectedBooking?._id) return;
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Cash photo must be 5 MB or smaller.");
+        input.value = "";
+        return;
+      }
       const body = new FormData();
-      body.append("file", file);
-      const up = await fetch("/api/upload", { method: "POST", body });
-      const upJson = await up.json();
-      const url = upJson.url || upJson.data?.url;
-      if (!url) return;
-      await fetch(`/api/bookings/${selectedBooking._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cashHandoverPhotoUrl: url }),
-      });
-      setSelectedBooking({ ...selectedBooking, cashHandoverPhotoUrl: url });
+      body.append("bookingId", selectedBooking.bookingId);
+      const preparedPhoto = await optimizeCashPhoto(file);
+      if (preparedPhoto.size > 5 * 1024 * 1024) {
+        alert("Cash photo must be 5 MB or smaller after optimization.");
+        return;
+      }
+      body.append("photo", preparedPhoto);
+      try {
+        const up = await fetch("/api/payments/cash/evidence", { method: "POST", body });
+        const upJson = await up.json();
+        if (!up.ok || !upJson.success) {
+          alert(upJson.message || "Unable to save cash photo.");
+          return;
+        }
+        setSelectedBooking({
+          ...selectedBooking,
+          cashHandoverPhotoPublicId: "saved",
+          cashHandoverPhotoUrl: "",
+        });
+      } catch {
+        alert("Cash photo upload failed. Check the connection and try again.");
+      } finally {
+        input.value = "";
+      }
     }}
   />
-  {selectedBooking.cashHandoverPhotoUrl ? (
+  {selectedBooking.cashHandoverPhotoUrl || selectedBooking.cashHandoverPhotoPublicId ? (
     <a
-      href={selectedBooking.cashHandoverPhotoUrl}
+      href={`/api/payments/cash/evidence?bookingId=${encodeURIComponent(selectedBooking.bookingId)}`}
       target="_blank"
       rel="noreferrer"
       className="mt-2 inline-block text-sm font-semibold text-emerald-700 underline"

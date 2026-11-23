@@ -553,6 +553,17 @@ cashHandoverPhotoUrl: {
   default: "",
 },
 
+cashHandoverPhotoPublicId: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
+cashHandoverPhotoVersion: {
+  type: Number,
+  default: 0,
+},
+
 /** Rider app phone GPS (safety) — visible on admin IoT / CRM. */
 riderPhoneLat: {
   type: Number,

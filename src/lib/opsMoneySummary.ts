@@ -110,7 +110,18 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
               "HandedOver",
               {
                 $cond: [
-                  { $eq: ["$cashHandoverStatus", "DueToCompany"] },
+                  {
+                    $or: [
+                      { $eq: ["$cashHandoverStatus", "DueToCompany"] },
+                      { $eq: ["$cashHandoverStatus", "VarianceReview"] },
+                      {
+                        $and: [
+                          { $eq: [{ $ifNull: ["$cashHandoverStatus", "None"] }, "None"] },
+                          { $eq: ["$transactionType", "Booking Payment"] },
+                        ],
+                      },
+                    ],
+                  },
                   "DueToCompany",
                   "Other",
                 ],
