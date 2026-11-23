@@ -26,6 +26,7 @@ import SectionHeader from "../DashboardUI/SectionHeader";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import CashHandoverPanel from "./CashHandoverPanel";
 
 export default function TransactionDashboard(){
 
@@ -35,7 +36,6 @@ const [hasMoreTransactions,setHasMoreTransactions]=useState(false);
 const [search,setSearch]=useState("");
 const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 const [loading, setLoading] = useState(true);
-const [handoverId, setHandoverId] = useState("");
 
 useEffect(() => {
 
@@ -76,26 +76,6 @@ setLoading(false);
 
 }
 
-};
-
-const markCashHandedOver = async (transactionId: string) => {
-  if (!confirm("Confirm this cash has been handed over to the company?")) return;
-  setHandoverId(transactionId);
-  try {
-    const res = await fetch("/api/payments/cash/handover", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ transactionId }),
-    });
-    const data = await res.json();
-    if (!data.success) {
-      alert(data.message || "Unable to mark handover.");
-      return;
-    }
-    await fetchTransactions();
-  } finally {
-    setHandoverId("");
-  }
 };
 
 const filteredTransactions = transactions
@@ -185,11 +165,13 @@ return(
 
 title="Transaction Dashboard"
 
-subtitle="Razorpay, wallet, and yard cash all land here from the same Mongo transactions. Cash stays Due to company until yard/admin marks handover."
+subtitle="Razorpay, wallet, and yard cash share one transaction ledger. Yard cash stays due until a counted handover is reconciled."
 
 />
 
 <OpsMoneyStrip />
+
+<CashHandoverPanel onDone={() => void fetchTransactions()} />
 
 <KPIGrid>
 
@@ -548,15 +530,10 @@ Pending
 {item.paymentMethod === "Cash" ? (
   item.cashHandoverStatus === "HandedOver" ? (
     <span className="text-xs font-bold text-emerald-700">Handed over</span>
+  ) : item.cashHandoverStatus === "VarianceReview" ? (
+    <span className="text-xs font-bold text-rose-700">Variance review</span>
   ) : (
-    <button
-      type="button"
-      disabled={handoverId === item.transactionId}
-      onClick={() => void markCashHandedOver(item.transactionId)}
-      className="rounded-xl bg-[#0A1134] px-3 py-2 text-xs font-bold text-white disabled:opacity-60"
-    >
-      {handoverId === item.transactionId ? "Saving..." : "Mark handed to company"}
-    </button>
+    <span className="text-xs font-semibold text-amber-700">Due to company</span>
   )
 ) : (
   <span className="text-slate-400">—</span>
@@ -896,18 +873,18 @@ Invoice
 
 </div>
 
-{selectedTransaction.cashHandoverPhotoUrl ? (
+{selectedTransaction.cashHandoverPhotoUrl || selectedTransaction.cashHandoverPhotoPublicId ? (
   <div className="rounded-[28px] border border-amber-200 bg-amber-50 p-7 md:col-span-2">
     <h3 className="mb-4 text-xl font-bold text-amber-900">Cash collection evidence</h3>
-    <a href={selectedTransaction.cashHandoverPhotoUrl} target="_blank" rel="noreferrer">
+    <a href={`/api/payments/cash/evidence?transactionId=${encodeURIComponent(selectedTransaction.transactionId)}`} target="_blank" rel="noreferrer">
       <img
-        src={selectedTransaction.cashHandoverPhotoUrl}
+        src={`/api/payments/cash/evidence?transactionId=${encodeURIComponent(selectedTransaction.transactionId)}`}
         alt={`Cash evidence for ${selectedTransaction.bookingId || selectedTransaction.transactionId}`}
         className="max-h-80 rounded-2xl border border-amber-200 object-contain"
       />
     </a>
     <a
-      href={selectedTransaction.cashHandoverPhotoUrl}
+      href={`/api/payments/cash/evidence?transactionId=${encodeURIComponent(selectedTransaction.transactionId)}`}
       target="_blank"
       rel="noreferrer"
       className="mt-3 inline-flex text-sm font-bold text-amber-900 underline"

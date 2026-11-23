@@ -186,10 +186,27 @@ cashHandoverPhotoUrl: {
   default: "",
 },
 
+cashHandoverPhotoPublicId: {
+  type: String,
+  trim: true,
+  default: "",
+},
+
+cashHandoverPhotoVersion: {
+  type: Number,
+  default: 0,
+},
+
 cashHandoverStatus: {
   type: String,
-  enum: ["None", "DueToCompany", "HandedOver"],
+  enum: ["None", "DueToCompany", "HandedOver", "VarianceReview"],
   default: "None",
+},
+
+cashHandoverBatchId: {
+  type: String,
+  trim: true,
+  default: "",
 },
 
 handedOverAt: {

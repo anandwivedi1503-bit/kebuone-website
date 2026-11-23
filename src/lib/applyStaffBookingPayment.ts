@@ -50,6 +50,8 @@ export async function applyStaffBookingPayment(
     collectedBy: string;
     notes?: string;
     cashHandoverPhotoUrl?: string;
+    cashHandoverPhotoPublicId?: string;
+    cashHandoverPhotoVersion?: number;
   },
   useTxn = true
 ) {
@@ -58,12 +60,14 @@ export async function applyStaffBookingPayment(
   const collectedBy = String(input.collectedBy || "yard").trim().slice(0, 80) || "yard";
   const notes = String(input.notes || "").trim().slice(0, 200);
   const cashHandoverPhotoUrl = String(input.cashHandoverPhotoUrl || "").trim();
+  const cashHandoverPhotoPublicId = String(input.cashHandoverPhotoPublicId || "").trim();
+  const cashHandoverPhotoVersion = Number(input.cashHandoverPhotoVersion || 0);
   let session: mongoose.ClientSession | null = null;
 
   if (!bookingId) {
     return { ok: false as const, status: 400, message: "Booking ID is required." };
   }
-  if (!cashHandoverPhotoUrl) {
+  if (!cashHandoverPhotoUrl && !cashHandoverPhotoPublicId) {
     return {
       ok: false as const,
       status: 400,
@@ -158,6 +162,7 @@ export async function applyStaffBookingPayment(
     const { paymentStatus, pickupOTP } = progress;
     const transactionId = generateCashTransactionId();
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-CASH-${transactionId.slice(-8)}`;
+    const collectedAt = new Date();
     const taxOnPayment = isRentToOwnBooking(booking)
       ? gstOnRtoDailyPayment(paidAmount)
       : gstShareForPayment({
@@ -180,6 +185,8 @@ export async function applyStaffBookingPayment(
       sgstRate: SGST_RATE,
       paymentMethod: "Cash",
       cashHandoverPhotoUrl,
+      cashHandoverPhotoPublicId,
+      cashHandoverPhotoVersion,
       transactionSource: "Admin Panel",
       transactionType: "Booking Payment",
       invoiceNumber,
@@ -192,7 +199,7 @@ export async function applyStaffBookingPayment(
           : `Cash collected at yard by ${collectedBy}`
       ).slice(0, 500),
       collectedBy,
-      collectedAt: new Date(),
+      collectedAt,
       cashHandoverStatus: "DueToCompany",
       updatedBy: collectedBy,
     };
@@ -256,6 +263,8 @@ export async function applyStaffBookingPayment(
           invoiceNumber,
           invoiceGenerated: true,
           cashHandoverPhotoUrl,
+          cashHandoverPhotoPublicId,
+          cashHandoverPhotoVersion,
           ...rtoPatch,
         },
       },
@@ -373,6 +382,10 @@ export async function applyStaffBookingPayment(
     return {
       ok: true as const,
       transactionId,
+      paidAmount,
+      invoiceNumber,
+      collectedBy,
+      collectedAt,
       receivedAmount: Number(updatedBooking.receivedAmount || 0),
       pendingAmount: nextPending,
       paymentStatus: nextPaymentStatus,

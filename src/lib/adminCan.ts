@@ -15,7 +15,7 @@ export const API_DASHBOARDS = {
   bookingsWrite: ["bookings", "renttoown"],
   yardRide: ["bookings", "fleet", "hub"],
   cashCollect: ["bookings"],
-  cashHandover: ["transactions"],
+  cashHandover: ["transactions", "bookings"],
   vehiclesWrite: ["vehicles", "fleet"],
   vehiclesRead: ["vehicles", "fleet", "hub", "battery", "swap", "iot", "bookings", "admin"],
   hubsWrite: ["hubmanagement", "hub"],

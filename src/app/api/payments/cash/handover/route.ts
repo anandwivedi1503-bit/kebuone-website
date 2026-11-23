@@ -1,103 +1,20 @@
 import { NextResponse } from "next/server";
 
-import { getAdminSession, requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
-import { connectDB } from "@/lib/mongodb";
-import { writeAudit } from "@/lib/writeAudit";
-import Transaction from "@/models/Transaction";
-import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 
-export async function POST(req: Request) {
-  try {
-    const session = await getAdminSession();
-    if (!session) {
-      return unauthorizedResponse();
-    }
-    const gate = await requireAdminDashboards(...API_DASHBOARDS.cashHandover);
-    if (gate.error) return gate.error;
-
-    await connectDB();
-    const body = await req.json();
-    const transactionId = String(body.transactionId || "").trim();
-    const notes = String(body.notes || "").trim().slice(0, 500);
-
-    if (!transactionId) {
-      return NextResponse.json(
-        { success: false, message: "Transaction ID is required." },
-        { status: 400 }
-      );
-    }
-
-    const existing = await Transaction.findOne({
-      transactionId,
-      paymentMethod: "Cash",
-      status: "Success",
-      $or: [
-        { cashHandoverStatus: "DueToCompany" },
-        { cashHandoverStatus: { $exists: false } },
-        { cashHandoverStatus: "None" },
-      ],
-    }).select("bookingId");
-
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, message: "Cash receipt not found or already handed over." },
-        { status: 404 }
-      );
-    }
-
-    const hubBlock = await denyIfBookingOutOfHub(session, String(existing.bookingId || ""));
-    if (hubBlock) return hubBlock;
-
-    const txn = await Transaction.findOneAndUpdate(
-      {
-        transactionId,
-        paymentMethod: "Cash",
-        status: "Success",
-        $or: [
-          { cashHandoverStatus: "DueToCompany" },
-          { cashHandoverStatus: { $exists: false } },
-          { cashHandoverStatus: "None" },
-        ],
-      },
-      {
-        $set: {
-          cashHandoverStatus: "HandedOver",
-          handedOverAt: new Date(),
-          handedOverBy: session.username,
-          handoverNotes: notes,
-          updatedBy: session.username,
-        },
-      },
-      { new: true }
-    );
-
-    if (!txn) {
-      return NextResponse.json(
-        { success: false, message: "Cash receipt not found or already handed over." },
-        { status: 404 }
-      );
-    }
-
-    void writeAudit({
-      actor: session.username,
-      action: "CASH_HANDOVER",
-      entity: "Transaction",
-      entityId: transactionId,
-      bookingId: String(txn.bookingId || ""),
-      detail: `INR ${Number(txn.amount || 0)} handed to company`,
-    });
-
-    return NextResponse.json({
-      success: true,
-      data: txn,
-      message: "Cash marked as handed over to the company.",
-    });
-  } catch (error) {
-    console.error("CASH HANDOVER ERROR:", error);
-    return NextResponse.json(
-      { success: false, message: "Unable to record cash handover." },
-      { status: 500 }
-    );
-  }
+/**
+ * Keep the old endpoint readable for stale clients, but do not allow a single
+ * receipt to bypass the expected-versus-counted cash reconciliation flow.
+ */
+export async function POST() {
+  const gate = await requireAdminDashboards(...API_DASHBOARDS.cashHandover);
+  if (gate.error || !gate.session) return gate.error || unauthorizedResponse();
+  return NextResponse.json(
+    {
+      success: false,
+      message: "Use Transactions → Cash handover to reconcile the full counted cash total. No handover status was changed.",
+    },
+    { status: 409 }
+  );
 }
