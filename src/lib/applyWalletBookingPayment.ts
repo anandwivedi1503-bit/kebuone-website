@@ -140,8 +140,12 @@ export async function applyWalletBookingPayment(
       return { ok: false as const, status: 400, message: "Payment amount does not match booking balance." };
     }
 
+    const pickupPaymentBooking = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || rider.phone,
+    };
     const payCheck = validateRiderPaymentAmount(
-      booking.toObject() as Record<string, unknown>,
+      pickupPaymentBooking as Record<string, unknown>,
       paidAmount
     );
     if (!payCheck.ok) {
@@ -219,7 +223,11 @@ export async function applyWalletBookingPayment(
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((remainingAmount - paidAmount).toFixed(2)), 0);
-    const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
+    const progress = nextPaymentProgress(
+      pickupPaymentBooking,
+      newReceivedAmount,
+      pendingAmount
+    );
     const { paymentStatus, rideStatus, pickupOTP } = progress;
     const taxOnPayment = isRentToOwnBooking(booking)
       ? gstOnRtoDailyPayment(paidAmount)
@@ -423,7 +431,10 @@ export async function applyWalletBookingPayment(
     const pickupOtpReady = Boolean(
       issuedPickupOtp || updatedBooking.pickupOTPVerified
     );
-    const pickupTopUp = pickupPaymentTopUp(updatedBooking.toObject());
+    const pickupTopUp = pickupPaymentTopUp({
+      ...updatedBooking.toObject(),
+      userPhone: updatedBooking.userPhone || rider.phone,
+    });
 
     void writeAudit({
       actor: "Rider",

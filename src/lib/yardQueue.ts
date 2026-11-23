@@ -8,10 +8,22 @@ import type { AdminSessionInfo } from "@/lib/adminAuth";
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { redactBookingOtps } from "@/lib/listQuery";
+import {
+  hasPickupPaymentMinimum,
+  isPickupOtpTestRider,
+  pickupPaymentTopUp,
+} from "@/lib/pickupPaymentRule";
 import Booking from "@/models/Booking";
 import Refund from "@/models/Refund";
+import Rider from "@/models/Rider";
 
-const LIVE_RIDES = ["Ready For Pickup", "In Ride"];
+const LIVE_RIDES = [
+  "Booked",
+  "Reserved",
+  "Payment Pending",
+  "Ready For Pickup",
+  "In Ride",
+];
 
 export async function getYardQueue(session: AdminSessionInfo) {
   await connectDB();
@@ -52,14 +64,36 @@ export async function getYardQueue(session: AdminSessionInfo) {
       ...idInScopeFilter("bookingId", bookingIds),
       refundStatus: { $in: ["PENDING", "PROCESSING"] },
     }).maxTimeMS(2500),
-    Booking.find(scope({ rideStatus: { $in: LIVE_RIDES } }))
+    Booking.find(
+      scope({
+        rideStatus: { $in: LIVE_RIDES },
+        vehicleId: { $exists: true, $nin: ["", null] },
+      })
+    )
       .select(
-        "bookingId vehicleId riderId userName userPhone rideStatus paymentStatus receivedAmount pendingAmount currentHub startHub currentBookingId createdAt pickupOTP pickupOTPVerified"
+        "bookingId vehicleId riderId userName userPhone rideStatus paymentStatus receivedAmount pendingAmount paymentDue rateApplied totalAmount gstAmount securityDeposit rentalMode currentHub startHub currentBookingId createdAt pickupOTP pickupOTPExpiry pickupOTPVerified rideEndOTP riderReturnedAt"
       )
       .sort({ updatedAt: -1 })
       .limit(120)
       .lean(),
   ]);
+  const riderIds = Array.from(
+    new Set(
+      liveBookings
+        .map((row) => String((row as Record<string, unknown>).riderId || "").trim())
+        .filter(Boolean)
+    )
+  );
+  const riderPhones = riderIds.length
+    ? await Rider.find({
+        $and: [NOT_DELETED_FILTER, { riderId: { $in: riderIds } }],
+      })
+        .select("riderId phone")
+        .lean()
+    : [];
+  const phoneByRiderId = new Map(
+    riderPhones.map((rider) => [String(rider.riderId || ""), String(rider.phone || "")])
+  );
 
   return {
     counts: {
@@ -69,8 +103,20 @@ export async function getYardQueue(session: AdminSessionInfo) {
       rtoDue,
       pendingRefunds,
     },
-    liveBookings: liveBookings.map((row) =>
-      redactBookingOtps(row as Record<string, unknown>)
-    ),
+    liveBookings: liveBookings.map((row) => {
+      const booking = row as Record<string, unknown>;
+      const paymentMinimumBooking = {
+        ...booking,
+        userPhone:
+          booking.userPhone || phoneByRiderId.get(String(booking.riderId || "")) || "",
+      };
+      const pickupOtpTestMode = isPickupOtpTestRider(paymentMinimumBooking);
+      return {
+        ...redactBookingOtps(booking),
+        pickupOtpTestMode,
+        pickupPaymentMinimumMet: hasPickupPaymentMinimum(paymentMinimumBooking),
+        pickupPaymentTopUp: pickupPaymentTopUp(paymentMinimumBooking),
+      };
+    }),
   };
 }

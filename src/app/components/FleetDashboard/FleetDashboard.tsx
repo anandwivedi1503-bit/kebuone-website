@@ -17,6 +17,12 @@ import YardQueueStrip from "../DashboardUI/YardQueueStrip";
 
 import { startOpsPoll } from "@/lib/opsPoll";
 
+function hasFreshBattery(vehicle: any) {
+  return Boolean(vehicle.telemetryFresh) &&
+    vehicle.batteryPercentage !== null &&
+    Number.isFinite(Number(vehicle.batteryPercentage));
+}
+
 export default function FleetDashboard() {
 
 const [vehicles, setVehicles] = useState<any[]>([]);
@@ -64,7 +70,7 @@ vehicle.vehicleStatus === "Maintenance"
 
 const lowBatteryVehicles = vehicles.filter(
 (vehicle) =>
-vehicle.batteryPercentage < 20
+hasFreshBattery(vehicle) && Number(vehicle.batteryPercentage) < 20
 ).length;
 
 const filteredVehicles = vehicles.filter(
@@ -87,7 +93,7 @@ statusFilter === "All"
 
 : statusFilter === "Low Battery"
 
-? Number(vehicle.batteryPercentage) < 20
+? hasFreshBattery(vehicle) && Number(vehicle.batteryPercentage) < 20
 
 : vehicle.vehicleStatus === statusFilter;
 
@@ -157,7 +163,7 @@ subtitle="Same vehicles and booking money as Hub and Booking Management. Yard ca
     vehicleId: vehicle.vehicleId,
     hubName: vehicle.hubName,
     status: vehicle.vehicleStatus,
-    battery: vehicle.batteryPercentage,
+    battery: hasFreshBattery(vehicle) ? vehicle.batteryPercentage : "No live reading",
   }))}
   onRefresh={() => loadFleet()}
 />
@@ -368,12 +374,14 @@ filteredVehicles.map((vehicle) => (
 
           <td
             className={`px-6 py-5 font-bold ${
-              vehicle.batteryPercentage < 20
+              hasFreshBattery(vehicle) && Number(vehicle.batteryPercentage) < 20
                 ? "text-red-600"
-                : "text-green-600"
+                : hasFreshBattery(vehicle)
+                  ? "text-green-600"
+                  : "text-slate-400"
             }`}
           >
-            {vehicle.batteryPercentage}%
+            {hasFreshBattery(vehicle) ? `${vehicle.batteryPercentage}%` : "No live reading"}
           </td>
 
           <td className="px-6 py-5">
@@ -526,29 +534,6 @@ onChange={(e)=>
 setEditingVehicle({
 ...editingVehicle,
 vehicleModel:e.target.value,
-})
-}
-className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"
-/>
-
-</div>
-
-<div>
-
-<label className="block text-sm font-semibold text-gray-600 mb-2">
-Battery Percentage
-</label>
-
-<input
-type="number"
-value={editingVehicle.batteryPercentage}
-onChange={(e)=>
-setEditingVehicle({
-...editingVehicle,
-batteryPercentage: Math.max(
-  0,
-  Math.min(100, Number(e.target.value))
-),
 })
 }
 className="w-full h-14 rounded-2xl border border-pink-100 px-5 focus:outline-none focus:border-[#FF165E]"

@@ -176,7 +176,7 @@ export async function applyCapturedRazorpayPayment(
     const payCheck = validateRiderPaymentAmount(
       booking.toObject() as Record<string, unknown>,
       paidAmount,
-      { halfRentalFirst: false }
+      { allowLegacyCapturedPayment: true }
     );
     if (!payCheck.ok) {
       return { ok: false, status: 400, message: payCheck.message };
@@ -203,7 +203,15 @@ export async function applyCapturedRazorpayPayment(
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((remainingAmount - paidAmount).toFixed(2)), 0);
-    const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
+    const pickupPaymentBooking = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || rider.phone,
+    };
+    const progress = nextPaymentProgress(
+      pickupPaymentBooking,
+      newReceivedAmount,
+      pendingAmount
+    );
     const { paymentStatus, rideStatus, pickupOTP } = progress;
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-${paymentIds[0].slice(-8)}`;
     const taxOnPayment = isRentToOwnBooking(booking)
@@ -462,7 +470,10 @@ export async function applyCapturedRazorpayPayment(
     const pickupOtpReady = Boolean(
       issuedPickupOtp || updatedBooking.pickupOTPVerified
     );
-    const pickupTopUp = pickupPaymentTopUp(updatedBooking.toObject());
+    const pickupTopUp = pickupPaymentTopUp({
+      ...updatedBooking.toObject(),
+      userPhone: updatedBooking.userPhone || rider.phone,
+    });
 
     void writeAudit({
       actor: "System",

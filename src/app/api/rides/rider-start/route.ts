@@ -39,7 +39,10 @@ export async function POST(req: Request) {
       });
     }
 
-    const pickupPaymentBooking = booking.toObject();
+    const pickupPaymentBooking = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || rider.phone,
+    };
     const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
     if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
       return NextResponse.json(
@@ -47,7 +50,7 @@ export async function POST(req: Request) {
           success: false,
           message: isRentToOwnBooking(booking)
             ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before starting.`
-            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before starting.`,
+            : `Pay at least ₹${pickupThreshold.toFixed(2)} before starting.`,
         },
         { status: 400 }
       );

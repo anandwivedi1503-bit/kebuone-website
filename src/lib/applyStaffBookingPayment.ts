@@ -123,8 +123,12 @@ export async function applyStaffBookingPayment(
       };
     }
 
+    const pickupPaymentBooking = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || rider.phone,
+    };
     const payCheck = validateRiderPaymentAmount(
-      booking.toObject() as Record<string, unknown>,
+      pickupPaymentBooking as Record<string, unknown>,
       paidAmount
     );
     if (!payCheck.ok) {
@@ -146,7 +150,11 @@ export async function applyStaffBookingPayment(
 
     const newReceivedAmount = Number((oldReceivedAmount + paidAmount).toFixed(2));
     const pendingAmount = Math.max(Number((remainingAmount - paidAmount).toFixed(2)), 0);
-    const progress = nextPaymentProgress(booking, newReceivedAmount, pendingAmount);
+    const progress = nextPaymentProgress(
+      pickupPaymentBooking,
+      newReceivedAmount,
+      pendingAmount
+    );
     const { paymentStatus, pickupOTP } = progress;
     const transactionId = generateCashTransactionId();
     const invoiceNumber = `INV-${new Date().getFullYear()}-${booking.bookingId}-CASH-${transactionId.slice(-8)}`;

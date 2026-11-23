@@ -20,10 +20,10 @@ import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { applyWalletBookingPayment } from "@/lib/applyWalletBookingPayment";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 import {
-  checkoutAmountInr,
+  minRiderPaymentInr,
   validateRiderPaymentAmount,
 } from "@/lib/bookingReserveTimeout";
-import { enforcesHalfRentalFirstPayment } from "@/lib/registrationContract";
+import { isPickupOtpTestRider } from "@/lib/pickupPaymentRule";
 import { normalizePayAmountInr, paiseToInr } from "@/lib/razorpay/moneyAmount";
 
 function clean(value: unknown) {
@@ -240,17 +240,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const bookingRecord = booking.toObject() as Record<string, unknown>;
-    const halfRentalFirst = enforcesHalfRentalFirstPayment(req.headers);
-    const amountInr = checkoutAmountInr(
-      bookingRecord,
-      normalizePayAmountInr(requestedAmount || remainingAmount, remainingAmount),
-      { halfRentalFirst }
+    const bookingRecord = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || rider.phone,
+    } as Record<string, unknown>;
+    // Apply the server's payment floor to every client build. Legacy app builds
+    // still request ₹1; raise that request to the configured pickup threshold
+    // so the amount shown by Razorpay and the amount required for OTP agree.
+    const pickupOtpTestMode = isPickupOtpTestRider(bookingRecord);
+    const minimumPayment = minRiderPaymentInr(bookingRecord, {
+      pickupOtpTestMode,
+    }).min;
+    const requestedCheckoutAmount = normalizePayAmountInr(
+      requestedAmount || remainingAmount,
+      remainingAmount
     );
+    const amountInr = Math.max(minimumPayment, requestedCheckoutAmount);
     const amountPaise = Math.round(amountInr * 100);
 
     const payCheck = validateRiderPaymentAmount(bookingRecord, amountInr, {
-      halfRentalFirst,
+      pickupOtpTestMode,
     });
     if (!payCheck.ok) {
       return NextResponse.json(

@@ -1,4 +1,5 @@
 export type UnpaidReserveBooking = {
+  createdAt?: Date | string;
   _id?: unknown;
   bookingId?: unknown;
   vehicleId?: unknown;
@@ -6,7 +7,6 @@ export type UnpaidReserveBooking = {
   paymentStatus?: unknown;
   receivedAmount?: unknown;
   pickupOTPVerified?: unknown;
-  createdAt?: Date | string;
 };
 
 /** Reserved scooter but no payment yet — do not auto-open the payment step. */

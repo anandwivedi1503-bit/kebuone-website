@@ -59,6 +59,7 @@ type MineBooking = {
   pendingAmount?: number;
   paymentStatus?: string;
   rideStatus?: string;
+  pickupOtpTestMode?: boolean;
   pickupOTPVerified?: boolean;
   pickupOTP?: string;
   rideEndOTP?: string;
@@ -212,6 +213,7 @@ const [pickupOtp, setPickupOtp] = useState("");
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [bookingPaymentStatus, setBookingPaymentStatus] = useState("");
   const [bookingTotal, setBookingTotal] = useState(0);
+  const [pickupOtpTestMode, setPickupOtpTestMode] = useState(false);
   const [firstRideFree, setFirstRideFree] = useState(false);
   const [reservedBike, setReservedBike] = useState<Vehicle | null>(null);
   const [reservedHub, setReservedHub] = useState<Hub | null>(null);
@@ -281,6 +283,8 @@ const [pickupOtp, setPickupOtp] = useState("");
         : "Daily") as "Hourly" | "Daily" | "Weekly" | "Monthly"
     );
     setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
+    const testMode = Boolean(active.pickupOtpTestMode);
+    setPickupOtpTestMode(testMode);
     const due = Number(active.paymentDue || 0);
     const received = Number(active.receivedAmount || 0);
     const pending = Number(active.pendingAmount || 0);
@@ -297,7 +301,7 @@ const [pickupOtp, setPickupOtp] = useState("");
         rateApplied: active.rateApplied,
         totalAmount: active.totalAmount,
         gstAmount: active.gstAmount,
-      });
+      }, { pickupOtpTestMode: testMode });
       setPaymentAmount(
         String(bounds.firstPayment && bounds.min > 0 ? bounds.min : payDue)
       );
@@ -494,6 +498,7 @@ useEffect(() => {
       setPendingAmount(Number(active.pendingAmount || 0));
       setBookingPaymentStatus(String(active.paymentStatus || ""));
       setRideStatus(String(active.rideStatus || ""));
+      setPickupOtpTestMode(Boolean(active.pickupOtpTestMode));
       setPickupOtpVerified(Boolean(active.pickupOTPVerified));
       setPickupOtp(String(active.pickupOTP || ""));
       setRideEndOtp(String(active.rideEndOTP || ""));
@@ -841,7 +846,7 @@ const pickupPaymentBounds = minRiderPaymentInr({
   rateApplied: rentalAmount,
   totalAmount: rentalAmount,
   gstAmount: tax.gstAmount,
-});
+}, { pickupOtpTestMode });
 const pickupPaymentMet = !pickupPaymentBounds.firstPayment;
 const remainingPayLocked =
   bookingDone && (isRentToOwn || pickupPaymentMet);
@@ -1099,6 +1104,8 @@ referenceBy,
       setBookingMongoId(String(bookingData.data?._id || ""));
       bookingIdRef.current = createdId;
       bookingMongoIdRef.current = String(bookingData.data?._id || "");
+      const testMode = Boolean(bookingData.data.pickupOtpTestMode);
+      setPickupOtpTestMode(testMode);
       const reservedTotal = Number(
         bookingData.data.paymentDue ||
           bookingData.data.pendingAmount ||
@@ -1114,7 +1121,7 @@ referenceBy,
         rateApplied: bookingData.data.rateApplied ?? rentalAmount,
         totalAmount: bookingData.data.totalAmount ?? rentalAmount,
         gstAmount: bookingData.data.gstAmount ?? tax.gstAmount,
-      });
+      }, { pickupOtpTestMode: testMode });
       setPaymentAmount(
         String(firstBounds.min > 0 ? firstBounds.min : reservedTotal)
       );
@@ -1179,7 +1186,8 @@ referenceBy,
         gstAmount: tax.gstAmount,
         rentalMode: isRentToOwn ? "Rent To Own" : rentalMode,
       },
-      payNow
+      payNow,
+      { pickupOtpTestMode }
     );
     if (!payCheck.ok) {
       setError(payCheck.message);
@@ -1383,6 +1391,7 @@ referenceBy,
       batteryPercentage?: number;
       pickupOTP?: string;
       pickupOTPVerified?: boolean;
+      pickupOtpTestMode?: boolean;
       rideEndOTP?: string;
     };
     data?: {
@@ -1395,6 +1404,7 @@ referenceBy,
       batteryPercentage?: number;
       pickupOTP?: string;
       pickupOTPVerified?: boolean;
+      pickupOtpTestMode?: boolean;
       rideEndOTP?: string;
     };
   }) => {
@@ -1416,6 +1426,11 @@ referenceBy,
     const due = Number(
       data.paymentDue ?? bookingRecord.paymentDue ?? bookingTotal ?? payableAmount
     );
+    const pickupTestModeAfterPayment =
+      typeof bookingRecord.pickupOtpTestMode === "boolean"
+        ? bookingRecord.pickupOtpTestMode
+        : pickupOtpTestMode;
+    setPickupOtpTestMode(pickupTestModeAfterPayment);
     const nextPickupBounds = minRiderPaymentInr({
       paymentDue: due,
       securityDeposit,
@@ -1425,7 +1440,7 @@ referenceBy,
       totalAmount: rentalAmount,
       gstAmount: tax.gstAmount,
       rentalMode: isRentToOwn ? "Rent To Own" : rentalMode,
-    });
+    }, { pickupOtpTestMode: pickupTestModeAfterPayment });
     const pickupPaymentMetAfterPayment = !nextPickupBounds.firstPayment;
     if (Number.isFinite(due) && due > 0) {
       setBookingTotal(Number(due.toFixed(2)));
@@ -1615,7 +1630,8 @@ referenceBy,
         gstAmount: tax.gstAmount,
         rentalMode: isRentToOwn ? "Rent To Own" : rentalMode,
       },
-      payNow
+      payNow,
+      { pickupOtpTestMode }
     );
     if (!payCheck.ok) {
       setError(payCheck.message);

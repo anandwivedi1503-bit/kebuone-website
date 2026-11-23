@@ -35,6 +35,14 @@ const [focusTarget, setFocusTarget] = useState<{
   label: string;
 } | null>(null);
 
+const formatLastPing = (value: unknown) => {
+  if (!value) return "No recent device ping";
+  const timestamp = new Date(String(value));
+  return Number.isFinite(timestamp.getTime())
+    ? timestamp.toLocaleString()
+    : "No recent device ping";
+};
+
 useEffect(() => {
   const loadMapsKey = async () => {
     try {
@@ -105,26 +113,6 @@ const loadGoogleMapsScript = () => {
     document.body.appendChild(script);
   });
 };
-const setDesiredLock = async (id: string, lockStatus: "Locked" | "Unlocked") => {
-  const response = await fetch(`/api/iot/${id}`, {
-    method: "PATCH",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ lockStatus }),
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || data.success === false) {
-    alert(
-      (Array.isArray(data.errors) ? data.errors.join(" ") : data.message) ||
-        "Could not update the lock. The scooter device still has to report the new state."
-    );
-    return;
-  }
-  setIotData((rows) =>
-    rows.map((row) => (String(row._id) === id ? { ...row, lockStatus } : row))
-  );
-};
-
 useEffect(() => {
   const loadIotData = async () => {
     const response = await fetch("/api/iot");
@@ -229,7 +217,7 @@ useEffect(() => {
         content: `
           <div style="font-family: Arial, sans-serif; min-width: 180px;">
             <strong>${iot.vehicleId || "Vehicle"}</strong>
-            <div>Battery: ${iot.batteryPercentage || 0}%</div>
+            <div>Battery: ${iot.telemetryFresh && iot.batteryPercentage != null ? `${iot.batteryPercentage}%` : "No live reading"}</div>
             <div>GPS: ${iot.gpsStatus || "-"}</div>
             <div>Lock: ${iot.lockStatus || "-"}</div>
             <div>Status: ${iot.vehicleStatus || "-"}</div>
@@ -546,13 +534,15 @@ style={{
 
 <div className="text-center">
 
-<span className="font-bold text-[#0A1134]">
+{iot.telemetryFresh && iot.batteryPercentage != null ? (
+  <span className="font-bold text-[#0A1134]">
+    {iot.batteryPercentage}%
+  </span>
+) : (
+  <span className="text-xs font-semibold text-slate-500">No live reading</span>
+)}
 
-{iot.batteryPercentage}%
-
-</span>
-
-{Number(iot.batteryPercentage) < 20 && (
+{iot.telemetryFresh && iot.batteryPercentage != null && Number(iot.batteryPercentage) < 20 && (
 
 <div className="mt-1 text-xs font-bold text-red-600">
 
@@ -569,11 +559,11 @@ style={{
 </td>
 
 <td className="px-6 py-5 text-center">
-{iot.currentLat}
+{iot.telemetryFresh && iot.currentLat != null ? iot.currentLat : "—"}
 </td>
 
 <td className="px-6 py-5 text-center">
-{iot.currentLng}
+{iot.telemetryFresh && iot.currentLng != null ? iot.currentLng : "—"}
 </td>
 
 <td className="px-6 py-5 text-center">
@@ -584,21 +574,8 @@ style={{
 {getLockStatus(iot.lockStatus)==="UNLOCKED"&&(
 <StatusBadge status="warning"/>
 )}
-<div className="mt-2 flex flex-col gap-1">
-  <button
-    type="button"
-    className="rounded-lg border border-slate-200 bg-white/80 px-2 py-1 text-[11px] font-semibold"
-    onClick={() => setDesiredLock(String(iot._id), "Locked")}
-  >
-    Lock
-  </button>
-  <button
-    type="button"
-    className="rounded-lg border border-slate-200 bg-white/80 px-2 py-1 text-[11px] font-semibold"
-    onClick={() => setDesiredLock(String(iot._id), "Unlocked")}
-  >
-    Unlock
-  </button>
+<div className="mt-2 text-[11px] text-slate-500">
+  Reported by scooter
 </div>
 
 </td>
@@ -658,7 +635,7 @@ Low Battery
 </td>
 
 <td className="px-6 py-5 text-center">
-{new Date(iot.updatedAt || iot.createdAt).toLocaleString()}
+{formatLastPing(iot.updatedAt)}
 </td>
 
 </tr>
@@ -894,7 +871,8 @@ subtitle="Recent events from connected IoT devices"
 
 {iotData.slice(0,10).map((iot)=>{
 
-const battery=Number(iot.batteryPercentage||0);
+const hasFreshBattery = Boolean(iot.telemetryFresh && iot.batteryPercentage != null);
+const battery=Number(iot.batteryPercentage);
 
 let icon="📡";
 let bg="bg-green-100";
@@ -910,12 +888,21 @@ description="Geofence or security alert detected.";
 
 }
 
-else if(battery<=20){
+else if(hasFreshBattery && battery<=20){
 
 icon="🔋";
 bg="bg-yellow-100";
 title=`${iot.vehicleId} Low Battery`;
 description=`Battery level is ${battery}%.`;
+
+}
+
+else if(!iot.telemetryFresh){
+
+icon="📴";
+bg="bg-slate-100";
+title=`${iot.vehicleId} Offline`;
+description="No recent telemetry from this scooter.";
 
 }
 
@@ -970,7 +957,7 @@ className={`w-14 h-14 rounded-2xl ${bg} flex items-center justify-center text-2x
 
 <span className="text-sm text-gray-400">
 
-{new Date(iot.updatedAt || iot.createdAt).toLocaleString()}
+{formatLastPing(iot.updatedAt)}
 
 </span>
 

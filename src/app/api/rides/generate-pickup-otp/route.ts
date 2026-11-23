@@ -9,6 +9,7 @@ import {
   hasPickupPaymentMinimum,
   pickupPaymentThreshold,
 } from "@/lib/pickupPaymentRule";
+import { findBookingRider } from "@/lib/findBookingRider";
 import { isRentToOwnBooking } from "@/lib/rtoInstallmentCycle";
 import Booking from "@/models/Booking";
 import {
@@ -61,7 +62,11 @@ export async function POST(req: Request) {
       return hubForbiddenResponse();
     }
 
-    const pickupPaymentBooking = booking.toObject();
+    const rider = await findBookingRider(booking);
+    const pickupPaymentBooking = {
+      ...booking.toObject(),
+      userPhone: booking.userPhone || rider?.phone,
+    };
     const pickupThreshold = pickupPaymentThreshold(pickupPaymentBooking);
     if (!hasPickupPaymentMinimum(pickupPaymentBooking)) {
       return NextResponse.json(
@@ -69,9 +74,19 @@ export async function POST(req: Request) {
           success: false,
           message: isRentToOwnBooking(booking)
             ? `Pay today's full amount (₹${pickupThreshold.toFixed(2)}) before pickup OTP.`
-            : `Pay at least 50% of the total (₹${pickupThreshold.toFixed(2)}) before pickup OTP.`,
+            : `Pay at least ₹${pickupThreshold.toFixed(2)} before pickup OTP.`,
         },
         { status: 400 }
+      );
+    }
+
+    if (booking.pickupOTPVerified) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Pickup OTP is already verified. The rider can now swipe Ride started in Book EV.",
+        },
+        { status: 409 }
       );
     }
 

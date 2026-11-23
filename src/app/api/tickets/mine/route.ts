@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import { bookingBelongsToRiderFilter } from "@/lib/findBookingRider";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 import Rider from "@/models/Rider";
+import Booking from "@/models/Booking";
 import Ticket from "@/models/Ticket";
 
 export const runtime = "nodejs";
@@ -36,9 +38,58 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, data: [] });
     }
 
+    const requestedBookingId = String(
+      new URL(req.url).searchParams.get("bookingId") || ""
+    )
+      .trim()
+      .toUpperCase();
+    const riderCurrentBookingId = String(rider.currentBookingId || "")
+      .trim()
+      .toUpperCase();
+
+    const currentBookingFilter = {
+      $and: [
+        NOT_DELETED_FILTER,
+        bookingBelongsToRiderFilter(rider),
+        { rideStatus: { $nin: ["Completed", "Cancelled"] } },
+      ],
+    };
+    const currentBooking = requestedBookingId
+      ? await Booking.findOne({
+          $and: [...currentBookingFilter.$and, { bookingId: requestedBookingId }],
+        })
+          .select("bookingId")
+          .lean()
+      : riderCurrentBookingId
+        ? (await Booking.findOne({
+            $and: [...currentBookingFilter.$and, { bookingId: riderCurrentBookingId }],
+          })
+            .select("bookingId")
+            .lean()) ||
+          (await Booking.findOne(currentBookingFilter)
+            .select("bookingId")
+            .sort({ updatedAt: -1 })
+            .lean())
+        : await Booking.findOne(currentBookingFilter)
+            .select("bookingId")
+            .sort({ updatedAt: -1 })
+            .lean();
+    if (!currentBooking) {
+      return NextResponse.json({ success: true, data: [] });
+    }
+    const bookingId = String(
+      (currentBooking as Record<string, unknown>).bookingId || ""
+    )
+      .trim()
+      .toUpperCase();
+    if (!bookingId) {
+      return NextResponse.json({ success: true, data: [] });
+    }
+
     const tickets = await Ticket.find({
       $and: [
         NOT_DELETED_FILTER,
+        { bookingId },
         {
           $or: [
             { riderId: rider.riderId },

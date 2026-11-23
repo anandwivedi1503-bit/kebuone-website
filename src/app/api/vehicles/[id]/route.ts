@@ -56,7 +56,6 @@ const allowedUpdateFields = [
   "insuranceExpiry",
   "pollutionExpiry",
   "remarks",
-  "batteryPercentage",
   "currentHub",
   "vehicleStatus",
 ];
@@ -77,18 +76,6 @@ function isValidNonNegativeNumber(
   return (
     Number.isFinite(numberValue) &&
     numberValue >= 0
-  );
-}
-
-function isValidPercentage(
-  value: unknown
-) {
-  const numberValue = Number(value);
-
-  return (
-    Number.isFinite(numberValue) &&
-    numberValue >= 0 &&
-    numberValue <= 100
   );
 }
 
@@ -264,17 +251,6 @@ export async function PATCH(
       );
     }
 
-    if (
-      updateData.batteryPercentage !==
-        undefined &&
-      !isValidPercentage(
-        updateData.batteryPercentage
-      )
-    ) {
-      errors.push(
-        "Battery percentage must be between 0 and 100."
-      );
-    }
 
     const numericFields = [
       "hourlyRate",
@@ -434,68 +410,6 @@ export async function PATCH(
      */
     vehicle.updatedBy =
       "Admin";
-
-    /*
-     * Operational battery rules.
-     */
-    vehicle.batteryPercentage =
-      Math.max(
-        0,
-        Math.min(
-          100,
-          Number(
-            vehicle.batteryPercentage
-          )
-        )
-      );
-
-    if (
-      vehicle.batteryPercentage ===
-      0
-    ) {
-      vehicle.vehicleStatus =
-        "Maintenance";
-
-      vehicle.assignedRider =
-        "";
-
-      vehicle.currentBookingId =
-        "";
-
-      vehicle.currentRiderId =
-        "";
-    } else if (
-      vehicle.vehicleStatus !==
-        "Maintenance" &&
-      vehicle.vehicleStatus !==
-        "Booked" &&
-      vehicle.vehicleStatus !==
-        "Ready For Pickup" &&
-      vehicle.vehicleStatus !==
-        "In Ride" &&
-      vehicle.batteryPercentage <
-        20
-    ) {
-      vehicle.vehicleStatus =
-        "Low Battery";
-    } else if (
-      vehicle.vehicleStatus ===
-        "Low Battery" &&
-      vehicle.batteryPercentage >=
-        20
-    ) {
-      vehicle.vehicleStatus =
-        "Available";
-
-      vehicle.assignedRider =
-        "";
-
-      vehicle.currentBookingId =
-        "";
-
-      vehicle.currentRiderId =
-        "";
-    }
 
     /*
      * Available vehicles must start

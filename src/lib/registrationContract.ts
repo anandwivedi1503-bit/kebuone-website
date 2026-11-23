@@ -32,17 +32,10 @@ export function readRegistrationClient(headers: Headers): RegistrationClient {
   return { kind: "legacy", asksPickupCity: false };
 }
 
-/**
- * Older app builds may still offer a first payment from ₹1. The website and
- * app builds that name `firstPaymentHalfRental` enforce a 50% total floor.
- */
+/** The server enforces the pickup minimum for every client build. */
 export function enforcesHalfRentalFirstPayment(headers: Headers): boolean {
-  const client = readRegistrationClient(headers);
-  if (client.kind === "web") return true;
-  if (client.kind === "app") {
-    return readClientCapabilities(headers).includes("firstPaymentHalfRental");
-  }
-  return false;
+  void headers;
+  return true;
 }
 
 export function normalizePickupCityAck(value: unknown): PickupCityAck {
@@ -66,9 +59,9 @@ export function paymentContract() {
   return {
     version: 1,
     firstRentalPayment: {
-      website: "half-of-rental",
+      website: "server-enforced-pickup-minimum",
       capability: "firstPaymentHalfRental",
-      legacyApp: "from-one-rupee",
+      legacyApp: "raised-to-server-minimum",
     },
   };
 }
