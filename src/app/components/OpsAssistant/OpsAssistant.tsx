@@ -269,7 +269,7 @@ export default function OpsAssistant({
 
   return (
     <>
-      <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[96] print:hidden sm:right-6">
+      <div className="pointer-events-none fixed right-3 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[45] print:hidden sm:right-6">
         <AssistantFab
           open={open}
           onClick={() => {
@@ -279,6 +279,7 @@ export default function OpsAssistant({
           label="Ops Eva"
           ariaLabel={open ? "Close ops command center" : "Open ops command center"}
           tone="ops"
+          compactOnMobile
         />
       </div>
 

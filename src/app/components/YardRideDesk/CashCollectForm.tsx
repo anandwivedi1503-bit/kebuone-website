@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, ImagePlus, X } from "lucide-react";
+import { Camera, ChevronDown, ImagePlus, X } from "lucide-react";
 import { optimizeCashPhoto } from "@/lib/optimizeCashPhoto";
 
 export default function CashCollectForm({
@@ -111,10 +111,14 @@ export default function CashCollectForm({
   };
 
   return (
-    <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-3">
-      <p className="text-xs font-bold text-amber-950">
-        Rider cash at yard · remaining ₹{pending.toFixed(2)}
-      </p>
+    <div className="rounded-xl border border-amber-200 bg-amber-50 p-2.5">
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-lg px-1 py-1 text-xs font-bold text-amber-950 marker:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-700">
+          <span>{recorded ? "Cash recorded · receipt saved" : "Record rider cash at yard"}</span>
+          <span className="shrink-0 rounded-full bg-white/80 px-2 py-1 tabular-nums">₹{pending.toFixed(2)}</span>
+          <ChevronDown size={15} className="shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+        <div className="mt-2 space-y-2 border-t border-amber-200/80 pt-2">
       <input
         type="number"
         min={1}
@@ -187,10 +191,12 @@ export default function CashCollectForm({
           <p>Collected: ₹{receipt.amount.toFixed(2)} · Remaining: ₹{receipt.pendingAmount.toFixed(2)}</p>
         </div>
       ) : null}
-      {note ? <p className="text-xs font-semibold text-slate-700">{note}</p> : null}
       <p className="text-[11px] font-medium text-amber-900">
         Cash stays due to the company until the yard records a matching handover count on Transactions.
       </p>
+        </div>
+      </details>
+      {note ? <p className="mt-2 text-xs font-semibold text-slate-700">{note}</p> : null}
     </div>
   );
 }
