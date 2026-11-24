@@ -58,9 +58,7 @@ export default function RiderComplaintTicket({
 
   useEffect(() => {
     void loadTickets();
-    return startOpsPoll(() => {
-      void loadTickets();
-    });
+    return startOpsPoll(loadTickets);
   }, [loadTickets]);
 
   const sendHelpTicket = async () => {

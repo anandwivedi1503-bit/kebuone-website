@@ -131,11 +131,7 @@ useEffect(() => {
 
 fetchBookings("replace");
 
-return startOpsPoll(() => {
-
-fetchBookings("poll");
-
-});
+return startOpsPoll(() => fetchBookings("poll"));
 
 },[search, statusFilter, paymentFilter, modeFilter]);
 

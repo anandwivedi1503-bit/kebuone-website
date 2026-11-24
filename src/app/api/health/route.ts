@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { getScaleIndexStatus } from "@/lib/ensureScaleIndexes";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { readJobHeartbeat } from "@/lib/jobHeartbeat";
-import { maybeSweepUnpaidBookings } from "@/lib/jobs/releaseUnpaidBookings";
 
 export async function GET(req: Request) {
   try {
@@ -19,12 +19,12 @@ export async function GET(req: Request) {
     }
 
     await connectDB();
-    void maybeSweepUnpaidBookings();
     const unpaidJob = await readJobHeartbeat("unpaidSweep").catch(() => null);
 
     return NextResponse.json({
       success: true,
       database: mongoose.connection.readyState === 1,
+      scaleIndexes: getScaleIndexStatus(),
       timestamp: new Date(),
       unpaidJob,
     });

@@ -6,6 +6,7 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint",
     "api-compat-smoke": "node scripts/api-compat-smoke.mjs",
     "icons": "python3 scripts/generate-site-icons.py",

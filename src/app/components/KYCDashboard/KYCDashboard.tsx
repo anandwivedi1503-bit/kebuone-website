@@ -406,9 +406,7 @@ export default function KYCDashboard() {
   useEffect(() => {
     void loadRiders();
 
-    return startOpsPoll(() => {
-      void loadRiders();
-    });
+    return startOpsPoll(loadRiders);
   }, [loadRiders]);
 
   /* =======================================================

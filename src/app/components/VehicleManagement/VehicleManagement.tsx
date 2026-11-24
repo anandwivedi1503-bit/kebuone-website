@@ -60,9 +60,7 @@ useEffect(() => {
 
   void loadHubs();
   void loadFleetStats();
-  return startOpsPoll(() => {
-    void loadFleetStats();
-  });
+  return startOpsPoll(loadFleetStats);
 }, []);
 
 const [formData, setFormData] = useState({

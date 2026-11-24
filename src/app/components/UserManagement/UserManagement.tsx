@@ -360,9 +360,7 @@ export default function UserManagement() {
   useEffect(() => {
     void loadRiders();
 
-    return startOpsPoll(() => {
-      void loadRiders();
-    });
+    return startOpsPoll(loadRiders);
   }, [loadRiders]);
 
   /* =======================================================

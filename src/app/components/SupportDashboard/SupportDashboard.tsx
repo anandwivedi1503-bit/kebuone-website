@@ -72,9 +72,7 @@ const loadData = async () => {
 
 useEffect(() => {
   void loadData();
-  return startOpsPoll(() => {
-    void loadData();
-  });
+  return startOpsPoll(loadData);
 }, [ticketPages]);
 
 const saveTicket = async () => {

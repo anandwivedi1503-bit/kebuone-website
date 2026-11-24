@@ -62,9 +62,7 @@ export function useOpsMoneySummary(pollMs = OPS_POLL_MS) {
       }
     };
     void load();
-    const stop = startOpsPoll(() => {
-      void load();
-    }, pollMs);
+    const stop = startOpsPoll(load, pollMs);
     return () => {
       cancelled = true;
       stop();

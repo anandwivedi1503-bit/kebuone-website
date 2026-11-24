@@ -75,11 +75,7 @@ useEffect(() => {
 
   fetchRefunds();
 
-  return startOpsPoll(() => {
-
-    fetchRefunds();
-
-  });
+  return startOpsPoll(fetchRefunds);
 
 }, [listPages]);
 

@@ -112,10 +112,12 @@ IoTSchema.index({
 IoTSchema.index({
   gpsStatus: 1,
 });
+IoTSchema.index({ gpsStatus: 1, updatedAt: -1 });
 
 IoTSchema.index({
   alertType: 1,
 });
+IoTSchema.index({ alertType: 1, updatedAt: -1 });
 
 IoTSchema.index({
   batteryPercentage: 1,

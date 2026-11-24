@@ -65,7 +65,7 @@ export default function ReviewsDashboard() {
 
   useEffect(() => {
     void load();
-    return startOpsPoll(() => void load());
+    return startOpsPoll(load);
   }, [pages, statusFilter]);
 
   const patch = async (id: string, body: Record<string, unknown>) => {
