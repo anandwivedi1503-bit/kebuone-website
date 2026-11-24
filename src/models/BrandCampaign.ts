@@ -12,6 +12,7 @@ export const BRAND_CAMPAIGN_THEMES = [
   "rakhi",
   "newyear",
   "childrens",
+  "custom",
   "normal",
 ] as const;
 

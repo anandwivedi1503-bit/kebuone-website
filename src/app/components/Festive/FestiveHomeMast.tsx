@@ -11,11 +11,17 @@ export default function FestiveHomeMast() {
 
   return (
     <div className={`evuddy-festive-mast evuddy-festive-mast--${campaign.theme}`} role="status">
-      <span className="evuddy-festive-mast__sun" aria-hidden />
-      <div className="min-w-0">
-        <p className="evuddy-festive-mast__title">{campaign.welcomeTitle}</p>
-        <p className="evuddy-festive-mast__line">{line}</p>
+      <div className="evuddy-festive-mast__copy">
+        <span className="evuddy-festive-mast__sun" aria-hidden />
+        <div className="min-w-0">
+          <p className="evuddy-festive-mast__title">{campaign.welcomeTitle}</p>
+          <p className="evuddy-festive-mast__line">{line}</p>
+        </div>
       </div>
+      {campaign.heroImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="evuddy-festive-mast__poster" src={campaign.heroImage} alt={`${campaign.welcomeTitle} poster`} loading="lazy" referrerPolicy="no-referrer" />
+      ) : null}
     </div>
   );
 }
