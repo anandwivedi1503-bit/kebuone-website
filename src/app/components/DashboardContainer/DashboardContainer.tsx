@@ -105,6 +105,10 @@ const TeamAccess = dynamic(() => import("../TeamAccess/TeamAccess"), {
   ssr: false,
   loading: () => deskFallback,
 });
+const BrandCalendarDashboard = dynamic(
+  () => import("../BrandCalendarDashboard/BrandCalendarDashboard"),
+  { ssr: false, loading: () => deskFallback }
+);
 const OpsAssistant = dynamic(() => import("../OpsAssistant/OpsAssistant"), {
   ssr: false,
 });
@@ -161,6 +165,7 @@ export default function DashboardContainer() {
         setActiveDashboard={setActiveDashboard}
         allowedDashboards={isSuper ? null : allowed}
         canManageTeam={isSuper}
+        canManageBrandCalendar={isSuper}
         sessionUsername={session?.username}
         sessionRole={session?.role}
       />
@@ -215,6 +220,7 @@ export default function DashboardContainer() {
           {activeDashboard === "refunds" && show("refunds") && <RefundDashboard />}
           {activeDashboard === "reviews" && show("reviews") && <ReviewsDashboard />}
           {activeDashboard === "team" && isSuper && <TeamAccess />}
+          {activeDashboard === "brandcalendar" && isSuper && <BrandCalendarDashboard />}
           {!isSuper && allowed.length === 0 ? (
             <p className="rounded-3xl bg-white p-8 text-slate-600">
               This login has no dashboards assigned. Ask super admin to grant access.
