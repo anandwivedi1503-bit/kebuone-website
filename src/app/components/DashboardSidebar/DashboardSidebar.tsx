@@ -28,6 +28,7 @@ import {
   Star,
   LogOut,
   Globe,
+  Megaphone,
 } from "lucide-react";
 
 type Props = {
@@ -35,6 +36,7 @@ type Props = {
   setActiveDashboard: (dashboard: string) => void;
   allowedDashboards?: string[] | null;
   canManageTeam?: boolean;
+  canManageBrandCalendar?: boolean;
   sessionUsername?: string;
   sessionRole?: "super" | "staff";
 };
@@ -63,6 +65,7 @@ const menus = [
   { id: "reviews", name: "Reviews", icon: Star },
   { id: "audit", name: "Audit Logs", icon: BarChart3 },
   { id: "team", name: "Team Access", icon: Shield },
+  { id: "brandcalendar", name: "Brand Calendar", icon: Megaphone },
 ];
 
 export default function DashboardSidebar({
@@ -70,6 +73,7 @@ export default function DashboardSidebar({
   setActiveDashboard,
   allowedDashboards = null,
   canManageTeam = false,
+  canManageBrandCalendar = false,
   sessionUsername = "superadmin",
   sessionRole = "super",
 }: Props) {
@@ -77,9 +81,19 @@ export default function DashboardSidebar({
   const visibleMenus = (
     allowedDashboards
       ? menus.filter((menu) =>
-          menu.id === "team" ? canManageTeam : allowedDashboards.includes(menu.id)
+          menu.id === "team"
+            ? canManageTeam
+            : menu.id === "brandcalendar"
+              ? canManageBrandCalendar
+              : allowedDashboards.includes(menu.id)
         )
-      : menus.filter((menu) => (menu.id === "team" ? canManageTeam : true))
+      : menus.filter((menu) =>
+          menu.id === "team"
+            ? canManageTeam
+            : menu.id === "brandcalendar"
+              ? canManageBrandCalendar
+              : true
+        )
   );
   const activeName = visibleMenus.find((menu) => menu.id === activeDashboard)?.name || "Operations";
 

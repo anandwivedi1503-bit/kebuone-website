@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { istDateKey, presentFestiveToday } from "@/lib/festiveCalendar";
+import { getSharedFestiveCampaign } from "@/lib/brandCampaignCalendar";
+import { istDateKey } from "@/lib/festiveCalendar";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,7 @@ export const dynamic = "force-dynamic";
  */
 export async function GET() {
   const now = new Date();
-  const campaign = presentFestiveToday(now);
+  const campaign = await getSharedFestiveCampaign(now);
   return NextResponse.json(
     {
       date: istDateKey(now),
