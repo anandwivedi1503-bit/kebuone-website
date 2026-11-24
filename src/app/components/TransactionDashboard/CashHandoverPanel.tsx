@@ -49,7 +49,7 @@ export default function CashHandoverPanel({ onDone }: { onDone?: () => void }) {
 
   useEffect(() => {
     void load();
-    return startOpsPoll(() => void load());
+    return startOpsPoll(load);
   }, []);
 
   const openBatch = state?.openBatches?.[0] || null;

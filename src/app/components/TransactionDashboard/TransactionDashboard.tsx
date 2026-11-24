@@ -41,11 +41,7 @@ useEffect(() => {
 
 fetchTransactions();
 
-return startOpsPoll(() => {
-
-fetchTransactions();
-
-});
+return startOpsPoll(fetchTransactions);
 
 },[listPages]);
 

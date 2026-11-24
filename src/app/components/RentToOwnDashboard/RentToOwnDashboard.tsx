@@ -60,7 +60,7 @@ export default function RentToOwnDashboard() {
       }
     };
     void load();
-    return startOpsPoll(() => void load());
+    return startOpsPoll(load);
   }, []);
 
   const todayKey = new Date().toDateString();

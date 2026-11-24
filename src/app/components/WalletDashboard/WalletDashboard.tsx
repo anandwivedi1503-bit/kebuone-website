@@ -99,12 +99,9 @@ useEffect(() => {
     loadWallets(true);
     loadTransactions();
 
-    return startOpsPoll(() => {
-
-        loadWallets(false);
-        loadTransactions();
-
-    });
+    return startOpsPoll(() =>
+      Promise.all([loadWallets(false), loadTransactions()])
+    );
 
 }, [walletPages, txnPages]);
 

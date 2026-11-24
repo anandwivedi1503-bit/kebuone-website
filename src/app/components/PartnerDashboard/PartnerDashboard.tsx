@@ -46,9 +46,7 @@ export default function PartnerDashboard() {
 
   useEffect(() => {
     void loadPartners(true);
-    return startOpsPoll(() => {
-      void loadPartners(false);
-    });
+    return startOpsPoll(() => loadPartners(false));
   }, []);
 
   const rows = useMemo(() => {

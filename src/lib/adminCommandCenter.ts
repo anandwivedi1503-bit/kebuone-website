@@ -5,6 +5,7 @@ import { REVENUE_TRANSACTION_TYPES } from "@/lib/opsRevenue";
 import { sessionHasAnyDashboard, type AdminSessionInfo } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { OPEN_TICKET_STATUSES, PENDING_KYC_FILTER } from "@/lib/opsTruth";
+import { VEHICLE_ONLINE_WINDOW_MS } from "@/lib/vehicleTelemetry";
 import {
   applyHubScope,
   idInScopeFilter,
@@ -87,7 +88,7 @@ const leanRecent = {
   _id: 1,
 } as const;
 
-export async function getAdminCommandCenter(session: AdminSessionInfo) {
+async function buildAdminCommandCenter(session: AdminSessionInfo) {
   await connectDB();
 
   const hubCodes = await resolveHubScope(session);
@@ -140,6 +141,7 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
         vehicleId: { $in: vehicleIds.length ? vehicleIds : ["__none__"] },
       }
     : NOT_DELETED_FILTER;
+  const onlineSince = new Date(Date.now() - VEHICLE_ONLINE_WINDOW_MS);
 
   const [
     riders,
@@ -194,6 +196,7 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     IoT.countDocuments({
       ...iotFilter,
       gpsStatus: "ONLINE",
+      updatedAt: { $gte: onlineSince },
     }).maxTimeMS(2500),
     IoT.countDocuments({
       ...iotFilter,
@@ -206,6 +209,7 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
     IoT.countDocuments({
       ...iotFilter,
       alertType: { $nin: [null, ""] },
+      updatedAt: { $gte: onlineSince },
     }).maxTimeMS(2500),
     Battery.countDocuments({ ...batteryFilter, status: "READY" }).maxTimeMS(2500),
     Battery.countDocuments({ ...batteryFilter, status: "CHARGING" }).maxTimeMS(2500),
@@ -342,6 +346,57 @@ export async function getAdminCommandCenter(session: AdminSessionInfo) {
   const riderSafety = await listRiderSafetyForAdmin(session);
 
   return filterCommandCenterForSession(session, { counts, recent, riderSafety });
+}
+
+type CommandCenterSnapshot = Awaited<ReturnType<typeof buildAdminCommandCenter>>;
+
+const COMMAND_CENTER_CACHE_MS = 15_000;
+const COMMAND_CENTER_CACHE_MAX_ENTRIES = 100;
+const commandCenterCache = new Map<
+  string,
+  { expiresAt: number; promise: Promise<CommandCenterSnapshot> }
+>();
+
+function commandCenterCacheKey(session: AdminSessionInfo) {
+  return JSON.stringify({
+    role: session.role,
+    dashboards: [...session.dashboards].map((value) => value.trim()).sort(),
+    hubs: (session.hubs || []).map((value) => value.trim().toUpperCase()).sort(),
+    sessionVersion: session.sessionVersion || 0,
+  });
+}
+
+export async function getAdminCommandCenter(session: AdminSessionInfo) {
+  const key = commandCenterCacheKey(session);
+  const now = Date.now();
+  const cached = commandCenterCache.get(key);
+  if (cached && cached.expiresAt > now) {
+    commandCenterCache.delete(key);
+    commandCenterCache.set(key, cached);
+    return cached.promise;
+  }
+  if (cached) commandCenterCache.delete(key);
+
+  const entry = {
+    expiresAt: Number.POSITIVE_INFINITY,
+    promise: buildAdminCommandCenter(session),
+  };
+  commandCenterCache.set(key, entry);
+  while (commandCenterCache.size > COMMAND_CENTER_CACHE_MAX_ENTRIES) {
+    const oldestKey = commandCenterCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    commandCenterCache.delete(oldestKey);
+  }
+
+  void entry.promise.then(
+    () => {
+      entry.expiresAt = Date.now() + COMMAND_CENTER_CACHE_MS;
+    },
+    () => {
+      if (commandCenterCache.get(key) === entry) commandCenterCache.delete(key);
+    }
+  );
+  return entry.promise;
 }
 
 function emptyIf(allowed: boolean, rows: Array<Record<string, unknown>>) {

@@ -1,3 +1,5 @@
+import { randomUUID } from "node:crypto";
+
 import { recordJobHeartbeat } from "@/lib/jobHeartbeat";
 import {
   abortOptionalTransaction,
@@ -9,6 +11,7 @@ import {
 import { openDueRtoInstallment } from "@/lib/rtoInstallmentCycle";
 import { queueCancellationRefundIfPaid } from "@/lib/queueCancellationRefund";
 import Booking from "@/models/Booking";
+import JobLock from "@/models/JobLock";
 import Rider from "@/models/Rider";
 import Vehicle from "@/models/Vehicle";
 
@@ -183,23 +186,96 @@ export async function openDueRtoDays(limit = 80) {
   return { scanned: due.length, opened };
 }
 
-let lastSweep = 0;
+const UNPAID_SWEEP_LOCK_ID = "unpaidSweep";
+const UNPAID_SWEEP_LEASE_MS = 2 * 60 * 1000;
+const UNPAID_SWEEP_RENEW_MS = 30 * 1000;
+let lastSweepAttempt = 0;
 
-export async function maybeSweepUnpaidBookings() {
-  const now = Date.now();
-  if (now - lastSweep < 30 * 1000) return null;
-  lastSweep = now;
+async function acquireUnpaidSweepLease(ownerToken: string) {
+  const now = new Date();
+  try {
+    const lease = await JobLock.findOneAndUpdate(
+      {
+        _id: UNPAID_SWEEP_LOCK_ID,
+        $or: [
+          { leaseUntil: { $lte: now } },
+          { leaseUntil: { $exists: false } },
+        ],
+      },
+      {
+        $set: {
+          ownerToken,
+          leaseUntil: new Date(now.getTime() + UNPAID_SWEEP_LEASE_MS),
+        },
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).lean();
+    const leaseOwner = Array.isArray(lease)
+      ? undefined
+      : (lease as unknown as { ownerToken?: string } | null)?.ownerToken;
+    return leaseOwner === ownerToken;
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      Number((error as { code?: number }).code) === 11000
+    ) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+export async function runUnpaidBookingSweep(source = "cron") {
+  const ownerToken = randomUUID();
+  if (!(await acquireUnpaidSweepLease(ownerToken))) {
+    return { skipped: true as const, reason: "already_running" };
+  }
+
+  const renewLease = () => {
+    void JobLock.updateOne(
+      { _id: UNPAID_SWEEP_LOCK_ID, ownerToken },
+      {
+        $set: {
+          leaseUntil: new Date(Date.now() + UNPAID_SWEEP_LEASE_MS),
+        },
+      }
+    ).catch((error) => {
+      console.error("UNPAID SWEEP LEASE RENEWAL ERROR:", error);
+    });
+  };
+  const renewalTimer = setInterval(renewLease, UNPAID_SWEEP_RENEW_MS);
+  renewalTimer.unref?.();
+
   try {
     const [unpaid, rto] = await Promise.all([
       releaseUnpaidBookings(100),
       openDueRtoDays(80),
     ]);
-    await recordJobHeartbeat("unpaidSweep", { unpaid, rto });
-    return { unpaid, rto };
+    await recordJobHeartbeat("unpaidSweep", { unpaid, rto, source });
+    return { skipped: false as const, unpaid, rto };
+  } catch (error) {
+    const message = String(error instanceof Error ? error.message : error);
+    await recordJobHeartbeat("unpaidSweep", { error: message, source }, false);
+    throw error;
+  } finally {
+    clearInterval(renewalTimer);
+    await JobLock.deleteOne({ _id: UNPAID_SWEEP_LOCK_ID, ownerToken }).catch(
+      (error) => console.error("UNPAID SWEEP LEASE RELEASE ERROR:", error)
+    );
+  }
+}
+
+export async function maybeSweepUnpaidBookings() {
+  const now = Date.now();
+  if (now - lastSweepAttempt < 30 * 1000) return null;
+  lastSweepAttempt = now;
+  try {
+    return await runUnpaidBookingSweep("request");
   } catch (error) {
     console.error("UNPAID BOOKING SWEEP ERROR:", error);
     const message = String(error instanceof Error ? error.message : error);
-    await recordJobHeartbeat("unpaidSweep", { error: message }, false);
     const { notifyOpsAlert } = await import("@/lib/notify/opsAlert");
     void notifyOpsAlert("Unpaid sweep failed", message);
     return null;

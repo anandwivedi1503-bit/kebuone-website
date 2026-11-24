@@ -110,7 +110,7 @@ export default function BatterySwapDashboard() {
 
   useEffect(() => {
     void fetchAll();
-    return startOpsPoll(() => void fetchAll());
+    return startOpsPoll(fetchAll);
   }, []);
 
   const stats = useMemo(() => {

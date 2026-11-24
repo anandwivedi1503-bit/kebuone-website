@@ -111,7 +111,7 @@ export default function BatteryDashboard() {
 
   useEffect(() => {
     void fetchBatteries();
-    return startOpsPoll(() => void fetchBatteries());
+    return startOpsPoll(fetchBatteries);
   }, []);
 
   const stats = useMemo(() => {

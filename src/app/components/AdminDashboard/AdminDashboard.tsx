@@ -112,9 +112,7 @@ export default function AdminDashboard({ setActiveDashboard }: AdminDashboardPro
 
   useEffect(() => {
     void loadDashboard();
-    return startOpsPoll(() => {
-      void loadDashboard();
-    });
+    return startOpsPoll(loadDashboard);
   }, []);
 
   useEffect(() => {

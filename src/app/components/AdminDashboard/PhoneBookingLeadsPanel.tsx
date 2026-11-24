@@ -45,9 +45,7 @@ export default function PhoneBookingLeadsPanel() {
 
   useEffect(() => {
     void load();
-    return startOpsPoll(() => {
-      void load();
-    });
+    return startOpsPoll(load);
   }, []);
 
   const submit = async () => {

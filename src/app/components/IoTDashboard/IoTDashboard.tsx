@@ -128,9 +128,7 @@ useEffect(() => {
   };
 
   loadIotData();
-  return startOpsPoll(() => {
-    void loadIotData();
-  });
+  return startOpsPoll(loadIotData);
 }, []);
 
 useEffect(() => {

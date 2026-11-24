@@ -12,7 +12,14 @@ import Partner from "@/models/Partner";
 import Transaction from "@/models/Transaction";
 import Hub from "@/models/Hub";
 
-let started = false;
+type ScaleIndexStatus = {
+  state: "pending" | "checking" | "ready" | "failed";
+  failed: string[];
+};
+
+let indexInitialization: Promise<void> | null = null;
+let indexState: ScaleIndexStatus["state"] = "pending";
+const failedIndexes = new Set<string>();
 
 async function createIndexSafe(
   create: () => Promise<unknown>,
@@ -21,18 +28,29 @@ async function createIndexSafe(
   try {
     await create();
   } catch (error) {
+    failedIndexes.add(label);
     console.error(`SCALE INDEX SKIPPED (${label}):`, error);
   }
 }
 
-export async function ensureScaleIndexes() {
-  if (started) return;
-  started = true;
+export function getScaleIndexStatus(): ScaleIndexStatus {
+  return { state: indexState, failed: Array.from(failedIndexes) };
+}
+
+export function ensureScaleIndexes(): Promise<ScaleIndexStatus> {
+  if (!indexInitialization) {
+    indexState = "checking";
+    indexInitialization = createScaleIndexes().then(() => {
+      indexState = failedIndexes.size ? "failed" : "ready";
+    });
+  }
+
+  return indexInitialization.then(getScaleIndexStatus);
+}
+
+async function createScaleIndexes() {
 
   await createIndexSafe(async () => {
-    try {
-      await Vehicle.collection.dropIndex("currentBookingId_1");
-    } catch {}
     try {
       await Vehicle.collection.createIndex(
         { currentBookingId: 1 },
@@ -55,9 +73,6 @@ export async function ensureScaleIndexes() {
   }, "vehicle currentBookingId");
 
   await createIndexSafe(async () => {
-    try {
-      await Rider.collection.dropIndex("currentBookingId_1");
-    } catch {}
     try {
       await Rider.collection.createIndex(
         { currentBookingId: 1 },
@@ -323,6 +338,22 @@ export async function ensureScaleIndexes() {
         { unique: true, background: true, name: "unique_iot_vehicle" }
       ),
     "iot vehicleId unique"
+  );
+  await createIndexSafe(
+    () =>
+      iot.collection.createIndex(
+        { gpsStatus: 1, updatedAt: -1 },
+        { background: true, name: "iot_gps_updated" }
+      ),
+    "iot gpsStatus updatedAt"
+  );
+  await createIndexSafe(
+    () =>
+      iot.collection.createIndex(
+        { alertType: 1, updatedAt: -1 },
+        { background: true, name: "iot_alert_updated" }
+      ),
+    "iot alertType updatedAt"
   );
   await createIndexSafe(
     () =>

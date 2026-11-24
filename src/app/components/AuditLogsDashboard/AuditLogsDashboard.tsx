@@ -42,7 +42,7 @@ export default function AuditLogsDashboard() {
     };
 
     void load();
-    return startOpsPoll(() => void load());
+    return startOpsPoll(load);
   }, [listPages]);
 
   const rows = useMemo(() => {
