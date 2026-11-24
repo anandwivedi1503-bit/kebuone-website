@@ -34,7 +34,8 @@ export type FestiveCampaign = {
     | "navratri"
     | "rakhi"
     | "newyear"
-    | "childrens";
+    | "childrens"
+    | "custom";
   start: string;
   end: string;
   /** Accent for logo glow (hex). */

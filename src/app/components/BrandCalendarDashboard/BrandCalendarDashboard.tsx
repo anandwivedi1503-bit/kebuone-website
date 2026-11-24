@@ -19,6 +19,7 @@ const THEMES = [
   ["rakhi", "Raksha Bandhan"],
   ["newyear", "New Year"],
   ["childrens", "Children’s Day"],
+  ["custom", "Custom day"],
   ["normal", "Normal theme (turn campaign off)"],
 ] as const;
 
@@ -242,6 +243,7 @@ export default function BrandCalendarDashboard() {
                 {THEMES.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>
             </label>
+            {form.theme === "custom" ? <p className="-mt-2 rounded-xl bg-blue-50 px-3 py-2 text-xs leading-5 text-blue-900 sm:col-span-2">Use Custom day for any date or occasion that is not listed. Set the campaign dates, copy, accent color, and poster below; the website and app use the same campaign data.</p> : null}
             <label className={labelClass}>
               Priority for overlapping campaigns
               <input className={inputClass} type="number" min={0} max={999} step={1} value={form.priority} onChange={(event) => setField("priority", Number(event.target.value))} />
