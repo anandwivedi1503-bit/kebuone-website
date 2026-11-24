@@ -49,8 +49,9 @@ export default function OperatingCitiesNotice({ compact = false, className = "" 
       </p>
       <p className="mt-1 text-sm leading-6 text-[#0A1134] sm:text-[15px]">
         EVUDDY is <strong>operating only in {label}</strong> right now — bookings, hub pickup, and
-        on-road support are limited to this city until we expand. You may still register from other
-        places; KYC stays on file and Book EV unlocks when your city goes live on the map.
+        on-road support are limited to this city until we expand. You can register from elsewhere
+        only if you plan to pick up from a Lucknow hub; your current location and Aadhaar address do
+        not need to be in Lucknow.
       </p>
     </div>
   );

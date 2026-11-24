@@ -455,9 +455,6 @@ export async function POST(req: Request) {
       );
     }
 
-    const cityAckError = pickupCityAckError(pickupCityAck, registrationClient);
-    if (cityAckError) errors.push(cityAckError);
-
     /*
      * Driving license is optional.
      */
@@ -995,6 +992,20 @@ if (drivingLicense) {
             "A rider with these details already exists.",
         },
         { status: 409 }
+      );
+    }
+
+    // Existing riders are returned above; this gate only applies to new accounts.
+    const cityAckError = pickupCityAckError(pickupCityAck, registrationClient);
+    if (cityAckError) {
+      return NextResponse.json(
+        {
+          success: false,
+          errorCode: "SERVICE_CITY_UNAVAILABLE",
+          errors: [cityAckError],
+          message: cityAckError,
+        },
+        { status: 422 }
       );
     }
 

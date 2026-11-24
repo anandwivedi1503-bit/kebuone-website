@@ -1006,11 +1006,6 @@ const validateStep = () => {
       return false;
     }
 
-    if (pickupCityAck !== "LUCKNOW" && pickupCityAck !== "OTHER") {
-      setError("Please confirm whether you are in Lucknow or another city");
-      return false;
-    }
-
     setFullName(validName);
     setPhone(validPhone);
     setEmail(validEmail);
@@ -1024,6 +1019,15 @@ const validateStep = () => {
   }
 
   if (step === 3) {
+    if (pickupCityAck !== "LUCKNOW") {
+      setError(
+        pickupCityAck === "OTHER"
+          ? "EVUDDY currently accepts new rider registrations for Lucknow pickups only. Select Lucknow only if you plan to collect from a Lucknow hub. Your current location and Aadhaar address may be elsewhere."
+          : "Select Lucknow as your intended pickup city to register. Your current location and Aadhaar address may be elsewhere."
+      );
+      return false;
+    }
+
     const validAadhaar = cleanDigits(aadhaar);
     const validLicense = cleanLicense(license);
 
@@ -2025,50 +2029,6 @@ before:to-[#18B368]
                         setError("");
                       }}
                     />
-                    <fieldset className="rounded-2xl border border-[#18B368]/25 bg-[#F4FAF7] px-4 py-4">
-                      <legend className="px-1 text-sm font-semibold text-[#0F172A]">
-                        Service city (required)
-                      </legend>
-                      <p className="mt-1 text-xs leading-5 text-[#5C635E]">
-                        EVUDDY operates in <strong>Lucknow only</strong> today. Pick the option that
-                        matches where you will pick up the scooter.
-                      </p>
-                      <div className="mt-3 space-y-2">
-                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent bg-white px-3 py-3 has-[:checked]:border-[#18B368]">
-                          <input
-                            type="radio"
-                            name="pickupCityAck"
-                            value="LUCKNOW"
-                            checked={pickupCityAck === "LUCKNOW"}
-                            onChange={() => {
-                              setPickupCityAck("LUCKNOW");
-                              setError("");
-                            }}
-                            className="mt-1"
-                          />
-                          <span className="text-sm text-[#0F172A]">
-                            I am in <strong>Lucknow</strong> (U.P.) and will use a Lucknow hub
-                          </span>
-                        </label>
-                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent bg-white px-3 py-3 has-[:checked]:border-[#18B368]">
-                          <input
-                            type="radio"
-                            name="pickupCityAck"
-                            value="OTHER"
-                            checked={pickupCityAck === "OTHER"}
-                            onChange={() => {
-                              setPickupCityAck("OTHER");
-                              setError("");
-                            }}
-                            className="mt-1"
-                          />
-                          <span className="text-sm text-[#0F172A]">
-                            I am in <strong>another city or state</strong> (register now; Book EV
-                            when we launch there)
-                          </span>
-                        </label>
-                      </div>
-                    </fieldset>
                   </div>
                 </>
               )}
@@ -2201,6 +2161,50 @@ Step 2 of 4
                   </h3>
 
                   <div className="space-y-5">
+                    <fieldset className="rounded-2xl border border-[#18B368]/25 bg-[#F4FAF7] px-4 py-4">
+                      <legend className="px-1 text-sm font-semibold text-[#0F172A]">
+                        Where do you plan to pick up? (required)
+                      </legend>
+                      <p className="mt-1 text-xs leading-5 text-[#5C635E]">
+                        New rider registration is currently for <strong>Lucknow</strong> pickups.
+                        You can register while elsewhere if you plan to collect from a Lucknow hub;
+                        your Aadhaar address does not need to be in Lucknow.
+                      </p>
+                      <div className="mt-3 space-y-2">
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent bg-white px-3 py-3 has-[:checked]:border-[#18B368]">
+                          <input
+                            type="radio"
+                            name="pickupCityAck"
+                            value="LUCKNOW"
+                            checked={pickupCityAck === "LUCKNOW"}
+                            onChange={() => {
+                              setPickupCityAck("LUCKNOW");
+                              setError("");
+                            }}
+                            className="mt-1"
+                          />
+                          <span className="text-sm text-[#0F172A]">
+                            I plan to pick up my EV from a <strong>Lucknow, Uttar Pradesh</strong> hub
+                          </span>
+                        </label>
+                        <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent bg-white px-3 py-3 has-[:checked]:border-[#18B368]">
+                          <input
+                            type="radio"
+                            name="pickupCityAck"
+                            value="OTHER"
+                            checked={pickupCityAck === "OTHER"}
+                            onChange={() => {
+                              setPickupCityAck("OTHER");
+                              setError("");
+                            }}
+                            className="mt-1"
+                          />
+                          <span className="text-sm text-[#0F172A]">
+                            I plan to pick up in another city (new registrations are not open there yet)
+                          </span>
+                        </label>
+                      </div>
+                    </fieldset>
                     <VoiceField
                       label="Aadhaar number *"
                       inputMode="numeric"

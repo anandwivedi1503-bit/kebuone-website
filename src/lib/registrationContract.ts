@@ -1,15 +1,9 @@
-/**
- * Shared registration rules for the website and the installed app.
- *
- * A phone keeps the app build it already has. A website deploy must not
- * reject that build. New answers are required only for clients that say
- * they can collect them.
- */
+/** Shared registration rules for the website and the installed app. */
 
 export type PickupCityAck = "" | "LUCKNOW" | "OTHER";
 
 export type RegistrationClient = {
-  /** web = current website. app = a build that names its capabilities. legacy = the app already on phones. */
+  /** web = current website. app = a build that names its capabilities. legacy = an older/unknown client. */
   kind: "web" | "app" | "legacy";
   /** True when this client has a screen for the Lucknow question. */
   asksPickupCity: boolean;
@@ -44,14 +38,19 @@ export function normalizePickupCityAck(value: unknown): PickupCityAck {
   return "";
 }
 
-/** Null when the request may continue. */
+/** Null when a new rider may be created. Existing riders are returned before this check. */
 export function pickupCityAckError(
   value: PickupCityAck,
   client: RegistrationClient
 ): string | null {
-  if (!client.asksPickupCity) return null;
-  if (value === "LUCKNOW" || value === "OTHER") return null;
-  return "Confirm whether you are in Lucknow or another city.";
+  if (value === "LUCKNOW") return null;
+  if (client.kind === "legacy" || (client.kind === "app" && !client.asksPickupCity)) {
+    return "EVUDDY currently accepts new rider registrations for Lucknow pickups only. Update the app, then select Lucknow if you plan to collect your EV from a Lucknow hub. Your Aadhaar address may be elsewhere.";
+  }
+  if (value === "OTHER") {
+    return "EVUDDY currently accepts new rider registrations for Lucknow pickups only. Select Lucknow only if you plan to collect your EV from a Lucknow hub. Your current location and Aadhaar address may be elsewhere.";
+  }
+  return "Select Lucknow as your intended pickup city to register. Your current location and Aadhaar address may be elsewhere.";
 }
 
 /** What both clients can read when they want the same payment rule. */
@@ -66,23 +65,27 @@ export function paymentContract() {
   };
 }
 
-/** What both clients can read when they want the same question. */
+/** What both clients can read when they want the same registration rule. */
 export function registrationContract() {
   return {
-    version: 1,
+    version: 2,
+    requiredForNewRiders: true,
+    activeServiceCity: "Lucknow",
+    pickupRequirement: "Collect the EV from a Lucknow hub.",
+    aadhaarAddressMustMatchServiceCity: false,
+    legacyApp: "Update required for new rider registration.",
     fields: [
       {
         key: "pickupCityAck",
-        requiredWhenClientAsks: true,
-        optionalForLegacyApp: true,
+        requiredForNewRiders: true,
         options: [
           {
             value: "LUCKNOW",
-            label: "I am in Lucknow (U.P.) and will use a Lucknow hub",
+            label: "I plan to pick up my EV from a Lucknow hub",
           },
           {
             value: "OTHER",
-            label: "I am in another city",
+            label: "I plan to pick up in another city (not available yet)",
           },
         ],
       },
