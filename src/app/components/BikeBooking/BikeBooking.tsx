@@ -261,6 +261,14 @@ const [pickupOtp, setPickupOtp] = useState("");
       completedAt?: string;
     }>
   >([]);
+  const [hasMoreReceipts, setHasMoreReceipts] = useState(false);
+  const [loadingMoreReceipts, setLoadingMoreReceipts] = useState(false);
+  const [hasMorePastRides, setHasMorePastRides] = useState(false);
+  const [loadingMorePastRides, setLoadingMorePastRides] = useState(false);
+  const receiptCursorRef = useRef("");
+  const pastRideCursorRef = useRef("");
+  const loadingMoreReceiptsRef = useRef(false);
+  const loadingMorePastRidesRef = useRef(false);
   const [otpSmsStatus, setOtpSmsStatus] = useState("");
   const otpSmsKeyRef = useRef("");
   const recoverPayRef = useRef(false);
@@ -349,25 +357,95 @@ const [pickupOtp, setPickupOtp] = useState("");
     );
   };
 
+  const loadReceipts = async (token: string, loadOlder = false) => {
+    if (loadOlder && (!receiptCursorRef.current || loadingMoreReceiptsRef.current)) return;
+    if (loadOlder) {
+      loadingMoreReceiptsRef.current = true;
+      setLoadingMoreReceipts(true);
+    }
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlder) params.set("cursor", receiptCursorRef.current);
+      const response = await fetch(`/api/receipts/mine?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (!data.success || !Array.isArray(data.data)) return;
+      const rows = data.data;
+      setReceipts((current) => {
+        const key = (row: (typeof rows)[number]) => String(row.transactionId || row.invoiceNumber || "");
+        if (loadOlder) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((row: (typeof rows)[number]) => !seen.has(key(row)))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      if (loadOlder || !receiptCursorRef.current) {
+        receiptCursorRef.current = String(data.pagination?.nextCursor || "");
+      }
+      setHasMoreReceipts(Boolean(data.pagination?.hasMore));
+    } catch (error) {
+      console.error("RIDER RECEIPTS LOAD ERROR:", error);
+    } finally {
+      if (loadOlder) {
+        loadingMoreReceiptsRef.current = false;
+        setLoadingMoreReceipts(false);
+      }
+    }
+  };
+
+  const loadPastRides = async (token: string, loadOlder = false) => {
+    if (loadOlder && (!pastRideCursorRef.current || loadingMorePastRidesRef.current)) return;
+    if (loadOlder) {
+      loadingMorePastRidesRef.current = true;
+      setLoadingMorePastRides(true);
+    }
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlder) params.set("cursor", pastRideCursorRef.current);
+      const response = await fetch(`/api/bookings/history?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+      });
+      const data = await response.json();
+      if (!data.success || !Array.isArray(data.data)) return;
+      const rows = data.data;
+      setPastRides((current) => {
+        if (loadOlder) {
+          const seen = new Set(current.map((row) => String(row.bookingId || "")));
+          return [...current, ...rows.filter((row: (typeof rows)[number]) => !seen.has(String(row.bookingId || "")))];
+        }
+        const seen = new Set(rows.map((row: (typeof rows)[number]) => String(row.bookingId || "")));
+        return [...rows, ...current.filter((row) => !seen.has(String(row.bookingId || "")))];
+      });
+      if (loadOlder || !pastRideCursorRef.current) {
+        pastRideCursorRef.current = String(data.pagination?.nextCursor || "");
+      }
+      setHasMorePastRides(Boolean(data.pagination?.hasMore));
+    } catch (error) {
+      console.error("RIDER HISTORY LOAD ERROR:", error);
+    } finally {
+      if (loadOlder) {
+        loadingMorePastRidesRef.current = false;
+        setLoadingMorePastRides(false);
+      }
+    }
+  };
+
   const loadReviewExtras = async (token: string) => {
     try {
-      const [reviewRes, historyRes] = await Promise.all([
+      const [reviewRes] = await Promise.all([
         fetch("/api/reviews/mine", {
           headers: { Authorization: `Bearer ${token}` },
           cache: "no-store",
         }),
-        fetch("/api/bookings/history", {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        }),
+        loadPastRides(token),
       ]);
       const reviewData = await reviewRes.json();
-      const historyData = await historyRes.json();
       if (reviewData.success && Array.isArray(reviewData.data)) {
         setMyReviews(reviewData.data);
-      }
-      if (historyData.success && Array.isArray(historyData.data)) {
-        setPastRides(historyData.data);
       }
     } catch {}
   };
@@ -566,14 +644,7 @@ useEffect(() => {
       setIsRentToOwn(String(active.rentalMode || "") === "Rent To Own");
       if (Number(active.pendingAmount || 0) <= 0.009) setPaymentSuccess(true);
       try {
-        const receiptRes = await fetch("/api/receipts/mine", {
-          headers: { Authorization: `Bearer ${firebaseIdToken}` },
-          cache: "no-store",
-        });
-        const receiptData = await receiptRes.json();
-        if (receiptData.success && Array.isArray(receiptData.data)) {
-          setReceipts(receiptData.data);
-        }
+        await loadReceipts(firebaseIdToken);
         await loadReviewExtras(firebaseIdToken);
       } catch {}
       if (
@@ -729,14 +800,7 @@ useEffect(() => {
         setStep((current) => (current === 4 ? 1 : current));
       }
       try {
-        const receiptRes = await fetch("/api/receipts/mine", {
-          headers: { Authorization: `Bearer ${token}` },
-          cache: "no-store",
-        });
-        const receiptData = await receiptRes.json();
-        if (receiptData.success && Array.isArray(receiptData.data)) {
-          setReceipts(receiptData.data);
-        }
+        await loadReceipts(token);
         await loadReviewExtras(token);
       } catch {}
     } catch (error) {
@@ -3096,7 +3160,6 @@ Payment Status
               String(ride.rideStatus) === "Completed" &&
               normalizeBookingId(ride.bookingId) !== normalizeBookingId(bookingId)
           )
-          .slice(0, 8)
           .map((ride) => {
           const existing = myReviews.find(
             (row) => normalizeBookingId(row.bookingId) === normalizeBookingId(ride.bookingId)
@@ -3127,6 +3190,16 @@ Payment Status
           );
         })}
       </ul>
+      {hasMorePastRides ? (
+        <button
+          type="button"
+          disabled={loadingMorePastRides}
+          onClick={() => void loadPastRides(firebaseIdToken, true)}
+          className="mt-3 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 disabled:opacity-60"
+        >
+          {loadingMorePastRides ? "Loading…" : "Load older rides"}
+        </button>
+      ) : null}
     </div>
 </div>
 )}
@@ -3140,7 +3213,7 @@ Payment Status
       </p>
       {receipts.length ? (
       <ul className="mt-2 space-y-1 text-xs text-emerald-950">
-        {receipts.slice(0, 8).map((row) => (
+        {receipts.map((row) => (
           <li key={String(row.transactionId)}>
             {row.invoiceNumber || row.transactionId} · ₹{Number(row.amount || 0).toFixed(2)} ·{" "}
             {row.paymentMethod} · {row.createdAt ? new Date(row.createdAt).toLocaleString("en-IN") : ""}
@@ -3150,6 +3223,16 @@ Payment Status
       ) : (
         <p className="mt-2 text-xs text-emerald-800">Receipts appear as soon as today’s payment is captured.</p>
       )}
+      {hasMoreReceipts ? (
+        <button
+          type="button"
+          disabled={loadingMoreReceipts}
+          onClick={() => void loadReceipts(firebaseIdToken, true)}
+          className="mt-3 rounded-xl border border-emerald-200 bg-white px-4 py-2 text-xs font-bold text-emerald-900 disabled:opacity-60"
+        >
+          {loadingMoreReceipts ? "Loading…" : "Load older receipts"}
+        </button>
+      ) : null}
     </div>
     </div>
 ) : null}

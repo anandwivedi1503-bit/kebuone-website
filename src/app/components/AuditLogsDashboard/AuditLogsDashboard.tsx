@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
@@ -22,28 +22,49 @@ type AuditRow = {
 
 export default function AuditLogsDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditRow[]>([]);
-  const [listPages, setListPages] = useState(1);
   const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const cursorRef = useRef("");
+  const loadingMoreRef = useRef(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const auditRes = await fetch(
-          `/api/audit-logs?limit=${Math.min(500, 80 * listPages)}&page=1`,
-          { cache: "no-store" }
-        );
-        const auditData = await auditRes.json();
-        setAuditLogs(Array.isArray(auditData.data) ? auditData.data : []);
-        setHasMore(Boolean(auditData.pagination?.hasMore));
-      } finally {
-        setLoading(false);
+  const load = async (loadOlder = false) => {
+    if (loadOlder && (!cursorRef.current || loadingMoreRef.current)) return;
+    if (loadOlder) {
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+    }
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlder) params.set("cursor", cursorRef.current);
+      const auditRes = await fetch(`/api/audit-logs?${params.toString()}`, { cache: "no-store" });
+      const auditData = await auditRes.json();
+      if (!auditRes.ok || auditData.success === false) throw new Error(auditData.error || "Unable to load audit records.");
+      const rows = Array.isArray(auditData.data) ? auditData.data : [];
+      setAuditLogs((current) => {
+        const key = (item: AuditRow) => String(item._id || `${item.action}-${item.createdAt}`);
+        if (loadOlder) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((row: AuditRow) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      if (loadOlder || !cursorRef.current) cursorRef.current = String(auditData.pagination?.nextCursor || "");
+      setHasMore(Boolean(auditData.pagination?.hasMore));
+    } finally {
+      setLoading(false);
+      if (loadOlder) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
       }
-    };
+    }
+  };
 
+  useEffect(() => {
     void load();
     return startOpsPoll(load);
-  }, [listPages]);
+  }, []);
 
   const rows = useMemo(() => {
     return auditLogs.map((item) => ({
@@ -111,10 +132,11 @@ export default function AuditLogsDashboard() {
           <div className="mt-6 flex justify-center">
             <button
               type="button"
-              onClick={() => setListPages((pages) => pages + 1)}
+              disabled={loadingMore}
+              onClick={() => void load(true)}
               className="rounded-xl border border-slate-200 bg-white px-6 py-3 font-bold text-slate-800"
             >
-              Load more
+              {loadingMore ? "Loading…" : "Load older audit records"}
             </button>
           </div>
         ) : null}

@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -91,6 +92,10 @@ type RidersApiResponse = {
   success?: boolean;
 
   data?: unknown;
+
+  pagination?: { hasMore?: boolean; nextCursor?: string };
+
+  summary?: { total?: number; pendingKyc?: number; approvedKyc?: number; rejectedKyc?: number };
 
   message?: string;
 };
@@ -292,6 +297,11 @@ export default function KYCDashboard() {
     useState(() => consumeOpsFocus());
 
   const [deskRider, setDeskRider] = useState<Rider | null>(null);
+  const riderCursorRef = useRef("");
+  const loadingMoreRef = useRef(false);
+  const [hasMoreRiders, setHasMoreRiders] = useState(false);
+  const [loadingMoreRiders, setLoadingMoreRiders] = useState(false);
+  const [riderSummary, setRiderSummary] = useState<RidersApiResponse["summary"]>({});
 
   /* =======================================================
      LOAD RIDERS
@@ -299,13 +309,21 @@ export default function KYCDashboard() {
 
   const loadRiders =
     useCallback(
-      async () => {
+      async (append = false) => {
+        if (append && (!riderCursorRef.current || loadingMoreRef.current)) return;
+        if (append) {
+          loadingMoreRef.current = true;
+          setLoadingMoreRiders(true);
+        }
         try {
           setError("");
 
+          const params = new URLSearchParams({ limit: "100" });
+          if (append) params.set("cursor", riderCursorRef.current);
+
           const response =
             await fetch(
-              "/api/riders",
+              `/api/riders?${params.toString()}`,
               {
                 method: "GET",
 
@@ -377,9 +395,19 @@ export default function KYCDashboard() {
                   )
               );
 
-          setRiders(
-            normalized
-          );
+          setRiders((current) => {
+            if (append) {
+              const seen = new Set(current.map((rider) => rider._id));
+              return [...current, ...normalized.filter((rider) => !seen.has(rider._id))];
+            }
+            const seen = new Set(normalized.map((rider) => rider._id));
+            return [...normalized, ...current.filter((rider) => !seen.has(rider._id))];
+          });
+          if (append || !riderCursorRef.current) {
+            riderCursorRef.current = String(result.pagination?.nextCursor || "");
+          }
+          setHasMoreRiders(Boolean(result.pagination?.hasMore));
+          if (result.summary) setRiderSummary(result.summary);
         } catch (loadError) {
           console.error(
             "KYC LOAD RIDERS ERROR:",
@@ -394,6 +422,10 @@ export default function KYCDashboard() {
           );
         } finally {
           setLoading(false);
+          if (append) {
+            setLoadingMoreRiders(false);
+            loadingMoreRef.current = false;
+          }
         }
       },
       []
@@ -414,39 +446,39 @@ export default function KYCDashboard() {
   ======================================================= */
 
   const totalApplications =
-    riders.length;
+    Number(riderSummary?.total ?? riders.length);
 
   const pendingApplications =
     useMemo(
-      () =>
+      () => riderSummary?.pendingKyc ??
         riders.filter(
           (rider) =>
             rider.kycStatus ===
             "Pending"
         ).length,
-      [riders]
+      [riders, riderSummary]
     );
 
   const approvedApplications =
     useMemo(
-      () =>
+      () => riderSummary?.approvedKyc ??
         riders.filter(
           (rider) =>
             rider.kycStatus ===
             "Approved"
         ).length,
-      [riders]
+      [riders, riderSummary]
     );
 
   const rejectedApplications =
     useMemo(
-      () =>
+      () => riderSummary?.rejectedKyc ??
         riders.filter(
           (rider) =>
             rider.kycStatus ===
             "Rejected"
         ).length,
-      [riders]
+      [riders, riderSummary]
     );
 
   const visibleRiders =
@@ -1286,6 +1318,18 @@ export default function KYCDashboard() {
           </table>
         </div>
       </DashboardCard>
+      {hasMoreRiders ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMoreRiders}
+            onClick={() => void loadRiders(true)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+          >
+            {loadingMoreRiders ? "Loading…" : "Load older KYC records"}
+          </button>
+        </div>
+      ) : null}
     </PageContainer>
   );
 }

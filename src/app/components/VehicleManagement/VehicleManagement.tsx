@@ -43,15 +43,15 @@ useEffect(() => {
 
   const loadFleetStats = async () => {
     try {
-      const res = await fetch("/api/vehicles", { cache: "no-store" });
+      const res = await fetch("/api/vehicles?limit=1", { cache: "no-store" });
       const data = await res.json();
-      const list = Array.isArray(data.data) ? data.data : [];
+      const summary = data.summary || {};
       setFleetStats({
-        total: list.length,
-        available: list.filter((item: { vehicleStatus?: string }) => item.vehicleStatus === "Available").length,
-        online: list.filter((item: { gpsStatus?: string }) => String(item.gpsStatus || "").toUpperCase() === "ONLINE").length,
-        locked: list.filter((item: { lockStatus?: string }) => item.lockStatus === "Locked").length,
-        rto: list.filter((item: { registrationType?: string }) => item.registrationType === "RTO").length,
+        total: Number(summary.total || 0),
+        available: Number(summary.available || 0),
+        online: Number(summary.online || 0),
+        locked: Number(summary.locked || 0),
+        rto: Number(summary.rto || 0),
       });
     } catch {
       /* keep last known stats */

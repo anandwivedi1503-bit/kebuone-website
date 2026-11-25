@@ -18,12 +18,18 @@ import {
   staffCanAccessBooking,
 } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
+import {
+  applyCreatedCursor,
+  listResponseFromPage,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
 import Booking from "@/models/Booking";
 import Vehicle from "@/models/Vehicle";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.swaps);
     if (gate.error) return gate.error;
@@ -35,11 +41,37 @@ export async function GET() {
       await resolveHubScope(gate.session),
       ["hubId"]
     );
-    const swaps = await BatterySwap.find(filter).sort({ createdAt: -1 }).limit(300).lean();
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const summaryFilter = { ...filter };
+    applyCreatedCursor(filter, cursor);
+    const [swaps, summaryRows] = await Promise.all([
+      BatterySwap.find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(cursor ? 0 : skip)
+        .limit(limit + 1)
+        .lean(),
+      cursor ? Promise.resolve([]) : BatterySwap.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            completed: { $sum: { $cond: [{ $eq: ["$status", "COMPLETED"] }, 1, 0] } },
+            pending: { $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] } },
+          },
+        },
+      ]),
+    ]);
+    const payload = listResponseFromPage(swaps, cursor ? 1 : page, limit);
 
     return NextResponse.json({
-      success: true,
-      data: swaps,
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as
+          | { createdAt?: unknown; _id?: unknown }
+          | undefined
+      ),
+      ...(cursor ? {} : { summary: summaryRows[0] || { total: 0, completed: 0, pending: 0 } }),
     });
   } catch {
     return NextResponse.json(

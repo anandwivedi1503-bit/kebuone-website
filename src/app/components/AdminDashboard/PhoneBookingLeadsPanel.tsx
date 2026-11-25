@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Phone, Plus } from "lucide-react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
@@ -34,13 +34,43 @@ const emptyForm = {
 
 export default function PhoneBookingLeadsPanel() {
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const cursorRef = useRef("");
+  const loadingMoreRef = useRef(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  const load = async () => {
-    const res = await fetch("/api/phone-booking-leads", { cache: "no-store" });
-    const data = await res.json();
-    if (data.success) setLeads(data.data || []);
+  const load = async (loadOlder = false) => {
+    if (loadOlder && (!cursorRef.current || loadingMoreRef.current)) return;
+    if (loadOlder) {
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
+    }
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlder) params.set("cursor", cursorRef.current);
+      const res = await fetch(`/api/phone-booking-leads?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (data.success) {
+        const rows = Array.isArray(data.data) ? data.data : [];
+        setLeads((current) => {
+          if (loadOlder) {
+            const seen = new Set(current.map((row) => row._id));
+            return [...current, ...rows.filter((row: Lead) => !seen.has(row._id))];
+          }
+          const seen = new Set(rows.map((row: Lead) => row._id));
+          return [...rows, ...current.filter((row) => !seen.has(row._id))];
+        });
+        if (loadOlder || !cursorRef.current) cursorRef.current = String(data.pagination?.nextCursor || "");
+        setHasMore(Boolean(data.pagination?.hasMore));
+      }
+    } finally {
+      if (loadOlder) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -198,6 +228,16 @@ export default function PhoneBookingLeadsPanel() {
               </tbody>
             </table>
           </div>
+          {hasMore ? (
+            <button
+              type="button"
+              disabled={loadingMore}
+              onClick={() => void load(true)}
+              className="mt-3 w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 disabled:opacity-60"
+            >
+              {loadingMore ? "Loading…" : "Load older call-in leads"}
+            </button>
+          ) : null}
         </div>
       </DashboardCard>
     </>

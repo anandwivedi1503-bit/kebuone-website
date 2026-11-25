@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
+import { applyCreatedCursor, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import {
   firebaseUserOwnsRider,
   getVerifiedFirebaseUser,
@@ -42,18 +43,29 @@ export async function GET(req: Request) {
       .lean();
     const ids = bookings.map((row) => row.bookingId).filter(Boolean);
 
-    const receipts = await Transaction.find({
+    const parsed = parseListQuery(req);
+    const limit = Math.min(parsed.limit, 100);
+    const filter: Record<string, unknown> = {
       bookingId: { $in: ids },
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
-    })
-      .sort({ createdAt: -1 })
-      .limit(40)
+    };
+    applyCreatedCursor(filter, parsed.cursor);
+    const rows = await Transaction.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(parsed.cursor ? 0 : parsed.skip)
+      .limit(limit + 1)
       .select(
         "transactionId bookingId amount gstAmount cgstAmount sgstAmount paymentMethod invoiceNumber remarks createdAt status"
       )
       .lean();
+    const payload = listResponseFromPage(rows, parsed.cursor ? 1 : parsed.page, limit);
 
-    return NextResponse.json({ success: true, data: receipts });
+    return NextResponse.json(
+      withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined
+      )
+    );
   } catch (error) {
     console.error("RECEIPTS MINE ERROR:", error);
     return NextResponse.json(

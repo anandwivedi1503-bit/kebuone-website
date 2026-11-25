@@ -11,6 +11,7 @@ import {
 } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { denyIfRiderOutOfHub, idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
+import { applyCreatedCursor, listResponseFromPage, withNextCursor } from "@/lib/listQuery";
 
 export async function GET(req: Request) {
   try {
@@ -25,6 +26,7 @@ export async function GET(req: Request) {
     const rawPage = Number(
       searchParams.get("page") || 1
     );
+    const cursor = String(searchParams.get("cursor") || "").trim();
 
     const rawLimit = Number(
       searchParams.get("limit") || 25
@@ -36,7 +38,7 @@ export async function GET(req: Request) {
 
     const limit = Number.isFinite(rawLimit)
       ? Math.min(
-          80,
+          100,
           Math.max(1, Math.floor(rawLimit))
         )
       : 25;
@@ -85,26 +87,27 @@ export async function GET(req: Request) {
       filter.status = status;
     }
 
+    applyCreatedCursor(filter, cursor);
     const transactions = await WalletTransaction.find(filter)
           .sort({
             createdAt: -1,
             _id: -1,
           })
-          .skip(skip)
+          .skip(cursor ? 0 : skip)
           .limit(limit + 1)
           .lean();
-    const hasMore = transactions.length > limit;
-    const pageRows = hasMore ? transactions.slice(0, limit) : transactions;
+    const payload = listResponseFromPage(transactions, cursor ? 1 : page, limit);
+    const pageRows = payload.data;
+    const pagedPayload = withNextCursor(
+      payload,
+      pageRows[pageRows.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined
+    );
 
     return NextResponse.json({
-      success: true,
-      data: pageRows,
+      ...pagedPayload,
       pagination: {
-        page,
-        limit,
-        total: skip + pageRows.length + (hasMore ? 1 : 0),
-        hasMore,
-        hasNextPage: hasMore,
+        ...pagedPayload.pagination,
+        hasNextPage: pagedPayload.pagination.hasMore,
       },
     });
   } catch (error) {

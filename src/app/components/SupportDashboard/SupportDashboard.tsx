@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus } from "@/lib/opsFocus";
@@ -16,7 +16,9 @@ import StatusBadge from "../DashboardUI/StatusBadge";
 export default function SupportDashboard(){
 
 const [tickets,setTickets]=useState<any[]>([]);
-const [ticketPages,setTicketPages]=useState(1);
+const ticketCursorRef=useRef("");
+const loadingMoreTicketsRef=useRef(false);
+const [loadingMoreTickets,setLoadingMoreTickets]=useState(false);
 const [ticketCounts,setTicketCounts]=useState({
   open: 0,
   inProgress: 0,
@@ -26,6 +28,11 @@ const [ticketCounts,setTicketCounts]=useState({
 });
 const [hasMoreTickets,setHasMoreTickets]=useState(false);
 const [refunds,setRefunds]=useState<any[]>([]);
+const refundCursorRef=useRef("");
+const loadingMoreRefundsRef=useRef(false);
+const [loadingMoreRefunds,setLoadingMoreRefunds]=useState(false);
+const [hasMoreRefunds,setHasMoreRefunds]=useState(false);
+const [refundSummary,setRefundSummary]=useState({ pendingCount: 0, refundedCount: 0, refundedAmount: 0 });
 const [selectedTicket,setSelectedTicket]=useState<any>(null);
 const [editingTicket,setEditingTicket]=useState<any>(null);
 
@@ -43,13 +50,30 @@ const queueTickets = tickets.filter((ticket) =>
   ticketQueue === "website" ? isWebsiteEnquiry(ticket) : !isWebsiteEnquiry(ticket)
 );
 
-const fetchTickets = async (pages = ticketPages) => {
-  const ticketRes = await fetch(
-    `/api/tickets?limit=${Math.min(500, 80 * pages)}&page=1`,
-    { cache: "no-store" }
-  );
+const fetchTickets = async (loadOlder = false) => {
+  if (loadOlder && (!ticketCursorRef.current || loadingMoreTicketsRef.current)) return [];
+  if (loadOlder) {
+    loadingMoreTicketsRef.current = true;
+    setLoadingMoreTickets(true);
+  }
+  try {
+  const params = new URLSearchParams({ limit: "100" });
+  if (loadOlder) params.set("cursor", ticketCursorRef.current);
+  const ticketRes = await fetch(`/api/tickets?${params.toString()}`, { cache: "no-store" });
   const ticketData = await ticketRes.json();
-  setTickets(ticketData.data || []);
+  const rows = Array.isArray(ticketData.data) ? ticketData.data : [];
+  setTickets((current) => {
+    const key = (ticket: any) => String(ticket._id || ticket.ticketId);
+    if (loadOlder) {
+      const seen = new Set(current.map(key));
+      return [...current, ...rows.filter((ticket: any) => !seen.has(key(ticket)) && Boolean(seen.add(key(ticket))))];
+    }
+    const seen = new Set(rows.map(key));
+    return [...rows, ...current.filter((ticket) => !seen.has(key(ticket)))];
+  });
+  if (loadOlder || !ticketCursorRef.current) {
+    ticketCursorRef.current = String(ticketData.pagination?.nextCursor || "");
+  }
   setHasMoreTickets(Boolean(ticketData.pagination?.hasMore));
   if (ticketData.counts) {
     setTicketCounts({
@@ -60,20 +84,71 @@ const fetchTickets = async (pages = ticketPages) => {
       critical: Number(ticketData.counts.critical || 0),
     });
   }
-  return ticketData.data || [];
+  return rows;
+  } finally {
+    if (loadOlder) {
+      loadingMoreTicketsRef.current = false;
+      setLoadingMoreTickets(false);
+    }
+  }
+};
+
+const fetchRefunds = async (loadOlder = false) => {
+  if (loadOlder && (!refundCursorRef.current || loadingMoreRefundsRef.current)) return;
+  if (loadOlder) {
+    loadingMoreRefundsRef.current = true;
+    setLoadingMoreRefunds(true);
+  }
+  try {
+    const params = new URLSearchParams({ limit: "100" });
+    if (loadOlder) params.set("cursor", refundCursorRef.current);
+    const [refundRes, summaryRes] = await Promise.all([
+      fetch(`/api/refunds?${params.toString()}`, { cache: "no-store" }),
+      loadOlder ? Promise.resolve(null) : fetch("/api/refunds?summary=1", { cache: "no-store" }),
+    ]);
+    const refundData = await refundRes.json();
+    const summaryData = summaryRes ? await summaryRes.json() : null;
+    const rows = Array.isArray(refundData.data) ? refundData.data : [];
+    if (refundData.success) {
+      setRefunds((current) => {
+        const key = (refund: any) => String(refund._id || refund.refundId);
+        if (loadOlder) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((refund: any) => !seen.has(key(refund)))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((refund) => !seen.has(key(refund)))];
+      });
+      if (loadOlder || !refundCursorRef.current) {
+        refundCursorRef.current = String(refundData.pagination?.nextCursor || "");
+      }
+      setHasMoreRefunds(Boolean(refundData.pagination?.hasMore));
+    }
+    if (summaryData.success && summaryData.summary) {
+      setRefundSummary({
+        pendingCount: Number(summaryData.summary.pendingCount || 0),
+        refundedCount: Number(summaryData.summary.refundedCount || 0),
+        refundedAmount: Number(summaryData.summary.refundedAmount || 0),
+      });
+    }
+  } catch (error) {
+    console.error("SUPPORT REFUND LOAD ERROR:", error);
+  } finally {
+    if (loadOlder) {
+      loadingMoreRefundsRef.current = false;
+      setLoadingMoreRefunds(false);
+    }
+  }
 };
 
 const loadData = async () => {
-  await fetchTickets();
-  const refundRes = await fetch("/api/refunds?limit=200", { cache: "no-store" });
-  const refundData = await refundRes.json();
-  setRefunds(refundData.data || []);
+  await Promise.all([fetchTickets(), fetchRefunds()]);
 };
 
 useEffect(() => {
   void loadData();
   return startOpsPoll(loadData);
-}, [ticketPages]);
+}, []);
 
 const saveTicket = async () => {
 
@@ -116,21 +191,11 @@ const inProgressTickets=ticketCounts.inProgress;
 
 const resolvedTickets=ticketCounts.resolved;
 
-const pendingRefunds=refunds.filter(
-(refund)=> {
-  const status = String(refund.refundStatus||"").toUpperCase();
-  return status === "PROCESSING" || status === "PENDING";
-}
-).length;
+const pendingRefunds=refundSummary.pendingCount;
 
 const criticalTickets=ticketCounts.critical;
 
-const totalRefundAmount=refunds
-.filter((refund)=>String(refund.refundStatus||"").toUpperCase()==="REFUNDED")
-.reduce(
-(total,refund)=>total+Number(refund.amount||0),
-0
-);
+const totalRefundAmount=refundSummary.refundedAmount;
 
 const closedTickets=ticketCounts.closed;
 
@@ -696,10 +761,11 @@ Delete
   <div className="mt-6 flex justify-center">
     <button
       type="button"
-      onClick={() => setTicketPages((pages) => pages + 1)}
+      disabled={loadingMoreTickets}
+      onClick={() => void fetchTickets(true)}
       className="rounded-xl border border-[#18B368]/20 bg-white/90 px-6 py-3 font-bold text-[#0A1134] shadow-sm backdrop-blur-md hover:bg-[#18B368]/5"
     >
-      Load more
+      {loadingMoreTickets ? "Loading…" : "Load older tickets"}
     </button>
   </div>
 ) : null}
@@ -959,6 +1025,19 @@ transition
 </table>
 
 </div>
+
+{hasMoreRefunds ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      disabled={loadingMoreRefunds}
+      onClick={() => void fetchRefunds(true)}
+      className="rounded-xl border border-[#18B368]/20 bg-white/90 px-6 py-3 font-bold text-[#0A1134] shadow-sm disabled:opacity-60"
+    >
+      {loadingMoreRefunds ? "Loading…" : "Load older refunds"}
+    </button>
+  </div>
+) : null}
 
 </DashboardCard>
 

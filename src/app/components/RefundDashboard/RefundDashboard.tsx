@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus, openOpsDesk } from "@/lib/opsFocus";
@@ -18,7 +18,9 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 export default function RefundDashboard(){
 
 const [refunds,setRefunds]=useState<any[]>([]);
-const [listPages,setListPages]=useState(1);
+const refundCursorRef=useRef("");
+const loadingMoreRefundsRef=useRef(false);
+const [loadingMoreRefunds,setLoadingMoreRefunds]=useState(false);
 const [hasMoreRefunds,setHasMoreRefunds]=useState(false);
 const [search,setSearch] = useState(() => consumeOpsFocus())
 const [statusFilter, setStatusFilter] = useState("ALL");
@@ -41,20 +43,34 @@ const loadRazorpayScript = () =>
     script.onerror = () => resolve(false);
     document.body.appendChild(script);
   });
-const fetchRefunds = async () => {
+const fetchRefunds = async (loadOlder = false) => {
+  if (loadOlder && (!refundCursorRef.current || loadingMoreRefundsRef.current)) return;
+  if (loadOlder) {
+    loadingMoreRefundsRef.current = true;
+    setLoadingMoreRefunds(true);
+  }
 
   try {
-
-    const res = await fetch(
-      `/api/refunds?limit=${Math.min(500, 80 * listPages)}&page=1`,
-      { cache: "no-store" }
-    );
+    const params = new URLSearchParams({ limit: "100" });
+    if (loadOlder) params.set("cursor", refundCursorRef.current);
+    const res = await fetch(`/api/refunds?${params.toString()}`, { cache: "no-store" });
 
     const data = await res.json();
 
     if (data.success) {
-
-      setRefunds(data.data || []);
+      const rows = Array.isArray(data.data) ? data.data : [];
+      setRefunds((current) => {
+        const key = (refund: any) => String(refund._id || refund.refundId);
+        if (loadOlder) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((refund: any) => !seen.has(key(refund)) && Boolean(seen.add(key(refund))))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((refund) => !seen.has(key(refund)))];
+      });
+      if (loadOlder || !refundCursorRef.current) {
+        refundCursorRef.current = String(data.pagination?.nextCursor || "");
+      }
       setHasMoreRefunds(Boolean(data.pagination?.hasMore));
 
     }
@@ -66,6 +82,10 @@ const fetchRefunds = async () => {
   } finally {
 
     setLoading(false);
+    if (loadOlder) {
+      loadingMoreRefundsRef.current = false;
+      setLoadingMoreRefunds(false);
+    }
 
   }
 
@@ -77,7 +97,7 @@ useEffect(() => {
 
   return startOpsPoll(fetchRefunds);
 
-}, [listPages]);
+}, []);
 
 const processingRefunds=refunds.filter(
 (r)=>r.refundStatus==="PROCESSING" || r.refundStatus==="PENDING"
@@ -839,10 +859,11 @@ Done ✕
   <div className="mt-6 flex justify-center">
     <button
       type="button"
-      onClick={() => setListPages((pages) => pages + 1)}
+      disabled={loadingMoreRefunds}
+      onClick={() => void fetchRefunds(true)}
       className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
     >
-      Load more
+      {loadingMoreRefunds ? "Loading…" : "Load older refunds"}
     </button>
   </div>
 ) : null}

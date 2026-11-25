@@ -446,8 +446,9 @@ export async function GET(req: Request) {
       NOT_DELETED_FILTER,
       idInScopeOrWebsiteFilter("bookingId", bookingIds)
     );
-    const [openCount, inProgressCount, resolvedCount, closedCount, criticalCount] =
-      await Promise.all([
+    const [openCount, inProgressCount, resolvedCount, closedCount, criticalCount] = cursor
+      ? [0, 0, 0, 0, 0]
+      : await Promise.all([
         Ticket.countDocuments(mergeFilters(countBase, { status: "OPEN" })).maxTimeMS(2000),
         Ticket.countDocuments(
           mergeFilters(countBase, { status: "IN-PROGRESS" })
@@ -460,13 +461,13 @@ export async function GET(req: Request) {
       ]);
     return NextResponse.json({
       ...withNextCursor(payload, payload.data[payload.data.length - 1]),
-      counts: {
+      ...(!cursor ? { counts: {
         open: openCount,
         inProgress: inProgressCount,
         resolved: resolvedCount,
         closed: closedCount,
         critical: criticalCount,
-      },
+      } } : {}),
     });
   } catch (error) {
     return NextResponse.json(

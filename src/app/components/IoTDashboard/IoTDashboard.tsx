@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 declare global {
@@ -21,6 +21,11 @@ export default function IoTDashboard(){
 
 const [iotData,setIotData]=useState<any[]>([]);
 const [riderSafety,setRiderSafety]=useState<any[]>([]);
+const [iotSummary,setIotSummary]=useState<{ total?: number; online?: number; locked?: number; unlocked?: number }>({});
+const iotCursorRef = useRef("");
+const loadingMoreRef = useRef(false);
+const [hasMoreIot, setHasMoreIot] = useState(false);
+const [loadingMoreIot, setLoadingMoreIot] = useState(false);
 const [googleMapsApiKey, setGoogleMapsApiKey] = useState(
   process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""
 );
@@ -75,7 +80,7 @@ const validLocations = iotData.filter((iot) => {
     lat !== 0 &&
     lng !== 0
   );
-});
+}).slice(0, 200);
 
 const loadGoogleMapsScript = () => {
   return new Promise<boolean>((resolve) => {
@@ -113,11 +118,32 @@ const loadGoogleMapsScript = () => {
     document.body.appendChild(script);
   });
 };
-useEffect(() => {
-  const loadIotData = async () => {
-    const response = await fetch("/api/iot");
+const loadIotData = useCallback(async (append = false) => {
+  if (append && (!iotCursorRef.current || loadingMoreRef.current)) return;
+  if (append) {
+    loadingMoreRef.current = true;
+    setLoadingMoreIot(true);
+  }
+  try {
+    const params = new URLSearchParams({ limit: "100" });
+    if (append) params.set("cursor", iotCursorRef.current);
+    const response = await fetch(`/api/iot?${params.toString()}`, { cache: "no-store" });
     const data = await response.json();
-    setIotData(data.data || []);
+    if (!response.ok || data.success === false) throw new Error("Unable to load IoT vehicles.");
+    const rows = Array.isArray(data.data) ? data.data : [];
+    setIotData((current) => {
+      if (append) {
+        const seen = new Set(current.map((row) => String(row._id)));
+        return [...current, ...rows.filter((row: any) => !seen.has(String(row._id)))];
+      }
+      const seen = new Set(rows.map((row: any) => String(row._id)));
+      return [...rows, ...current.filter((row) => !seen.has(String(row._id)))];
+    });
+    if (data.summary) setIotSummary(data.summary);
+    if (append || !iotCursorRef.current) {
+      iotCursorRef.current = String(data.pagination?.nextCursor || "");
+    }
+    setHasMoreIot(Boolean(data.pagination?.hasMore));
     try {
       const safetyRes = await fetch("/api/admin/rider-safety", { cache: "no-store" });
       const safetyJson = await safetyRes.json();
@@ -125,11 +151,20 @@ useEffect(() => {
     } catch {
       setRiderSafety([]);
     }
-  };
+  } catch (error) {
+    console.error("IOT DASHBOARD LOAD ERROR:", error);
+  } finally {
+    if (append) {
+      loadingMoreRef.current = false;
+      setLoadingMoreIot(false);
+    }
+  }
+}, []);
 
+useEffect(() => {
   loadIotData();
   return startOpsPoll(loadIotData);
-}, []);
+}, [loadIotData]);
 
 useEffect(() => {
   const renderMap = async () => {
@@ -322,31 +357,24 @@ return gpsStatus || "ONLINE";
 const getLockStatus = (status: unknown) =>
   String(status || "").trim().toUpperCase();
 
-const onlineVehicles = iotData.filter(
+const onlineVehicles = Number(iotSummary.online ?? iotData.filter(
 (iot)=>
 getGpsStatus(
 iot.gpsStatus,
 iot.updatedAt,
 iot.createdAt
 )==="ONLINE"
-).length;
+).length);
 
-const offlineVehicles = iotData.filter(
-(iot)=>
-getGpsStatus(
-iot.gpsStatus,
-iot.updatedAt,
-iot.createdAt
-)==="OFFLINE"
-).length;
+const offlineVehicles = Math.max(0, Number(iotSummary.total ?? iotData.length) - onlineVehicles);
 
-const lockedVehicles = iotData.filter(
+const lockedVehicles = Number(iotSummary.locked ?? iotData.filter(
   (iot) => getLockStatus(iot.lockStatus) === "LOCKED"
-).length;
+).length);
 
-const unlockedVehicles = iotData.filter(
+const unlockedVehicles = Number(iotSummary.unlocked ?? iotData.filter(
   (iot) => getLockStatus(iot.lockStatus) === "UNLOCKED"
-).length;
+).length);
 
 return(
 
@@ -649,6 +677,20 @@ Low Battery
 </div>
 
 </DashboardCard>
+
+<div className="my-4 flex flex-col items-center justify-center gap-3 text-sm text-slate-500 sm:flex-row">
+  <span>Showing {iotData.length} of {Number(iotSummary.total ?? iotData.length)} vehicles; map markers are limited to the first 200 GPS readings.</span>
+  {hasMoreIot ? (
+    <button
+      type="button"
+      disabled={loadingMoreIot}
+      onClick={() => void loadIotData(true)}
+      className="rounded-xl border border-slate-200 bg-white px-5 py-3 font-bold text-slate-700 disabled:opacity-60"
+    >
+      {loadingMoreIot ? "Loading…" : "Load older vehicle records"}
+    </button>
+  ) : null}
+</div>
 
 <SectionHeader
 title="Geofence Alerts"

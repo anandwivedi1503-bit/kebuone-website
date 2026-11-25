@@ -8,6 +8,12 @@ import Booking from "@/models/Booking";
 import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { providedSecretMatches } from "@/lib/timingSafe";
 import { effectiveGpsStatus, hasRecentVehiclePing } from "@/lib/vehicleTelemetry";
+import {
+  applyCreatedCursor,
+  listResponseFromPage,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
@@ -36,7 +42,7 @@ function isDeviceAuthenticated(req: Request) {
   );
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.iot);
     if (gate.error) return gate.error;
@@ -50,13 +56,71 @@ export async function GET() {
       await resolveHubScope(gate.session),
       ["currentHub"]
     );
-    const vehicles = await Vehicle.find(vehicleFilter)
-      .select(
-        "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt currentHub currentBatteryId currentBookingId"
-      )
-      .sort({ updatedAt: -1 })
-      .limit(500)
-      .lean();
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const summaryFilter = { ...vehicleFilter };
+    applyCreatedCursor(vehicleFilter, cursor);
+    const freshSince = new Date(Date.now() - 15 * 60 * 1000);
+    const [vehicles, summaryRows] = await Promise.all([
+      Vehicle.find(vehicleFilter)
+        .select(
+          "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt currentHub currentBatteryId currentBookingId"
+        )
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(cursor ? 0 : skip)
+        .limit(limit + 1)
+        .lean(),
+      cursor ? Promise.resolve([]) : Vehicle.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            online: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gte: ["$lastPingTime", freshSince] },
+                      { $eq: [{ $toUpper: { $ifNull: ["$gpsStatus", ""] } }, "ONLINE"] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            locked: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gte: ["$lastPingTime", freshSince] },
+                      { $eq: [{ $toUpper: { $ifNull: ["$lockStatus", ""] } }, "LOCKED"] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            unlocked: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gte: ["$lastPingTime", freshSince] },
+                      { $eq: [{ $toUpper: { $ifNull: ["$lockStatus", ""] } }, "UNLOCKED"] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ]),
+    ]);
 
     const vehicleIds = vehicles.map((vehicle) => vehicle.vehicleId);
     const latestAlerts = vehicleIds.length
@@ -92,14 +156,21 @@ export async function GET() {
         currentHub: vehicle.currentHub || "",
         currentBatteryId: vehicle.currentBatteryId || "",
         currentBookingId: vehicle.currentBookingId || "",
+        createdAt: vehicle.createdAt,
         updatedAt: vehicle.lastPingTime || null,
         alertType: telemetryFresh ? alertByVehicle.get(vehicle.vehicleId) || "" : "",
       };
     });
 
+    const payload = listResponseFromPage(iotData, cursor ? 1 : page, limit);
     return NextResponse.json({
-      success: true,
-      data: iotData,
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as
+          | { createdAt?: unknown; _id?: unknown }
+          | undefined
+      ),
+      ...(cursor ? {} : { summary: summaryRows[0] || { total: 0, online: 0, locked: 0, unlocked: 0 } }),
     });
   } catch {
     return NextResponse.json(

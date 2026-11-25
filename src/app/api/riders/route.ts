@@ -22,6 +22,12 @@ import {
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { riderQualifiesForFirstRideFree } from "@/lib/firstRide";
 import { idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
+import {
+  applyCreatedCursor,
+  listResponse,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 
 import {
   ensureRiderWallet,
@@ -1776,8 +1782,12 @@ export async function GET(req: Request) {
     };
     Object.assign(riderFilter, idInScopeFilter("riderId", scopedRiders));
 
-    const riders =
-  await Rider.find(riderFilter)
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const summaryFilter = { ...riderFilter };
+    applyCreatedCursor(riderFilter, cursor);
+
+    const [riderRows, riderSummaryRows] = await Promise.all([
+      Rider.find(riderFilter)
         .select(
           [
             "_id",
@@ -1802,11 +1812,29 @@ export async function GET(req: Request) {
           ].join(" ")
         )
         .sort({
-          createdAt:
-            -1,
+          createdAt: -1,
+          _id: -1,
         })
-        .limit(300)
-        .lean<AdminRiderRecord[]>();
+        .skip(cursor ? 0 : skip)
+        .limit(limit + 1)
+        .lean<AdminRiderRecord[]>(),
+      cursor ? Promise.resolve([]) : Rider.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            active: { $sum: { $cond: [{ $and: [{ $eq: ["$status", "Active"] }, { $eq: ["$bookingEnabled", true] }, { $ne: ["$blacklisted", true] }] }, 1, 0] } },
+            suspended: { $sum: { $cond: [{ $eq: ["$status", "Suspended"] }, 1, 0] } },
+            pendingKyc: { $sum: { $cond: [{ $eq: ["$kycStatus", "Pending"] }, 1, 0] } },
+            approvedKyc: { $sum: { $cond: [{ $eq: ["$kycStatus", "Approved"] }, 1, 0] } },
+            rejectedKyc: { $sum: { $cond: [{ $eq: ["$kycStatus", "Rejected"] }, 1, 0] } },
+          },
+        },
+      ]),
+    ]);
+    const hasMoreRiders = riderRows.length > limit;
+    const riders = hasMoreRiders ? riderRows.slice(0, limit) : riderRows;
 
     /* =====================================================
        FETCH WALLETS
@@ -1899,11 +1927,30 @@ export async function GET(req: Request) {
        RESPONSE
     ===================================================== */
 
-    return NextResponse.json({
-      success: true,
-
+    const payload = listResponse(
       data,
-    });
+      (cursor ? 0 : skip) + data.length + (hasMoreRiders ? 1 : 0),
+      cursor ? 1 : page,
+      limit
+    );
+    return NextResponse.json(
+      {
+        ...withNextCursor(
+          payload,
+          payload.data[payload.data.length - 1] as
+            | { createdAt?: unknown; _id?: unknown }
+            | undefined
+        ),
+        ...(cursor ? {} : { summary: riderSummaryRows[0] || {
+          total: 0,
+          active: 0,
+          suspended: 0,
+          pendingKyc: 0,
+          approvedKyc: 0,
+          rejectedKyc: 0,
+        } }),
+      }
+    );
   } catch (error: unknown) {
     console.error(
       "GET RIDERS ERROR:",

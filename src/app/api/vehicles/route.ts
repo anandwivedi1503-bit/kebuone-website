@@ -23,6 +23,12 @@ import {
 } from "@/lib/rentalPlans";
 import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { effectiveGpsStatus, hasRecentVehiclePing } from "@/lib/vehicleTelemetry";
+import {
+  applyCreatedCursor,
+  listResponseFromPage,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 
 const registrationTypes = [
   "RTO",
@@ -528,16 +534,43 @@ export async function GET(req: Request) {
         $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
       };
       applyHubScope(filter, await resolveHubScope(session), ["currentHub"]);
-      const vehicles = await Vehicle.find(filter)
+      const { page, limit, skip, cursor } = parseListQuery(req);
+      const query = new URL(req.url).searchParams;
+      const pageRequested = query.has("limit") || query.has("page") || query.has("cursor");
+      const pageLimit = pageRequested ? limit : 500;
+      const summaryFilter = { ...filter };
+      applyCreatedCursor(filter, cursor);
+      const freshSince = new Date(Date.now() - 15 * 60 * 1000);
+      const [vehicleRows, summaryRows] = await Promise.all([
+        Vehicle.find(filter)
         .sort({
-          updatedAt: -1,
+          createdAt: -1,
+          _id: -1,
         })
-        .limit(500)
-        .lean();
-
-      return NextResponse.json({
-        success: true,
-        data: vehicles.map((vehicle) => {
+        .skip(cursor ? 0 : skip)
+        .limit(pageLimit + 1)
+        .lean(),
+        cursor ? Promise.resolve([]) : Vehicle.aggregate([
+          {
+            $match: summaryFilter,
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              available: { $sum: { $cond: [{ $eq: ["$vehicleStatus", "Available"] }, 1, 0] } },
+              inRide: { $sum: { $cond: [{ $eq: ["$vehicleStatus", "In Ride"] }, 1, 0] } },
+              maintenance: { $sum: { $cond: [{ $eq: ["$vehicleStatus", "Maintenance"] }, 1, 0] } },
+              lowBattery: { $sum: { $cond: [{ $and: [{ $gte: ["$lastPingTime", freshSince] }, { $lt: ["$batteryPercentage", 20] }] }, 1, 0] } },
+              rto: { $sum: { $cond: [{ $eq: ["$registrationType", "RTO"] }, 1, 0] } },
+              online: { $sum: { $cond: [{ $and: [{ $gte: ["$lastPingTime", freshSince] }, { $eq: [{ $toUpper: { $ifNull: ["$gpsStatus", ""] } }, "ONLINE"] }] }, 1, 0] } },
+              locked: { $sum: { $cond: [{ $and: [{ $gte: ["$lastPingTime", freshSince] }, { $eq: [{ $toUpper: { $ifNull: ["$lockStatus", ""] } }, "LOCKED"] }] }, 1, 0] } },
+            },
+          },
+        ]),
+      ]);
+      const payload = listResponseFromPage(
+        vehicleRows.map((vehicle) => {
           const telemetryFresh = hasRecentVehiclePing(vehicle.lastPingTime);
           return {
             ...vehicle,
@@ -554,6 +587,31 @@ export async function GET(req: Request) {
             rentToOwnMonths: rtoTenureMonths(vehicle.rentToOwnMonths),
           };
         }),
+        cursor ? 1 : page,
+        pageLimit
+      );
+      const response = pageRequested
+        ? withNextCursor(
+            payload,
+            payload.data[payload.data.length - 1] as
+              | { createdAt?: unknown; _id?: unknown }
+              | undefined
+          )
+        : { ...payload, pagination: undefined };
+
+      return NextResponse.json({
+        ...response,
+        data: response.data,
+        ...(cursor ? {} : { summary: summaryRows[0] || {
+          total: 0,
+          available: 0,
+          inRide: 0,
+          maintenance: 0,
+          lowBattery: 0,
+          rto: 0,
+          online: 0,
+          locked: 0,
+        } }),
       });
     }
 

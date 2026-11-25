@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 import {
@@ -31,25 +31,26 @@ import CashHandoverPanel from "./CashHandoverPanel";
 export default function TransactionDashboard(){
 
 const [transactions,setTransactions]=useState<any[]>([]);
-const [listPages,setListPages]=useState(1);
 const [hasMoreTransactions,setHasMoreTransactions]=useState(false);
+const [loadingMoreTransactions,setLoadingMoreTransactions]=useState(false);
+const nextCursorRef=useRef("");
+const loadingMoreRef=useRef(false);
 const [search,setSearch]=useState("");
 const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
 const [loading, setLoading] = useState(true);
 
-useEffect(() => {
-
-fetchTransactions();
-
-return startOpsPoll(fetchTransactions);
-
-},[listPages]);
-
-const fetchTransactions = async () => {
+const fetchTransactions = useCallback(async (append = false) => {
+if (append && (!nextCursorRef.current || loadingMoreRef.current)) return;
+if (append) {
+  loadingMoreRef.current = true;
+  setLoadingMoreTransactions(true);
+}
 
 try {
 
-const res = await fetch(`/api/transactions?limit=${Math.min(500, 80 * listPages)}&page=1`, { cache: "no-store" });
+const params = new URLSearchParams({ limit: "80" });
+if (append) params.set("cursor", nextCursorRef.current);
+const res = await fetch(`/api/transactions?${params.toString()}`, { cache: "no-store" });
 
 const data = await res.json();
 
@@ -61,18 +62,43 @@ return;
 
 }
 
-setTransactions(data.data || []);
+const rows = Array.isArray(data.data) ? data.data : [];
+setTransactions((current) => {
+  if (append) {
+    const seen = new Set(current.map((item) => String(item._id)));
+    return [...current, ...rows.filter((item: { _id?: string }) => !seen.has(String(item._id)))];
+  }
+  if (!nextCursorRef.current) return rows;
+  const seen = new Set(rows.map((item: { _id?: string }) => String(item._id)));
+  return [...rows, ...current.filter((item) => !seen.has(String(item._id)))];
+});
+if (append || !nextCursorRef.current) {
+  nextCursorRef.current = String(data.pagination?.nextCursor || "");
+}
 setHasMoreTransactions(Boolean(data.pagination?.hasMore));
 
+}
+
+catch (error) {
+  console.error("TRANSACTION DASHBOARD LOAD ERROR:", error);
 }
 
 finally {
 
 setLoading(false);
+if (append) {
+  loadingMoreRef.current = false;
+  setLoadingMoreTransactions(false);
+}
 
 }
 
-};
+}, []);
+
+useEffect(() => {
+  void fetchTransactions();
+  return startOpsPoll(() => void fetchTransactions());
+}, [fetchTransactions]);
 
 const filteredTransactions = transactions
 
@@ -138,6 +164,8 @@ const failedPayments = transactions.filter(
 (item)=>item.status==="Failed"
 ).length;
 
+const loadedScopeLabel = hasMoreTransactions ? "Loaded rows only · load older for more" : "Full ledger loaded";
+
 const refundedPayments = transactions.filter(
 (item)=>item.status==="Refunded"
 ).length;
@@ -172,9 +200,9 @@ subtitle="Razorpay, wallet, and yard cash share one transaction ledger. Yard cas
 <KPIGrid>
 
 <KPICard
-title="Transactions"
+title="Transactions loaded"
 value={transactions.length}
-subtitle="Total Records"
+subtitle={hasMoreTransactions ? "More records are available below" : "Full ledger loaded"}
 icon={<CreditCard size={28} />}
 color="pink"
 />
@@ -182,7 +210,7 @@ color="pink"
 <KPICard
 title="Revenue"
 value={`₹${totalRevenue.toLocaleString("en-IN")}`}
-subtitle="Rent + GST from Success booking payments"
+subtitle={`Rent + GST from Success booking payments · ${loadedScopeLabel}`}
 icon={<Wallet size={28} />}
 color="green"
 />
@@ -190,7 +218,7 @@ color="green"
 <KPICard
 title="GST"
 value={`₹${totalGST.toLocaleString("en-IN")}`}
-subtitle="Rent + GST collected. Deposits, refunds, and wallet top-ups are not revenue."
+subtitle={`Rent + GST only; excludes deposits, refunds, and wallet top-ups · ${loadedScopeLabel}`}
 icon={<Receipt size={28} />}
 color="blue"
 />
@@ -198,7 +226,7 @@ color="blue"
 <KPICard
 title="Successful"
 value={successfulPayments}
-subtitle="Completed"
+subtitle={`Completed · ${loadedScopeLabel}`}
 icon={<CheckCircle2 size={28} />}
 color="green"
 />
@@ -206,7 +234,7 @@ color="green"
 <KPICard
 title="Pending"
 value={pendingPayments}
-subtitle="Awaiting Payment"
+subtitle={`Awaiting payment · ${loadedScopeLabel}`}
 icon={<Clock3 size={28} />}
 color="yellow"
 />
@@ -214,7 +242,7 @@ color="yellow"
 <KPICard
 title="Booking Payments"
 value={bookingPayments}
-subtitle="Successful Bookings"
+subtitle={`Successful bookings · ${loadedScopeLabel}`}
 icon={<Bike size={28} />}
 color="blue"
 />
@@ -222,7 +250,7 @@ color="blue"
 <KPICard
 title="Refunds"
 value={refundPayments}
-subtitle={`${refundedPayments} Refunded`}
+subtitle={`${refundedPayments} refunded · ${loadedScopeLabel}`}
 icon={<RotateCcw size={28} />}
 color="pink"
 />
@@ -230,7 +258,7 @@ color="pink"
 <KPICard
 title="Failed"
 value={failedPayments}
-subtitle="Payment Failures"
+subtitle={`Payment failures · ${loadedScopeLabel}`}
 icon={<XCircle size={28} />}
 color="red"
 />
@@ -239,7 +267,7 @@ color="red"
 
  <SectionHeader
  title="Payment Transactions"
-subtitle="Search and monitor all transaction records. Sheet uses the filtered list."
+subtitle="Search loaded records and use Load older transactions to continue through the full ledger. Sheet exports the currently loaded filtered list."
 rightContent={
   <DashboardActions
     filename="transactions"
@@ -579,10 +607,11 @@ View
   <div className="mt-6 flex justify-center">
     <button
       type="button"
-      onClick={() => setListPages((pages) => pages + 1)}
-      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
+      disabled={loadingMoreTransactions}
+      onClick={() => void fetchTransactions(true)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50 disabled:opacity-60"
     >
-      Load more
+      {loadingMoreTransactions ? "Loading…" : "Load older transactions"}
     </button>
   </div>
 ) : null}

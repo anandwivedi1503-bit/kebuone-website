@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Repeat2, BatteryCharging, Bike } from "lucide-react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
@@ -93,19 +93,70 @@ export default function BatterySwapDashboard() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [editingSwap, setEditingSwap] = useState<Swap | null>(null);
+  const swapCursorRef = useRef("");
+  const loadingMoreSwapsRef = useRef(false);
+  const [hasMoreSwaps, setHasMoreSwaps] = useState(false);
+  const [loadingMoreSwaps, setLoadingMoreSwaps] = useState(false);
+  const [swapSummary, setSwapSummary] = useState<{ total?: number; completed?: number; pending?: number }>({});
+  const [inventorySummary, setInventorySummary] = useState<{ ready?: number }>({});
+  const [fleetSummary, setFleetSummary] = useState<{ total?: number }>({});
 
-  const fetchAll = async () => {
-    const [swapRes, batteryRes, vehicleRes] = await Promise.all([
-      fetch("/api/battery-swaps", { cache: "no-store" }),
-      fetch("/api/batteries", { cache: "no-store" }),
-      fetch("/api/vehicles", { cache: "no-store" }),
-    ]);
-    const swapData = await swapRes.json();
-    const batteryData = await batteryRes.json();
-    const vehicleData = await vehicleRes.json();
-    setSwaps(swapData.data || []);
-    setBatteries(batteryData.data || []);
-    setVehicles(vehicleData.data || []);
+  const fetchAll = async (appendSwaps = false) => {
+    if (appendSwaps && (!swapCursorRef.current || loadingMoreSwapsRef.current)) return;
+    if (appendSwaps) {
+      loadingMoreSwapsRef.current = true;
+      setLoadingMoreSwaps(true);
+    }
+    try {
+      const swapParams = new URLSearchParams({ limit: "100" });
+      if (appendSwaps) swapParams.set("cursor", swapCursorRef.current);
+      const [swapRes, batteryRes, vehicleRes] = await Promise.all([
+        fetch(`/api/battery-swaps?${swapParams.toString()}`, { cache: "no-store" }),
+        fetch("/api/batteries", { cache: "no-store" }),
+        fetch("/api/vehicles", { cache: "no-store" }),
+      ]);
+      const [swapData, batteryData, vehicleData] = await Promise.all([
+        swapRes.json(),
+        batteryRes.json(),
+        vehicleRes.json(),
+      ]);
+      if (!swapRes.ok || swapData.success === false) throw new Error("Unable to load swap history.");
+      if (!batteryRes.ok || batteryData.success === false) throw new Error("Unable to load battery inventory.");
+      if (!vehicleRes.ok || vehicleData.success === false) throw new Error("Unable to load fleet options.");
+
+      const nextSwaps = Array.isArray(swapData.data) ? swapData.data : [];
+      setSwaps((current) => {
+        if (appendSwaps) {
+          const seen = new Set(current.map((row) => row._id));
+          return [...current, ...nextSwaps.filter((row: Swap) => !seen.has(row._id))];
+        }
+        const seen = new Set(nextSwaps.map((row: Swap) => row._id));
+        return [...nextSwaps, ...current.filter((row) => !seen.has(row._id))];
+      });
+      if (appendSwaps || !swapCursorRef.current) {
+        swapCursorRef.current = String(swapData.pagination?.nextCursor || "");
+      }
+      setHasMoreSwaps(Boolean(swapData.pagination?.hasMore));
+      if (swapData.summary) setSwapSummary(swapData.summary);
+      const inventoryRows = Array.isArray(batteryData.data) ? batteryData.data : [];
+      const fittedRows = Array.isArray(batteryData.vehiclePacks) ? batteryData.vehiclePacks : [];
+      const uniqueBatteries = new Map<string, Battery>();
+      [...inventoryRows, ...fittedRows].forEach((battery: Battery) => {
+        const key = String(battery.batteryId || "").trim().toUpperCase();
+        if (key && !uniqueBatteries.has(key)) uniqueBatteries.set(key, battery);
+      });
+      setBatteries(Array.from(uniqueBatteries.values()));
+      setInventorySummary(batteryData.summary || {});
+      setFleetSummary(vehicleData.summary || {});
+      setVehicles(Array.isArray(vehicleData.data) ? vehicleData.data : []);
+    } catch (error) {
+      console.error("BATTERY SWAP DASHBOARD LOAD ERROR:", error);
+    } finally {
+      if (appendSwaps) {
+        loadingMoreSwapsRef.current = false;
+        setLoadingMoreSwaps(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -119,13 +170,13 @@ export default function BatterySwapDashboard() {
       ? vehicles.filter((vehicle) => String(vehicle.currentHub || "").toLowerCase().includes(hubKeyword))
       : vehicles;
     return {
-      total: swaps.length,
-      completed: swaps.filter((s) => s.status === "COMPLETED").length,
-      pending: swaps.filter((s) => s.status === "PENDING").length,
-      readyBatteries: batteries.filter((b) => b.status === "READY").length,
-      scooters: hubVehicles.length,
+      total: Number(swapSummary.total ?? swaps.length),
+      completed: Number(swapSummary.completed ?? swaps.filter((s) => s.status === "COMPLETED").length),
+      pending: Number(swapSummary.pending ?? swaps.filter((s) => s.status === "PENDING").length),
+      readyBatteries: Number(inventorySummary.ready ?? batteries.filter((b) => b.status === "READY").length),
+      scooters: hubKeyword ? hubVehicles.length : Number(fleetSummary.total ?? vehicles.length),
     };
-  }, [swaps, batteries, vehicles, formData.hubName]);
+  }, [swaps, batteries, vehicles, formData.hubName, swapSummary, inventorySummary, fleetSummary]);
 
   const filteredSwaps = swaps.filter((swap) => {
     const keyword = search.toLowerCase();
@@ -146,6 +197,20 @@ export default function BatterySwapDashboard() {
 
   const handleVehicleChange = (vehicleId: string) => {
     const vehicle = vehicles.find((v) => v.vehicleId === vehicleId);
+    const currentPackId = String(vehicle?.currentBatteryId || "").trim().toUpperCase();
+    if (vehicle && currentPackId && !batteries.some((battery) => String(battery.batteryId || "").toUpperCase() === currentPackId)) {
+      setBatteries((current) => [
+        ...current,
+        {
+          _id: `vehicle-pack-${vehicle.vehicleId}`,
+          batteryId: currentPackId,
+          vehicleId: vehicle.vehicleId,
+          hubName: vehicle.currentHub || "",
+          chargePercentage: Number(vehicle.batteryPercentage || 0),
+          status: "IN-VEHICLE",
+        },
+      ]);
+    }
     setFormData((prev) => ({
       ...prev,
       vehicleId,
@@ -395,6 +460,18 @@ export default function BatterySwapDashboard() {
             </tbody>
           </table>
         </div>
+        {hasMoreSwaps ? (
+          <div className="mt-5 flex justify-center">
+            <button
+              type="button"
+              disabled={loadingMoreSwaps}
+              onClick={() => void fetchAll(true)}
+              className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+            >
+              {loadingMoreSwaps ? "Loading…" : "Load older swaps"}
+            </button>
+          </div>
+        ) : null}
       </DashboardCard>
 
       {editingSwap ? (

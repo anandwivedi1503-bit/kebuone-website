@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import PageContainer from "../DashboardUI/PageContainer";
 import DashboardHeader from "../DashboardUI/DashboardHeader";
@@ -28,22 +28,48 @@ export default function FleetDashboard() {
 const [vehicles, setVehicles] = useState<any[]>([]);
 const [bookings, setBookings] = useState<any[]>([]);
 const [editingVehicle, setEditingVehicle] = useState<any>(null);
+const vehicleCursorRef = useRef("");
+const [hasMoreVehicles, setHasMoreVehicles] = useState(false);
+const [loadingMoreVehicles, setLoadingMoreVehicles] = useState(false);
+const [fleetSummary, setFleetSummary] = useState<any>({});
 
 const [searchTerm, setSearchTerm] = useState("");
 
 const [statusFilter, setStatusFilter] =
 useState("All");
 
-const loadFleet = () => {
+const loadFleet = (appendVehicles = false) => {
+  if (appendVehicles && (!vehicleCursorRef.current || loadingMoreVehicles)) return;
+  if (appendVehicles) setLoadingMoreVehicles(true);
+  const params = new URLSearchParams({ limit: "100" });
+  if (appendVehicles) params.set("cursor", vehicleCursorRef.current);
   Promise.all([
-    fetch("/api/vehicles", { cache: "no-store" }).then((res) => res.json()),
+    fetch(`/api/vehicles?${params.toString()}`, { cache: "no-store" }).then((res) => res.json()),
     fetch("/api/ops/yard-queue", { cache: "no-store" }).then((res) => res.json()),
   ])
     .then(([vehicleData, bookingData]) => {
-      if (vehicleData.success) setVehicles(vehicleData.data || []);
+      if (vehicleData.success) {
+        const rows = Array.isArray(vehicleData.data) ? vehicleData.data : [];
+        setVehicles((current) => {
+          if (appendVehicles) {
+            const seen = new Set(current.map((row) => String(row._id)));
+            return [...current, ...rows.filter((row: any) => !seen.has(String(row._id)))];
+          }
+          const seen = new Set(rows.map((row: any) => String(row._id)));
+          return [...rows, ...current.filter((row) => !seen.has(String(row._id)))];
+        });
+        if (vehicleData.summary) setFleetSummary(vehicleData.summary);
+        if (appendVehicles || !vehicleCursorRef.current) {
+          vehicleCursorRef.current = String(vehicleData.pagination?.nextCursor || "");
+        }
+        setHasMoreVehicles(Boolean(vehicleData.pagination?.hasMore));
+      }
       if (bookingData.success) setBookings(bookingData.liveBookings || []);
     })
-    .catch(() => undefined);
+    .catch(() => undefined)
+    .finally(() => {
+      if (appendVehicles) setLoadingMoreVehicles(false);
+    });
 };
 
 useEffect(() => {
@@ -51,27 +77,27 @@ loadFleet();
 return startOpsPoll(loadFleet);
 }, []);
 
-const totalVehicles = vehicles.length;
+const totalVehicles = Number(fleetSummary.total ?? vehicles.length);
 
-const availableVehicles = vehicles.filter(
+const availableVehicles = Number(fleetSummary.available ?? vehicles.filter(
 (vehicle) =>
 vehicle.vehicleStatus === "Available"
-).length;
+).length);
 
-const inRideVehicles = vehicles.filter(
+const inRideVehicles = Number(fleetSummary.inRide ?? vehicles.filter(
 (vehicle) =>
 vehicle.vehicleStatus === "In Ride"
-).length;
+).length);
 
-const maintenanceVehicles = vehicles.filter(
+const maintenanceVehicles = Number(fleetSummary.maintenance ?? vehicles.filter(
 (vehicle) =>
 vehicle.vehicleStatus === "Maintenance"
-).length;
+).length);
 
-const lowBatteryVehicles = vehicles.filter(
+const lowBatteryVehicles = Number(fleetSummary.lowBattery ?? vehicles.filter(
 (vehicle) =>
 hasFreshBattery(vehicle) && Number(vehicle.batteryPercentage) < 20
-).length;
+).length);
 
 const filteredVehicles = vehicles.filter(
 (vehicle) => {
@@ -479,6 +505,19 @@ filteredVehicles.map((vehicle) => (
 </div>
 
 </DashboardCard>
+
+{hasMoreVehicles ? (
+  <div className="mt-5 flex justify-center">
+    <button
+      type="button"
+      disabled={loadingMoreVehicles}
+      onClick={() => loadFleet(true)}
+      className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+    >
+      {loadingMoreVehicles ? "Loading…" : "Load older fleet records"}
+    </button>
+  </div>
+) : null}
 
 {editingVehicle && (
 

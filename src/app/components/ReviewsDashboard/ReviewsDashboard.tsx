@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Star } from "lucide-react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
@@ -32,7 +32,9 @@ type ReviewRow = {
 export default function ReviewsDashboard() {
   const [reviews, setReviews] = useState<ReviewRow[]>([]);
   const [hasMore, setHasMore] = useState(false);
-  const [pages, setPages] = useState(1);
+  const cursorRef = useRef("");
+  const loadingMoreRef = useRef(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<ReviewRow | null>(null);
@@ -41,32 +43,56 @@ export default function ReviewsDashboard() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
-  const load = async () => {
-    const params = new URLSearchParams({
-      limit: String(Math.min(500, 80 * pages)),
-      page: "1",
-    });
-    if (statusFilter !== "ALL") params.set("status", statusFilter);
-    if (search.trim()) params.set("q", search.trim());
-    const res = await fetch(`/api/reviews?${params}`, {
-      cache: "no-store",
-      credentials: "include",
-    });
-    const data = await res.json();
-    if (!data.success && data.message) {
-      setError(data.message);
-      setReviews([]);
-      return;
+  const load = async (loadOlder = false) => {
+    if (loadOlder && (!cursorRef.current || loadingMoreRef.current)) return;
+    if (loadOlder) {
+      loadingMoreRef.current = true;
+      setLoadingMore(true);
     }
-    setError("");
-    setReviews(data.data || []);
-    setHasMore(Boolean(data.pagination?.hasMore));
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlder) params.set("cursor", cursorRef.current);
+      if (statusFilter !== "ALL") params.set("status", statusFilter);
+      if (search.trim()) params.set("q", search.trim());
+      const res = await fetch(`/api/reviews?${params}`, {
+        cache: "no-store",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!data.success && data.message) {
+        setError(data.message);
+        if (!loadOlder) setReviews([]);
+        return;
+      }
+      setError("");
+      const rows = Array.isArray(data.data) ? data.data : [];
+      setReviews((current) => {
+        const key = (row: ReviewRow) => String(row._id || row.reviewId);
+        if (loadOlder) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((row: ReviewRow) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      if (loadOlder || !cursorRef.current) {
+        cursorRef.current = String(data.pagination?.nextCursor || "");
+      }
+      setHasMore(Boolean(data.pagination?.hasMore));
+    } finally {
+      if (loadOlder) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
+    }
   };
 
   useEffect(() => {
+    cursorRef.current = "";
+    setReviews([]);
     void load();
     return startOpsPoll(load);
-  }, [pages, statusFilter]);
+  }, [statusFilter]);
 
   const patch = async (id: string, body: Record<string, unknown>) => {
     setBusy(id);
@@ -212,10 +238,11 @@ export default function ReviewsDashboard() {
             {hasMore ? (
               <button
                 type="button"
-                onClick={() => setPages((n) => n + 1)}
+                disabled={loadingMore}
+                onClick={() => void load(true)}
                 className="w-full rounded-xl border border-slate-200 py-3 text-sm"
               >
-                Load more
+                {loadingMore ? "Loading…" : "Load older reviews"}
               </button>
             ) : null}
             {!reviews.length ? (

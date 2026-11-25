@@ -11,6 +11,9 @@ import iot from "@/models/IoT";
 import Partner from "@/models/Partner";
 import Transaction from "@/models/Transaction";
 import Hub from "@/models/Hub";
+import WalletTransaction from "@/models/WalletTransaction";
+import AuditLog from "@/models/AuditLog";
+import PhoneBookingLead from "@/models/PhoneBookingLead";
 
 type ScaleIndexStatus = {
   state: "pending" | "checking" | "ready" | "failed";
@@ -167,6 +170,30 @@ async function createScaleIndexes() {
       ),
     "booking startHub createdAt"
   );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { rentalMode: 1, currentHub: 1, createdAt: -1, _id: -1 },
+        { background: true, name: "booking_rto_hub_created_cursor" }
+      ),
+    "booking RTO hub cursor"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { rentalMode: 1, startHub: 1, createdAt: -1, _id: -1 },
+        { background: true, name: "booking_rto_start_hub_created_cursor" }
+      ),
+    "booking RTO start-hub cursor"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { rentalMode: 1, ownershipTransferred: 1, remainingRentToOwnDays: 1, rtoNextInstallmentAt: 1 },
+        { background: true, name: "booking_rto_due_schedule" }
+      ),
+    "booking RTO due schedule"
+  );
 
   await createIndexSafe(
     () =>
@@ -210,6 +237,14 @@ async function createScaleIndexes() {
         { background: true, name: "ops_booking_phone_created" }
       ),
     "ops booking userPhone"
+  );
+  await createIndexSafe(
+    () =>
+      Booking.collection.createIndex(
+        { riderId: 1, createdAt: -1, _id: -1 },
+        { background: true, name: "rider_booking_history_cursor" }
+      ),
+    "rider booking history cursor"
   );
   await createIndexSafe(
     () =>
@@ -269,11 +304,27 @@ async function createScaleIndexes() {
   );
   await createIndexSafe(
     () =>
+      Ticket.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_ticket_created_id_cursor" }
+      ),
+    "ops ticket cursor"
+  );
+  await createIndexSafe(
+    () =>
       Rider.collection.createIndex(
         { kycStatus: 1, createdAt: -1 },
         { background: true, name: "ops_rider_kycStatus_created" }
       ),
     "ops rider kycStatus"
+  );
+  await createIndexSafe(
+    () =>
+      Rider.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_rider_created_id_cursor" }
+      ),
+    "ops rider createdAt cursor"
   );
   await createIndexSafe(
     () =>
@@ -285,11 +336,27 @@ async function createScaleIndexes() {
   );
   await createIndexSafe(
     () =>
+      Refund.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_refund_created_id_cursor" }
+      ),
+    "ops refund cursor"
+  );
+  await createIndexSafe(
+    () =>
       Transaction.collection.createIndex(
         { bookingId: 1, createdAt: -1 },
         { background: true, name: "ops_txn_booking_created" }
       ),
     "ops transaction booking"
+  );
+  await createIndexSafe(
+    () =>
+      Transaction.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_transaction_created_id_cursor" }
+      ),
+    "ops transaction cursor"
   );
   await createIndexSafe(
     () =>
@@ -301,11 +368,43 @@ async function createScaleIndexes() {
   );
   await createIndexSafe(
     () =>
+      Vehicle.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_vehicle_created_id_cursor" }
+      ),
+    "ops vehicle createdAt cursor"
+  );
+  await createIndexSafe(
+    () =>
+      Vehicle.collection.createIndex(
+        { currentHub: 1, createdAt: -1, _id: -1 },
+        { background: true, name: "ops_vehicle_hub_created_id_cursor" }
+      ),
+    "ops vehicle hub cursor"
+  );
+  await createIndexSafe(
+    () =>
       Battery.collection.createIndex(
         { hubId: 1, status: 1 },
         { background: true, name: "ops_battery_hub_status" }
       ),
     "ops battery hub"
+  );
+  await createIndexSafe(
+    () =>
+      Battery.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_battery_created_id_cursor" }
+      ),
+    "ops battery cursor"
+  );
+  await createIndexSafe(
+    () =>
+      Battery.collection.createIndex(
+        { hubId: 1, createdAt: -1, _id: -1 },
+        { background: true, name: "ops_battery_hub_cursor" }
+      ),
+    "ops battery hub cursor"
   );
   await createIndexSafe(
     () =>
@@ -325,11 +424,43 @@ async function createScaleIndexes() {
   );
   await createIndexSafe(
     () =>
+      BatterySwap.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_swap_created_id_cursor" }
+      ),
+    "ops swap cursor"
+  );
+  await createIndexSafe(
+    () =>
+      BatterySwap.collection.createIndex(
+        { hubId: 1, createdAt: -1, _id: -1 },
+        { background: true, name: "ops_swap_hub_created_id_cursor" }
+      ),
+    "ops swap hub cursor"
+  );
+  await createIndexSafe(
+    () =>
       Wallet.collection.createIndex(
         { status: 1, updatedAt: -1 },
         { background: true, name: "ops_wallet_status" }
       ),
     "ops wallet status"
+  );
+  await createIndexSafe(
+    () =>
+      Wallet.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_wallet_created_id_cursor" }
+      ),
+    "ops wallet cursor"
+  );
+  await createIndexSafe(
+    () =>
+      WalletTransaction.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_wallet_txn_created_id_cursor" }
+      ),
+    "ops wallet transaction cursor"
   );
   await createIndexSafe(
     () =>
@@ -413,6 +544,30 @@ async function createScaleIndexes() {
         { background: true, name: "review_status_created" }
       ),
     "review status created"
+  );
+  await createIndexSafe(
+    () =>
+      Review.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_review_created_id_cursor" }
+      ),
+    "ops review cursor"
+  );
+  await createIndexSafe(
+    () =>
+      AuditLog.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_audit_created_id_cursor" }
+      ),
+    "ops audit cursor"
+  );
+  await createIndexSafe(
+    () =>
+      PhoneBookingLead.collection.createIndex(
+        { createdAt: -1, _id: -1 },
+        { background: true, name: "ops_phone_lead_created_id_cursor" }
+      ),
+    "ops phone lead cursor"
   );
   await createIndexSafe(
     () =>
