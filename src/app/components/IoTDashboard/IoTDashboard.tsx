@@ -356,7 +356,7 @@ return(
 
 title="IoT Live Dashboard"
 
-subtitle="Same scooters as Vehicle Management. GPS, lock, battery %, hub, fitted pack, and live booking come from the vehicle record. Offline means no ping for 15 minutes."
+subtitle="Same scooters as Vehicle Management. GPS, lock and battery are shown only from a recent scooter report; stale device values are hidden after 15 minutes. Remote lock commands require the scooter provider integration."
 
 />
 
@@ -573,7 +573,7 @@ style={{
 <StatusBadge status="warning"/>
 )}
 <div className="mt-2 text-[11px] text-slate-500">
-  Reported by scooter
+  {iot.telemetryFresh ? "Reported by scooter" : "No recent device report"}
 </div>
 
 </td>

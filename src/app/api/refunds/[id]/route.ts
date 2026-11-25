@@ -20,6 +20,7 @@ import { denyIfBookingOutOfHub } from "@/lib/staffHubScope";
 import { releaseSecurityDepositHoldOnce } from "@/lib/securityDepositHold";
 import { notifyRefundReceipt } from "@/lib/notify/refundNotify";
 import { sessionCanOpen } from "@/lib/adminCan";
+import { reconcileRazorpayRefund } from "@/lib/razorpay/reconcileRefund";
 
 function isSecurityDepositRefund(refund: { refundSource?: unknown; remarks?: unknown }) {
   return (
@@ -361,6 +362,24 @@ if (!rider) {
 let sendToRazorpay = body.sendToRazorpay !== false;
 const paymentId = String(booking.razorpayPaymentId || "");
 let gatewayId = String(refund.razorpayRefundId || "").trim();
+if (
+  !sendToRazorpay &&
+  (refund.razorpayRefunds || []).some((item) =>
+    ["pending", "processed"].includes(String(item.status || "").toLowerCase())
+  )
+) {
+  await session.abortTransaction();
+  session.endSession();
+  session = null;
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "This refund already has a pending or processed Razorpay transfer. Wallet credit is blocked to prevent paying the rider twice. Reconcile the listed gateway refund IDs first.",
+    },
+    { status: 409 }
+  );
+}
 const captureIds = await listBookingRazorpayPaymentIds(
   String(refund.bookingId),
   paymentId
@@ -384,44 +403,119 @@ if (sendToRazorpay) {
   session.endSession();
   session = null;
 
-  if (!gatewayId) {
+  let claimedForFailedRetry = false;
+  const previousGatewayRefunds = (refund.razorpayRefunds || []).map((item) => ({
+    status: String(item.status || "pending").toLowerCase(),
+  }));
+  if (
+    gatewayId &&
+    previousGatewayRefunds.length > 0 &&
+    previousGatewayRefunds.every((item) => item.status === "failed")
+  ) {
+    const retryClaim = await Refund.findOneAndUpdate(
+      {
+        _id: refund._id,
+        refundStatus: "FAILED",
+        $or: [
+          { razorpayRefundClaimedAt: null },
+          { razorpayRefundClaimedAt: { $lt: new Date(Date.now() - 10 * 60 * 1000) } },
+        ],
+      },
+      {
+        $set: {
+          refundStatus: "PROCESSING",
+          razorpayRefundClaimedAt: new Date(),
+          razorpayRefundId: "",
+          razorpayRefunds: [],
+          gatewayTxnId: "",
+          failureReason: "",
+        },
+      },
+      { new: true }
+    );
+    if (!retryClaim) {
+      return NextResponse.json(
+        { success: false, message: "This refund retry is already in progress." },
+        { status: 409 }
+      );
+    }
+    gatewayId = "";
+    claimedForFailedRetry = true;
+  }
+
+  if (!gatewayId && !claimedForFailedRetry) {
+    const staleClaimBefore = new Date(Date.now() - 10 * 60 * 1000);
     const claimed = await Refund.findOneAndUpdate(
       {
         _id: refund._id,
         refundStatus: { $in: ["PENDING", "APPROVED", "PROCESSING"] },
+        $and: [
+          {
+            $or: [
+              { razorpayRefundId: { $exists: false } },
+              { razorpayRefundId: "" },
+            ],
+          },
+          {
+            $or: [
+              { razorpayRefundClaimedAt: null },
+              { razorpayRefundClaimedAt: { $lt: staleClaimBefore } },
+            ],
+          },
+        ],
       },
-      { $set: { refundStatus: "PROCESSING" } },
+      { $set: { refundStatus: "PROCESSING", razorpayRefundClaimedAt: new Date() } },
       { new: true }
     );
     if (!claimed) {
       const live = await Refund.findById(id);
-      gatewayId = String(live?.razorpayRefundId || "").trim();
-      if (!gatewayId) {
-        return NextResponse.json(
-          {
-            success: false,
-            message:
-              live?.refundStatus === "REFUNDED"
-                ? "This refund has already been processed."
-                : "This refund is already being sent to Razorpay.",
-          },
-          { status: live?.refundStatus === "REFUNDED" ? 400 : 409 }
-        );
-      }
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            live?.refundStatus === "REFUNDED"
+              ? "This refund has already been processed."
+              : "This refund is already being sent or is awaiting Razorpay confirmation.",
+        },
+        { status: live?.refundStatus === "REFUNDED" ? 400 : 409 }
+      );
     }
   }
 
   try {
+    let gatewayRefunds: Array<{
+      id: string;
+      paymentId: string;
+      amount: number;
+      status: "pending" | "processed" | "failed";
+    }> = [];
+
     if (!gatewayId) {
       const razorpayRefund = await refundRazorpayAmountForBooking(
         String(refund.bookingId),
         Number(refund.amount),
-        paymentId
+        paymentId,
+        async (gatewayRefund) => {
+          await Refund.updateOne(
+            { _id: id },
+            {
+              $set: {
+                razorpayRefundId: gatewayRefund.id,
+                paymentGateway: "Razorpay",
+                refundStatus: "PROCESSING",
+              },
+              $addToSet: { razorpayRefunds: gatewayRefund },
+            }
+          );
+        }
       );
       if (razorpayRefund.refunded <= 0.009) {
         await Refund.updateOne(
           { _id: id, refundStatus: { $in: ["PROCESSING", "PENDING", "APPROVED"] } },
-          { $set: { refundStatus: "APPROVED" } }
+          {
+            $set: { refundStatus: "APPROVED" },
+            $unset: { razorpayRefundClaimedAt: "" },
+          }
         );
         return NextResponse.json(
           {
@@ -434,25 +528,68 @@ if (sendToRazorpay) {
         );
       }
       gatewayId = razorpayRefund.ids[0] || razorpayRefund.lastPaymentId;
+      gatewayRefunds = razorpayRefund.refunds;
       updateData.razorpayRefundId = gatewayId;
       updateData.gatewayTxnId = (razorpayRefund.ids.join(",") || gatewayId).slice(0, 100);
       updateData.paymentGateway = "Razorpay";
-      await Refund.updateOne(
-        { _id: id },
-        {
-          $set: {
-            razorpayRefundId: gatewayId,
-            gatewayTxnId: updateData.gatewayTxnId,
-            paymentGateway: "Razorpay",
-            refundStatus: "PROCESSING",
-          },
-        }
-      );
     } else {
+      gatewayRefunds = (refund.razorpayRefunds || []).map((item) => ({
+        id: String(item.id || ""),
+        paymentId: String(item.paymentId || ""),
+        amount: Number(item.amount || 0),
+        status: String(item.status || "pending").toLowerCase() as "pending" | "processed" | "failed",
+      }));
+      if (gatewayRefunds.length === 0) {
+        gatewayRefunds = [{
+          id: gatewayId,
+          paymentId: "",
+          amount: Number(refund.amount || 0),
+          status: "pending",
+        }];
+      }
       updateData.razorpayRefundId = gatewayId;
-      updateData.gatewayTxnId = gatewayId;
+      updateData.gatewayTxnId = gatewayRefunds.map((item) => item.id).join(",").slice(0, 100);
       updateData.paymentGateway = "Razorpay";
     }
+
+    if (gatewayRefunds.length === 0) {
+      throw new Error("Razorpay did not return any refund IDs. Check the gateway before retrying.");
+    }
+
+    await Refund.updateOne(
+      { _id: id },
+      {
+        $set: {
+          razorpayRefundId: gatewayRefunds[0].id,
+          razorpayRefunds: gatewayRefunds,
+          gatewayTxnId: updateData.gatewayTxnId,
+          paymentGateway: "Razorpay",
+          refundStatus: "PROCESSING",
+          failureReason: "",
+        },
+        $unset: { razorpayRefundClaimedAt: "" },
+      }
+    );
+
+    const reconciliation = await reconcileRazorpayRefund({ refundDocumentId: id });
+    const updated = await Refund.findById(id).lean();
+    const status = String(updated?.refundStatus || reconciliation.status);
+    const message = status === "REFUNDED"
+      ? "Razorpay confirmed the refund. The booking and deposit records are updated."
+      : status === "FAILED"
+        ? String(updated?.failureReason || "Razorpay could not complete this refund. Reconcile its gateway IDs before retrying.")
+        : "Razorpay accepted the refund request. It remains processing until the gateway confirms the funds were returned.";
+
+    return NextResponse.json(
+      {
+        success: status !== "FAILED",
+        data: updated,
+        channel: "Razorpay",
+        message,
+        pendingGatewayConfirmation: status === "PROCESSING",
+      },
+      { status: status === "FAILED" ? 409 : status === "REFUNDED" ? 200 : 202 }
+    );
   } catch (error) {
     console.error("RAZORPAY REFUND ERROR:", error);
     const detail = formatRazorpayError(error);
@@ -460,106 +597,29 @@ if (sendToRazorpay) {
       /no razorpay|no refundable|not captured|invalid id|does not exist|already refunded/i.test(
         detail
       );
+    const liveRefund = await Refund.findById(id).select("razorpayRefundId razorpayRefunds").lean();
+    const gatewayRequestExists = Boolean(
+      liveRefund?.razorpayRefundId || liveRefund?.razorpayRefunds?.length
+    );
     await Refund.updateOne(
       { _id: id, refundStatus: { $in: ["PROCESSING", "PENDING", "APPROVED"] } },
       {
         $set: {
-          refundStatus: "APPROVED",
+          refundStatus: gatewayRequestExists ? "PROCESSING" : "APPROVED",
           failureReason: detail.slice(0, 400),
         },
+        $unset: { razorpayRefundClaimedAt: "" },
       }
     );
     return NextResponse.json(
       {
         success: false,
-        suggestWallet,
-        message: `Razorpay could not refund this payment (${detail}). Status stays Approved — retry Razorpay, or use Credit wallet for cash/offline.`,
+        suggestWallet: suggestWallet && !gatewayRequestExists,
+        message: gatewayRequestExists
+          ? `A Razorpay refund ID was already returned before this error (${detail}). The request remains PROCESSING; reconcile its status before retrying or using wallet credit.`
+          : `Razorpay could not refund this payment (${detail}). Status stays Approved — retry Razorpay, or use Credit wallet for cash/offline.`,
       },
       { status: 502 }
-    );
-  }
-
-  session = await mongoose.startSession();
-  session.startTransaction();
-
-  const liveRefund = await Refund.findById(id).session(session);
-  const liveBooking = await Booking.findOne({
-    bookingId: refund.bookingId,
-  }).session(session);
-
-  if (!liveRefund || !liveBooking) {
-    await session.abortTransaction();
-    session.endSession();
-    return NextResponse.json(
-      { success: false, message: "Refund or booking not found after gateway refund." },
-      { status: 404 }
-    );
-  }
-
-  if (liveRefund.refundStatus === "REFUNDED") {
-    await session.abortTransaction();
-    session.endSession();
-    return NextResponse.json(
-      { success: false, message: "This refund has already been processed." },
-      { status: 400 }
-    );
-  }
-
-  applySettledRefundAmount(liveBooking, Number(liveRefund.amount), isDepositRefund);
-  if (isDepositRefund) {
-    liveBooking.securityDepositRefunded = true;
-  }
-  liveBooking.remarks = appendBoundedText(
-    liveBooking.remarks,
-    `Refund Completed via Razorpay\nRefund ID : ${liveRefund.refundId}\nAmount : ₹${liveRefund.amount}`
-  );
-  await liveBooking.save({ session });
-
-  if (isDepositRefund) {
-    await Rider.findOneAndUpdate(
-      { riderId: liveBooking.riderId },
-      { securityDeposit: 0 },
-      { session }
-    );
-  }
-
-  const razorpayWallet = await Wallet.findOne({
-    riderId: liveBooking.riderId,
-  }).session(session);
-  if (razorpayWallet) {
-    await releaseSecurityDepositHoldOnce(
-      liveBooking,
-      session,
-      "Hold released with Razorpay deposit refund"
-    );
-  }
-
-  const existingRefundTransaction = await Transaction.findOne({
-    transactionId: `RF-${liveRefund.refundId}`,
-  }).session(session);
-
-  if (!existingRefundTransaction) {
-    const invoiceNumber = `INV-RF-${liveRefund.refundId}`;
-    await Transaction.create(
-      [
-        {
-          transactionId: `RF-${liveRefund.refundId}`,
-          bookingId: liveBooking.bookingId,
-          userId: String(liveBooking.userId),
-          userName: liveBooking.userName,
-          amount: liveRefund.amount,
-          paymentMethod: "Razorpay",
-          transactionType: "Refund",
-          status: "Success",
-          refundStatus: "Completed",
-          invoiceNumber,
-          invoiceGenerated: true,
-          razorpayPaymentId: gatewayId?.startsWith("pay_") ? gatewayId : "",
-          remarks: `Razorpay refund ${gatewayId || ""}`.trim(),
-          transactionSource: "Admin Panel",
-        },
-      ],
-      { session }
     );
   }
 } else {

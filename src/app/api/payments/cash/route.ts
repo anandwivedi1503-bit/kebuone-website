@@ -24,6 +24,7 @@ import {
 export async function POST(req: Request) {
   let uploadedPublicId = "";
   let paymentRecorded = false;
+  let failureStage = "request validation";
   try {
     const session = await getAdminSession();
     if (!session) {
@@ -63,6 +64,21 @@ export async function POST(req: Request) {
       );
     }
 
+    if (
+      !process.env.CLOUDINARY_CLOUD_NAME ||
+      !process.env.CLOUDINARY_API_KEY ||
+      !process.env.CLOUDINARY_API_SECRET
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Cash photo storage is not configured. No cash was recorded; ask an administrator to check storage settings.",
+        },
+        { status: 503 }
+      );
+    }
+
+    failureStage = "database lookup";
     await connectDB();
     const booking = (await Booking.findOne({ bookingId })
       .select("currentHub startHub")
@@ -71,9 +87,11 @@ export async function POST(req: Request) {
       return hubForbiddenResponse();
     }
 
+    failureStage = "cash photo upload";
     const upload = await uploadCashEvidence(photoBuffer);
     uploadedPublicId = upload.publicId;
 
+    failureStage = "cash transaction";
     const result = await applyStaffBookingPayment({
       bookingId,
       paidAmount: amount,
@@ -112,9 +130,15 @@ export async function POST(req: Request) {
         /* Any orphan can be cleaned from the cash-evidence folder. */
       }
     }
-    console.error("CASH COLLECT ERROR:", error);
+    const reference = `CASH-${Date.now().toString(36).toUpperCase()}`;
+    console.error("CASH COLLECT ERROR:", { reference, failureStage, error });
+    const message = failureStage === "cash photo upload"
+      ? `Cash photo could not be saved. No cash was recorded. Please retry or contact support with reference ${reference}.`
+      : failureStage === "cash transaction"
+        ? `Cash could not be recorded. Check this booking's Transactions before retrying. Reference ${reference}.`
+        : `Unable to record cash. Please contact support with reference ${reference}.`;
     return NextResponse.json(
-      { success: false, message: "Unable to record cash." },
+      { success: false, message },
       { status: 500 }
     );
   }

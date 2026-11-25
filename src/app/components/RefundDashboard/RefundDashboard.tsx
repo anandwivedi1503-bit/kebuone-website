@@ -188,6 +188,19 @@ if (!data.success) {
 }
 
 const row = data.data || refunds.find((r) => r._id === id);
+    if (
+      data.pendingGatewayConfirmation ||
+      row?.refundStatus === "PROCESSING"
+    ) {
+      alert(
+        data.message ||
+          "Razorpay accepted the request. The refund will show as completed after the gateway confirms it."
+      );
+      setRazorpayModal(null);
+      setRazorpayModalMsg("");
+      return;
+    }
+
     if (data.success && row) {
       downloadRefundReceipt({
         refundId: String(row.refundId || id),

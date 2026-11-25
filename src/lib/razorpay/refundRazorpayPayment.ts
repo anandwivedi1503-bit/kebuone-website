@@ -15,11 +15,19 @@ export async function refundRazorpayPayment(paymentId: string, amountInr: number
   return refund;
 }
 
+export type RazorpayRefundDetail = {
+  id: string;
+  paymentId: string;
+  amount: number;
+  status: "pending" | "processed" | "failed";
+};
+
 /** Refund across captured Razorpay booking payments (FIFO), not only the last payment id. */
 export async function refundRazorpayAmountForBooking(
   bookingId: string,
   amountInr: number,
-  fallbackPaymentId?: string
+  fallbackPaymentId?: string,
+  onRefundCreated?: (refund: RazorpayRefundDetail) => Promise<void>
 ) {
   const toRefund = money(amountInr);
   if (toRefund < 0.01) {
@@ -51,6 +59,7 @@ export async function refundRazorpayAmountForBooking(
   let remainingPrior = priorRefunded;
   let remaining = toRefund;
   const ids: string[] = [];
+  const refunds: RazorpayRefundDetail[] = [];
   let lastPaymentId = "";
 
   const rows =
@@ -70,10 +79,30 @@ export async function refundRazorpayAmountForBooking(
     const paymentId = String(pay.razorpayPaymentId || pay.transactionId || "").trim();
     if (!isRazorpayPaymentId(paymentId)) continue;
     const refund = await refundRazorpayPayment(paymentId, chunk);
-    const refundId = String((refund as { id?: string }).id || "");
-    if (refundId) ids.push(refundId);
+    const entity = refund as {
+      id?: string;
+      payment_id?: string;
+      amount?: number;
+      status?: string;
+    };
+    const refundId = String(entity.id || "").trim();
+    if (!refundId) {
+      throw new Error("Razorpay accepted a refund request without returning a refund ID.");
+    }
+    const status = String(entity.status || "pending").toLowerCase();
+    const refundStatus: RazorpayRefundDetail["status"] =
+      status === "processed" || status === "failed" ? status : "pending";
+    const acceptedAmount = money(Number(entity.amount || Math.round(chunk * 100)) / 100);
+    ids.push(refundId);
+    refunds.push({
+      id: refundId,
+      paymentId: String(entity.payment_id || paymentId),
+      amount: acceptedAmount,
+      status: refundStatus,
+    });
+    await onRefundCreated?.(refunds[refunds.length - 1]);
     lastPaymentId = paymentId;
-    remaining = money(remaining - chunk);
+    if (refundStatus !== "failed") remaining = money(remaining - acceptedAmount);
     if (remaining <= 0.009) break;
   }
 
@@ -81,6 +110,7 @@ export async function refundRazorpayAmountForBooking(
     refunded: money(toRefund - remaining),
     remaining,
     ids,
+    refunds,
     lastPaymentId,
   };
 }

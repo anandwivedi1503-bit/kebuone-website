@@ -85,7 +85,7 @@ export async function GET() {
         batteryPercentage: telemetryFresh ? vehicle.batteryPercentage : null,
         currentLat: telemetryFresh ? vehicle.currentLatitude : null,
         currentLng: telemetryFresh ? vehicle.currentLongitude : null,
-        lockStatus: vehicle.lockStatus,
+        lockStatus: telemetryFresh ? vehicle.lockStatus : null,
         gpsStatus: effectiveGpsStatus(vehicle.gpsStatus, vehicle.lastPingTime),
         telemetryFresh,
         vehicleStatus: vehicle.vehicleStatus,
@@ -121,11 +121,14 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
-    const vehicleId = clean(body.vehicleId).slice(0, 80);
+    const vehicleId = clean(body.vehicleId).toUpperCase().slice(0, 80);
     const lockStatus = clean(body.lockStatus);
     const gpsStatus = clean(body.gpsStatus).toUpperCase();
     const vehicleStatus = clean(body.vehicleStatus);
     const alertType = clean(body.alertType).slice(0, 80);
+    const deviceTimestamp = body.deviceTimestamp
+      ? new Date(body.deviceTimestamp)
+      : null;
 
     const errors: string[] = [];
 
@@ -136,12 +139,49 @@ export async function POST(req: Request) {
     if (!lockStatuses.includes(lockStatus)) errors.push("Invalid lock status.");
     if (!gpsStatuses.includes(gpsStatus)) errors.push("Invalid GPS status.");
     if (!vehicleStatuses.includes(vehicleStatus)) errors.push("Invalid vehicle status.");
+    if (deviceTimestamp && !Number.isFinite(deviceTimestamp.getTime())) {
+      errors.push("Device timestamp is invalid.");
+    }
+
+    const now = new Date();
+    if (deviceTimestamp && deviceTimestamp.getTime() > now.getTime() + 2 * 60 * 1000) {
+      errors.push("Device timestamp is too far in the future.");
+    }
+    if (deviceTimestamp && now.getTime() - deviceTimestamp.getTime() > 15 * 60 * 1000) {
+      return NextResponse.json(
+        { success: true, ignored: true, message: "Stale device reading ignored." },
+        { status: 202 }
+      );
+    }
 
     if (errors.length > 0) {
       return NextResponse.json({ success: false, errors }, { status: 400 });
     }
 
-    const vehicle = await Vehicle.findOne({ vehicleId });
+    const vehicle = await Vehicle.findOne({
+      vehicleId,
+      isDeleted: { $ne: true },
+    });
+    if (!vehicle) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "No active scooter matches this vehicle ID. Register and link the scooter before sending telemetry.",
+        },
+        { status: 404 }
+      );
+    }
+    const priorReading = await iot.findOne({ vehicleId }).select("deviceTimestamp").lean();
+    if (
+      deviceTimestamp &&
+      priorReading?.deviceTimestamp &&
+      new Date(priorReading.deviceTimestamp).getTime() > deviceTimestamp.getTime()
+    ) {
+      return NextResponse.json(
+        { success: true, ignored: true, message: "Out-of-order device reading ignored." },
+        { status: 202 }
+      );
+    }
     const nextStatus =
       vehicle?.currentBookingId &&
       (vehicleStatus === "Available" || vehicleStatus === "Low Battery")
@@ -195,6 +235,7 @@ const newIot = await iot.findOneAndUpdate(
       gpsStatus,
       vehicleStatus: nextStatus,
       alertType,
+      ...(deviceTimestamp ? { deviceTimestamp } : {}),
     },
   },
   {

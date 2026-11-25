@@ -176,6 +176,8 @@ export default function BikeBooking() {
   const [hubs, setHubs] = useState<Hub[]>([]);
 const [cities, setCities] = useState<CityRecord[]>([]);
 const [loading, setLoading] = useState(true);
+  const [locatingHub, setLocatingHub] = useState(false);
+  const [locationHint, setLocationHint] = useState("");
   const [saving, setSaving] = useState(false);
 
   const [riderName, setRiderName] = useState("");
@@ -427,6 +429,64 @@ const [pickupOtp, setPickupOtp] = useState("");
     if (!silent) setLoading(false);
   }
 };
+
+  const useMyLocationForHub = () => {
+    if (!navigator.geolocation) {
+      setLocationHint("Location is unavailable in this browser. Choose a Lucknow pickup hub manually.");
+      return;
+    }
+
+    setLocatingHub(true);
+    setLocationHint("");
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const candidates = hubs.filter((item) => {
+          const lat = Number(item.latitude);
+          const lng = Number(item.longitude);
+          return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) > 0.01 && Math.abs(lng) > 0.01;
+        });
+        const distanceKm = (lat: number, lng: number, hubLat: number, hubLng: number) => {
+          const radians = (degree: number) => (degree * Math.PI) / 180;
+          const dLat = radians(hubLat - lat);
+          const dLng = radians(hubLng - lng);
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(radians(lat)) * Math.cos(radians(hubLat)) * Math.sin(dLng / 2) ** 2;
+          return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        };
+        const nearest = candidates
+          .map((item) => ({
+            item,
+            distance: distanceKm(coords.latitude, coords.longitude, Number(item.latitude), Number(item.longitude)),
+          }))
+          .sort((a, b) => a.distance - b.distance)[0];
+
+        setLocatingHub(false);
+        if (!nearest || nearest.distance > 50) {
+          setLocationHint(
+            "No active EVUDDY pickup hub was found near your current location. You can still choose a Lucknow hub manually if you plan to collect your EV there."
+          );
+          return;
+        }
+
+        setCity(String(nearest.item.city || "Lucknow"));
+        setHub(String(nearest.item.hubCode || nearest.item.hubName || ""));
+        setSelectedBike("");
+        setLocationHint(
+          `Nearest hub selected: ${nearest.item.hubName || nearest.item.hubCode} · about ${Math.round(nearest.distance)} km away. Your GPS coordinates are not saved.`
+        );
+      },
+      (positionError) => {
+        setLocatingHub(false);
+        setLocationHint(
+          positionError.code === positionError.PERMISSION_DENIED
+            ? "Location permission was declined. Choose a Lucknow pickup hub manually."
+            : "Could not read your location. Check browser location settings or choose a Lucknow hub manually."
+        );
+      },
+      { enableHighAccuracy: false, timeout: 12_000, maximumAge: 60_000 }
+    );
+  };
 
 useEffect(() => {
   void loadData();
@@ -2142,6 +2202,20 @@ cursor-pointer
   </option>
 ))}
 </select>
+                  <button
+                    type="button"
+                    disabled={locatingHub || loading || hubs.length === 0}
+                    onClick={useMyLocationForHub}
+                    className="mt-2 inline-flex min-h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-white px-3 py-2 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <MapPin size={16} aria-hidden="true" />
+                    {locatingHub ? "Finding nearby hub…" : "Use my location"}
+                  </button>
+                  {locationHint ? (
+                    <p className="mt-2 text-xs leading-5 text-slate-600" role="status">
+                      {locationHint}
+                    </p>
+                  ) : null}
                 </Field>
 
                 <Field label="Employee Reference">

@@ -106,6 +106,16 @@ export async function POST(req: Request) {
     if (!batteryOutId) {
       batteryOutId = String(vehicle.currentBatteryId || "").trim().toUpperCase();
     }
+    if (!batteryOutId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This scooter has no tracked battery pack to swap out. Register its installed pack in Battery Management first.",
+        },
+        { status: 400 }
+      );
+    }
 
     const batteryAlreadyInstalled = await Battery.findOne({
       batteryId: batteryInId,
@@ -123,32 +133,47 @@ export async function POST(req: Request) {
       );
     }
 
-    const batteryOut = batteryOutId
-      ? await Battery.findOne({ batteryId: batteryOutId })
-      : null;
-
-    if (batteryOut && batteryOut.vehicleId && batteryOut.vehicleId !== vehicleId) {
+    const batteryOut = await Battery.findOne({
+      batteryId: batteryOutId,
+      isDeleted: { $ne: true },
+    });
+    if (!batteryOut) {
       return NextResponse.json(
         {
           success: false,
-          message: "Battery Out does not belong to the selected vehicle.",
+          message: "Battery Out was not found in inventory. Register the pack before recording a swap.",
+        },
+        { status: 404 }
+      );
+    }
+    if (
+      batteryOut.status !== "IN-VEHICLE" ||
+      String(batteryOut.vehicleId || "").trim().toUpperCase() !== vehicleId
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Battery Out must be the pack currently fitted to this scooter.",
         },
         { status: 400 }
       );
     }
 
-    const batteryIn = await Battery.findOne({ batteryId: batteryInId });
+    const batteryIn = await Battery.findOne({
+      batteryId: batteryInId,
+      isDeleted: { $ne: true },
+    });
     if (!batteryIn) {
       return NextResponse.json(
         { success: false, message: "Charged battery in was not found in inventory." },
         { status: 404 }
       );
     }
-    if (!["READY", "CHARGING"].includes(String(batteryIn.status || ""))) {
+    if (String(batteryIn.status || "") !== "READY") {
       return NextResponse.json(
         {
           success: false,
-          message: "Battery in must be READY (or charging at the hub) before it goes on a scooter.",
+          message: "Battery In must be fully charged and marked READY before it goes on a scooter.",
         },
         { status: 400 }
       );

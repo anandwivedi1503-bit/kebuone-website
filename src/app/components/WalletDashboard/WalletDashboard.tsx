@@ -69,6 +69,17 @@ const settleDepositRefund = async (
       alert(data.message || "Could not return the security deposit.");
       return;
     }
+    if (
+      data.pendingGatewayConfirmation ||
+      data.data?.refundStatus === "PROCESSING"
+    ) {
+      alert(
+        data.message ||
+          "Razorpay accepted the request. The deposit will leave the pending list after the gateway confirms the refund."
+      );
+      await loadWallets(false);
+      return;
+    }
     alert(data.message || "Security deposit refund completed.");
     setSelectedWallet((current: { pendingDepositRefunds?: Array<{ id: string }> } | null) =>
       current

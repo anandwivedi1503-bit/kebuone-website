@@ -59,6 +59,30 @@ const RefundSchema = new mongoose.Schema(
       default: "",
     },
 
+    razorpayRefunds: {
+      type: [
+        new mongoose.Schema(
+          {
+            id: { type: String, required: true, trim: true },
+            paymentId: { type: String, default: "", trim: true },
+            amount: { type: Number, required: true, min: 0 },
+            status: {
+              type: String,
+              enum: ["pending", "processed", "failed"],
+              default: "pending",
+            },
+          },
+          { _id: false }
+        ),
+      ],
+      default: [],
+    },
+
+    razorpayRefundClaimedAt: {
+      type: Date,
+      default: null,
+    },
+
     refundStatus: {
       type: String,
       enum: [
