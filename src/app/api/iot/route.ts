@@ -8,6 +8,12 @@ import Booking from "@/models/Booking";
 import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
 import { providedSecretMatches } from "@/lib/timingSafe";
 import { effectiveGpsStatus, hasRecentVehiclePing } from "@/lib/vehicleTelemetry";
+import {
+  applyCreatedCursor,
+  listResponseFromPage,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 
 const lockStatuses = ["Locked", "Unlocked"];
 const gpsStatuses = ["ONLINE", "OFFLINE"];
@@ -36,7 +42,7 @@ function isDeviceAuthenticated(req: Request) {
   );
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.iot);
     if (gate.error) return gate.error;
@@ -50,13 +56,71 @@ export async function GET() {
       await resolveHubScope(gate.session),
       ["currentHub"]
     );
-    const vehicles = await Vehicle.find(vehicleFilter)
-      .select(
-        "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt currentHub currentBatteryId currentBookingId"
-      )
-      .sort({ updatedAt: -1 })
-      .limit(500)
-      .lean();
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const summaryFilter = { ...vehicleFilter };
+    applyCreatedCursor(vehicleFilter, cursor);
+    const freshSince = new Date(Date.now() - 15 * 60 * 1000);
+    const [vehicles, summaryRows] = await Promise.all([
+      Vehicle.find(vehicleFilter)
+        .select(
+          "vehicleId batteryPercentage currentLatitude currentLongitude lockStatus gpsStatus vehicleStatus lastPingTime createdAt currentHub currentBatteryId currentBookingId"
+        )
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(cursor ? 0 : skip)
+        .limit(limit + 1)
+        .lean(),
+      cursor ? Promise.resolve([]) : Vehicle.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            online: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gte: ["$lastPingTime", freshSince] },
+                      { $eq: [{ $toUpper: { $ifNull: ["$gpsStatus", ""] } }, "ONLINE"] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            locked: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gte: ["$lastPingTime", freshSince] },
+                      { $eq: [{ $toUpper: { $ifNull: ["$lockStatus", ""] } }, "LOCKED"] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+            unlocked: {
+              $sum: {
+                $cond: [
+                  {
+                    $and: [
+                      { $gte: ["$lastPingTime", freshSince] },
+                      { $eq: [{ $toUpper: { $ifNull: ["$lockStatus", ""] } }, "UNLOCKED"] },
+                    ],
+                  },
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ]),
+    ]);
 
     const vehicleIds = vehicles.map((vehicle) => vehicle.vehicleId);
     const latestAlerts = vehicleIds.length
@@ -85,21 +149,28 @@ export async function GET() {
         batteryPercentage: telemetryFresh ? vehicle.batteryPercentage : null,
         currentLat: telemetryFresh ? vehicle.currentLatitude : null,
         currentLng: telemetryFresh ? vehicle.currentLongitude : null,
-        lockStatus: vehicle.lockStatus,
+        lockStatus: telemetryFresh ? vehicle.lockStatus : null,
         gpsStatus: effectiveGpsStatus(vehicle.gpsStatus, vehicle.lastPingTime),
         telemetryFresh,
         vehicleStatus: vehicle.vehicleStatus,
         currentHub: vehicle.currentHub || "",
         currentBatteryId: vehicle.currentBatteryId || "",
         currentBookingId: vehicle.currentBookingId || "",
+        createdAt: vehicle.createdAt,
         updatedAt: vehicle.lastPingTime || null,
         alertType: telemetryFresh ? alertByVehicle.get(vehicle.vehicleId) || "" : "",
       };
     });
 
+    const payload = listResponseFromPage(iotData, cursor ? 1 : page, limit);
     return NextResponse.json({
-      success: true,
-      data: iotData,
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as
+          | { createdAt?: unknown; _id?: unknown }
+          | undefined
+      ),
+      ...(cursor ? {} : { summary: summaryRows[0] || { total: 0, online: 0, locked: 0, unlocked: 0 } }),
     });
   } catch {
     return NextResponse.json(
@@ -121,11 +192,14 @@ export async function POST(req: Request) {
     await connectDB();
 
     const body = await req.json();
-    const vehicleId = clean(body.vehicleId).slice(0, 80);
+    const vehicleId = clean(body.vehicleId).toUpperCase().slice(0, 80);
     const lockStatus = clean(body.lockStatus);
     const gpsStatus = clean(body.gpsStatus).toUpperCase();
     const vehicleStatus = clean(body.vehicleStatus);
     const alertType = clean(body.alertType).slice(0, 80);
+    const deviceTimestamp = body.deviceTimestamp
+      ? new Date(body.deviceTimestamp)
+      : null;
 
     const errors: string[] = [];
 
@@ -136,12 +210,52 @@ export async function POST(req: Request) {
     if (!lockStatuses.includes(lockStatus)) errors.push("Invalid lock status.");
     if (!gpsStatuses.includes(gpsStatus)) errors.push("Invalid GPS status.");
     if (!vehicleStatuses.includes(vehicleStatus)) errors.push("Invalid vehicle status.");
+    if (deviceTimestamp && !Number.isFinite(deviceTimestamp.getTime())) {
+      errors.push("Device timestamp is invalid.");
+    }
+
+    const now = new Date();
+    if (deviceTimestamp && deviceTimestamp.getTime() > now.getTime() + 2 * 60 * 1000) {
+      errors.push("Device timestamp is too far in the future.");
+    }
+    if (deviceTimestamp && now.getTime() - deviceTimestamp.getTime() > 15 * 60 * 1000) {
+      return NextResponse.json(
+        { success: true, ignored: true, message: "Stale device reading ignored." },
+        { status: 202 }
+      );
+    }
 
     if (errors.length > 0) {
       return NextResponse.json({ success: false, errors }, { status: 400 });
     }
 
-    const vehicle = await Vehicle.findOne({ vehicleId });
+    const vehicle = await Vehicle.findOne({
+      vehicleId,
+      isDeleted: { $ne: true },
+    });
+    if (!vehicle) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "No active scooter matches this vehicle ID. Register and link the scooter before sending telemetry.",
+        },
+        { status: 404 }
+      );
+    }
+    const priorReading = (await iot
+      .findOne({ vehicleId })
+      .select("deviceTimestamp")
+      .lean()) as unknown as { deviceTimestamp?: Date | string } | null;
+    if (
+      deviceTimestamp &&
+      priorReading?.deviceTimestamp &&
+      new Date(priorReading.deviceTimestamp).getTime() > deviceTimestamp.getTime()
+    ) {
+      return NextResponse.json(
+        { success: true, ignored: true, message: "Out-of-order device reading ignored." },
+        { status: 202 }
+      );
+    }
     const nextStatus =
       vehicle?.currentBookingId &&
       (vehicleStatus === "Available" || vehicleStatus === "Low Battery")
@@ -195,6 +309,7 @@ const newIot = await iot.findOneAndUpdate(
       gpsStatus,
       vehicleStatus: nextStatus,
       alertType,
+      ...(deviceTimestamp ? { deviceTimestamp } : {}),
     },
   },
   {

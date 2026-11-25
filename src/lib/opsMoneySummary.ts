@@ -30,7 +30,7 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
   const txScope = idInScopeFilter("bookingId", bookingIds);
   const walletScope = idInScopeFilter("riderId", riderIds);
 
-  const [bookingAgg, txnAgg, cashAgg, walletAgg, refundAgg] = await Promise.all([
+  const [bookingAgg, txnAgg, cashAgg, walletAgg, refundAgg, pendingAgg] = await Promise.all([
     Booking.aggregate([
       { $match: bookingMatch },
       {
@@ -88,6 +88,9 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
         $group: {
           _id: { $ifNull: ["$paymentMethod", "Unknown"] },
           total: { $sum: { $ifNull: ["$amount", 0] } },
+          gst: { $sum: { $ifNull: ["$gstAmount", 0] } },
+          cgst: { $sum: { $ifNull: ["$cgstAmount", 0] } },
+          sgst: { $sum: { $ifNull: ["$sgstAmount", 0] } },
           count: { $sum: 1 },
         },
       },
@@ -178,6 +181,23 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
         },
       },
     ]),
+    Transaction.aggregate([
+      {
+        $match: {
+          status: "Pending",
+          transactionType: { $in: [...REVENUE_TRANSACTION_TYPES] },
+          ...notDeleted,
+          ...txScope,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $ifNull: ["$amount", 0] } },
+          count: { $sum: 1 },
+        },
+      },
+    ]),
   ]);
 
   const booking = bookingAgg[0] ?? {};
@@ -194,6 +214,9 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
     ["PENDING", "PROCESSING", "APPROVED"].includes(String(row._id))
   );
   const refunded = refundAgg.find((row) => String(row._id) === "REFUNDED");
+  const pending = pendingAgg[0] ?? {};
+  const sumTxn = (field: "total" | "gst" | "cgst" | "sgst") =>
+    roundMoney(txnAgg.reduce((sum, row) => sum + Number(row[field] ?? 0), 0));
 
   const summary = {
     asOf: new Date().toISOString(),
@@ -211,6 +234,11 @@ export async function getOpsMoneySummary(session: AdminSessionInfo | null) {
       cash: methodTotal("Cash"),
       walletCredit: methodTotal("Wallet"),
       successCount: txnAgg.reduce((n, row) => n + Number(row.count ?? 0), 0),
+      revenueGross: sumTxn("total"),
+      gst: sumTxn("gst"),
+      cgst: sumTxn("cgst"),
+      sgst: sumTxn("sgst"),
+      pending: roundMoney(Number(pending.total ?? 0)),
     },
     cashHandover: {
       dueToCompany: roundMoney(Number(due?.total ?? 0)),

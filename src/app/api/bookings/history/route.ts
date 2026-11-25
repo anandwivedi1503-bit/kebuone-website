@@ -8,6 +8,7 @@ import {
   getVerifiedFirebaseUser,
 } from "@/lib/requestAuth";
 import { bookingEligibleForReview } from "@/lib/reviews";
+import { applyCreatedCursor, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import Booking from "@/models/Booking";
 import Review from "@/models/Review";
 import Rider from "@/models/Rider";
@@ -38,7 +39,9 @@ export async function GET(req: Request) {
       return NextResponse.json({ success: true, data: [] });
     }
 
-    const bookings = await Booking.find({
+    const parsed = parseListQuery(req);
+    const limit = Math.min(parsed.limit, 100);
+    const filter: Record<string, unknown> = {
       $and: [
         bookingBelongsToRiderFilter(rider),
         NOT_DELETED_FILTER,
@@ -53,13 +56,18 @@ export async function GET(req: Request) {
           ],
         },
       ],
-    })
+    };
+    applyCreatedCursor(filter, parsed.cursor);
+    const bookingRows = await Booking.find(filter)
       .select(
         "bookingId rideStatus rentalMode vehicleId vehicleModel startHub pickupCity pickupHubName receivedAmount pendingAmount completedAt actualRideEnd createdAt reviewId reviewedAt"
       )
-      .sort({ completedAt: -1, createdAt: -1 })
-      .limit(25)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(parsed.cursor ? 0 : parsed.skip)
+      .limit(limit + 1)
       .lean();
+    const payload = listResponseFromPage(bookingRows, parsed.cursor ? 1 : parsed.page, limit);
+    const bookings = payload.data;
 
     const ids = bookings.map((row) => String(row.bookingId || "")).filter(Boolean);
     const reviews = ids.length
@@ -75,7 +83,10 @@ export async function GET(req: Request) {
     );
 
     return NextResponse.json({
-      success: true,
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined
+      ),
       data: bookings.map((row) => {
         const existing = byBooking.get(String(row.bookingId));
         return {

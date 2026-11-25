@@ -154,6 +154,13 @@ export async function GET(req: Request) {
       city: "pickupCity",
     });
     applyHubScope(filter, await resolveHubScope(gate.session), ["currentHub", "startHub"]);
+    const summaryFilter: Record<string, unknown> = {
+      ...filter,
+      ...(Array.isArray(filter.$and) ? { $and: [...filter.$and] } : {}),
+    };
+    delete summaryFilter.rideStatus;
+    delete summaryFilter.paymentStatus;
+    delete summaryFilter.rentalMode;
     if (q) {
       const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const and = (filter.$and as unknown[]) || [];
@@ -172,11 +179,72 @@ export async function GET(req: Request) {
 
     applyCreatedCursor(filter, cursor);
 
-    const bookings = await Booking.find(filter)
+    const now = new Date();
+    const indiaNow = new Date(now.getTime() + 330 * 60 * 1000);
+    const todayStartUtc = new Date(
+      Date.UTC(indiaNow.getUTCFullYear(), indiaNow.getUTCMonth(), indiaNow.getUTCDate()) -
+        330 * 60 * 1000
+    );
+    const [bookings, summaryRows] = await Promise.all([
+      Booking.find(filter)
         .sort({ createdAt: -1, _id: -1 })
         .skip(cursor ? 0 : skip)
         .limit(limit + 1)
-        .lean();
+        .lean(),
+      cursor ? Promise.resolve([]) : Booking.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            active: {
+              $sum: {
+                $cond: [
+                  { $in: ["$rideStatus", ["Booked", "Reserved", "Payment Pending", "Ready For Pickup", "In Ride"]] },
+                  1,
+                  0,
+                ],
+              },
+            },
+            completed: { $sum: { $cond: [{ $eq: ["$rideStatus", "Completed"] }, 1, 0] } },
+            cancelled: { $sum: { $cond: [{ $eq: ["$rideStatus", "Cancelled"] }, 1, 0] } },
+            today: { $sum: { $cond: [{ $gte: ["$createdAt", todayStartUtc] }, 1, 0] } },
+            readyForPickup: { $sum: { $cond: [{ $eq: ["$rideStatus", "Ready For Pickup"] }, 1, 0] } },
+            pendingPayments: { $sum: { $cond: [{ $eq: ["$paymentStatus", "Pending"] }, 1, 0] } },
+            partialPayments: { $sum: { $cond: [{ $eq: ["$paymentStatus", "Partial"] }, 1, 0] } },
+            revenue: {
+              $sum: {
+                $cond: [
+                  { $eq: ["$rideStatus", "Cancelled"] },
+                  0,
+                  {
+                    $let: {
+                      vars: {
+                        received: { $max: [0, { $ifNull: ["$receivedAmount", 0] }] },
+                        dueForRent: {
+                          $add: [
+                            { $max: [0, { $ifNull: ["$rateApplied", 0] }] },
+                            { $max: [0, { $ifNull: ["$gstAmount", 0] }] },
+                          ],
+                        },
+                        deposit: { $max: [0, { $ifNull: ["$securityDeposit", 0] }] },
+                      },
+                      in: {
+                        $cond: [
+                          { $gt: ["$$dueForRent", 0] },
+                          { $min: ["$$received", "$$dueForRent"] },
+                          { $max: [0, { $subtract: ["$$received", "$$deposit"] }] },
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      ]),
+    ]);
 
     const riderIds = Array.from(
       new Set(
@@ -217,7 +285,20 @@ export async function GET(req: Request) {
     const last = payload.data[payload.data.length - 1] as
       | { createdAt?: unknown; _id?: unknown }
       | undefined;
-    return NextResponse.json(withNextCursor(payload, last));
+    return NextResponse.json({
+      ...withNextCursor(payload, last),
+      ...(cursor ? {} : { summary: summaryRows[0] || {
+        total: 0,
+        active: 0,
+        completed: 0,
+        cancelled: 0,
+        today: 0,
+        readyForPickup: 0,
+        pendingPayments: 0,
+        partialPayments: 0,
+        revenue: 0,
+      } }),
+    });
   } catch (error) {
     return NextResponse.json(
       {

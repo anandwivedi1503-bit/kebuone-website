@@ -300,7 +300,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message:
-        "Pickup OTP confirmed. Scooter unlocked. Rider must swipe Ride started on Book EV.",
+        "Pickup OTP confirmed. Booking is marked ready for handover. Confirm the physical scooter unlock at the yard; remote IoT unlock is not connected yet. The rider can then swipe Ride started on Book EV.",
       pendingAmount: pending,
       data: booking,
     });

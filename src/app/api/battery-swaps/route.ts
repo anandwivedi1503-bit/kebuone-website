@@ -18,12 +18,18 @@ import {
   staffCanAccessBooking,
 } from "@/lib/staffHubScope";
 import { writeAudit } from "@/lib/writeAudit";
+import {
+  applyCreatedCursor,
+  listResponseFromPage,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 import Battery from "@/models/Battery";
 import BatterySwap from "@/models/BatterySwap";
 import Booking from "@/models/Booking";
 import Vehicle from "@/models/Vehicle";
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.swaps);
     if (gate.error) return gate.error;
@@ -35,11 +41,37 @@ export async function GET() {
       await resolveHubScope(gate.session),
       ["hubId"]
     );
-    const swaps = await BatterySwap.find(filter).sort({ createdAt: -1 }).limit(300).lean();
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const summaryFilter = { ...filter };
+    applyCreatedCursor(filter, cursor);
+    const [swaps, summaryRows] = await Promise.all([
+      BatterySwap.find(filter)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(cursor ? 0 : skip)
+        .limit(limit + 1)
+        .lean(),
+      cursor ? Promise.resolve([]) : BatterySwap.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            completed: { $sum: { $cond: [{ $eq: ["$status", "COMPLETED"] }, 1, 0] } },
+            pending: { $sum: { $cond: [{ $eq: ["$status", "PENDING"] }, 1, 0] } },
+          },
+        },
+      ]),
+    ]);
+    const payload = listResponseFromPage(swaps, cursor ? 1 : page, limit);
 
     return NextResponse.json({
-      success: true,
-      data: swaps,
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as
+          | { createdAt?: unknown; _id?: unknown }
+          | undefined
+      ),
+      ...(cursor ? {} : { summary: summaryRows[0] || { total: 0, completed: 0, pending: 0 } }),
     });
   } catch {
     return NextResponse.json(
@@ -106,6 +138,16 @@ export async function POST(req: Request) {
     if (!batteryOutId) {
       batteryOutId = String(vehicle.currentBatteryId || "").trim().toUpperCase();
     }
+    if (!batteryOutId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "This scooter has no tracked battery pack to swap out. Register its installed pack in Battery Management first.",
+        },
+        { status: 400 }
+      );
+    }
 
     const batteryAlreadyInstalled = await Battery.findOne({
       batteryId: batteryInId,
@@ -123,32 +165,47 @@ export async function POST(req: Request) {
       );
     }
 
-    const batteryOut = batteryOutId
-      ? await Battery.findOne({ batteryId: batteryOutId })
-      : null;
-
-    if (batteryOut && batteryOut.vehicleId && batteryOut.vehicleId !== vehicleId) {
+    const batteryOut = await Battery.findOne({
+      batteryId: batteryOutId,
+      isDeleted: { $ne: true },
+    });
+    if (!batteryOut) {
       return NextResponse.json(
         {
           success: false,
-          message: "Battery Out does not belong to the selected vehicle.",
+          message: "Battery Out was not found in inventory. Register the pack before recording a swap.",
+        },
+        { status: 404 }
+      );
+    }
+    if (
+      batteryOut.status !== "IN-VEHICLE" ||
+      String(batteryOut.vehicleId || "").trim().toUpperCase() !== vehicleId
+    ) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Battery Out must be the pack currently fitted to this scooter.",
         },
         { status: 400 }
       );
     }
 
-    const batteryIn = await Battery.findOne({ batteryId: batteryInId });
+    const batteryIn = await Battery.findOne({
+      batteryId: batteryInId,
+      isDeleted: { $ne: true },
+    });
     if (!batteryIn) {
       return NextResponse.json(
         { success: false, message: "Charged battery in was not found in inventory." },
         { status: 404 }
       );
     }
-    if (!["READY", "CHARGING"].includes(String(batteryIn.status || ""))) {
+    if (String(batteryIn.status || "") !== "READY") {
       return NextResponse.json(
         {
           success: false,
-          message: "Battery in must be READY (or charging at the hub) before it goes on a scooter.",
+          message: "Battery In must be fully charged and marked READY before it goes on a scooter.",
         },
         { status: 400 }
       );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
@@ -12,59 +12,104 @@ import SectionHeader from "../DashboardUI/SectionHeader";
 import DashboardActions from "../DashboardUI/DashboardActions";
 import StatusBadge from "../DashboardUI/StatusBadge";
 import { transactionCgst, transactionSgst } from "@/lib/gst";
-import { walletSpendable } from "@/lib/walletMoney";
 import { isRevenueTransaction, revenueAmount, revenueGst } from "@/lib/opsRevenue";
-import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
+import OpsMoneyStrip, { useOpsMoneySummary } from "../DashboardUI/OpsMoneyStrip";
 
 export default function RevenueDashboard(){
 
 const [transactions,setTransactions]=useState<any[]>([]);
 const [refunds, setRefunds] = useState<any[]>([]);
-const [wallets, setWallets] = useState<any[]>([]);
+const liveMoneySummary = useOpsMoneySummary();
 
 const [search, setSearch] = useState("");
 const [statusFilter, setStatusFilter] = useState("ALL");
 const [paymentFilter, setPaymentFilter] = useState("ALL");
 const [dateFilter,setDateFilter] = useState("ALL");
 
-const [listPages, setListPages] = useState(1);
+const transactionCursorRef = useRef("");
+const refundCursorRef = useRef("");
+const loadingMoreTransactionsRef = useRef(false);
+const loadingMoreRefundsRef = useRef(false);
+const [loadingMoreTransactions, setLoadingMoreTransactions] = useState(false);
+const [loadingMoreRefunds, setLoadingMoreRefunds] = useState(false);
 const [hasMoreRevenue, setHasMoreRevenue] = useState(false);
+const [hasMoreRefunds, setHasMoreRefunds] = useState(false);
 const [selectedTransaction, setSelectedTransaction] =
   useState<any | null>(null);
 
-const fetchRevenue = async () => {
+const fetchRevenue = async (loadOlderTransactions = false, loadOlderRefunds = false) => {
+  if (loadOlderTransactions && (!transactionCursorRef.current || loadingMoreTransactionsRef.current)) return;
+  if (loadOlderRefunds && (!refundCursorRef.current || loadingMoreRefundsRef.current)) return;
+  if (loadOlderTransactions) {
+    loadingMoreTransactionsRef.current = true;
+    setLoadingMoreTransactions(true);
+  }
+  if (loadOlderRefunds) {
+    loadingMoreRefundsRef.current = true;
+    setLoadingMoreRefunds(true);
+  }
 
   try {
-    const limit = Math.min(500, 80 * listPages);
-
-    const [transactionRes, refundRes, walletRes] =
+    const transactionParams = new URLSearchParams({ limit: "100" });
+    const refundParams = new URLSearchParams({ limit: "100" });
+    if (loadOlderTransactions) transactionParams.set("cursor", transactionCursorRef.current);
+    if (loadOlderRefunds) refundParams.set("cursor", refundCursorRef.current);
+    const [transactionRes, refundRes] =
       await Promise.all([
-        fetch(`/api/transactions?limit=${limit}&page=1`),
-        fetch(`/api/refunds?limit=${limit}&page=1`),
-        fetch(`/api/wallet?limit=${limit}&page=1`),
+        fetch(`/api/transactions?${transactionParams.toString()}`, { cache: "no-store" }),
+        fetch(`/api/refunds?${refundParams.toString()}`, { cache: "no-store" }),
       ]);
 
     const transactionData = await transactionRes.json();
     const refundData = await refundRes.json();
-    const walletData = await walletRes.json();
 
     if (transactionData.success) {
-      setTransactions(transactionData.data || []);
+      const rows = Array.isArray(transactionData.data) ? transactionData.data : [];
+      setTransactions((current) => {
+        const key = (row: any) => String(row._id || row.transactionId);
+        if (loadOlderTransactions) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((row: any) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      if (loadOlderTransactions || !transactionCursorRef.current) {
+        transactionCursorRef.current = String(transactionData.pagination?.nextCursor || "");
+      }
       setHasMoreRevenue(Boolean(transactionData.pagination?.hasMore));
     }
 
     if (refundData.success) {
-      setRefunds(refundData.data || []);
-    }
-
-    if (walletData.success) {
-      setWallets(walletData.data || []);
+      const rows = Array.isArray(refundData.data) ? refundData.data : [];
+      setRefunds((current) => {
+        const key = (row: any) => String(row._id || row.refundId);
+        if (loadOlderRefunds) {
+          const seen = new Set(current.map(key));
+          return [...current, ...rows.filter((row: any) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+        }
+        const seen = new Set(rows.map(key));
+        return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      if (loadOlderRefunds || !refundCursorRef.current) {
+        refundCursorRef.current = String(refundData.pagination?.nextCursor || "");
+      }
+      setHasMoreRefunds(Boolean(refundData.pagination?.hasMore));
     }
 
   } catch (error) {
 
     console.error(error);
 
+  } finally {
+    if (loadOlderTransactions) {
+      loadingMoreTransactionsRef.current = false;
+      setLoadingMoreTransactions(false);
+    }
+    if (loadOlderRefunds) {
+      loadingMoreRefundsRef.current = false;
+      setLoadingMoreRefunds(false);
+    }
   }
 
 };
@@ -75,69 +120,60 @@ useEffect(() => {
 
   return startOpsPoll(fetchRevenue);
 
-}, [listPages]);
+}, []);
 
-const totalRevenue = transactions.reduce(
+const totalRevenue = Number(liveMoneySummary?.payments.revenueGross ?? transactions.reduce(
   (sum, t) =>
     isRevenueTransaction(t)
       ? sum + revenueAmount(t)
       : sum,
   0
-);
+));
 
-const totalGST = transactions.reduce(
+const totalGST = Number(liveMoneySummary?.payments.gst ?? transactions.reduce(
   (sum, t) =>
     isRevenueTransaction(t)
       ? sum + revenueGst(t)
       : sum,
   0
-);
+));
 
-const totalCGST = transactions.reduce(
+const totalCGST = Number(liveMoneySummary?.payments.cgst ?? transactions.reduce(
   (sum, t) =>
     isRevenueTransaction(t) ? sum + transactionCgst(t) : sum,
   0
-);
+));
 
-const totalSGST = transactions.reduce(
+const totalSGST = Number(liveMoneySummary?.payments.sgst ?? transactions.reduce(
   (sum, t) =>
     isRevenueTransaction(t) ? sum + transactionSgst(t) : sum,
   0
-);
+));
 
-const pendingPayments = transactions
+const pendingPayments = Number(liveMoneySummary?.payments.pending ?? transactions
   .filter((t) => t.status === "Pending")
   .reduce(
     (sum, t) =>
       sum + Number(t.amount || 0),
     0
-  );
+  ));
 
-const successfulPayments =
+const successfulPayments = Number(liveMoneySummary?.payments.successCount ??
   transactions.filter(
     (t) => t.status === "Success"
-  ).length;
+  ).length);
 
-const refundedAmount = refunds.reduce(
+const refundedAmount = Number(liveMoneySummary?.refunds.refunded ?? refunds.reduce(
   (sum, r) =>
     r.refundStatus === "REFUNDED"
       ? sum + Number(r.amount || 0)
       : sum,
   0
-);
+));
 
-const walletBalance = wallets.reduce(
-  (sum, w) =>
-    sum + walletSpendable(w),
-  0
-);
+const walletBalance = Number(liveMoneySummary?.wallets.creditBalance || 0);
 
-const walletHold = wallets.reduce(
-  (sum, w) =>
-    sum +
-    Number(w.securityDepositHold || 0),
-  0
-);
+const walletHold = Number(liveMoneySummary?.wallets.depositHold || 0);
 
   const filteredTransactions = transactions.filter((txn) => {
 
@@ -221,7 +257,7 @@ subtitle="Same receipts as Transactions plus wallet credit and refunds. Booking 
 
 />
 
-<OpsMoneyStrip />
+<OpsMoneyStrip summary={liveMoneySummary} />
 
 <KPIGrid>
 
@@ -452,10 +488,11 @@ Number(txn.gstAmount || 0)
   <div className="mb-8 flex justify-center">
     <button
       type="button"
-      onClick={() => setListPages((pages) => pages + 1)}
+      disabled={loadingMoreTransactions}
+      onClick={() => void fetchRevenue(true, false)}
       className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
     >
-      Load more
+      {loadingMoreTransactions ? "Loading…" : "Load older transactions"}
     </button>
   </div>
 ) : null}
@@ -1023,6 +1060,19 @@ transition
 </table>
 
 </div>
+
+{hasMoreRefunds ? (
+  <div className="mt-6 flex justify-center">
+    <button
+      type="button"
+      disabled={loadingMoreRefunds}
+      onClick={() => void fetchRevenue(false, true)}
+      className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50 disabled:opacity-60"
+    >
+      {loadingMoreRefunds ? "Loading…" : "Load older refunds"}
+    </button>
+  </div>
+) : null}
 
 </DashboardCard>
 

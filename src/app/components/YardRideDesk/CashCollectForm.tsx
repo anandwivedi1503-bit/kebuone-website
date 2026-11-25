@@ -145,9 +145,12 @@ export default function CashCollectForm({
         className="sr-only"
         onChange={(event) => {
           const next = event.currentTarget.files?.[0] || null;
-          if (next && next.size > 5 * 1024 * 1024) {
+          // Camera originals are often larger than the upload limit. The submit
+          // path compresses them before upload, so only reject unusually large
+          // source files that could exhaust mobile browser memory.
+          if (next && next.size > 20 * 1024 * 1024) {
             setPhoto(null);
-            setNote("Photo must be 5 MB or smaller.");
+            setNote("This photo is too large to process on this phone. Retake it at a lower camera resolution.");
             event.currentTarget.value = "";
             return;
           }

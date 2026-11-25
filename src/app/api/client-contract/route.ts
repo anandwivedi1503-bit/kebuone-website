@@ -3,7 +3,7 @@ import { paymentContract, registrationContract } from "@/lib/registrationContrac
 
 export const dynamic = "force-dynamic";
 
-/** Shared questions for the website and the app. Legacy app builds may ignore this. */
+/** Shared registration and payment rules used by website and app clients. */
 export async function GET() {
   return NextResponse.json(
     {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus, openOpsDesk } from "@/lib/opsFocus";
@@ -77,6 +77,10 @@ type RidersApiResponse = {
   success?: boolean;
 
   data?: unknown;
+
+  pagination?: { hasMore?: boolean; nextCursor?: string };
+
+  summary?: { total?: number; active?: number; suspended?: number; pendingKyc?: number };
 
   message?: string;
 };
@@ -231,6 +235,11 @@ export default function UserManagement() {
 
   const [error, setError] =
     useState("");
+  const riderCursorRef = useRef("");
+  const loadingMoreRidersRef = useRef(false);
+  const [hasMoreRiders, setHasMoreRiders] = useState(false);
+  const [loadingMoreRiders, setLoadingMoreRiders] = useState(false);
+  const [riderSummary, setRiderSummary] = useState<RidersApiResponse["summary"]>({});
 
   /* =======================================================
      LOAD RIDERS
@@ -239,18 +248,27 @@ export default function UserManagement() {
   const loadRiders =
     useCallback(
       async (
-        showRefreshState = false
+        showRefreshState = false,
+        append = false
       ) => {
+        if (append && (!riderCursorRef.current || loadingMoreRidersRef.current)) return;
         if (showRefreshState) {
           setRefreshing(true);
+        }
+        if (append) {
+          loadingMoreRidersRef.current = true;
+          setLoadingMoreRiders(true);
         }
 
         try {
           setError("");
 
+          const params = new URLSearchParams({ limit: "100" });
+          if (append) params.set("cursor", riderCursorRef.current);
+
           const response =
             await fetch(
-              "/api/riders",
+              `/api/riders?${params.toString()}`,
               {
                 method: "GET",
 
@@ -329,9 +347,19 @@ export default function UserManagement() {
                   )
               );
 
-          setRiders(
-            normalized
-          );
+          setRiders((current) => {
+            if (append) {
+              const seen = new Set(current.map((rider) => rider._id));
+              return [...current, ...normalized.filter((rider) => !seen.has(rider._id))];
+            }
+            const seen = new Set(normalized.map((rider) => rider._id));
+            return [...normalized, ...current.filter((rider) => !seen.has(rider._id))];
+          });
+          if (append || !riderCursorRef.current) {
+            riderCursorRef.current = String(result.pagination?.nextCursor || "");
+          }
+          setHasMoreRiders(Boolean(result.pagination?.hasMore));
+          if (result.summary) setRiderSummary(result.summary);
         } catch (loadError) {
           console.error(
             "USER MANAGEMENT LOAD RIDERS ERROR:",
@@ -348,6 +376,10 @@ export default function UserManagement() {
           setLoading(false);
 
           setRefreshing(false);
+          if (append) {
+            setLoadingMoreRiders(false);
+            loadingMoreRidersRef.current = false;
+          }
         }
       },
       []
@@ -368,11 +400,11 @@ export default function UserManagement() {
   ======================================================= */
 
   const totalRiders =
-    riders.length;
+    Number(riderSummary?.total ?? riders.length);
 
   const activeUsers =
     useMemo(
-      () =>
+      () => riderSummary?.active ??
         riders.filter(
           (rider) =>
             rider.status ===
@@ -382,29 +414,29 @@ export default function UserManagement() {
             rider.blacklisted !==
               true
         ).length,
-      [riders]
+      [riders, riderSummary]
     );
 
   const pendingKYC =
     useMemo(
-      () =>
+      () => riderSummary?.pendingKyc ??
         riders.filter(
           (rider) =>
             rider.kycStatus ===
             "Pending"
         ).length,
-      [riders]
+      [riders, riderSummary]
     );
 
   const suspendedUsers =
     useMemo(
-      () =>
+      () => riderSummary?.suspended ??
         riders.filter(
           (rider) =>
             rider.status ===
             "Suspended"
         ).length,
-      [riders]
+      [riders, riderSummary]
     );
 
   /* =======================================================
@@ -1217,6 +1249,18 @@ export default function UserManagement() {
           </table>
         </div>
       </DashboardCard>
+      {hasMoreRiders ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMoreRiders}
+            onClick={() => void loadRiders(false, true)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+          >
+            {loadingMoreRiders ? "Loading…" : "Load older rider records"}
+          </button>
+        </div>
+      ) : null}
     </PageContainer>
   );
 }

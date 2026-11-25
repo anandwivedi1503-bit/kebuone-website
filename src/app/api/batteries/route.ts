@@ -6,14 +6,21 @@ import { connectDB } from "@/lib/mongodb";
 import Battery from "@/models/Battery";
 import Vehicle from "@/models/Vehicle";
 import { applyHubScope, resolveHubScope } from "@/lib/staffHubScope";
-import { listResponse, parseListQuery } from "@/lib/listQuery";
+import {
+  applyCreatedCursor,
+  listResponse,
+  listResponseFromPage,
+  parseListQuery,
+  withNextCursor,
+} from "@/lib/listQuery";
 
 export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards(...API_DASHBOARDS.batteries);
     if (gate.error) return gate.error;
     await connectDB();
-    const { page, limit, skip } = parseListQuery(req);
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const vehiclePackCursor = new URL(req.url).searchParams.get("vehicleCursor") || "";
 
     const notDeleted = {
       $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
@@ -42,20 +49,117 @@ export async function GET(req: Request) {
           ],
         }
       : notDeleted;
+    const summaryFilter = { ...batteryQuery };
+    applyCreatedCursor(batteryQuery, cursor);
+    const vehiclePackFilter = applyHubScope(
+      {
+        $and: [notDeleted, { currentBatteryId: { $type: "string", $nin: ["", null] } }],
+      },
+      hubs,
+      ["currentHub"]
+    );
+    applyCreatedCursor(vehiclePackFilter, vehiclePackCursor);
 
-    const [batteryRows, vehicles] = await Promise.all([
-      Battery.find(batteryQuery).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean(),
-      Vehicle.find(vehicleQuery)
-        .select("vehicleId batteryPercentage vehicleStatus currentHub currentBatteryId")
-        .limit(500)
+    const [batteryRows, vehiclePackRows, summaryRows] = await Promise.all([
+      Battery.find(batteryQuery)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(cursor ? 0 : skip)
+        .limit(limit + 1)
         .lean(),
+      Vehicle.find(vehiclePackFilter)
+        .select("vehicleId batteryPercentage vehicleStatus currentHub currentBatteryId createdAt _id")
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(vehiclePackCursor ? 0 : skip)
+        .limit(limit + 1)
+        .lean(),
+      cursor || vehiclePackCursor ? Promise.resolve([]) : Battery.aggregate([
+        { $match: summaryFilter },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: 1 },
+            ready: { $sum: { $cond: [{ $eq: ["$status", "READY"] }, 1, 0] } },
+            charging: { $sum: { $cond: [{ $eq: ["$status", "CHARGING"] }, 1, 0] } },
+            inVehicle: { $sum: { $cond: [{ $eq: ["$status", "IN-VEHICLE"] }, 1, 0] } },
+            maintenance: { $sum: { $cond: [{ $eq: ["$status", "MAINTENANCE"] }, 1, 0] } },
+            averageCharge: { $avg: { $ifNull: ["$chargePercentage", 0] } },
+            averageHealth: { $avg: "$batteryHealth" },
+            replacementNeeded: {
+              $sum: {
+                $cond: [
+                  { $and: [{ $isNumber: "$batteryHealth" }, { $lt: ["$batteryHealth", 50] }] },
+                  1,
+                  0,
+                ],
+              },
+            },
+          },
+        },
+      ]),
     ]);
     const hasMoreBatteries = batteryRows.length > limit;
     const batteries = hasMoreBatteries ? batteryRows.slice(0, limit) : batteryRows;
 
-    const vehicleMap = new Map(vehicles.map((row) => [String(row.vehicleId), row]));
+    const batteryIds = batteries
+      .map((battery) => String(battery.batteryId || "").trim().toUpperCase())
+      .filter(Boolean);
+    const vehicleIds = batteries
+      .map((battery) => String(battery.vehicleId || "").trim())
+      .filter(Boolean);
+    const relatedVehicles = batteryIds.length || vehicleIds.length
+      ? await Vehicle.find(
+          applyHubScope(
+            {
+              $or: [
+                { currentBatteryId: { $in: batteryIds.length ? batteryIds : ["__none__"] } },
+                { vehicleId: { $in: vehicleIds.length ? vehicleIds : ["__none__"] } },
+              ],
+            },
+            hubs,
+            ["currentHub"]
+          )
+        )
+          .select("vehicleId batteryPercentage vehicleStatus currentHub currentBatteryId")
+          .lean()
+      : [];
+    const vehiclePacks = vehiclePackRows.length > limit
+      ? vehiclePackRows.slice(0, limit)
+      : vehiclePackRows;
+    const fittedPackIds = Array.from(
+      new Set(vehiclePacks.map((vehicle) => String(vehicle.currentBatteryId || "").trim().toUpperCase()).filter(Boolean))
+    );
+    const registeredPackRows = fittedPackIds.length
+      ? await Battery.find({
+          batteryId: { $in: fittedPackIds },
+          $or: [{ isDeleted: false }, { isDeleted: { $exists: false } }],
+        })
+          .select("batteryId")
+          .lean()
+      : [];
+    const registeredPackIds = new Set(
+      registeredPackRows.map((battery) => String(battery.batteryId || "").trim().toUpperCase())
+    );
+    const untrackedVehiclePacks = vehiclePacks
+      .filter((vehicle) => !registeredPackIds.has(String(vehicle.currentBatteryId || "").trim().toUpperCase()))
+      .map((vehicle) => ({
+        _id: `vehicle-pack-${vehicle.vehicleId}`,
+        batteryId: String(vehicle.currentBatteryId || "").trim().toUpperCase(),
+        hubName: vehicle.currentHub || "",
+        vehicleId: vehicle.vehicleId,
+        chargePercentage: Number(vehicle.batteryPercentage || 0),
+        batteryHealth: undefined,
+        cycleCount: 0,
+        status: "IN-VEHICLE",
+        fromVehicle: true,
+        createdAt: vehicle.createdAt,
+        vehicleBatteryPercentage: Number(vehicle.batteryPercentage || 0),
+        vehicleStatus: vehicle.vehicleStatus || "",
+        vehicleHub: vehicle.currentHub || "",
+        vehiclePackId: vehicle.currentBatteryId || "",
+      }));
+    const vehicleMap = new Map(relatedVehicles.map((row) => [String(row.vehicleId), row]));
     const vehicleByPack = new Map(
-      vehicles
+      relatedVehicles
         .filter((row) => String(row.currentBatteryId || "").trim())
         .map((row) => [String(row.currentBatteryId).toUpperCase(), row])
     );
@@ -80,38 +184,42 @@ export async function GET(req: Request) {
       };
     });
 
-    const knownPacks = new Set(
-      data.map((row) => String(row.batteryId || "").toUpperCase())
+    const payload = listResponse(
+      data,
+      (cursor ? 0 : skip) + batteries.length + (hasMoreBatteries ? 1 : 0),
+      cursor ? 1 : page,
+      limit
     );
-    for (const vehicle of vehicles) {
-      const packId = String(vehicle.currentBatteryId || "").trim().toUpperCase();
-      if (!packId || knownPacks.has(packId)) continue;
-      knownPacks.add(packId);
-      data.push({
-        _id: `vehicle-pack-${vehicle.vehicleId}`,
-        batteryId: packId,
-        hubName: vehicle.currentHub || "",
-        vehicleId: vehicle.vehicleId,
-        chargePercentage: Number(vehicle.batteryPercentage || 0),
-        batteryHealth: undefined,
-        cycleCount: 0,
-        status: "IN-VEHICLE",
-        fromVehicle: true,
-        vehicleBatteryPercentage: Number(vehicle.batteryPercentage || 0),
-        vehicleStatus: vehicle.vehicleStatus || "",
-        vehicleHub: vehicle.currentHub || "",
-        vehiclePackId: packId,
-      });
-    }
-
-    return NextResponse.json(
-      listResponse(
-        data,
-        skip + batteries.length + (hasMoreBatteries ? 1 : 0),
-        page,
-        limit
-      )
+    const vehiclePackPayload = listResponseFromPage(
+      vehiclePackRows,
+      vehiclePackCursor ? 1 : page,
+      limit
     );
+    return NextResponse.json({
+      ...withNextCursor(
+        payload,
+        batteries[batteries.length - 1] as
+          | { createdAt?: unknown; _id?: unknown }
+          | undefined
+      ),
+      vehiclePacks: untrackedVehiclePacks,
+      vehiclePagination: withNextCursor(
+        vehiclePackPayload,
+        vehiclePackPayload.data[vehiclePackPayload.data.length - 1] as
+          | { createdAt?: unknown; _id?: unknown }
+          | undefined
+      ).pagination,
+      ...(cursor || vehiclePackCursor ? {} : { summary: summaryRows[0] || {
+        total: 0,
+        ready: 0,
+        charging: 0,
+        inVehicle: 0,
+        maintenance: 0,
+        averageCharge: 0,
+        averageHealth: 0,
+        replacementNeeded: 0,
+      } }),
+    });
   } catch (error) {
     return NextResponse.json({
       success: false,

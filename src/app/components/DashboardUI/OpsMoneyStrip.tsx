@@ -19,6 +19,11 @@ export type OpsMoneySummary = {
     cash: number;
     walletCredit: number;
     successCount: number;
+    revenueGross?: number;
+    gst?: number;
+    cgst?: number;
+    sgst?: number;
+    pending?: number;
   };
   cashHandover: {
     dueToCompany: number;
@@ -47,12 +52,13 @@ export type OpsMoneySummary = {
 const rupee = (value: number) =>
   `₹${Number(value || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
-export function useOpsMoneySummary(pollMs = OPS_POLL_MS) {
+export function useOpsMoneySummary(pollMs = OPS_POLL_MS, enabled = true) {
   const [summary, setSummary] = useState<OpsMoneySummary | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      if (!enabled) return;
       try {
         const res = await fetch("/api/ops/money-summary", { cache: "no-store" });
         const data = await res.json();
@@ -61,19 +67,21 @@ export function useOpsMoneySummary(pollMs = OPS_POLL_MS) {
         if (!cancelled) setSummary(null);
       }
     };
+    if (!enabled) return () => { cancelled = true; };
     void load();
     const stop = startOpsPoll(load, pollMs);
     return () => {
       cancelled = true;
       stop();
     };
-  }, [pollMs]);
+  }, [pollMs, enabled]);
 
   return summary;
 }
 
-export default function OpsMoneyStrip() {
-  const summary = useOpsMoneySummary();
+export default function OpsMoneyStrip({ summary: suppliedSummary }: { summary?: OpsMoneySummary | null } = {}) {
+  const fetchedSummary = useOpsMoneySummary(OPS_POLL_MS, suppliedSummary === undefined);
+  const summary = suppliedSummary === undefined ? fetchedSummary : suppliedSummary;
   if (!summary) return null;
 
   const cards = [

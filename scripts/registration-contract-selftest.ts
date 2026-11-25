@@ -5,6 +5,7 @@ import {
   normalizePickupCityAck,
   pickupCityAckError,
   readRegistrationClient,
+  registrationContract,
 } from "../src/lib/registrationContract";
 
 const legacy = readRegistrationClient(new Headers());
@@ -19,7 +20,10 @@ const newApp = readRegistrationClient(
 
 assert.equal(legacy.kind, "legacy");
 assert.equal(legacy.asksPickupCity, false);
-assert.equal(pickupCityAckError(normalizePickupCityAck(undefined), legacy), null);
+assert.match(
+  pickupCityAckError(normalizePickupCityAck(undefined), legacy) || "",
+  /Update the app/
+);
 
 assert.equal(web.asksPickupCity, true);
 assert.match(
@@ -27,13 +31,23 @@ assert.match(
   /Lucknow/
 );
 assert.equal(pickupCityAckError(normalizePickupCityAck("lucknow"), web), null);
-assert.equal(pickupCityAckError(normalizePickupCityAck("OTHER"), web), null);
+assert.match(
+  pickupCityAckError(normalizePickupCityAck("OTHER"), web) || "",
+  /Lucknow pickups only/
+);
 
 assert.equal(oldAppShape.asksPickupCity, false);
-assert.equal(pickupCityAckError("", oldAppShape), null);
+assert.match(
+  pickupCityAckError("", oldAppShape) || "",
+  /Update the app/
+);
 
 assert.equal(newApp.asksPickupCity, true);
 assert.equal(pickupCityAckError(normalizePickupCityAck("nope"), newApp) === null, false);
+assert.equal(pickupCityAckError(normalizePickupCityAck("LUCKNOW"), newApp), null);
+assert.notEqual(pickupCityAckError(normalizePickupCityAck("OTHER"), newApp), null);
+assert.equal(registrationContract().requiredForNewRiders, true);
+assert.equal(registrationContract().activeServiceCity, "Lucknow");
 
 assert.equal(enforcesHalfRentalFirstPayment(new Headers()), true);
 assert.equal(enforcesHalfRentalFirstPayment(new Headers({ "x-evuddy-client": "web" })), true);

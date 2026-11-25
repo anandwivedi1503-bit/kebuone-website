@@ -25,8 +25,10 @@ import {
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import {
   applyOpsListFilters,
+  applyCreatedCursor,
   listResponseFromPage,
   parseListQuery,
+  withNextCursor,
 } from "@/lib/listQuery";
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import Booking from "@/models/Booking";
@@ -227,7 +229,7 @@ export async function GET(req: Request) {
 
     await connectDB();
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q } = parsed;
+    const { page, limit, skip, q, cursor } = parsed;
     const status = String(new URL(req.url).searchParams.get("status") || "").trim();
     const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
     applyOpsListFilters(filter, parsed, { hub: "hubCode", city: "city" });
@@ -249,13 +251,17 @@ export async function GET(req: Request) {
       ];
     }
 
+    applyCreatedCursor(filter, cursor);
     const reviews = await Review.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(cursor ? 0 : skip)
       .limit(limit + 1)
       .lean();
 
-    return NextResponse.json(listResponseFromPage(reviews, page, limit));
+    const payload = listResponseFromPage(reviews, cursor ? 1 : page, limit);
+    return NextResponse.json(
+      withNextCursor(payload, payload.data[payload.data.length - 1])
+    );
   } catch (error) {
     return NextResponse.json(
       { success: false, error: publicApiError(error, "Unable to load reviews.") },

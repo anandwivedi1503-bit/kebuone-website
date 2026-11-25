@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
 import PageContainer from "../DashboardUI/PageContainer";
@@ -43,42 +43,114 @@ type ReceiptRow = {
   status?: string;
 };
 
+type RtoSummary = {
+  total?: number;
+  active?: number;
+  transferred?: number;
+  received?: number;
+  todayReceiptCount?: number;
+  todayReceived?: number;
+};
+
+const indiaDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 export default function RentToOwnDashboard() {
   const [contracts, setContracts] = useState<BookingRow[]>([]);
   const [receipts, setReceipts] = useState<ReceiptRow[]>([]);
+  const [summary, setSummary] = useState<RtoSummary>({});
+  const contractCursorRef = useRef("");
+  const receiptCursorRef = useRef("");
+  const loadingMoreContractsRef = useRef(false);
+  const loadingMoreReceiptsRef = useRef(false);
+  const [hasMoreContracts, setHasMoreContracts] = useState(false);
+  const [hasMoreReceipts, setHasMoreReceipts] = useState(false);
+  const [loadingMoreContracts, setLoadingMoreContracts] = useState(false);
+  const [loadingMoreReceipts, setLoadingMoreReceipts] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/rto/daily-ledger", { cache: "no-store" });
-        const data = await res.json();
-        setContracts(data.data?.contracts || []);
-        setReceipts(data.data?.receipts || []);
-      } finally {
-        setLoading(false);
+  const load = async (loadOlderContracts = false, loadOlderReceipts = false) => {
+    if (loadOlderContracts && (!contractCursorRef.current || loadingMoreContractsRef.current)) return;
+    if (loadOlderReceipts && (!receiptCursorRef.current || loadingMoreReceiptsRef.current)) return;
+    if (loadOlderContracts) {
+      loadingMoreContractsRef.current = true;
+      setLoadingMoreContracts(true);
+    }
+    if (loadOlderReceipts) {
+      loadingMoreReceiptsRef.current = true;
+      setLoadingMoreReceipts(true);
+    }
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlderContracts) params.set("contractCursor", contractCursorRef.current);
+      if (loadOlderReceipts) params.set("receiptCursor", receiptCursorRef.current);
+      const res = await fetch(`/api/rto/daily-ledger?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "Unable to load Rent to Own ledger.");
+      const contractRows = Array.isArray(data.data?.contracts) ? data.data.contracts : [];
+      const receiptRows = Array.isArray(data.data?.receipts) ? data.data.receipts : [];
+      setContracts((current) => {
+        const key = (row: BookingRow) => String(row.bookingId || row._id || "");
+        if (loadOlderContracts) {
+          const seen = new Set(current.map(key));
+          return [...current, ...contractRows.filter((row: BookingRow) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+        }
+        const seen = new Set(contractRows.map(key));
+        return [...contractRows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      setReceipts((current) => {
+        const key = (row: ReceiptRow) => String(row._id || row.transactionId || "");
+        if (loadOlderReceipts) {
+          const seen = new Set(current.map(key));
+          return [...current, ...receiptRows.filter((row: ReceiptRow) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+        }
+        const seen = new Set(receiptRows.map(key));
+        return [...receiptRows, ...current.filter((row) => !seen.has(key(row)))];
+      });
+      if (loadOlderContracts || !contractCursorRef.current) {
+        contractCursorRef.current = String(data.contractPagination?.nextCursor || "");
       }
-    };
+      if (loadOlderReceipts || !receiptCursorRef.current) {
+        receiptCursorRef.current = String(data.receiptPagination?.nextCursor || "");
+      }
+      if (!loadOlderReceipts) setHasMoreContracts(Boolean(data.contractPagination?.hasMore));
+      if (!loadOlderContracts) setHasMoreReceipts(Boolean(data.receiptPagination?.hasMore));
+      if (loadOlderContracts) setHasMoreContracts(Boolean(data.contractPagination?.hasMore));
+      if (loadOlderReceipts) setHasMoreReceipts(Boolean(data.receiptPagination?.hasMore));
+      if (data.summary) setSummary(data.summary);
+    } finally {
+      setLoading(false);
+      if (loadOlderContracts) {
+        loadingMoreContractsRef.current = false;
+        setLoadingMoreContracts(false);
+      }
+      if (loadOlderReceipts) {
+        loadingMoreReceiptsRef.current = false;
+        setLoadingMoreReceipts(false);
+      }
+    }
+  };
+
+  useEffect(() => {
     void load();
     return startOpsPoll(load);
   }, []);
 
-  const todayKey = new Date().toDateString();
-  const todayReceipts = useMemo(
-    () =>
-      receipts.filter(
-        (row) => row.createdAt && new Date(row.createdAt).toDateString() === todayKey
-      ),
-    [receipts, todayKey]
-  );
-  const active = contracts.filter((item) =>
-    ["Booked", "Payment Pending", "Ready For Pickup", "In Ride"].includes(
-      item.rideStatus || ""
-    )
-  ).length;
-  const transferred = contracts.filter((item) => item.ownershipTransferred).length;
-  const collected = contracts.reduce((sum, item) => sum + Number(item.receivedAmount || 0), 0);
-  const todayTotal = todayReceipts.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const active = Number(summary.active ?? contracts.filter((item) =>
+    ["Booked", "Payment Pending", "Ready For Pickup", "In Ride"].includes(item.rideStatus || "")
+  ).length);
+  const transferred = Number(summary.transferred ?? contracts.filter((item) => item.ownershipTransferred).length);
+  const collected = Number(summary.received ?? contracts.reduce((sum, item) => sum + Number(item.receivedAmount || 0), 0));
+  const todayIndia = indiaDateFormatter.format(new Date());
+  const todayReceipts = receipts.filter((row) => {
+    const createdAt = row.createdAt ? new Date(row.createdAt) : null;
+    return createdAt && Number.isFinite(createdAt.getTime()) && indiaDateFormatter.format(createdAt) === todayIndia;
+  });
+  const todayTotal = Number(summary.todayReceived ?? todayReceipts.reduce((sum, row) => sum + Number(row.amount || 0), 0));
 
   return (
     <PageContainer>
@@ -89,9 +161,9 @@ export default function RentToOwnDashboard() {
       <OpsMoneyStrip />
 
       <KPIGrid>
-        <KPICard title="Contracts" value={String(contracts.length)} subtitle="All time" icon="🔑" color="green" />
+        <KPICard title="Contracts" value={String(summary.total ?? contracts.length)} subtitle="All time" icon="🔑" color="green" />
         <KPICard title="Active" value={String(active)} subtitle="In progress" icon="🛵" color="blue" />
-        <KPICard title="Today collected" value={`₹${todayTotal.toLocaleString("en-IN")}`} subtitle="Daily receipts" icon="🧾" color="yellow" />
+        <KPICard title="Today collected" value={`₹${todayTotal.toLocaleString("en-IN")}`} subtitle={`${Number(summary.todayReceiptCount ?? todayReceipts.length)} daily receipts`} icon="🧾" color="yellow" />
         <KPICard title="Transferred" value={String(transferred)} subtitle="Owned by rider" icon="✅" color="green" />
       </KPIGrid>
       <p className="mb-6 text-sm text-slate-500">Lifetime received ₹{collected.toLocaleString("en-IN")}</p>
@@ -112,7 +184,7 @@ export default function RentToOwnDashboard() {
         />
       </div>
 
-      <DashboardCard title="Today’s daily receipts" subtitle="Every GST-included daily payment recorded today">
+      <DashboardCard title="RTO daily receipts" subtitle="All successful daily payments, newest first">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
@@ -129,14 +201,14 @@ export default function RentToOwnDashboard() {
             <tbody>
               {loading ? (
                 <tr><td className="px-4 py-8" colSpan={7}>Loading...</td></tr>
-              ) : todayReceipts.length === 0 ? (
+              ) : receipts.length === 0 ? (
                 <tr>
                   <td className="px-4 py-8 text-slate-500" colSpan={7}>
                     No daily receipts yet today. They appear when a rider or the yard pays the GST-included daily fare.
                   </td>
                 </tr>
               ) : (
-                todayReceipts.map((row) => (
+                receipts.map((row) => (
                   <tr key={String(row.transactionId)} className="border-b border-slate-100">
                     <td className="px-4 py-3 font-semibold">{row.invoiceNumber || row.transactionId}</td>
                     <td className="px-4 py-3">{row.bookingId}</td>
@@ -144,7 +216,7 @@ export default function RentToOwnDashboard() {
                     <td className="px-4 py-3">₹{Number(row.amount || 0).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">₹{Number(row.gstAmount || 0).toLocaleString("en-IN")}</td>
                     <td className="px-4 py-3">{row.paymentMethod}</td>
-                    <td className="px-4 py-3">{row.createdAt ? new Date(row.createdAt).toLocaleTimeString("en-IN") : ""}</td>
+                    <td className="px-4 py-3">{row.createdAt ? new Date(row.createdAt).toLocaleString("en-IN") : ""}</td>
                   </tr>
                 ))
               )}
@@ -152,6 +224,18 @@ export default function RentToOwnDashboard() {
           </table>
         </div>
       </DashboardCard>
+      {hasMoreReceipts ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMoreReceipts}
+            onClick={() => void load(false, true)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+          >
+            {loadingMoreReceipts ? "Loading…" : "Load older daily receipts"}
+          </button>
+        </div>
+      ) : null}
 
       <DashboardCard title="Contracts" subtitle="Live Rent to Own bookings">
         <div className="overflow-x-auto">
@@ -205,6 +289,18 @@ export default function RentToOwnDashboard() {
           </table>
         </div>
       </DashboardCard>
+      {hasMoreContracts ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMoreContracts}
+            onClick={() => void load(true, false)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+          >
+            {loadingMoreContracts ? "Loading…" : "Load older contracts"}
+          </button>
+        </div>
+      ) : null}
     </PageContainer>
   );
 }

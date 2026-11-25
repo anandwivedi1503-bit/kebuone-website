@@ -5,11 +5,12 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Refund from "@/models/Refund";
 import Booking from "@/models/Booking";
-import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
+import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import { idInScopeFilter, scopedBookingIds } from "@/lib/staffHubScope";
 import { attachBookingSnapshotsToRefunds } from "@/lib/opsMoneySummary";
 import { writeAudit } from "@/lib/writeAudit";
 import { handleRiderDepositRequest, isRiderDepositRequest } from "@/lib/riderDepositRequest";
+import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 
 const idRegex = /^[A-Za-z0-9_-]{3,100}$/;
 
@@ -204,8 +205,9 @@ export async function GET(req: Request) {
     await connectDB();
 
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q } = parsed;
+    const { page, limit, skip, q, cursor } = parsed;
     const filter: Record<string, unknown> = {
+      $and: [NOT_DELETED_FILTER],
       $or: [
         { bookingId: { $exists: true, $nin: [null, ""] } },
         { ticketId: { $exists: true, $nin: [null, ""] } },
@@ -226,12 +228,56 @@ export async function GET(req: Request) {
       delete filter.$or;
     }
 
-    const refunds = await Refund.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
+    if (new URL(req.url).searchParams.get("summary") === "1") {
+      const rows = await Refund.aggregate([
+        { $match: filter },
+        {
+          $group: {
+            _id: { $toUpper: { $ifNull: ["$refundStatus", "UNKNOWN"] } },
+            count: { $sum: 1 },
+            amount: { $sum: { $ifNull: ["$amount", 0] } },
+          },
+        },
+      ]);
+      const countFor = (...statuses: string[]) =>
+        rows
+          .filter((row) => statuses.includes(String(row._id || "").toUpperCase()))
+          .reduce((sum, row) => sum + Number(row.count || 0), 0);
+      const amountFor = (...statuses: string[]) =>
+        Math.round(
+          rows
+            .filter((row) => statuses.includes(String(row._id || "").toUpperCase()))
+            .reduce((sum, row) => sum + Number(row.amount || 0), 0) * 100
+        ) / 100;
+      return NextResponse.json({
+        success: true,
+        data: [],
+        summary: {
+          pendingCount: countFor("PROCESSING", "PENDING"),
+          refundedCount: countFor("REFUNDED"),
+          refundedAmount: amountFor("REFUNDED"),
+        },
+      });
+    }
+
+    applyCreatedCursor(filter, cursor);
+    const refunds = await Refund.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(cursor ? 0 : skip)
+      .limit(limit + 1)
+      .lean();
+    const payload = listResponseFromPage(refunds, cursor ? 1 : page, limit);
     const data = await attachBookingSnapshotsToRefunds(
-      refunds as Array<Record<string, unknown>>
+      payload.data as Array<Record<string, unknown>>
     );
 
-    return NextResponse.json(listResponseFromPage(data, page, limit));
+    return NextResponse.json({
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined
+      ),
+      data,
+    });
   } catch (error) {
     return NextResponse.json(
       {

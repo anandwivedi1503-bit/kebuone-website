@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import { NOT_DELETED_FILTER } from "@/lib/notDeleted";
 import { nextSeqId } from "@/lib/nextSeqId";
 import { writeAudit } from "@/lib/writeAudit";
+import { applyCreatedCursor, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import PhoneBookingLead from "@/models/PhoneBookingLead";
 
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -13,18 +14,28 @@ function clean(value: unknown) {
   return String(value || "").trim();
 }
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
     const gate = await requireAdminDashboards("admin", "bookings");
     if (gate.error) return gate.error;
 
     await connectDB();
-    const rows = await PhoneBookingLead.find({ $and: [NOT_DELETED_FILTER] })
-      .sort({ createdAt: -1 })
-      .limit(200)
+    const { page, limit, skip, cursor } = parseListQuery(req);
+    const filter: Record<string, unknown> = { ...NOT_DELETED_FILTER };
+    applyCreatedCursor(filter, cursor);
+    const rows = await PhoneBookingLead.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(cursor ? 0 : skip)
+      .limit(limit + 1)
       .lean();
 
-    return NextResponse.json({ success: true, data: rows });
+    const payload = listResponseFromPage(rows, cursor ? 1 : page, limit);
+    return NextResponse.json({
+      ...withNextCursor(
+        payload,
+        payload.data[payload.data.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined
+      ),
+    });
   } catch (error) {
     console.error("PHONE BOOKING LEADS GET:", error);
     return NextResponse.json(

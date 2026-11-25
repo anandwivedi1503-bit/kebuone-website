@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { BatteryCharging, HeartPulse, Wrench } from "lucide-react";
 import { startOpsPoll } from "@/lib/opsPoll";
 
@@ -28,6 +28,17 @@ type Battery = {
   lastChargedAt?: string;
   createdAt?: string;
   fromVehicle?: boolean;
+};
+
+type BatterySummary = {
+  total?: number;
+  ready?: number;
+  charging?: number;
+  inVehicle?: number;
+  maintenance?: number;
+  averageCharge?: number;
+  averageHealth?: number | null;
+  replacementNeeded?: number;
 };
 
 const emptyForm = {
@@ -102,11 +113,74 @@ export default function BatteryDashboard() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [editingBattery, setEditingBattery] = useState<Battery | null>(null);
   const [selectedBattery, setSelectedBattery] = useState<Battery | null>(null);
+  const batteryCursorRef = useRef("");
+  const vehiclePackCursorRef = useRef("");
+  const loadingMoreRef = useRef(false);
+  const loadingMoreVehiclePacksRef = useRef(false);
+  const [hasMoreBatteries, setHasMoreBatteries] = useState(false);
+  const [hasMoreVehiclePacks, setHasMoreVehiclePacks] = useState(false);
+  const [loadingMoreBatteries, setLoadingMoreBatteries] = useState(false);
+  const [loadingMoreVehiclePacks, setLoadingMoreVehiclePacks] = useState(false);
+  const [batterySummary, setBatterySummary] = useState<BatterySummary>({});
 
-  const fetchBatteries = async () => {
-    const res = await fetch("/api/batteries?limit=500", { cache: "no-store" });
-    const data = await res.json();
-    setBatteries(data.data || []);
+  const fetchBatteries = async (loadOlderBatteries = false, loadOlderVehiclePacks = false) => {
+    if (loadOlderBatteries && (!batteryCursorRef.current || loadingMoreRef.current)) return;
+    if (loadOlderVehiclePacks && (!vehiclePackCursorRef.current || loadingMoreVehiclePacksRef.current)) return;
+    if (loadOlderBatteries) {
+      loadingMoreRef.current = true;
+      setLoadingMoreBatteries(true);
+    }
+    if (loadOlderVehiclePacks) {
+      loadingMoreVehiclePacksRef.current = true;
+      setLoadingMoreVehiclePacks(true);
+    }
+    try {
+      const params = new URLSearchParams({ limit: "100" });
+      if (loadOlderBatteries) params.set("cursor", batteryCursorRef.current);
+      if (loadOlderVehiclePacks) params.set("vehicleCursor", vehiclePackCursorRef.current);
+      const res = await fetch(`/api/batteries?${params.toString()}`, { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || "Unable to load battery inventory.");
+      }
+      const rows = Array.isArray(data.data) ? data.data : [];
+      const fittedPacks = Array.isArray(data.vehiclePacks) ? data.vehiclePacks : [];
+      const combineUnique = (current: Battery[], incoming: Battery[], append: boolean) => {
+        if (append) {
+          const seen = new Set(current.map((row) => row._id));
+          return [...current, ...incoming.filter((row) => !seen.has(row._id))];
+        }
+        const seen = new Set(incoming.map((row: Battery) => row._id));
+        return [...incoming, ...current.filter((row) => !seen.has(row._id))];
+      };
+      setBatteries((current) => {
+        const batteryRows = combineUnique(current, rows, loadOlderBatteries);
+        const pageRows = combineUnique(batteryRows, fittedPacks, loadOlderVehiclePacks);
+        return pageRows;
+      });
+      if (loadOlderBatteries || !batteryCursorRef.current) {
+        batteryCursorRef.current = String(data.pagination?.nextCursor || "");
+      }
+      if (loadOlderVehiclePacks || !vehiclePackCursorRef.current) {
+        vehiclePackCursorRef.current = String(data.vehiclePagination?.nextCursor || "");
+      }
+      if (!loadOlderBatteries && !loadOlderVehiclePacks || loadOlderBatteries) {
+        setHasMoreBatteries(Boolean(data.pagination?.hasMore));
+      }
+      if (!loadOlderBatteries && !loadOlderVehiclePacks || loadOlderVehiclePacks) {
+        setHasMoreVehiclePacks(Boolean(data.vehiclePagination?.hasMore));
+      }
+      if (data.summary) setBatterySummary(data.summary);
+    } finally {
+      if (loadOlderBatteries) {
+        loadingMoreRef.current = false;
+        setLoadingMoreBatteries(false);
+      }
+      if (loadOlderVehiclePacks) {
+        loadingMoreVehiclePacksRef.current = false;
+        setLoadingMoreVehiclePacks(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -116,27 +190,28 @@ export default function BatteryDashboard() {
 
   const stats = useMemo(() => {
     return {
-      total: batteries.length,
-      ready: batteries.filter((b) => b.status === "READY").length,
-      charging: batteries.filter((b) => b.status === "CHARGING").length,
-      inVehicle: batteries.filter((b) => b.status === "IN-VEHICLE").length,
-      maintenance: batteries.filter((b) => b.status === "MAINTENANCE").length,
-      averageCharge:
+      total: Number(batterySummary.total ?? batteries.length),
+      ready: Number(batterySummary.ready ?? batteries.filter((b) => b.status === "READY").length),
+      charging: Number(batterySummary.charging ?? batteries.filter((b) => b.status === "CHARGING").length),
+      inVehicle: Number(batterySummary.inVehicle ?? batteries.filter((b) => b.status === "IN-VEHICLE").length),
+      maintenance: Number(batterySummary.maintenance ?? batteries.filter((b) => b.status === "MAINTENANCE").length),
+      averageCharge: Number(batterySummary.averageCharge ?? (
         batteries.length === 0
           ? 0
           : Math.round(
               batteries.reduce((sum, b) => sum + (b.chargePercentage || 0), 0) / batteries.length
-            ),
-      averageHealth: (() => {
+            )
+      )),
+      averageHealth: Number(batterySummary.averageHealth ?? (() => {
         const withHealth = batteries.filter((b) => Number.isFinite(Number(b.batteryHealth)));
         if (withHealth.length === 0) return 0;
         return Math.round(
           withHealth.reduce((sum, b) => sum + Number(b.batteryHealth || 0), 0) / withHealth.length
         );
-      })(),
-      replacementNeeded: batteries.filter((b) => (b.batteryHealth || 0) < 50).length,
+      })()),
+      replacementNeeded: Number(batterySummary.replacementNeeded ?? batteries.filter((b) => (b.batteryHealth || 0) < 50).length),
     };
-  }, [batteries]);
+  }, [batteries, batterySummary]);
 
   const handleChange = (field: keyof typeof emptyForm, value: string | number) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -213,7 +288,7 @@ export default function BatteryDashboard() {
     <PageContainer>
       <DashboardHeader
         title="Battery inventory"
-        subtitle="READY packs go on Battery Swap. IN-VEHICLE charge is the same % as Vehicle / IoT for that scooter. Packs shown from inventory plus any pack ID currently fitted on a vehicle."
+        subtitle="READY packs go on Battery Swap. IN-VEHICLE charge matches Vehicle / IoT. Registered inventory and untracked fitted packs load in separate pages."
       />
 
       <KPIGrid>
@@ -404,6 +479,31 @@ export default function BatteryDashboard() {
           </table>
         </div>
       </DashboardCard>
+
+      {hasMoreBatteries ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMoreBatteries}
+            onClick={() => void fetchBatteries(true)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+          >
+            {loadingMoreBatteries ? "Loading…" : "Load older battery records"}
+          </button>
+        </div>
+      ) : null}
+      {hasMoreVehiclePacks ? (
+        <div className="mt-5 flex justify-center">
+          <button
+            type="button"
+            disabled={loadingMoreVehiclePacks}
+            onClick={() => void fetchBatteries(false, true)}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 disabled:opacity-60"
+          >
+            {loadingMoreVehiclePacks ? "Loading…" : "Load older mounted packs"}
+          </button>
+        </div>
+      ) : null}
 
       {editingBattery ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4">

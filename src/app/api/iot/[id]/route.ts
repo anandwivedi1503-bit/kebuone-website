@@ -1,10 +1,8 @@
-import { denyStaffDeletes, isAdminAuthenticated,
-  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { denyStaffDeletes, requireAdminDashboards } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import IoT from "@/models/IoT";
-import Vehicle from "@/models/Vehicle";
 
 export async function PATCH(
   req: Request,
@@ -18,6 +16,17 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
     const errors: string[] = [];
+
+if (body.lockStatus !== undefined) {
+  return NextResponse.json(
+    {
+      success: false,
+      message:
+        "Lock state is read-only here and must come from the scooter device. Remote lock commands are not connected until the IoT provider API is configured.",
+    },
+    { status: 409 }
+  );
+}
 
 if (
 body.batteryPercentage !== undefined &&
@@ -101,16 +110,6 @@ errors,
         runValidators:true,
        }
     );
-
-    if (
-      iot &&
-      (body.lockStatus === "Locked" || body.lockStatus === "Unlocked")
-    ) {
-      await Vehicle.updateOne(
-        { vehicleId: iot.vehicleId },
-        { $set: { lockStatus: body.lockStatus } }
-      );
-    }
 
     return NextResponse.json({
       success: true,

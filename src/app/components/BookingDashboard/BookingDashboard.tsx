@@ -30,6 +30,7 @@ import { maskOtpDigits } from "@/lib/maskOtp";
 export default function BookingDashboard() {
 
 const [bookings,setBookings]=useState<any[]>([]);
+const [bookingSummary,setBookingSummary]=useState<Record<string, number>>({});
 const nextCursorRef=useRef("");
 const loadedMoreRef=useRef(false);
 const [hasMoreBookings,setHasMoreBookings]=useState(false);
@@ -86,6 +87,7 @@ const data=await res.json();
 if(data.success){
 
 const rows = data.data || [];
+if (data.summary) setBookingSummary(data.summary);
 if (mode === "append") {
   loadedMoreRef.current = true;
   setBookings((prev) => {
@@ -441,35 +443,35 @@ matchesExtra
 );
 });
 
-const totalBookings=bookings.length;
+const totalBookings=Number(bookingSummary.total ?? bookings.length);
 
-const activeBookings = bookings.filter(
+const activeBookings = Number(bookingSummary.active ?? bookings.filter(
 (b)=>
 b.rideStatus==="Booked" ||
 b.rideStatus==="Reserved" ||
 b.rideStatus==="Payment Pending" ||
 b.rideStatus==="Ready For Pickup" ||
 b.rideStatus==="In Ride"
-).length;
+).length);
 
-const completedBookings = bookings.filter(
+const completedBookings = Number(bookingSummary.completed ?? bookings.filter(
 (b)=>b.rideStatus==="Completed"
-).length;
+).length);
 
-const cancelledBookings = bookings.filter(
+const cancelledBookings = Number(bookingSummary.cancelled ?? bookings.filter(
 (b)=>b.rideStatus==="Cancelled"
-).length;
+).length);
 
 const getBookingAmount = (booking: any) =>
   getBookingPayableAmount(booking);
-const totalRevenue = bookings
+const totalRevenue = Number(bookingSummary.revenue ?? bookings
   .reduce(
     (sum, booking) =>
       sum + bookingRentalCollected(booking),
     0
-  );
+  ));
 
-  const todaysBookings = bookings.filter((booking) => {
+  const todaysBookings = Number(bookingSummary.today ?? bookings.filter((booking) => {
 
 if (!booking.createdAt) return false;
 
@@ -479,19 +481,19 @@ const bookingDate = new Date(booking.createdAt);
 
 return bookingDate.toDateString() === today.toDateString();
 
-}).length;
+}).length);
 
-const readyForPickup = bookings.filter(
+const readyForPickup = Number(bookingSummary.readyForPickup ?? bookings.filter(
 (booking)=>booking.rideStatus==="Ready For Pickup"
-).length;
+).length);
 
-const pendingPayments = bookings.filter(
+const pendingPayments = Number(bookingSummary.pendingPayments ?? bookings.filter(
 (booking)=>booking.paymentStatus==="Pending"
-).length;
+).length);
 
-const partialPayments = bookings.filter(
+const partialPayments = Number(bookingSummary.partialPayments ?? bookings.filter(
 (booking)=>booking.paymentStatus==="Partial"
-).length;
+).length);
 
 const rupees = (value: unknown) =>
   `₹${money(value).toLocaleString("en-IN", {

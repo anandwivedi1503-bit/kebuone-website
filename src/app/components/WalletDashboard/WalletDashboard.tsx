@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { startOpsPoll } from "@/lib/opsPoll";
 import { consumeOpsFocus } from "@/lib/opsFocus";
 
@@ -19,11 +19,15 @@ import OpsMoneyStrip from "../DashboardUI/OpsMoneyStrip";
 export default function WalletDashboard() {
 
 const [wallets,setWallets]=useState<any[]>([]);
-const [walletPages,setWalletPages]=useState(1);
 const [hasMoreWallets,setHasMoreWallets]=useState(false);
+const [loadingMoreWallets,setLoadingMoreWallets]=useState(false);
 const [transactions,setTransactions]=useState<any[]>([]);
-const [txnPages,setTxnPages]=useState(1);
 const [hasMoreWalletTxns,setHasMoreWalletTxns]=useState(false);
+const [loadingMoreWalletTxns,setLoadingMoreWalletTxns]=useState(false);
+const walletCursorRef=useRef("");
+const walletTxnCursorRef=useRef("");
+const loadingWalletMoreRef=useRef(false);
+const loadingWalletTxnMoreRef=useRef(false);
 
 const [search,setSearch]=useState(() => consumeOpsFocus());
 const [statusFilter, setStatusFilter] = useState("ALL");
@@ -69,6 +73,17 @@ const settleDepositRefund = async (
       alert(data.message || "Could not return the security deposit.");
       return;
     }
+    if (
+      data.pendingGatewayConfirmation ||
+      data.data?.refundStatus === "PROCESSING"
+    ) {
+      alert(
+        data.message ||
+          "Razorpay accepted the request. The deposit will leave the pending list after the gateway confirms the refund."
+      );
+      await loadWallets(false);
+      return;
+    }
     alert(data.message || "Security deposit refund completed.");
     setSelectedWallet((current: { pendingDepositRefunds?: Array<{ id: string }> } | null) =>
       current
@@ -103,15 +118,22 @@ useEffect(() => {
       Promise.all([loadWallets(false), loadTransactions()])
     );
 
-}, [walletPages, txnPages]);
+}, []);
 
-const loadWallets = async (showPageLoader = false) => {
+const loadWallets = async (showPageLoader = false, loadOlder = false) => {
+  if (loadOlder && (!walletCursorRef.current || loadingWalletMoreRef.current)) return;
+  if (loadOlder) {
+    loadingWalletMoreRef.current = true;
+    setLoadingMoreWallets(true);
+  }
   if (showPageLoader) {
     setPageLoading(true);
   }
 
   try {
-    const res = await fetch(`/api/wallet?limit=${Math.min(500, 80 * walletPages)}&page=1`, {
+    const params = new URLSearchParams({ limit: "100" });
+    if (loadOlder) params.set("cursor", walletCursorRef.current);
+    const res = await fetch(`/api/wallet?${params.toString()}`, {
       cache: "no-store",
       credentials: "include",
     });
@@ -124,25 +146,45 @@ const loadWallets = async (showPageLoader = false) => {
       );
     }
 
-    setWallets(data.data || []);
+    const rows = Array.isArray(data.data) ? data.data : [];
+    setWallets((current) => {
+      const key = (row: any) => String(row._id || row.riderId);
+      if (loadOlder) {
+        const seen = new Set(current.map(key));
+        return [...current, ...rows.filter((row: any) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+      }
+      const seen = new Set(rows.map(key));
+      return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+    });
+    if (loadOlder || !walletCursorRef.current) {
+      walletCursorRef.current = String(data.pagination?.nextCursor || "");
+    }
     setHasMoreWallets(Boolean(data.pagination?.hasMore));
   } catch (error) {
     console.error("LOAD WALLETS ERROR:", error);
   } finally {
     setPageLoading(false);
+    if (loadOlder) {
+      loadingWalletMoreRef.current = false;
+      setLoadingMoreWallets(false);
+    }
   }
 };
 
 
 
-const loadTransactions = async () => {
+const loadTransactions = async (loadOlder = false) => {
+  if (loadOlder && (!walletTxnCursorRef.current || loadingWalletTxnMoreRef.current)) return;
+  if (loadOlder) {
+    loadingWalletTxnMoreRef.current = true;
+    setLoadingMoreWalletTxns(true);
+  }
   try {
-    const res = await fetch(
-      `/api/wallet-transactions?limit=${Math.min(500, 80 * txnPages)}&page=1`,
-      {
-        cache: "no-store",
-      }
-    );
+    const params = new URLSearchParams({ limit: "100" });
+    if (loadOlder) params.set("cursor", walletTxnCursorRef.current);
+    const res = await fetch(`/api/wallet-transactions?${params.toString()}`, {
+      cache: "no-store",
+    });
 
     const data = await res.json();
 
@@ -153,13 +195,30 @@ const loadTransactions = async () => {
       );
     }
 
-    setTransactions(data.data || []);
+    const rows = Array.isArray(data.data) ? data.data : [];
+    setTransactions((current) => {
+      const key = (row: any) => String(row._id || row.transactionId);
+      if (loadOlder) {
+        const seen = new Set(current.map(key));
+        return [...current, ...rows.filter((row: any) => !seen.has(key(row)) && Boolean(seen.add(key(row))))];
+      }
+      const seen = new Set(rows.map(key));
+      return [...rows, ...current.filter((row) => !seen.has(key(row)))];
+    });
+    if (loadOlder || !walletTxnCursorRef.current) {
+      walletTxnCursorRef.current = String(data.pagination?.nextCursor || "");
+    }
     setHasMoreWalletTxns(Boolean(data.pagination?.hasMore));
   } catch (error) {
     console.error(
       "LOAD TRANSACTIONS ERROR:",
       error
     );
+  } finally {
+    if (loadOlder) {
+      loadingWalletTxnMoreRef.current = false;
+      setLoadingMoreWalletTxns(false);
+    }
   }
 };
 
@@ -796,10 +855,11 @@ No wallets found.
   <div className="mt-6 flex justify-center">
     <button
       type="button"
-      onClick={() => setWalletPages((pages) => pages + 1)}
+      disabled={loadingMoreWallets}
+      onClick={() => void loadWallets(false, true)}
       className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
     >
-      Load more
+      {loadingMoreWallets ? "Loading…" : "Load older wallets"}
     </button>
   </div>
 ) : null}
@@ -997,10 +1057,11 @@ className="border-b border-pink-50"
   <div className="mt-4 flex justify-center">
     <button
       type="button"
-      onClick={() => setTxnPages((pages) => pages + 1)}
+      disabled={loadingMoreWalletTxns}
+      onClick={() => void loadTransactions(true)}
       className="rounded-xl border border-pink-100 bg-white px-6 py-3 font-bold text-[#0A1134] hover:bg-pink-50"
     >
-      Load more
+      {loadingMoreWalletTxns ? "Loading…" : "Load older wallet transactions"}
     </button>
   </div>
 ) : null}

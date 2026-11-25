@@ -5,6 +5,7 @@ import { connectDB } from "@/lib/mongodb";
 import { applyCapturedRazorpayPayment } from "@/lib/razorpay/applyCapturedPayment";
 import { getRazorpayClient, getRazorpayConfig } from "@/lib/razorpay/config";
 import { queueOrphanRazorpayRefund } from "@/lib/queueOrphanRazorpayRefund";
+import { reconcileRazorpayRefund } from "@/lib/razorpay/reconcileRefund";
 import Booking from "@/models/Booking";
 
 export const runtime = "nodejs";
@@ -58,8 +59,24 @@ export async function POST(req: Request) {
     payload?: {
       payment?: { entity?: PaymentEntity };
       order?: { entity?: { id?: string; notes?: Record<string, string> } };
+      refund?: { entity?: { id?: string; status?: string; amount?: number } };
     };
   };
+
+  if (payload.event === "refund.processed" || payload.event === "refund.failed") {
+    const refundEntity = payload.payload?.refund?.entity;
+    const gatewayRefundId = String(refundEntity?.id || "");
+    const gatewayStatus = payload.event === "refund.processed" ? "processed" : "failed";
+    if (!gatewayRefundId) {
+      return NextResponse.json({ success: true, ignored: true });
+    }
+    const result = await reconcileRazorpayRefund({
+      gatewayRefundId,
+      gatewayStatus,
+      gatewayAmountPaise: Number(refundEntity?.amount || 0),
+    });
+    return NextResponse.json({ success: true, ...result });
+  }
 
   if (payload.event !== "payment.captured" && payload.event !== "order.paid") {
     return NextResponse.json({ success: true, ignored: true });
@@ -67,7 +84,7 @@ export async function POST(req: Request) {
 
   const paymentHint = payload.payload?.payment?.entity;
   let razorpayPaymentId = String(paymentHint?.id || "");
-  let razorpayOrderId = String(
+  const razorpayOrderId = String(
     paymentHint?.order_id || payload.payload?.order?.entity?.id || ""
   );
 

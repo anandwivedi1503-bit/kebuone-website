@@ -12,6 +12,7 @@ import Wallet from "@/models/Wallet";
 import Rider from "@/models/Rider";
 import { attachLiveBookingsByRider } from "@/lib/opsMoneySummary";
 import { denyIfRiderOutOfHub, idInScopeFilter, scopedRiderIds } from "@/lib/staffHubScope";
+import { applyCreatedCursor, listResponseFromPage, withNextCursor } from "@/lib/listQuery";
 
 import mongoose from "mongoose";
 
@@ -69,6 +70,7 @@ export async function GET(req: Request) {
     const rawPage = Number(
       searchParams.get("page") || 1
     );
+    const cursor = String(searchParams.get("cursor") || "").trim();
 
     const rawLimit = Number(
       searchParams.get("limit") || 25
@@ -80,7 +82,7 @@ export async function GET(req: Request) {
 
     const limit = Number.isFinite(rawLimit)
       ? Math.min(
-          500,
+          100,
           Math.max(1, Math.floor(rawLimit))
         )
       : 25;
@@ -150,28 +152,30 @@ export async function GET(req: Request) {
     /*
      * Fetch wallets and total count in parallel.
      */
+    applyCreatedCursor(filter, cursor);
     const wallets = await Wallet.find(filter)
           .sort({
             createdAt: -1,
             _id: -1,
           })
-          .skip(skip)
+          .skip(cursor ? 0 : skip)
           .limit(limit + 1)
           .lean();
-    const hasMore = wallets.length > limit;
-    const pageRows = hasMore ? wallets.slice(0, limit) : wallets;
+    const payload = listResponseFromPage(wallets, cursor ? 1 : page, limit);
+    const pageRows = payload.data;
+    const pagedPayload = withNextCursor(
+      payload,
+      pageRows[pageRows.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined
+    );
 
     const data = await attachLiveBookingsByRider(pageRows as Array<Record<string, unknown>>);
 
     return NextResponse.json({
-      success: true,
+      ...pagedPayload,
       data,
       pagination: {
-        page,
-        limit,
-        total: skip + pageRows.length + (hasMore ? 1 : 0),
-        hasMore,
-        hasNextPage: hasMore,
+        ...pagedPayload.pagination,
+        hasNextPage: pagedPayload.pagination.hasMore,
       },
     });
   } catch (error) {

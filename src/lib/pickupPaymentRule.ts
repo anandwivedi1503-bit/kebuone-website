@@ -19,11 +19,13 @@ function normalizedPhone(value: unknown) {
 }
 
 export function isPickupOtpTestRider(booking: PickupPaymentSource) {
-  if (booking.pickupOtpTestMode === true) return true;
   const configured = typeof process !== "undefined"
     ? normalizedPhone(process.env.EVUDDY_PICKUP_OTP_TEST_PHONE)
     : "";
   const phone = normalizedPhone(booking.userPhone);
+  // Treat the server allowlist as the source of truth. A booking may contain
+  // an old test-mode snapshot, but clearing the server setting must restore
+  // the normal pickup-payment threshold immediately.
   return configured.length === 10 && phone === configured;
 }
 

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { isAdminAuthenticated,
   requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
-import { applyOpsListFilters, listResponseFromPage, parseListQuery } from "@/lib/listQuery";
+import { applyCreatedCursor, applyOpsListFilters, listResponseFromPage, parseListQuery, withNextCursor } from "@/lib/listQuery";
 import { connectDB } from "@/lib/mongodb";
 import AuditLog from "@/models/AuditLog";
 import { idInScopeFilter, scopedBookingIds, scopedRiderIds } from "@/lib/staffHubScope";
@@ -16,7 +16,7 @@ export async function GET(req: Request) {
     await connectDB();
 
     const parsed = parseListQuery(req);
-    const { page, limit, skip, q } = parsed;
+    const { page, limit, skip, q, cursor } = parsed;
     const filter: Record<string, unknown> = {};
     applyOpsListFilters(filter, parsed);
     const bookingIds = await scopedBookingIds(gate.session);
@@ -47,9 +47,17 @@ export async function GET(req: Request) {
       ];
     }
 
-    const rows = await AuditLog.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit + 1).lean();
+    applyCreatedCursor(filter, cursor);
+    const rows = await AuditLog.find(filter)
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(cursor ? 0 : skip)
+      .limit(limit + 1)
+      .lean();
 
-    return NextResponse.json(listResponseFromPage(rows, page, limit));
+    const payload = listResponseFromPage(rows, cursor ? 1 : page, limit);
+    return NextResponse.json(
+      withNextCursor(payload, payload.data[payload.data.length - 1] as { createdAt?: unknown; _id?: unknown } | undefined)
+    );
   } catch (error) {
     return NextResponse.json(
       { success: false, error: String(error) },
