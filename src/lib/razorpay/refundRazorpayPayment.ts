@@ -31,7 +31,13 @@ export async function refundRazorpayAmountForBooking(
 ) {
   const toRefund = money(amountInr);
   if (toRefund < 0.01) {
-    return { refunded: 0, remaining: 0, ids: [] as string[], lastPaymentId: "" };
+    return {
+      refunded: 0,
+      remaining: 0,
+      ids: [] as string[],
+      refunds: [] as RazorpayRefundDetail[],
+      lastPaymentId: "",
+    };
   }
 
   const payments = await Transaction.find({

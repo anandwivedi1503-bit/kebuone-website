@@ -84,7 +84,7 @@ export async function POST(req: Request) {
 
   const paymentHint = payload.payload?.payment?.entity;
   let razorpayPaymentId = String(paymentHint?.id || "");
-  let razorpayOrderId = String(
+  const razorpayOrderId = String(
     paymentHint?.order_id || payload.payload?.order?.entity?.id || ""
   );
 

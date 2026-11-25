@@ -1,5 +1,4 @@
-import { denyStaffDeletes, isAdminAuthenticated,
-  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { denyStaffDeletes, requireAdminDashboards } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";

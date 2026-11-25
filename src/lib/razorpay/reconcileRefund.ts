@@ -73,7 +73,9 @@ export async function reconcileRazorpayRefund(input: {
       return { found: true, status: "REFUNDED" as const };
     }
 
-    const details = (refund.razorpayRefunds || []).map((item) => ({
+    const storedDetails = (refund as unknown as { razorpayRefunds?: GatewayRefund[] })
+      .razorpayRefunds || [];
+    const details: GatewayRefund[] = storedDetails.map((item) => ({
       id: String(item.id || ""),
       paymentId: String(item.paymentId || ""),
       amount: money(Number(item.amount || 0)),

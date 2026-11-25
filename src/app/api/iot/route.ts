@@ -171,7 +171,10 @@ export async function POST(req: Request) {
         { status: 404 }
       );
     }
-    const priorReading = await iot.findOne({ vehicleId }).select("deviceTimestamp").lean();
+    const priorReading = (await iot
+      .findOne({ vehicleId })
+      .select("deviceTimestamp")
+      .lean()) as unknown as { deviceTimestamp?: Date | string } | null;
     if (
       deviceTimestamp &&
       priorReading?.deviceTimestamp &&

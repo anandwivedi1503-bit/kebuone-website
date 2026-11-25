@@ -1,5 +1,4 @@
-import { denyStaffDeletes, isAdminAuthenticated,
-  requireAdminDashboards, unauthorizedResponse } from "@/lib/adminAuth";
+import { denyStaffDeletes, requireAdminDashboards } from "@/lib/adminAuth";
 import { API_DASHBOARDS } from "@/lib/adminCan";
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
@@ -362,9 +361,18 @@ if (!rider) {
 let sendToRazorpay = body.sendToRazorpay !== false;
 const paymentId = String(booking.razorpayPaymentId || "");
 let gatewayId = String(refund.razorpayRefundId || "").trim();
+type ExistingGatewayRefund = {
+  id?: unknown;
+  paymentId?: unknown;
+  amount?: unknown;
+  status?: unknown;
+};
+const existingGatewayRefunds =
+  (refund as unknown as { razorpayRefunds?: ExistingGatewayRefund[] })
+    .razorpayRefunds || [];
 if (
   !sendToRazorpay &&
-  (refund.razorpayRefunds || []).some((item) =>
+  existingGatewayRefunds.some((item) =>
     ["pending", "processed"].includes(String(item.status || "").toLowerCase())
   )
 ) {
@@ -404,7 +412,7 @@ if (sendToRazorpay) {
   session = null;
 
   let claimedForFailedRetry = false;
-  const previousGatewayRefunds = (refund.razorpayRefunds || []).map((item) => ({
+  const previousGatewayRefunds = existingGatewayRefunds.map((item) => ({
     status: String(item.status || "pending").toLowerCase(),
   }));
   if (
@@ -533,7 +541,7 @@ if (sendToRazorpay) {
       updateData.gatewayTxnId = (razorpayRefund.ids.join(",") || gatewayId).slice(0, 100);
       updateData.paymentGateway = "Razorpay";
     } else {
-      gatewayRefunds = (refund.razorpayRefunds || []).map((item) => ({
+      gatewayRefunds = existingGatewayRefunds.map((item) => ({
         id: String(item.id || ""),
         paymentId: String(item.paymentId || ""),
         amount: Number(item.amount || 0),
@@ -572,7 +580,18 @@ if (sendToRazorpay) {
     );
 
     const reconciliation = await reconcileRazorpayRefund({ refundDocumentId: id });
-    const updated = await Refund.findById(id).lean();
+    const updated = (await Refund.findById(id).lean()) as unknown as {
+      refundStatus?: string;
+      failureReason?: string;
+      refundId?: string;
+      bookingId?: string;
+      riderId?: string;
+      amount?: number;
+      paymentGateway?: string;
+      gatewayTxnId?: string;
+      razorpayRefundId?: string;
+      processedAt?: Date;
+    } | null;
     const status = String(updated?.refundStatus || reconciliation.status);
     const message = status === "REFUNDED"
       ? "Razorpay confirmed the refund. The booking and deposit records are updated."
@@ -597,7 +616,12 @@ if (sendToRazorpay) {
       /no razorpay|no refundable|not captured|invalid id|does not exist|already refunded/i.test(
         detail
       );
-    const liveRefund = await Refund.findById(id).select("razorpayRefundId razorpayRefunds").lean();
+    const liveRefund = (await Refund.findById(id)
+      .select("razorpayRefundId razorpayRefunds")
+      .lean()) as unknown as {
+        razorpayRefundId?: string;
+        razorpayRefunds?: ExistingGatewayRefund[];
+      } | null;
     const gatewayRequestExists = Boolean(
       liveRefund?.razorpayRefundId || liveRefund?.razorpayRefunds?.length
     );
