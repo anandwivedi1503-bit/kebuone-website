@@ -52,6 +52,13 @@ type RtoSummary = {
   todayReceived?: number;
 };
 
+const indiaDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
 export default function RentToOwnDashboard() {
   const [contracts, setContracts] = useState<BookingRow[]>([]);
   const [receipts, setReceipts] = useState<ReceiptRow[]>([]);
@@ -114,7 +121,7 @@ export default function RentToOwnDashboard() {
       if (!loadOlderContracts) setHasMoreReceipts(Boolean(data.receiptPagination?.hasMore));
       if (loadOlderContracts) setHasMoreContracts(Boolean(data.contractPagination?.hasMore));
       if (loadOlderReceipts) setHasMoreReceipts(Boolean(data.receiptPagination?.hasMore));
-      setSummary(data.summary || {});
+      if (data.summary) setSummary(data.summary);
     } finally {
       setLoading(false);
       if (loadOlderContracts) {
@@ -138,6 +145,11 @@ export default function RentToOwnDashboard() {
   ).length);
   const transferred = Number(summary.transferred ?? contracts.filter((item) => item.ownershipTransferred).length);
   const collected = Number(summary.received ?? contracts.reduce((sum, item) => sum + Number(item.receivedAmount || 0), 0));
+  const todayIndia = indiaDateFormatter.format(new Date());
+  const todayReceipts = receipts.filter((row) => {
+    const createdAt = row.createdAt ? new Date(row.createdAt) : null;
+    return createdAt && Number.isFinite(createdAt.getTime()) && indiaDateFormatter.format(createdAt) === todayIndia;
+  });
   const todayTotal = Number(summary.todayReceived ?? todayReceipts.reduce((sum, row) => sum + Number(row.amount || 0), 0));
 
   return (
