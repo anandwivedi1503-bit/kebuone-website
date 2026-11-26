@@ -55,6 +55,18 @@ const PartnerSchema = new mongoose.Schema(
       required: true,
     },
 
+    applicantProfile: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    vehicleCategory: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
     investmentCapacity: String,
 
     propertyAvailable: String,
