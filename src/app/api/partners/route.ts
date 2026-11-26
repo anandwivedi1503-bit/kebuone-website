@@ -5,7 +5,15 @@ import { connectDB } from "@/lib/mongodb";
 import Partner from "@/models/Partner";
 import { clientIp, rateLimitAllowed } from "@/lib/rateLimit";
 import { parseListQuery } from "@/lib/listQuery";
-import { COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
+import { FLEET_INVESTMENT_TYPE, COMING_THROUGH_OPTIONS, DIRECT_THROUGH } from "@/lib/partnerSegments";
+import {
+  FLEET_APPLICANT_PROFILES,
+  FLEET_SIZE_OPTIONS,
+  FLEET_VEHICLE_PLANS,
+  fleetInvestmentEstimate,
+  formatFleetRupees,
+  type FleetVehiclePlan,
+} from "@/lib/fleetInvestment";
 
 const nameRegex = /^[A-Za-z][A-Za-z\s'.-]{2,79}$/;
 const phoneRegex = /^[6-9]\d{9}$/;
@@ -64,18 +72,33 @@ export async function POST(req: Request) {
     const fullName = clean(body.fullName, 80);
     const phone = clean(body.phone).replace(/\D/g, "");
     const email = clean(body.email, 120).toLowerCase();
-    const organizationName = clean(body.organizationName, 120) || fullName;
-    const state = clean(body.state, 80);
-    const city = clean(body.city, 80);
-    const territory = clean(body.territory, 120) || city;
     const partnerType = clean(body.partnerType, 120);
+    const isFleetInvestment = partnerType === FLEET_INVESTMENT_TYPE;
+    const organizationName = isFleetInvestment ? "" : clean(body.organizationName, 120) || fullName;
+    const state = isFleetInvestment ? "Uttar Pradesh" : clean(body.state, 80);
+    const city = isFleetInvestment ? "Lucknow" : clean(body.city, 80);
+    const territory = isFleetInvestment ? "Lucknow" : clean(body.territory, 120) || city;
     const comingThroughRaw = clean(body.comingThrough, 80);
     const comingThrough = comingThroughRaw || DIRECT_THROUGH;
-    const investmentCapacity = clean(body.investmentCapacity, 80);
-    const propertyAvailable = clean(body.propertyAvailable, 20) || "No";
-    const availableSpace = clean(body.availableSpace, 80) || "Below 500 Sq Ft";
-    const businessExperience = clean(body.businessExperience, 80) || "Fresher";
-    const plannedFleetSize = clean(body.plannedFleetSize, 80) || "1 - 10 Vehicles";
+    const applicantProfile = clean(body.applicantProfile, 80);
+    const vehicleCategory = clean(body.vehicleCategory, 80);
+    const fleetSize = Number(body.fleetSize);
+    const fleetEstimate = isFleetInvestment && (Object.keys(FLEET_VEHICLE_PLANS) as string[]).includes(vehicleCategory)
+      ? fleetInvestmentEstimate(vehicleCategory as FleetVehiclePlan, fleetSize)
+      : null;
+    const investmentCapacity = isFleetInvestment
+      ? fleetEstimate
+        ? formatFleetRupees(fleetEstimate.investment)
+        : ""
+      : clean(body.investmentCapacity, 80);
+    const propertyAvailable = isFleetInvestment ? "" : clean(body.propertyAvailable, 20);
+    const availableSpace = isFleetInvestment ? "" : clean(body.availableSpace, 80);
+    const businessExperience = isFleetInvestment ? "" : clean(body.businessExperience, 80);
+    const plannedFleetSize = isFleetInvestment
+      ? fleetEstimate
+        ? `${fleetSize} scooters`
+        : ""
+      : clean(body.plannedFleetSize, 80);
     const message = clean(body.message, 800);
     const consentAccepted = Boolean(body.consentAccepted);
 
@@ -84,7 +107,7 @@ export async function POST(req: Request) {
     if (!nameRegex.test(fullName)) errors.push("Enter a valid full name.");
     if (!phoneRegex.test(phone)) errors.push("Enter a valid Indian mobile number.");
     if (!emailRegex.test(email)) errors.push("Enter a valid email address.");
-    if (organizationName.length < 2) errors.push("Organization name is required.");
+    if (!isFleetInvestment && organizationName.length < 2) errors.push("Organization name is required.");
     if (state.length < 2) errors.push("State is required.");
     if (city.length < 2) errors.push("City is required.");
     if (territory.length < 2) errors.push("Preferred territory is required.");
@@ -92,11 +115,18 @@ export async function POST(req: Request) {
     if (!(COMING_THROUGH_OPTIONS as readonly string[]).includes(comingThrough)) {
       errors.push("Select how this lead is coming in.");
     }
-    if (!investmentCapacities.includes(investmentCapacity)) errors.push("Select a valid investment capacity.");
-    if (!propertyOptions.includes(propertyAvailable)) errors.push("Select property availability.");
-    if (!spaceOptions.includes(availableSpace)) errors.push("Select available space.");
-    if (!experienceOptions.includes(businessExperience)) errors.push("Select business experience.");
-    if (!fleetOptions.includes(plannedFleetSize)) errors.push("Select planned fleet size.");
+    if (isFleetInvestment) {
+      if (!(FLEET_APPLICANT_PROFILES as readonly string[]).includes(applicantProfile)) {
+        errors.push("Select the profile that best describes you.");
+      }
+      if (!fleetEstimate) errors.push("Select a valid scooter plan and fleet size from the official brief.");
+    } else {
+      if (!investmentCapacities.includes(investmentCapacity)) errors.push("Select a valid investment capacity.");
+      if (!propertyOptions.includes(propertyAvailable)) errors.push("Select property availability.");
+      if (!spaceOptions.includes(availableSpace)) errors.push("Select available space.");
+      if (!experienceOptions.includes(businessExperience)) errors.push("Select business experience.");
+      if (!fleetOptions.includes(plannedFleetSize)) errors.push("Select planned fleet size.");
+    }
     if (!consentAccepted) errors.push("Consent is required.");
 
     if (errors.length > 0) {
@@ -128,6 +158,8 @@ export async function POST(req: Request) {
       city,
       territory,
       partnerType,
+      applicantProfile,
+      vehicleCategory,
       comingThrough,
       investmentCapacity,
       propertyAvailable,

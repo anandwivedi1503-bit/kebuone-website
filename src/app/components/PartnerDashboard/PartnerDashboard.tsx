@@ -212,7 +212,14 @@ export default function PartnerDashboard() {
                       {partner.city}
                       {partner.state ? `, ${partner.state}` : ""}
                     </td>
-                    <td className="px-6 py-5 text-center font-bold">{partner.investmentCapacity}</td>
+                    <td className="px-6 py-5 text-center">
+                      <p className="font-bold">{partner.investmentCapacity || "—"}</p>
+                      {partner.vehicleCategory || partner.plannedFleetSize ? (
+                        <p className="mt-1 text-xs font-medium text-gray-500">
+                          {[partner.vehicleCategory, partner.plannedFleetSize].filter(Boolean).join(" · ")}
+                        </p>
+                      ) : null}
+                    </td>
                     <td className="px-6 py-5 text-center">
                       {partner.applicationStatus === "Approved" && <StatusBadge status="active" />}
                       {partner.applicationStatus === "Pending" && <StatusBadge status="warning" />}
@@ -284,6 +291,7 @@ export default function PartnerDashboard() {
                         {partner.phone} · {partner.email}
                         {partner.territory ? ` · ${partner.territory}` : ""}
                       </p>
+                      {partner.applicantProfile ? <p className="mt-1">Applicant profile: {partner.applicantProfile}</p> : null}
                       {partner.message ? <p className="mt-1 whitespace-pre-wrap">{partner.message}</p> : null}
                       {openId === partner._id || partner.applicationStatus === "Pending" ? (
                         <div className="mt-3 flex flex-col gap-2 sm:flex-row">
